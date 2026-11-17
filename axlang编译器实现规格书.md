@@ -1,6 +1,6 @@
 # axlang 编译器实现规格书（AI 执行版）
 
-> 版本：v0.24　配套：`axlang语法设计文稿.md` v0.47
+> 版本：v0.25　配套：`axlang语法设计文稿.md` v0.47
 > 读者：具备代码生成能力的 AI（及人类实现者）
 > 用途：**唯一目的**是从零产出可运行的 `axc` 编译器（词法 → 语法 → 语义 → 代码生成 → 运行时）
 > 本文件不是语言设计稿，不新增任何语言特性；语言事实一律以文稿为准
@@ -154,6 +154,9 @@ goods.ax:12:9: error[E4001]: 类型不匹配：期望 decimal，得到 int
 - `severity` ∈ `error` | `warning` | `note`
 - 一个源位置最多展示一次源码行；同一行多条诊断各自重复展示。
 - **诊断必须稳定排序**：按 (文件路径字典序, 行, 列, code) 排序后输出。
+- **同一位置同一码只输出一次**：入池时按 `(path, line, col, code)` 去重（`Diags.seen`），
+  解析恢复在同一 token 上反复报错不会刷屏；`set_note` / `set_suggestion` 仍挂到首条。
+  解析回溯（`Parser::reset`）通过 `Diags::truncate_to` 截断并重建去重表。
 
 JSON 模式：每行一个 JSON 对象（JSONL），字段固定：
 
@@ -1879,6 +1882,8 @@ void    ax_file_close(ax_file* f);                   /* 幂等 */
 | `G-07` | `int s = if x >= 0 { 1 }` | `E2005` |
 | `G-08` | `int a = i++` | `E2010` |
 | `G-09` | `++i` | `E2010` |
+| `G-10` | `print(a++)`（`++` 在实参内部） | 恰好一条 `E2010`（回归：曾在同一位置连报 20+ 条恢复错误） |
+| `G-10` | `print(a++)`（`++` 在实参内部） | 恰好一条 `E2010`（回归：曾在同一位置连报 20+ 条恢复错误） |
 | `G-10` | `nums.Sort((int a, int b) { return a - b })` | 通过（匿名函数消解） |
 | `G-11` | `var t = (1, "one")` | 通过（元组） |
 | `G-12` | `f((a, b))` | 通过（一个元组实参，非两个实参） |
@@ -1933,6 +1938,8 @@ void    ax_file_close(ax_file* f);                   /* 幂等 */
 | `Pat-neg-1` | 标量值上写类型模式（`string s` 配 `int n =>`） | 恰好一条 `E4001` |
 | `Print-1` | `println(123)` / `println(3.5)` / `println(true)` / `print(42)` 不换行 / `println(Printable 类实例)` / `println(enum)` | 通过（`Print-1.out`；等价于补花括号的插值） |
 | `Print-neg-1` | `println(xs)`（`xs` 为 `int[]`） | `E4001`（复合类型不参与插值） |
+| `Print-neg-2` | `print(a, b)` 多实参 | 恰好一条 `E4031`，不再追加 string 强转的 `E4001` |
+| `Print-neg-2` | `print(a, b)` 多实参 | 恰好一条 `E4031`，不再追加 string 强转的 `E4001` |
 | `Math-1` | `math.Compare(1.0, 2.0)` / `math.Equals(0.1 + 0.2, 0.3, 1e-6)` | 通过（`Math-1.out`：`-1 0 1 true false`；模块成员 PascalCase） |
 | `IO-2` | `file.Create(...)` 写入一行后 `io.ReadFile(...)` 读回 | 通过（`IO-2.out`：`第一行`） |
 | `demo/OrderDemo` | 示例工程（`samples/demo/`）：`catalog.product` / `catalog.inventory` / `checkout.bill`（具名导入）/ `checkout.wholesale`（跨模块继承）；入口用**裸类型名**构造，另混用全路径写法作对照，含数组字段 `Push`、可空返回判空、`:.2` 金额 | 通过（`main.out` 逐字节比对） |

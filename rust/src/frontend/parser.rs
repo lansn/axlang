@@ -182,7 +182,7 @@ impl<'a> Parser<'a> {
 
     fn reset(&mut self, m: Mark) {
         self.p = m.p;
-        self.d.items.truncate(m.ndiags);
+        self.d.truncate_to(m.ndiags);
         self.d.error_count = self
             .d
             .items
@@ -1762,6 +1762,11 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_postfix(&mut self) -> PResult<EPtr> {
+        // `++`/`--` 只认**语句最外层**的 postfix 链：进入本函数时把标志一次性
+        // 消费掉，之后任何嵌套表达式（实参、下标、括号、数组元素）里再遇到
+        // `++` 都走 E2010。否则 `print(a++)` 里的 `++` 会被语句层当成尾巴吞掉，
+        // 只剩一串同一位置的恢复错误。
+        let top = std::mem::replace(&mut self.allow_incdec, false);
         let mut e = self.parse_primary()?;
         loop {
             if self.at(".") {
@@ -1810,7 +1815,7 @@ impl<'a> Parser<'a> {
                     return self.fail("E2009", &tk, "文稿 10.1", "`try` 之后不能再接 `.` 或 `[`（`try` 绑定最紧）", &[]);
                 }
             } else if self.at("++") || self.at("--") {
-                if self.allow_incdec {
+                if top {
                     break;
                 }
                 let op = self.tok(0).kind.clone();

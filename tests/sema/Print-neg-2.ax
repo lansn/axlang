@@ -1,0 +1,9 @@
+// EXPECT: E4031
+// print 只接受 1 个实参；多个值请用插值字符串。多实参应恰好报一条 E4031，
+// 不再因为按 string 强转实参而追加一条 E4001。
+int main() {
+    int a = 1
+    int b = 2
+    print(a, b)
+    return 0
+}

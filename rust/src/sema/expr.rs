@@ -1236,6 +1236,23 @@ impl<'a> Sema<'a> {
         args: &[ast::N<ast::Arg>],
         name: &str,
     ) -> Ty {
+        if args.len() != 1 {
+            // 多实参：只报一条 E4031，实参本身照常检查但不做 string 强转——
+            // 一处误用不该再追加一条 E4001 强转诊断
+            self.err(
+                "E4031",
+                &e.tok,
+                "文稿 11.2",
+                "`{0}` 只接受 1 个实参，得到 {1}（多个值请拼成一个插值字符串，如 `\"{a} {b}\"`）",
+                &[&name, &args.len()],
+            );
+            for a in args {
+                self.check_expr(&a.k.expr, None);
+            }
+            self.sl(e.id).ckind = Some("builtin");
+            self.sl(e.id).bname = Some(name.to_string());
+            return t_void();
+        }
         if args.len() == 1 && !args[0].k.borrow {
             let errs_before = self.d.error_count;
             let t = self.check_expr(&args[0].k.expr, None);

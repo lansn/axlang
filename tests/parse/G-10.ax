@@ -1,0 +1,9 @@
+// EXPECT: E2010
+// `++` 只能独立成句：出现在实参内部时应恰好报一条 E2010。
+// 回归：此前 allow_incdec 标志泄漏进实参列表，`print(a++)` 会先报
+// "expected `)`"，随后恢复循环在同一位置重复报 20 次 "expected 类型名"。
+int main() {
+    int a = 10
+    print(a++)
+    return 0
+}

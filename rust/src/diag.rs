@@ -57,6 +57,12 @@ impl Diag {
 /// `sources` 缓存源码文本，供文本模式的脱字符行渲染。
 pub struct Diags {
     pub items: Vec<Diag>,
+    /// (path, line, col, code) → items 下标：同一位置同一码只保留第一条，
+    /// 避免解析恢复在同一 token 上反复报错（"同一个错误循环显示多次"）。
+    seen: HashMap<(String, u32, u32, String), usize>,
+    /// 最近一次真正入池的诊断下标——set_note / set_suggestion 挂到它上面；
+    /// 若该诊断因去重被丢弃，则挂到它原本所在的那条上。
+    last: Option<usize>,
     pub sources: HashMap<String, String>,
     pub error_count: usize,
     /// 诊断文案语言（默认英文；`--lang` / `AXC_LANG` / `axc.toml` 决定）
@@ -67,6 +73,8 @@ impl Diags {
     pub fn new() -> Self {
         Diags {
             items: Vec::new(),
+            seen: HashMap::new(),
+            last: None,
             sources: HashMap::new(),
             error_count: 0,
             lang: crate::diag_msg::Lang::En,
@@ -75,6 +83,17 @@ impl Diags {
 
     pub fn add_source(&mut self, path: &str, text: &str) {
         self.sources.insert(path.to_string(), text.to_string());
+    }
+
+    /// 回滚到前 n 条诊断（解析回溯用）：截断 items、重建去重表、复位 last。
+    pub fn truncate_to(&mut self, n: usize) {
+        self.items.truncate(n);
+        self.seen.clear();
+        for (i, d) in self.items.iter().enumerate() {
+            self.seen
+                .insert((d.path.clone(), d.line, d.col, d.code.clone()), i);
+        }
+        self.last = self.items.len().checked_sub(1);
     }
 
     pub fn has_error(&self) -> bool {
@@ -93,6 +112,14 @@ impl Diags {
         ecol: u32,
         rule: &str,
     ) {
+        let key = (path.to_string(), line, col, code.to_string());
+        if let Some(&i) = self.seen.get(&key) {
+            // 同一位置同一码已有诊断：丢弃重复条，但记住它，让后续
+            // set_note / set_suggestion 仍挂到首条上而不是别的诊断上
+            self.last = Some(i);
+            return;
+        }
+        let idx = self.items.len();
         self.items.push(Diag {
             code: code.to_string(),
             msg: msg.into(),
@@ -106,6 +133,8 @@ impl Diags {
             notes: Vec::new(),
             suggestion: None,
         });
+        self.seen.insert(key, idx);
+        self.last = Some(idx);
         self.error_count += 1;
     }
 
@@ -121,6 +150,12 @@ impl Diags {
         ecol: u32,
         rule: &str,
     ) {
+        let key = (path.to_string(), line, col, code.to_string());
+        if let Some(&i) = self.seen.get(&key) {
+            self.last = Some(i);
+            return;
+        }
+        let idx = self.items.len();
         self.items.push(Diag {
             code: code.to_string(),
             msg: msg.into(),
@@ -134,18 +169,26 @@ impl Diags {
             notes: Vec::new(),
             suggestion: None,
         });
+        self.seen.insert(key, idx);
+        self.last = Some(idx);
     }
 
-    /// 给最后一条诊断补建议（`help:` 行）。
+    /// 给最近一条诊断补建议（`help:` 行）。
     pub fn set_suggestion(&mut self, text: impl Into<String>) {
-        if let Some(d) = self.items.last_mut() {
-            d.suggestion = Some(text.into());
+        let target = self.last.or_else(|| self.items.len().checked_sub(1));
+        if let Some(i) = target {
+            if let Some(d) = self.items.get_mut(i) {
+                d.suggestion = Some(text.into());
+            }
         }
     }
 
     pub fn set_note(&mut self, note: Note) {
-        if let Some(d) = self.items.last_mut() {
-            d.notes.push(note);
+        let target = self.last.or_else(|| self.items.len().checked_sub(1));
+        if let Some(i) = target {
+            if let Some(d) = self.items.get_mut(i) {
+                d.notes.push(note);
+            }
         }
     }
 
