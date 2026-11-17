@@ -292,6 +292,7 @@ pub static CATALOG: &[(&str, &str, &str)] = &[
     ("E3040", "`{0}` 这个名字已经被 `import {1}` 占用，`import {2}` 不能再使用；请写成 `import {3} as 别名` 加以区分", "the name `{0}` is already taken by `import {1}`; `import {2}` can no longer use it; write `import {3} as alias` to disambiguate"),
     ("E3041", "既有 `int main()` 又有顶层语句（顶层语句会自动包成 `main`）；二者只留一个——要么把语句搬进 `main`，要么删掉 `main`", "both an explicit `int main()` and top-level statements exist (top-level statements are wrapped into an implicit `main`); keep only one - either move the statements into `main`, or delete `main`"),
     ("E3042", "`{0}` 有歧义：{1} 都导出了同名类型；请写全路径 `{2}.{3}` 或改用 `import {4}.{{{5}}}`", "`{0}` is ambiguous: both {1} export a type with that name; write the full path `{2}.{3}` or use `import {4}.{{{5}}}`"),
+    ("E3043", "成员名一律 PascalCase：{0} `{1}` 应写作 `{2}`", "member names are always PascalCase: {0} `{1}` should be written `{2}`"),
     ("E4001", "`fail` 的实参必须是 error，得到 {0}", "the argument to `fail` must be error, found {0}"),
     ("E4001", "`null` 只能与可空类型或引用类型比较", "`null` can only be compared with nullable or reference types"),
     ("E4001", "`throw` 的消息必须是 string", "the message of `throw` must be a string"),

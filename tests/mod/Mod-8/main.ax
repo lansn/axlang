@@ -3,14 +3,14 @@
 import model
 
 class TextDoc implement model.Describable {
-    public string title
+    public string Title
 
     constructor(string title) {
-        this.title = title
+        this.Title = title
     }
 
-    public string describe() {
-        return "文档：{this.title}"
+    public string Describe() {
+        return "文档：{this.Title}"
     }
 }
 
@@ -19,17 +19,17 @@ class SecretDoc extend TextDoc {
         parent("机密文档")
     }
 
-    public override string describe() {
+    public override string Describe() {
         return "机密：***"
     }
 }
 
 int main() {
     model.Describable d = new TextDoc("年度报告")   // 跨模块 interface 上转
-    println(d.describe())
+    println(d.Describe())
 
     d = new SecretDoc()                             // 子类实例赋同一 interface
-    println(d.describe())                           // 派发到 override 实现
+    println(d.Describe())                           // 派发到 override 实现
 
     println(model.Show(d))                          // interface 作跨模块参数
     return 0

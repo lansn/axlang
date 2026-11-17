@@ -4,19 +4,19 @@ import db               // print 是根模块内建函数，无需 import
 
 // ---- 类：数据与行为一体 ----
 class Goods {
-    public int id
-    public string name
-    public decimal price         // 金额只用 decimal
-    public int stock
+    public int Id
+    public string Name
+    public decimal Price         // 金额只用 decimal
+    public int Stock
 
     constructor(int id, string name, decimal price, int stock) {
-        this.id = id
-        this.name = name
-        this.price = price
-        this.stock = stock
+        this.Id = id
+        this.Name = name
+        this.Price = price
+        this.Stock = stock
     }
 
-    public static result<Goods?> load(int id) {
+    public static result<Goods?> Load(int id) {
         var row = db.Query("select id, name, price, stock from goods where id = ?", id) try
         if row.Empty() {
             return ok(null)
@@ -30,51 +30,51 @@ class Goods {
         ))
     }
 
-    public result<decimal> subtotal(int count) {
-        if this.stock < count {
+    public result<decimal> Subtotal(int count) {
+        if this.Stock < count {
             throw error.Money("insufficient stock")
         }
-        return ok(this.price * count)
+        return ok(this.Price * count)
     }
 }
 
 // ---- 继承与接口 ----
 interface Describable {
-    string describe()
+    string Describe()
 }
 
 class DiscountedGoods extend Goods implement Describable {
-    public decimal rate          // 折扣率，如 0.9d 表示九折
+    public decimal Rate          // 折扣率，如 0.9d 表示九折
 
     constructor(Goods goods, decimal rate) {
-        parent(goods.id, goods.name, goods.price, goods.stock)
-        this.rate = rate
+        parent(goods.Id, goods.Name, goods.Price, goods.Stock)
+        this.Rate = rate
     }
 
-    public result<decimal> final_price(int count) {
-        decimal total = this.subtotal(count) try                 // 复用父类方法
-        return ok((total * this.rate).Round(2, Rounding.HalfUp))  // 精确十进制 + 显式舍入
+    public result<decimal> FinalPrice(int count) {
+        decimal total = this.Subtotal(count) try                 // 复用父类方法
+        return ok((total * this.Rate).Round(2, Rounding.HalfUp))  // 精确十进制 + 显式舍入
     }
 
-    public override string describe() {
-        return "{this.name} ¥{this.price:.2}（库存 {this.stock}）"
+    public override string Describe() {
+        return "{this.Name} ¥{this.Price:.2}（库存 {this.Stock}）"
     }
 }
 
 // ---- 入口 ----
 int main() {
-    Goods? g = Goods.load(1001) try               // result<Goods?> 传播
+    Goods? g = Goods.Load(1001) try               // result<Goods?> 传播
     if g == null {
         println("商品不存在")
         return 1
     }
 
     var d = new DiscountedGoods(g, 0.9d)
-    match d.final_price(3) {
+    match d.FinalPrice(3) {
         ok(total) => println("折后小计 {total:.2}"),
         fail(e)   => println("下单失败：{e.msg}"),
     }
 
-    println(d.describe())
+    println(d.Describe())
     return 0
 }

@@ -1,7 +1,7 @@
 // typeof(expr)：编译期常量，返回静态类型显示名（文稿 11.2）
 class Dog {
-    public string name
-    constructor(string name) { this.name = name }
+    public string Name
+    constructor(string name) { this.Name = name }
 }
 int main() {
     int a = 1

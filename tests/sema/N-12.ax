@@ -1,6 +1,6 @@
 // EXPECT: E3008
 class A {
-    public int x
+    public int X
 }
 
 int main() {

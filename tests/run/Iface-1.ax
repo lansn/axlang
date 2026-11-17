@@ -3,44 +3,44 @@
 // 方法调用经 tv.vt 动态派发。
 
 interface Shape {
-    int area()
-    string name()
+    int Area()
+    string Name()
 }
 
 class Circle implement Shape {
-    public int r
+    public int R
 
     constructor(int r) {
-        this.r = r
+        this.R = r
     }
 
-    public int area() {
-        return 3 * this.r * this.r        // 圆周率取 3，输出可预测
+    public int Area() {
+        return 3 * this.R * this.R        // 圆周率取 3，输出可预测
     }
 
-    public string name() {
+    public string Name() {
         return "圆"
     }
 }
 
 class Square implement Shape {
-    public int side
+    public int Side
 
     constructor(int side) {
-        this.side = side
+        this.Side = side
     }
 
-    public int area() {
-        return this.side * this.side
+    public int Area() {
+        return this.Side * this.Side
     }
 
-    public string name() {
+    public string Name() {
         return "方"
     }
 }
 
 string tag(Shape s) {
-    return s.name() + "面积" + s.area().ToString()   // 上转传参 + 经 interface 派发
+    return s.Name() + "面积" + s.Area().ToString()   // 上转传参 + 经 interface 派发
 }
 
 Shape pick(int which) {

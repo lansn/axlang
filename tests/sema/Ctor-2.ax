@@ -1,6 +1,6 @@
 // EXPECT: E4042
 class Greeter {
-    public string greet(string name) {
+    public string Greet(string name) {
         return "你好，{name}"
     }
 }

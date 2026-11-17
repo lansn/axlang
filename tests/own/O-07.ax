@@ -1,9 +1,9 @@
 // EXPECT: E7006
 // O-07：ArenaRef 不能作为返回值逃出 arena 的作用域
 class Node {
-    public int v
+    public int V
     constructor(int v) {
-        this.v = v
+        this.V = v
     }
 }
 

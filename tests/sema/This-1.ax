@@ -1,11 +1,11 @@
 // EXPECT: E3038
 class Calc {
-    public int base
+    public int Base
     constructor(int base) {
-        this.base = base
+        this.Base = base
     }
-    public static int get_base() {
-        return this.base
+    public static int GetBase() {
+        return this.Base
     }
 }
 int main() {

@@ -2,16 +2,16 @@
 // O-18：ArenaRef 不能存进普通对象（区域外）的字段——
 // 构造期也一样拦截（Holder 的字段赋值就发生在普通对象上）
 class Node {
-    public int v
+    public int V
     constructor(int v) {
-        this.v = v
+        this.V = v
     }
 }
 
 class Holder {
-    public ArenaRef<Node> slot
+    public ArenaRef<Node> Slot
     constructor(ArenaRef<Node> s) {
-        this.slot = s
+        this.Slot = s
     }
 }
 

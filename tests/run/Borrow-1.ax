@@ -17,12 +17,12 @@ void bump(&int[] xs) {
 }
 
 class Buf {
-    public int n
+    public int N
     constructor(int n) {
-        this.n = n
+        this.N = n
     }
-    public void write(string s) {
-        this.n = this.n + s.Len()
+    public void Write(string s) {
+        this.N = this.N + s.Len()
     }
 }
 
@@ -39,8 +39,8 @@ int main() {
     var b = new Buf(8)
     var c = b                // 所有权移走
     b = new Buf(4)           // 重新赋值复活
-    b.write("xy")            // 合法
-    println("b.n={b.n}")
+    b.Write("xy")            // 合法
+    println("b.N={b.N}")
 
     // W1003：对 copy 类型（string）借用等价传值，只警告不报错
     string msg = "hi"

@@ -4,6 +4,6 @@ import model.{greet, PORT, Config}
 int main() {
     Config c = new Config(PORT)
     println(greet("named"))
-    println("port={c.port}")
+    println("port={c.Port}")
     return 0
 }

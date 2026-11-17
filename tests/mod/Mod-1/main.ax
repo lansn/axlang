@@ -9,9 +9,9 @@ int main() {
     println("double = {utils.double_it(21)}")
 
     utils.Calc c = utils.Calc(5)
-    println("twice = {c.twice()}")
-    utils.Calc z = utils.Calc.zero()
-    println("zero base = {z.base}")
+    println("twice = {c.Twice()}")
+    utils.Calc z = utils.Calc.Zero()
+    println("zero base = {z.Base}")
 
     println("alias add = {u.add(1, 1)}")
     println("http get = {net.http.get()}")

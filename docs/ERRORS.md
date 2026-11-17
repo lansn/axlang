@@ -6,7 +6,7 @@
 `E4xxx` 类型与表达式 / `E5xxx` 转换与装箱 / `E6xxx` match 与错误传播 /
 `E7xxx` 所有权与借用。输出语言由 `--lang` / `AXC_LANG` / `axc.toml`（`lang = "zh"`）决定，默认英文。
 
-共 128 个码、328 条文案。
+共 129 个码、329 条文案。
 
 ## E1（词法）
 
@@ -229,6 +229,8 @@
 | `E3041` | 既有 `int main()` 又有顶层语句（顶层语句会自动包成 `main`）；二者只留一个——要么把语句搬进 `main`，要么删掉 `main`（文稿 9.4） | both an explicit `int main()` and top-level statements exist (top-level statements are wrapped into an implicit `main`); keep only one - either move the statements into `main`, or delete `main` |
 
 | `E3042` | `{0}` 有歧义：{1} 都导出了同名类型；请写全路径 `{2}.{3}` 或改用 `import {4}.{{{5}}}`（文稿 9.2） | `{0}` is ambiguous: both {1} export a type with that name; write the full path `{2}.{3}` or use `import {4}.{{{5}}}` |
+
+| `E3043` | 成员名一律 PascalCase：{0} `{1}` 应写作 `{2}`（文稿 2.3） | member names are always PascalCase: {0} `{1}` should be written `{2}` |
 
 ## E4（类型与表达式）
 

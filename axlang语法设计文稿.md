@@ -1,6 +1,6 @@
 # axlang 语法设计文稿
 
-> 版本：v0.46（语法草案）
+> 版本：v0.47（语法草案）
 > 定位：系统级静态类型编译型语言
 > 本稿只讨论语法与语义规则，编译器实现为后续任务。
 ---
@@ -152,13 +152,14 @@ if price > 0
 
 ### 2.3 标识符与关键字
 
-- 标识符：`[A-Za-z_][A-Za-z0-9_]*`；**命名风格不参与词法与语义，编译器不作任何诊断**。命名仍按"谁写的"分档，但**只有标准库与内建名字的拼写是硬约束**，其余全是推荐值：
+- 标识符：`[A-Za-z_][A-Za-z0-9_]*`；命名风格不参与词法与语义。命名按三档处理——**内建名字的拼写**与**`.` 右侧的成员名**是硬约束（写错就报错或根本找不到），**其余用户自选的名字只推荐**，编译器不检查：
   - **内建类型名一律全小写**：`int` `float` `decimal` `string` `error` `result` `object`。
   - **裸调用的一等函数一律全小写**（多词用 snake_case）：`print` / `println` / `ok` / `fail` / `parent` / `typeof` / `sizeof`，以及将来的全局 `len(x)` / `max(a, b)` / `min(a, b)`。
   - **凡带 `.` 的调用一律 PascalCase**（C# 官方约定）——模块成员、类型静态方法、实例方法、接口方法一视同仁：`io.ReadLine()` / `io.ReadFile(p)` / `file.Open(p)` / `json.Parse(s)` / `math.Compare(a, b)` / `time.NowMs()` / `db.Query(sql)`；`s.Len()` / `nums.Push(v)` / `f.ReadLine()` / `decimal.Parse(s)`；内建接口 `Printable.ToString()` / `Comparable.Compare(other)` / `Hashable.Hash()`。
   - 分界只看**语法**，不问那个 `.` 左边是模块、类型还是值：`名字(...)` 是函数层（小写），`X.名字(...)` 一律 PascalCase。一条判据即可决定任一名字的拼写，读代码的人不必先查 `X` 是模块还是类型——这与 C# 同构：C# 里没有"模块函数"，只有静态类成员，本来就是 `Console.WriteLine` / `File.ReadAllText` / `Math.Sqrt`。`io` 是模块、`string` 既是类型又是模块，但两者的成员拼写一致（`string.FromCodepoint()` 从静态方法和模块两条路进入写法相同）。反例是 Rust 的 `std::fs::read_to_string()`——它敢用 snake_case，是因为 `::` 在视觉上就宣告"这是路径不是成员"；本文只有 `.` 一个访问符，区分职责只能落在命名上，把两种拼法混在一处只会逼读者猜。
-  - **用户侧命名不做要求，只推荐 PascalCase**：用户定义类型、函数、方法、字段推荐 PascalCase（C# 风格）——`Session`、`Config`、`CheckEmail`、`DoubleIt`、`UserId`；局部变量与参数写 `snake_case` 或 `camelCase` 均可（`user_id` / `userId`）；常量推荐全大写蛇形（`MAX_RETRY`）。以上全部是**文档推荐与代码评审的依据，编译器不检查、不报错、不警告**。
-  - 上面三条是**语法级硬约束**：标准库与内建的拼写就是名字本身——`Len` 不是 `len` 的驼峰版，`len` 就是个不存在的名字（反过来 `s.len()` 也不存在）。分界依据是 1.2 第 3 判据：标准库名字可枚举（几百个），统一成本为零且必须统一，否则用户猜不出拼写；用户代码的名字几十万个、各有所好，编译器无从裁决，强制只会让 C/Python/Rust 程序员集体改肌肉记忆，而收益只是"好看一点"。推荐值取 PascalCase，是因为用户侧类型与方法同风格时整段代码观感连贯：**内建裸函数全小写（`print`）、凡带 `.` 的成员 PascalCase（`io.ReadLine`）、用户类型与方法也 PascalCase（`Session` / `CheckEmail`）**。
+  - **成员名一律 PascalCase（硬约束，`E3043`）**：方法、静态方法、接口方法、字段、枚举成员——只要出现在 `.` 右侧，就首字母大写、不含下划线：`s.Len()`、`user.UserId`、`Shape.Area()`、`Color.Red`。写错即报错并点名正确拼写（`read` → `Read`、`min_qty` → `MinQty`）。这一档不适用下一条的宽容，理由是成员只有一个语法位置：位置唯一，拼法就必须唯一，否则同一个 `.` 上会有两套写法（`io.ReadLine()` 旁边站着 `s.read()`）。C# 的做法正是把公开成员（含属性）写成 PascalCase，靠 `[JsonPropertyName]` 之类把外部的 `user_id` 映射进来，而不是让成员名跟着外部走。`constructor` 是关键字不是成员名，不受此限；将来若引入 FFI / `extern` 绑定声明，C 侧字段名另开一条窄口子豁免。
+  - **其余用户侧命名只推荐**：类型、模块级函数推荐 PascalCase（`Session`、`Config`、`CheckEmail`、`DoubleIt`）；局部变量与参数写 `snake_case` 或 `camelCase` 均可（`user_id` / `userId`）；常量推荐全大写蛇形（`MAX_RETRY`）。这些是**文档推荐与代码评审的依据，编译器不检查、不报错、不警告**。
+  - 上面几条里，内建类型名、裸调用函数名、`.` 右侧的成员名是**语法级硬约束**：标准库与内建的拼写就是名字本身——`Len` 不是 `len` 的驼峰版，`len` 就是个不存在的名字（反过来 `s.len()` 也不存在）。分界依据是 1.2 第 3 判据：标准库名字可枚举（几百个），统一成本为零且必须统一，否则用户猜不出拼写；用户代码里"可自由取名"的部分（类型、函数、变量）几十万个、各有所好，编译器无从裁决，强制只会让 C/Python/Rust 程序员集体改肌肉记忆，而收益只是"好看一点"；用户自己写的**成员**不在此列——它不是一个可以随便叫的名字，而是某个语法位置上唯一允许的写法（写成 `read` 就报 `E3043`）。风格上仍推荐：**内建裸函数全小写（`print`）、凡带 `.` 的成员 PascalCase（`io.ReadLine`）、用户类型与函数也 PascalCase（`Session` / `CheckEmail`）**。
   - 单独的 `_` 不是标识符（保留给 `match` 通配模式）；`@` 不属于标识符字符，`@name(...)` 是编译期属性语法，只允许 `@os` / `@arch`（见 9.3）。
 - 保留关键字（全部，共 36 个）：
 
@@ -1875,7 +1876,7 @@ int main() {
 两句实话作为边界：
 
 - 语法能保证的是"这类代码写不出来"，保证不了"业务逻辑算得对"。金额用 `decimal` 是语法保证；用 `decimal` 却选错了舍入方式（`Rounding.HalfUp` 还是 `Rounding.HalfEven`），那是业务判断，编译器替不了你。
-- 还剩一处纯属约定而非语法：**命名风格**。除"标准库与内建的拼写是硬约束"（函数小写、方法 PascalCase；那是名字本身，拼错就找不到）之外，用户侧的类型、函数、方法、字段、变量**一律不做要求，只推荐 PascalCase**（2.3）。它不影响正确性，因此既**不报错也不警告**——风格交给代码评审，编译器只管语义。这是本清单里唯一的"纯软约束"。
+- 还有一处**一半硬、一半软**的界限：**命名风格**。硬的一半由位置决定——标准库与内建的拼写（函数小写、方法 PascalCase），以及任何**成员名**（`.` 右侧一律 PascalCase，违规报 `E3043`；那是名字本身，拼错就找不到）；软的一半是用户自选的名字（类型、模块级函数、局部变量、参数、常量），**只推荐 PascalCase，既不报错也不警告**（2.3）——风格交给代码评审，编译器只管语义。
 
 ---
 
@@ -2259,3 +2260,5 @@ int main() {
 *㊽**命名按调用形状分：库函数全小写、方法 PascalCase（v0.45）**：用户拍板"内置库函数名称全部小写（print println len max min 等等），类方法名称使用 C# 风（ToString() ..）"。这条推翻了 ㉞（v0.31）把**模块函数也 PascalCase** 的决定——那轮的理由是"标准库一律 C# 风格"，代价是 `io.ReadLine()` 与 `s.Len()` 同形，读代码时看不出哪个是"对象上的方法"、哪个是"库里的一支自由函数"。新判据只看**调用形状**：`名字(...)` 是函数，全小写（多词 snake_case）；`值.名字(...)` / `类型.名字(...)` 是方法，PascalCase。于是 `Print`/`Println` 回到 `print`/`println`（㊱ 那次拆分本身保留：仍是无换行/换行两个入口），`io.ReadLine`/`io.ReadFile`→`io.read_line`/`io.read_file`，`file.Open/Create/Append`→`file.open/create/append`，`math.Equals`/`math.Compare`→`math.equals`/`math.compare`，`json.Parse`→`json.parse`，`db.Query`→`db.query`；方法侧不动（`s.Len()`、`f.ReadLine()`、`decimal.Parse`、`x.ToString()`），但把三个违反 PascalCase 的**内建接口方法**一并修正：`to_string`→`ToString`、`compare`→`Compare`、`hash`→`Hash`（`Printable` / `Comparable` / `Hashable` 的契约面，实现类要跟着改）。`string.FromCodepoint` 保持 PascalCase——`string` 是类型，`string.X(...)` 是静态方法（同一名字也经模块 `string` 可达，两种写法拼写一致）。**旧名不静默兼容**：`Print`/`Println` 报 `E3003` 并指名"内置库函数名一律小写：`Print` 请写 `print`"，`io.ReadLine()` 这类则报"模块没有该符号"。落地时顺带挖出两个**从未被用例覆盖的生成 bug**：`io.read_file` 按单实参生成 `ax_read_file(path)`、`io.read_line` 按无参生成 `ax_read_line()`，而运行时两者都是 `(…, ax_str* out)` 的 out 参数形态——写进 `IO-2` 才暴露，现按 `result<string>` / `string?` 结构体在生成期展开；`axrt.h` 补 `#include <math.h>`（`math.equals` 生成 `fabs`，此前隐式声明报警告）。验收：**166/166** 通过、Rust 零警告（新增 `Math-1`、`IO-2`、`Name-neg-1`；`Out-1` 改为断言 `Print` 的迁移提示），规格书 §15.1/§16 同步。*
 
 *㊾**模块成员回到 PascalCase：分界线是"有没有限定"，不是"函数还是方法"（v0.46）**：㊽ 按"库函数全小写"执行，把 `io.read_line` / `file.open` / `math.compare` 也压成了小写，代码里随即出现**同形不同拼法**——`string.FromCodepoint()`（PascalCase，理由是 `string` 是类型）与 `io.read_line()`（小写，理由是 `io` 是模块）在语法上完全一样，读者得先知道 `io` 是什么才能猜出拼写，编译器也得替每个名字各记一套；`string` 更麻烦，它既是类型又是模块，同一个函数两条入口拼写还得一致。改判：分界线从"函数 vs 方法"移到"**有没有那个点**"——`名字(...)` 是值层的一等函数（可以整体传递），全小写；`X.名字(...)` 一律 PascalCase，不问 `X` 是模块、类型还是变量。一条判据即可决定任一名字的拼写，不需要"谁是模块"这份上下文。这与 C# 同构：C# 里没有"模块函数"，只有静态类成员，本来就是 `Console.WriteLine` / `File.ReadAllText` / `Math.Sqrt`。`print` / `println` 保持小写——它们确实是值层函数（将来 `var f = print` 合法），而 `io` 本身不是值（`var x = io` 编译错误），命名如实反映这条已经存在的语义差异，不是风格分裂。Rust 的 `std::fs::read_to_string()` 能用 snake_case，是因为 `::` 在视觉上就宣告了"路径不是成员"；本文只有 `.` 一个访问符，区分职责只能落在命名上，两种拼法混在一处只会逼读者猜。落地：`io.ReadLine` / `io.ReadFile` / `file.Open` / `file.Create` / `file.Append` / `json.Parse` / `json.Stringify` / `math.Equals` / `math.Compare` / `db.Query` / `time.NowMs`（`string.FromCodepoint` 本已正确）；旧写法报 `E3003` 并**点名正确拼写**——由 `pascal_member` 把 `read_line` 转成 `ReadLine` 再去签名表核对，命中才提示，避免对真正拼错的名字瞎猜（"模块成员一律 PascalCase：`io.read_line` 请写 `io.ReadLine`"）。验收：**166/166** 通过、Rust 零警告；`Name-neg-1` 反转为断言小写旧写法，文稿 §2.3、规格书 `L-24`/§16、`docs/STDLIB.md` 同步。*
+
+*㊿**成员名一律 PascalCase（v0.47）**：㊾ 之后仍留着一个口子——用户自己写的方法与字段"只推荐"，于是同一个 `.` 上可以并存 `io.ReadLine()` 与 `s.read()`，判据从"看语法"退化成"看谁写的"。用户追问"既然 `.` 右侧用 C# 风，是否有必要强制 PascalCase 成员名"，裁定：强制。理由不是审美而是位置——成员只经 `.` 访问，位置唯一，拼法就必须唯一；它也不在值层（没有 `var f = s.read` 这回事），不存在"各有所好"的余地，因此"用户侧几十万个名字、编译器无从裁决"的论据根本不适用。落地：方法 / 静态方法 / 接口方法 / 字段 / 枚举成员，首字母大写且不含下划线，声明处报 `E3043` 并点名正确拼写（`read` → `Read`、`min_qty` → `MinQty`，复用 ㊾ 的 `pascal_member`）；`constructor` 是关键字，不算成员名；类型名 / 模块级函数 / 局部变量 / 参数 / 常量仍只推荐、不检查，`utils.add(2, 3)` 这类模块函数调用不受影响。迁移：`tests/` + `samples/` 共 70 个文件、158 处成员声明改名（含两个期望输出里的插值标签），既有 166 个用例语义不变。批量改名一度把 `utils.add` / `utils.double_it` / `lib.f` 这些**模块函数**的限定调用也推成了 PascalCase，逐处改回——这条边界（`.` 左侧是模块时右边形如函数而不是成员）正是新规则与旧规则的分界，值得留一条提醒。验收：**167/167** 通过、Rust 零警告（新增 `Name-neg-2`）；文稿 §2.3 与第 13 章"软约束"段重写，规格书 `L-24` / `E3043` 表 / §16 验收表、`docs/ERRORS.md` 同步。*

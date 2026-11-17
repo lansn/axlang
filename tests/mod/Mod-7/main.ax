@@ -10,7 +10,7 @@ int main() {
     println(s.Label())
 
     Point pt = Point(3, 4)                      // struct 位置构造
-    println("{pt.x},{pt.y}")
+    println("{pt.X},{pt.Y}")
 
     Color c = Color.Red                         // enum 裸名
     println("{c}")

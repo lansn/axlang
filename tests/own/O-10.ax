@@ -6,12 +6,12 @@ bool yes() {
 }
 
 class Buf {
-    public int n
+    public int N
     constructor(int n) {
-        this.n = n
+        this.N = n
     }
-    public void write(string s) {
-        this.n = this.n + s.Len()
+    public void Write(string s) {
+        this.N = this.N + s.Len()
     }
 }
 
@@ -23,8 +23,8 @@ int main() {
     if yes() {
         sink(b)
     } else {
-        b.write("x")
+        b.Write("x")
     }
-    b.write("y")
+    b.Write("y")
     return 0
 }

@@ -2,7 +2,7 @@
 class Bag {
     int n
     constructor(int n) {
-        this.n = n
+        this.N = n
     }
 }
 int main() {

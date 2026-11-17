@@ -5,21 +5,21 @@
 import catalog.product
 
 public class Inventory {
-    public product.Product[] items
+    public product.Product[] Items
 
     constructor() {
-        this.items = []
+        this.Items = []
     }
 
     // 入一件，返回当前总数。items 是字段，Push 直接作用在原数组上
     public int Add(product.Product p) {
-        this.items.Push(p)
-        return this.items.Len()
+        this.Items.Push(p)
+        return this.Items.Len()
     }
 
     public product.Product? Find(string sku) {
-        for p in this.items {
-            if p.sku == sku {
+        for p in this.Items {
+            if p.Sku == sku {
                 return p
             }
         }
@@ -28,8 +28,8 @@ public class Inventory {
 
     public decimal Total() {
         decimal sum = 0.00d
-        for p in this.items {
-            sum = sum + p.price
+        for p in this.Items {
+            sum = sum + p.Price
         }
         return sum
     }

@@ -1,14 +1,14 @@
 // EXPECT: E7006
 // O-18：ArenaRef 不能作为实参传出调用（"会存起来"的位置无法穷举，保守拦截）
 class Node {
-    public int v
+    public int V
     constructor(int v) {
-        this.v = v
+        this.V = v
     }
 }
 
 void peek(Node n) {
-    println("{n.v}")
+    println("{n.V}")
 }
 
 int main() {

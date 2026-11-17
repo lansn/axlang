@@ -1,16 +1,16 @@
 // EXPECT: E7001
 class Buffer {
-    public int n
+    public int N
     constructor(int n) {
-        this.n = n
+        this.N = n
     }
-    public void write(string s) {
+    public void Write(string s) {
     }
 }
 
 int main() {
     var b = new Buffer(8)
     var c = b
-    b.write("x")
+    b.Write("x")
     return 0
 }

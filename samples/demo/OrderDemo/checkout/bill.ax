@@ -7,21 +7,21 @@
 import catalog.product.{Product, TAX_RATE}
 
 public class Bill {
-    public Product[] lines
+    public Product[] Lines
 
     constructor() {
-        this.lines = []
+        this.Lines = []
     }
 
     public Bill Add(Product p) {
-        this.lines.Push(p)
+        this.Lines.Push(p)
         return this
     }
 
     public decimal Subtotal() {
         decimal sum = 0.00d
-        for p in this.lines {
-            sum = sum + p.price
+        for p in this.Lines {
+            sum = sum + p.Price
         }
         return sum
     }

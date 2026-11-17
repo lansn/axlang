@@ -1819,6 +1819,9 @@ impl<'a> Sema<'a> {
         }
         if kind == "enum" {
             if let Item::EnumDecl { variants, .. } = &item.k {
+                for v in variants {
+                    self.check_member_name(v, &item.tok, "枚举成员");
+                }
                 let mut sorted = variants.clone();
                 sorted.sort();
                 sorted.dedup();
@@ -1834,6 +1837,7 @@ impl<'a> Sema<'a> {
                 for m in members {
                     match &m.k {
                         ast::Member::Field { vis, ty, name } => {
+                            self.check_member_name(name, &m.tok, "字段");
                             let ft = self.resolve_type(ty);
                             let dup = self.typedefs[d as usize]
                                 .fields
@@ -1863,6 +1867,7 @@ impl<'a> Sema<'a> {
                             params,
                             body,
                         } => {
+                            self.check_member_name(name, &m.tok, "方法");
                             let f = FuncInfo {
                                 name: name.clone(),
                                 tok: m.tok.clone(),
@@ -1930,6 +1935,7 @@ impl<'a> Sema<'a> {
         if kind == "interface" {
             if let Item::InterfaceDecl { methods, .. } = &item.k {
                 for m in methods {
+                    self.check_member_name(&m.k.name, &m.tok, "接口方法");
                     let f = FuncInfo {
                         name: m.k.name.clone(),
                         tok: m.tok.clone(),
@@ -2252,6 +2258,29 @@ impl<'a> Sema<'a> {
             }
         }
         td.name.clone()
+    }
+
+    /// 成员名一律 PascalCase（文稿 2.3）：首字母大写、不含下划线。
+    ///
+    /// 成员只经 `.` 访问——语法位置唯一，拼法就必须唯一，所以这一档不适用
+    /// 「用户侧只推荐」的宽容：`s.read()` 与 `io.ReadLine()` 是同一个位置的
+    /// 两套写法，只能留一套。`constructor` 是关键字不是成员名，不走这里。
+    fn check_member_name(&mut self, name: &str, tok: &Tok, kind: &str) {
+        let upper_first = name.chars().next().map_or(false, |c| c.is_ascii_uppercase());
+        if upper_first && !name.contains('_') {
+            return;
+        }
+        let suggest = crate::sema::expr::pascal_member(name);
+        if suggest.is_empty() || suggest == name {
+            return;
+        }
+        self.err(
+            "E3043",
+            tok,
+            "文稿 2.3",
+            "成员名一律 PascalCase：{0} `{1}` 应写作 `{2}`",
+            &[&kind, &name, &suggest],
+        );
     }
 
     fn check_class(&mut self, d: u32) {

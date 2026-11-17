@@ -1,10 +1,10 @@
 public const int PORT = 8080
 
 public class Server {
-    public int port
+    public int Port
 
     constructor(int port) {
-        this.port = port
+        this.Port = port
     }
 }
 

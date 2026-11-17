@@ -15,14 +15,14 @@ import checkout.wholesale
 int main() {
     // ---- 1. 裸名构造：import 已经把类型引进作用域 ----
     Product kb = new Product("SKU-001", "机械键盘", 299.00d)
-    println("{kb.Label()} ¥{kb.price:.2}")
+    println("{kb.Label()} ¥{kb.Price:.2}")
     println("含税：¥{kb.PriceWithTax():.2}")
 
     // ---- 2. 另一个模块的类：构造、调用、把对象交出去 ----
     Inventory inv = new Inventory()
     inv.Add(kb)                                    // 交出去之后 kb 归 inv 所有
     inv.Add(new catalog.product.Product("SKU-002", "无线鼠标", 99.00d))   // 全路径写法
-    println("入库 {inv.items.Len()} 件，合计 ¥{inv.Total():.2}")
+    println("入库 {inv.Items.Len()} 件，合计 ¥{inv.Total():.2}")
 
     // ---- 3. 可空返回：查到用，查不到走 else ----
     var hit = inv.Find("SKU-002")

@@ -1,4 +1,4 @@
 public class Product {
-    public string name
-    constructor(string name) { this.name = name }
+    public string Name
+    constructor(string name) { this.Name = name }
 }

@@ -1,10 +1,10 @@
 // Printable：实现类插值 / 接口变量动态派发 / 可空有值 / 可空 null（GAP #12）
 class Point implement Printable {
-    public int x
-    public int y
-    constructor(int x, int y) { this.x = x; this.y = y }
+    public int X
+    public int Y
+    constructor(int x, int y) { this.X = x; this.Y = y }
     public override string ToString() {
-        return "({this.x}, {this.y})"
+        return "({this.X}, {this.Y})"
     }
 }
 

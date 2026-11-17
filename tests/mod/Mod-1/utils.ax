@@ -16,14 +16,14 @@ public int double_it(int x) {
 }
 
 public class Calc {
-    public int base
+    public int Base
     constructor(int base) {
-        this.base = base
+        this.Base = base
     }
-    public static Calc zero() {
+    public static Calc Zero() {
         return new Calc(0)
     }
-    public int twice() {
-        return this.base * 2
+    public int Twice() {
+        return this.Base * 2
     }
 }
