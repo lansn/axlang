@@ -6,7 +6,7 @@
 
 use crate::frontend::ast;
 use crate::frontend::ast::{Expr, IfTail, Stmt};
-use crate::sema::{ScopeNode, Sema, VarInfo, VarState};
+use crate::sema::{ScopeNode, Sema, StmtUse, UseKind, VarInfo, VarState};
 use crate::types::*;
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -57,6 +57,7 @@ impl<'a> Sema<'a> {
                 decl_line: tok.line,
                 is_param: false,
                 idx: 0,
+                arena_region: None,
             }));
         }
         if self.lookup_type_name(name, tok).is_some() {
@@ -70,6 +71,7 @@ impl<'a> Sema<'a> {
             decl_line: tok.line,
             is_param: false,
             idx: 0,
+            arena_region: None,
         }));
         if let Some(s) = &self.scope {
             s.borrow_mut().names.insert(name.to_string(), v.clone());
@@ -106,6 +108,156 @@ impl<'a> Sema<'a> {
         }
     }
 
+    // ------------------------------------------------------ 所有权状态合并（O-4/O-5）
+
+    /// 变量状态快照：沿作用域链收集全部 (变量, 当前状态)。
+    /// 分支/循环检查前拍快照，各路径从快照出发独立检查。
+    pub fn var_states_snapshot(&self) -> Vec<(Rc<RefCell<VarInfo>>, VarState)> {
+        let mut out = Vec::new();
+        let mut cur = self.scope.clone();
+        while let Some(s) = cur {
+            for v in s.borrow().names.values() {
+                out.push((v.clone(), v.borrow().state.clone()));
+            }
+            cur = s.borrow().parent.clone();
+        }
+        out
+    }
+
+    /// 把所有变量恢复到快照状态（分支检查互不泄漏）。
+    pub fn restore_var_states(snap: &[(Rc<RefCell<VarInfo>>, VarState)]) {
+        for (v, st) in snap {
+            v.borrow_mut().state = st.clone();
+        }
+    }
+
+    /// 一条路径结束时哪些变量处于 Moved（相对快照变量集）。
+    /// 返回与快照同序的 bool 列表：true = 该路径把变量 move 了且未复活。
+    fn moved_flags(snap: &[(Rc<RefCell<VarInfo>>, VarState)]) -> Vec<bool> {
+        snap.iter()
+            .map(|(v, _)| v.borrow().state == VarState::Moved)
+            .collect()
+    }
+
+    /// 按最保守合并应用结果（GAP-13：任一可达路径把变量 move 了，
+    /// 汇合点即视为 Moved；全部路径都复活才回到 Live）。
+    /// `paths`：每个可达路径的 moved 标志列表（与快照同序同长）。
+    fn apply_merged_states(snap: &[(Rc<RefCell<VarInfo>>, VarState)], paths: &[Vec<bool>]) {
+        for (i, (v, _)) in snap.iter().enumerate() {
+            let moved = paths.iter().any(|p| p.get(i).copied().unwrap_or(false));
+            v.borrow_mut().state = if moved {
+                VarState::Moved
+            } else {
+                VarState::Live
+            };
+        }
+    }
+
+    /// 循环体两遍检查（O-5，规格书 11.2）：
+    /// 第一遍 **probe**——抑制诊断，只收集"体内会把哪些外层变量 move 掉"；
+    /// 第二遍把这些变量按 Moved 状态入场正式检查——下一轮迭代看到的
+    /// 就是移走后的状态，use-after-move 在使用点报 E7001。
+    /// 体尾永远离开循环（return/throw/break，continue 算回头）时不回卷，
+    /// 跳过两遍。`loop_vars` 是循环头声明的迭代变量（每轮重新绑定，
+    /// 不参与合并，否则 `for d in dogs { feed(d) }` 会被误报）。
+    fn check_loop_body(&mut self, body: &ast::Block, loop_vars: &[String]) {
+        if !self.block_leaves_loop(body) {
+            let snap = self.var_states_snapshot();
+            self.probe = true;
+            self.check_block(body, true);
+            self.probe = false;
+            let flags = Self::moved_flags(&snap);
+            Sema::restore_var_states(&snap);
+            for (i, (v, _)) in snap.iter().enumerate() {
+                if flags[i] && !loop_vars.contains(&v.borrow().name) {
+                    v.borrow_mut().state = VarState::Moved;
+                }
+            }
+        }
+        self.check_block(body, true);
+    }
+
+    /// 循环体尾部是否必然离开循环（不回来）。`continue` 回到循环头，
+    /// 不算离开；`return`/`throw`/`break` 离开。
+    fn block_leaves_loop(&self, b: &ast::Block) -> bool {
+        match b.stmts.last() {
+            None => false,
+            Some(l) => self.stmt_leaves_loop(l),
+        }
+    }
+
+    fn stmt_leaves_loop(&self, s: &ast::SPtr) -> bool {
+        match &s.k {
+            Stmt::Return { .. } | Stmt::Throw { .. } | Stmt::Break { .. } => true,
+            Stmt::Continue { .. } => false,
+            Stmt::Block(b) => self.block_leaves_loop(b),
+            Stmt::If(n) => {
+                let then_ok = self.block_leaves_loop(&n.then_);
+                match &n.els {
+                    Some(IfTail::Block(b)) => then_ok && self.block_leaves_loop(b),
+                    Some(IfTail::If(inner)) => then_ok && self.ifnode_leaves_loop(&inner.k),
+                    None => false,
+                }
+            }
+            _ => false,
+        }
+    }
+
+    fn ifnode_leaves_loop(&self, n: &ast::IfNode) -> bool {
+        let els = match &n.els {
+            None => return false,
+            Some(e) => e,
+        };
+        let then_ok = self.block_leaves_loop(&n.then_);
+        match els {
+            IfTail::Block(b) => then_ok && self.block_leaves_loop(b),
+            IfTail::If(inner) => then_ok && self.ifnode_leaves_loop(&inner.k),
+        }
+    }
+
+    /// 分支汇合用"必然离开函数"判定（O-4）：只有 return/throw（及
+    /// 两支都离开的 if/try）才算。**不含** `stmt_must_exit` 把任意调用
+    /// 语句当作退出的历史近似——`sink(b)` 这类普通调用语句之后代码
+    /// 照常执行，它的 move 必须参与合并。break/continue 跳去循环
+    /// 边界，保守视为可达。
+    fn block_leaves_func(&self, b: &ast::Block) -> bool {
+        match b.stmts.last() {
+            None => false,
+            Some(l) => self.stmt_leaves_func(l),
+        }
+    }
+
+    fn stmt_leaves_func(&self, s: &ast::SPtr) -> bool {
+        match &s.k {
+            Stmt::Return { .. } | Stmt::Throw { .. } => true,
+            Stmt::Block(b) => self.block_leaves_func(b),
+            Stmt::If(n) => self.ifnode_leaves_func(n),
+            Stmt::TryCatch(n) => {
+                if let Some(f) = &n.finally {
+                    if self.block_leaves_func(f) {
+                        return true;
+                    }
+                }
+                self.block_leaves_func(&n.body)
+                    && !n.catches.is_empty()
+                    && n.catches.iter().all(|c| self.block_leaves_func(&c.body))
+            }
+            _ => false,
+        }
+    }
+
+    fn ifnode_leaves_func(&self, n: &ast::IfNode) -> bool {
+        let els = match &n.els {
+            None => return false,
+            Some(e) => e,
+        };
+        let then_ok = self.block_leaves_func(&n.then_);
+        match els {
+            IfTail::Block(b) => then_ok && self.block_leaves_func(b),
+            IfTail::If(inner) => then_ok && self.ifnode_leaves_func(&inner.k),
+        }
+    }
+
     // ---------------------------------------------------------------- 语句
 
     pub fn check_block(&mut self, b: &ast::Block, new_scope: bool) {
@@ -121,6 +273,9 @@ impl<'a> Sema<'a> {
     }
 
     pub fn check_stmt(&mut self, s: &ast::SPtr) {
+        // O-7/O-12：单语句借用扫描。入口清空上一语句遗留的使用记录，
+        // 出口按 place 分组互查；借用不跨语句，语句结束即失效。
+        self.stmt_uses.clear();
         match &s.k {
             Stmt::Block(b) => self.check_block(b, true),
             Stmt::VarDecl { .. } => self.check_var_decl(s),
@@ -182,6 +337,7 @@ impl<'a> Sema<'a> {
             }
             Stmt::Const { .. } => self.check_local_const(s),
         }
+        self.scan_stmt_uses();
     }
 
     fn check_local_const(&mut self, s: &ast::SPtr) {
@@ -259,9 +415,14 @@ impl<'a> Sema<'a> {
             self.err("E3006", &s.tok, "T-13", "`var` 只能用于局部变量", &[]);
         }
         let v = self.declare(name, ty.clone(), false, &s.tok);
-        self.sl(s.id).varinfo = Some(v);
+        self.sl(s.id).varinfo = Some(v.clone());
         if self.moves(&ty) {
             self.take(init);
+        }
+        // O-18：Arena / ArenaRef 变量绑定来源 region
+        //（`new Arena()` → Arena 变量；`ar.Alloc(x)` → ArenaRef 变量）
+        if let Some(r) = self.slot(&init.id).and_then(|sl| sl.arena_region) {
+            v.borrow_mut().arena_region = Some(r);
         }
     }
 
@@ -288,6 +449,18 @@ impl<'a> Sema<'a> {
                 self.err("E4001", &lhs.tok, "文稿 11.1", "`{0}` 左侧必须是可写位置", &[&d]);
             }
             return;
+        }
+        // O-3：重新赋值可复活。对直接变量左值先放回 Live 再取类型——
+        // 否则"读左值"本身就触发 E7001，而 `b = new Buf(4)` 恰是复活动作。
+        // 字段/元素左值不在此列：对已 move 的对象写字段仍是 use-after-move。
+        if op.as_deref() == Some("=") {
+            if let Expr::Path { segs, .. } = &lhs.k {
+                if let Some(v) = self.lookup_var(&segs[0]) {
+                    if v.borrow().state == VarState::Moved {
+                        v.borrow_mut().state = VarState::Live;
+                    }
+                }
+            }
         }
         let t = self.check_expr(lhs, None);
         let op = match op {
@@ -316,6 +489,87 @@ impl<'a> Sema<'a> {
             self.coerce(rhs, &t, "赋值");
             if self.moves(&t) {
                 self.take(rhs);
+            }
+            // 写入也是独占使用（O-7：`f(&x, x = 1)` 一类冲突由语句扫描覆盖）
+            if self.is_place(lhs) {
+                if let Some(place) = self.place_key(lhs) {
+                    self.stmt_uses.push(StmtUse {
+                        place,
+                        kind: UseKind::Write,
+                        tok: lhs.tok.clone(),
+                    });
+                }
+            }
+            // O-18：ArenaRef 赋值的 region 绑定与逃逸检测
+            if matches!(&*t, TyS::ArenaRef(_)) {
+                let rr = self.slot(&rhs.id).and_then(|sl| sl.arena_region);
+                match &lhs.k {
+                    Expr::Path { segs, .. } => {
+                        if let Some(v) = self.lookup_var(&segs[0]) {
+                            let lvr = v.borrow().arena_region;
+                            match (lvr, rr) {
+                                (Some(r2), Some(r)) if r2 == r => {} // 同区域别名，合法
+                                (Some(_), Some(_)) => {
+                                    self.err(
+                                        "E7006",
+                                        &rhs.tok,
+                                        "O-18",
+                                        "`ArenaRef` 不能逃出 arena 的作用域（{0}）",
+                                        &[&"两个变量来自不同的 arena"],
+                                    );
+                                }
+                                (None, Some(r)) => {
+                                    if self.region_in_scope(r) {
+                                        // 赋值点在区域内：绑定来源 region，之后
+                                        // 在块外的使用点会触发 E7006
+                                        v.borrow_mut().arena_region = Some(r);
+                                    } else {
+                                        let vn = v.borrow().name.clone();
+                                        let detail =
+                                            format!("赋给 arena 块外的变量 `{0}`", vn);
+                                        self.err(
+                                            "E7006",
+                                            &rhs.tok,
+                                            "O-18",
+                                            "`ArenaRef` 不能逃出 arena 的作用域（{0}）",
+                                            &[&detail],
+                                        );
+                                    }
+                                }
+                                _ => {}
+                            }
+                        }
+                    }
+                    Expr::FieldAccess { recv, .. } => {
+                        // 存进"区域内对象"（ArenaRef 解引用后的字段）合法——
+                        // 这是图/双向链表的写法（文稿 8.4）；存进普通对象
+                        // 字段 → 逃逸。
+                        let rt = self.ty_of(recv.id);
+                        let in_region = matches!(
+                            rt.as_deref(),
+                            Some(TyS::ArenaRef(_))
+                        );
+                        if !in_region {
+                            self.err(
+                                "E7006",
+                                &rhs.tok,
+                                "O-18",
+                                "`ArenaRef` 不能逃出 arena 的作用域（{0}）",
+                                &[&"存进 arena 区域外的对象字段"],
+                            );
+                        }
+                    }
+                    Expr::Index { .. } => {
+                        self.err(
+                            "E7006",
+                            &rhs.tok,
+                            "O-18",
+                            "`ArenaRef` 不能逃出 arena 的作用域（{0}）",
+                            &[&"存进容器（数组/map）"],
+                        );
+                    }
+                    _ => {}
+                }
             }
             if let Expr::Path { segs, .. } = &lhs.k {
                 if let Some(v) = self.lookup_var(&segs[0]) {
@@ -359,10 +613,20 @@ impl<'a> Sema<'a> {
         self.check_cond(&n.cond, "if");
         let then_narrow = self.cond_narrow(&n.cond, true);
         let else_narrow = self.cond_narrow(&n.cond, false);
+        // O-4 分支汇合：两支各自从进入前的状态快照出发独立检查
+        // （否则 then 里的 move 会泄漏进 else，造成误报 E7001）；
+        // 结束后按最保守合并——任一可达路径把变量 move 了，汇合点即 Moved。
+        // 永远离开（return/throw/break）的分支不可达，不参与合并。
+        let snap = self.var_states_snapshot();
         self.narrow.push(then_narrow);
         self.check_block(&n.then_, true);
         self.narrow.pop();
-        let then_exits = self.block_must_exit_block(&n.then_);
+        let then_exits = self.block_leaves_func(&n.then_);
+        let mut paths: Vec<Vec<bool>> = Vec::new();
+        if !then_exits {
+            paths.push(Self::moved_flags(&snap));
+        }
+        Sema::restore_var_states(&snap);
         match &n.els {
             Some(els) => {
                 self.narrow.push(else_narrow);
@@ -371,8 +635,17 @@ impl<'a> Sema<'a> {
                     IfTail::If(inner) => self.check_if(inner.id, &inner.tok, &inner.k, None),
                 }
                 self.narrow.pop();
+                let else_exits = match els {
+                    IfTail::Block(b) => self.block_leaves_func(b),
+                    IfTail::If(inner) => self.ifnode_leaves_func(&inner.k),
+                };
+                if !else_exits {
+                    paths.push(Self::moved_flags(&snap));
+                }
             }
             None => {
+                // 没有 else：跳过整个 if 是一条可达路径，状态即快照
+                paths.push(snap.iter().map(|(_, st)| *st == VarState::Moved).collect());
                 if expected.map_or(false, |t| !matches!(&**t, TyS::Void)) {
                     self.err("E2005", tok, "G-1", "`if` 用作表达式时必须有 `else`", &[]);
                 }
@@ -384,6 +657,8 @@ impl<'a> Sema<'a> {
                 }
             }
         }
+        // O-4：汇合点状态 = 各可达路径的保守合并
+        Sema::apply_merged_states(&snap, &paths);
         // 类型
         let is_expr = expected.map_or(false, |t| !matches!(&**t, TyS::Void));
         if is_expr && n.els.is_some() {
@@ -533,7 +808,7 @@ impl<'a> Sema<'a> {
                     }
                     self.loop_labels.push(l.clone());
                 }
-                self.check_block(body, true);
+                self.check_loop_body(body, &[]);
                 if label.is_some() {
                     self.loop_labels.pop();
                 }
@@ -556,7 +831,7 @@ impl<'a> Sema<'a> {
                 }
                 self.push_scope();
                 self.declare(var, t_int(), false, &s.tok);
-                self.check_block(body, true);
+                self.check_loop_body(body, std::slice::from_ref(var));
                 self.pop_scope();
                 if label.is_some() {
                     self.loop_labels.pop();
@@ -616,7 +891,16 @@ impl<'a> Sema<'a> {
                 } else {
                     self.declare(var, elem, false, &s.tok);
                 }
-                self.check_block(body, true);
+                let mut lv: Vec<String> = Vec::new();
+                if kv {
+                    if let ast::ForKind::Kv { var, var2, .. } = kind {
+                        lv.push(var.clone());
+                        lv.push(var2.clone());
+                    }
+                } else {
+                    lv.push(var.clone());
+                }
+                self.check_loop_body(body, &lv);
                 self.pop_scope();
                 if label.is_some() {
                     self.loop_labels.pop();
@@ -655,6 +939,16 @@ impl<'a> Sema<'a> {
             Some(ret.clone())
         };
         let t = self.check_expr(value, exp.as_ref());
+        // O-18：ArenaRef 不能作为返回值逃出函数
+        if matches!(&*t, TyS::ArenaRef(_)) {
+            self.err(
+                "E7006",
+                &value.tok,
+                "O-18",
+                "`ArenaRef` 不能逃出 arena 的作用域（{0}）",
+                &[&"作为返回值"],
+            );
+        }
         if matches!(&*ret, TyS::Void) {
             if self.in_main {
                 if t != t_int() {
@@ -848,10 +1142,20 @@ impl<'a> Sema<'a> {
             }
             _ => {}
         }
+        // O-12：move 视作独占使用，参与单语句借用冲突扫描
+        if let Some(place) = self.place_key(node) {
+            self.stmt_uses.push(StmtUse {
+                place,
+                kind: UseKind::Move,
+                tok: node.tok.clone(),
+            });
+        }
     }
 
     pub fn moves(&self, t: &Ty) -> bool {
-        matches!(&**t, TyS::Object) || self.is_ref(t)
+        matches!(&**t, TyS::Object)
+            || matches!(&**t, TyS::Named(DefId::Name("Arena"), _))
+            || self.is_ref(t)
     }
 
     pub fn is_ref(&self, t: &Ty) -> bool {

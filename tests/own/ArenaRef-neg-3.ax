@@ -1,0 +1,7 @@
+// EXPECT: E7005
+// O-17：arena.Alloc 只收养 class 实例，不收 copy 值
+int main() {
+    var arena = new Arena()
+    ArenaRef<int> n = arena.Alloc(42)
+    return 0
+}

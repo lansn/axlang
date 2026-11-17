@@ -1,0 +1,12 @@
+// EXPECT: E7002
+// O-02：同一语句对同一变量两次借用，其中形参声明为可变借用 → E7002
+void fill(&int[] xs, &int[] ys) {
+    xs[0] = 1
+    ys[0] = 2
+}
+
+int main() {
+    int[] a = [1, 2]
+    fill(&a, &a)
+    return 0
+}

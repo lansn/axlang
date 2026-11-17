@@ -1603,3 +1603,42 @@ void ax_file_close(ax_file* f) {
         f->fp = NULL;
     }
 }
+
+/* ---------------- arena（区域分配器） ---------------- */
+struct ax_arena {
+    void**  items;
+    int64_t n;
+    int64_t cap;
+};
+
+ax_arena* ax_arena_create(void) {
+    ax_arena* ar = (ax_arena*)ax_alloc((int64_t)sizeof(ax_arena));
+    ar->items = NULL;
+    ar->n = 0;
+    ar->cap = 0;
+    return ar;
+}
+
+void* ax_arena_adopt(ax_arena* ar, void* p) {
+    if (ar->n >= ar->cap) {
+        int64_t nc = ar->cap == 0 ? 8 : ar->cap * 2;
+        void** ni = (void**)ax_alloc(nc * (int64_t)sizeof(void*));
+        if (ar->items && ar->n > 0) {
+            memcpy(ni, ar->items, (size_t)ar->n * sizeof(void*));
+        }
+        ar->items = ni;
+        ar->cap = nc;
+    }
+    ar->items[ar->n] = p;
+    ar->n++;
+    return p;
+}
+
+void ax_arena_free(ax_arena* ar) {
+    if (!ar) return;
+    for (int64_t i = 0; i < ar->n; i++) {
+        free(ar->items[i]);
+    }
+    free(ar->items);
+    free(ar);
+}

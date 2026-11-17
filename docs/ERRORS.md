@@ -6,7 +6,7 @@
 `E4xxx` 类型与表达式 / `E5xxx` 转换与装箱 / `E6xxx` match 与错误传播 /
 `E7xxx` 所有权与借用。输出语言由 `--lang` / `AXC_LANG` / `axc.toml`（`lang = "zh"`）决定，默认英文。
 
-共 123 个码、323 条文案。
+共 128 个码、328 条文案。
 
 ## E1（词法）
 
@@ -259,7 +259,7 @@
 | `E4001` | 类型不匹配：期望 {0}，得到 {1}（{2}）（T-5） | type mismatch: expected {0}, found {1} ({2}) |
 | `E4001` | 类型模式不能是 interface（用具体类）（文稿 5.3） | a type pattern cannot be an interface (use a concrete class) |
 | `E4001` | 类型模式只能用于 object 或类引用，得到 {0}（文稿 5.3） | a type pattern can only be used on object or a class reference, found {0} |
-| `E4001` | 类型模式必须是 class 或 interface（文稿 5.3） | a type pattern must be a class or interface |
+| `E4001` | 类型模式必须是 class 或 interface | a type pattern must be a class or interface |
 | `E4001` | 赋值左侧必须是可写位置（文稿 11.1） | the left side of an assignment must be a writable place |
 
 | `E4002` | `{0}` 的操作数必须是 bool，得到 {1}（文稿 11.1） | the operand of `{0}` must be bool, found {1} |
@@ -387,6 +387,8 @@
 
 | `E4037` | 无法推断 `{0}` 的类型实参，请显式写 `{1}<...>(...)`（T-16） | cannot infer the type arguments of `{0}`; write `{1}<...>(...)` explicitly |
 
+| `E4038` | 泛型实例化递归超过 64 层：`{0}`（T-37） | generic instantiation recursion exceeds 64 levels: `{0}` |
+
 | `E4039` | `Self` 只能用在 class/struct/interface 体内（N-19） | `Self` can only be used inside a class/struct/interface body |
 
 | `E4041` | 定长数组过大（{0} × {1} 字节 > 8 MiB）（GAP-10） | fixed-size array too large ({0} x {1} bytes > 8 MiB) |
@@ -474,6 +476,12 @@
 
 | `E7002` | 同一语句内对 `{0}` 有多个借用（至少一个是可变的）（O-7） | multiple borrows of `{0}` within one statement (at least one is mutable) |
 
+| `E7004` | `{0}` 正在被借用，同一语句内不能移动或写入它（O-12） | `{0}` is borrowed and cannot be moved or written in the same statement |
+
+| `E7005` | `arena.Alloc` 只收引用类型（class 实例），得到 {0}（O-17） | `arena.Alloc` only accepts reference types (class instances), found {0} |
+
+| `E7006` | `ArenaRef` 不能逃出 arena 的作用域（{0}）（O-18） | `ArenaRef` cannot escape the arena's scope ({0}) |
+
 | `E7007` | `&` 只能作用于可写位置（变量、字段、元素）（O-8） | `&` can only be applied to writable places (variables, fields, elements) |
 
 | `E7009` | 不能对 const `{0}` 取可变借用（写 `&const`）（O-9） | cannot take a mutable borrow of const `{0}` (write `&const`) |
@@ -489,3 +497,9 @@
 | 码 | 中文 | English |
 |---|---|---|
 | `SUMMARY` | {0} 个错误（CLI） | {0} error(s) |
+
+## W1003（W1003）
+
+| 码 | 中文 | English |
+|---|---|---|
+| `W1003` | 对 copy 类型 `{0}` 写借用等价于传值，`&` 是多余的 | a borrow of copy type `{0}` is equivalent to pass-by-value; `&` is redundant |

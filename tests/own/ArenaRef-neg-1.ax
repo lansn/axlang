@@ -1,0 +1,19 @@
+// EXPECT: E7006
+// O-18：ArenaRef 不能作为实参传出调用（"会存起来"的位置无法穷举，保守拦截）
+class Node {
+    public int v
+    constructor(int v) {
+        this.v = v
+    }
+}
+
+void peek(Node n) {
+    Println("{n.v}")
+}
+
+int main() {
+    var arena = new Arena()
+    ArenaRef<Node> a = arena.Alloc(new Node(1))
+    peek(a)
+    return 0
+}

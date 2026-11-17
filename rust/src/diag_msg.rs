@@ -463,8 +463,12 @@ pub static CATALOG: &[(&str, &str, &str)] = &[
     ("E6013", "`continue` 会跳出 try 块（finally 不会执行）；把循环移到 try 外面", "`continue` would leave the try block (finally would not run); move the loop outside the try"),
     ("E7001", "`{0}` 已被移走，此处不可再用（重新赋一个值可复活）", "`{0}` has been moved and can no longer be used here (assign it a new value to revive it)"),
     ("E7002", "同一语句内对 `{0}` 有多个借用（至少一个是可变的）", "multiple borrows of `{0}` within one statement (at least one is mutable)"),
+    ("E7004", "`{0}` 正在被借用，同一语句内不能移动或写入它", "`{0}` is borrowed and cannot be moved or written in the same statement"),
+    ("E7005", "`arena.Alloc` 只收引用类型（class 实例），得到 {0}", "`arena.Alloc` only accepts reference types (class instances), found {0}"),
+    ("E7006", "`ArenaRef` 不能逃出 arena 的作用域（{0}）", "`ArenaRef` cannot escape the arena's scope ({0})"),
     ("E7007", "`&` 只能作用于可写位置（变量、字段、元素）", "`&` can only be applied to writable places (variables, fields, elements)"),
     ("E7009", "不能对 const `{0}` 取可变借用（写 `&const`）", "cannot take a mutable borrow of const `{0}` (write `&const`)"),
+    ("W1003", "对 copy 类型 `{0}` 写借用等价于传值，`&` 是多余的", "a borrow of copy type `{0}` is equivalent to pass-by-value; `&` is redundant"),
     ("SUMMARY", "{0} 个错误", "{0} error(s)"),
     ("FILE_NOT_FOUND", "找不到文件 {0}", "file not found: {0}"),
 ];

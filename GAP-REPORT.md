@@ -102,7 +102,7 @@
 | M4 类型 | 全部类型构造、`assignable` 唯一入口、`T-8` 零隐式、字面量落地、可空收窄 `T-21`–`T-24`、`object` 装箱/解箱 `P1…P8`、记录键固定 `E4008` | 完成 |
 | M5 错误/`match` | `result<T>`、`try`、`throw`、七种模式、穷尽检查 `E6001`/`E6002`/`E6006`/`E6007` | 完成 |
 | M6 泛型 | 解析、约束检查 `E4036`、单态化（函数+类+struct+别名）、深度上限 `E4038` | **已完成**（v0.0.21）：泛型函数/类/struct 按实例单态化，别名引用期展开，不变型天然成立（实例 id 不同） |
-| M7 所有权 | `E7001`（move 后使用）、`E7002`（借用冲突）、`E7009`（const 借用）、`defer` 逆序、`move` 后置空 | **部分**（`O-05…O-08`、`O-12` 未做） |
+| M7 所有权 | `E7001`（move 后使用）、`E7002`/`E7004`（借用单语句冲突/借用期 move）、`E7005`（Alloc 类型）、`E7006`（`ArenaRef` 逃逸）、`E7007`/`E7009`（借用目标/const）、`W1003`（多余借用）、分支汇合 `O-4`、循环两遍 `O-5`、`defer` 逆序、`arena`/`ArenaRef` 后端与整块释放 | **已完成**（v0.0.22）：`O-01…O-20` 全通（`E7008` 恒不可达，行为契约） |
 | M8 后端+运行时 | C11 生成（继承拉平、vtable、构造/析构、`defer` 展开、decimal/整数/移位/浮点 trap）、`axrt`（字符串、decimal、数组、map 插入序、Row/db 夹具）、`RUN-1…RUN-4`、`Rt-01…Rt-16` | 完成 |
 | CLI | `check`/`build`/`run`、`--emit=c`、`--dump=ast\|types\|c`、`--diag=text\|json`、`-Werror`、`--cc`、退出码 0/1/2 | 完成 |
 | 分发 | `cargo build --release` 产出单文件 `dist/axc.exe`；`samples/` 10 个可直接运行的程序 + `run_all.py`；运行时 `ax_console_utf8()` 在 Windows 控制台自动切 UTF-8 并在退出时恢复 | 完成 |
@@ -112,8 +112,8 @@
 | # | 缺口 | 影响用例 | 说明 |
 |---|---|---|---|
 | ~~1~~ | 泛型单态化 | `GX-01…GX-09` | **已修**（v0.0.21）：`(函数, 类型实参)` 生成 FuncInfo 实例、`(类, 类型实参)` 生成实例 typedef，体按实例重查、codegen 只生成实例；推断（实参统一 + 期望兜底）、约束检查、mangle 去重、E4038 深度上限 |
-| 2 | 完整所有权分析 | `O-03`、`O-05…O-08`、`O-10…O-12` | 借用是"单语句一遍扫描"，未做跨语句借用生命周期；`defer` 后置声明、`ArenaRef` 逃逸未检查 |
-| 3 | `arena` 语句与 `ArenaRef` | `O-07` | 语法可解析、后端未生成 |
+| ~~2~~ | 完整所有权分析 | `O-03`、`O-05…O-08`、`O-10…O-12` | **已修**（v0.0.22）：借用改为强度感知的单语句扫描（多 `&const` 合法、`&`+`&const`/move/写报 E7002/E7004）；分支汇合按各分支快照独立检查后保守合并（O-4）；循环体两遍检查（probe 收集 → 合并状态正式查，O-5）；`W1003` 多余借用警告；修 O-9 复活（对已 move 变量赋值的左值读取不再误报 E7001）。**设计上不存在跨语句借用**（借用不可存储，文稿 8.2），故无需生命周期分析；`E7008`（defer 引后声明变量）恒不可达——注册时检查已由名字解析天然拦截，行为契约保留不触发 |
+| ~~3~~ | `arena` 语句与 `ArenaRef` | `O-07`、`O-17…O-20` | **已修**（v0.0.22）：`axrt` 增加 `ax_arena_create/adopt/free`；`new Arena()` 真实生成（原 `NULL` 占位）；`arena.Alloc(x)` move 进区域、返回 `ArenaRef<T>`（copy 语义）；`ArenaRef<T>` C 类型 = T 的指针形态；区域变量离开作用域整块释放（复用 defer 清理栈）；`E7006` 逃逸检测（作用域绑定 + return/实参/普通对象字段/容器四处拦截）；`E7005` 只收养 class 实例/object 盒子 |
 | 4 | 函数值（文稿 4.1）的边角 | §4.1 | **主体已实现**（v0.0.3）：`func(...) T` 类型语法（此前解析器把 `func` 当普通类型名，整章语法不可用）、匿名函数字面量（合成顶层函数、不捕获环境）、顶层函数/静态方法引用（`twice`、`Num.neg`）、函数值经参数传递与间接调用。**注**：匿名函数不捕获环境是文稿 4.1 的明文设计（583 行：函数值就是 8 字节函数指针），不是缺口。**剩余**：泛型函数值实例化 |
 | 5 | ~~`json` / `time` 模块~~ **已修（0.0.18）** | §15 全表 | `json.Parse` / `json.stringify` / `time.now_ms` 已从桩补为真实实现：手写递归下降 JSON 解析（object/array/string/int/float/bool/null、`\uXXXX` 代理对、错误定位消息）、stringify 往返（嵌套 map/数组 + 转义）、`now_ms` 用 `GetSystemTimeAsFileTime`。`json` 与 `time` 仍需显式 `import`。历史描述：只有签名与桩实现。**`file` 已在 v0.0.5 实化**：`Open`/`Create`/`Append` + `Read`/`ReadLine`/`Write`/`WriteLine`/`Close` 全部经 `ax_file` 句柄走真实 `FILE*`（二进制模式），`ReadLine` 剥 `\r`；此前 `file.Open` 生成的 `ax_file` 类型根本未定义（一用就 C 编译失败）、`ReadAll` 恒返回 `fail("file not supported")`。`json` 只有 `Parse`/`stringify`，`time` 只有 `now_ms` |
 | 6 | `string` 方法子集 | 部分 | `len`/`byte_len`/`at`/`contains`/`split`/`trim` 已通，其余按桩 |

@@ -11,6 +11,16 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+
+/* ---------------- arena（区域分配器，规格书 8.4 / O-17…O-20） ----------------
+ * 整块同生共死：adopt 只登记指针（所有权移交区域），free 一次性释放
+ * 区域内全部对象与 arena 自身。ArenaRef<T> 在 C 层就是 T*。
+ */
+typedef struct ax_arena ax_arena;
+ax_arena* ax_arena_create(void);
+void*     ax_arena_adopt(ax_arena* ar, void* p);
+void      ax_arena_free(ax_arena* ar);
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -220,6 +230,16 @@ void    ax_file_close(ax_file* f);                   /* 幂等；之后句柄不
 int   ax_parse_i64(ax_str s, int64_t* out);
 int   ax_parse_f64(ax_str s, double* out);
 int64_t str_to_i64(ax_str s);
+
+
+/* ---------------- arena（区域分配器，规格书 8.4 / O-17…O-20） ----------------
+ * 整块同生共死：adopt 只登记指针（所有权移交区域），free 一次性释放
+ * 区域内全部对象与 arena 自身。ArenaRef<T> 在 C 层就是 T*。
+ */
+typedef struct ax_arena ax_arena;
+ax_arena* ax_arena_create(void);
+void*     ax_arena_adopt(ax_arena* ar, void* p);
+void      ax_arena_free(ax_arena* ar);
 
 #ifdef __cplusplus
 }

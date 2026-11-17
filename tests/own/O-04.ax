@@ -1,0 +1,11 @@
+// EXPECT: E7009
+// O-04：不能对 const 变量取可变借用
+void bump(&int n) {
+    n = n + 1
+}
+
+int main() {
+    const int n = 1
+    bump(&n)
+    return 0
+}

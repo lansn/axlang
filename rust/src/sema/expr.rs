@@ -4,7 +4,7 @@
 
 use crate::frontend::ast;
 use crate::frontend::ast::Expr;
-use crate::sema::{is_builtin_type_name, is_reserved, ConstVal, ExportSym, Res, Sema, VarState};
+use crate::sema::{is_builtin_type_name, is_reserved, ConstVal, ExportSym, Res, Sema, StmtUse, UseKind, VarState};
 use crate::types::*;
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
@@ -711,6 +711,19 @@ impl<'a> Sema<'a> {
             if v.borrow().state == VarState::Moved {
                 self.err("E7001", &e.tok, "O-2", "`{0}` 已被移走，此处不可再用（重新赋一个值可复活）", &[&name]);
             }
+            // O-18：ArenaRef 的所有使用点必须在 arena 声明块内（含嵌套块）
+            if let Some(r) = v.borrow().arena_region {
+                if !self.region_in_scope(r) {
+                    let detail = format!("变量 `{0}` 在 arena 块外使用", name);
+                    self.err(
+                        "E7006",
+                        &e.tok,
+                        "O-18",
+                        "`ArenaRef` 不能逃出 arena 的作用域（{0}）",
+                        &[&detail],
+                    );
+                }
+            }
             self.sl(e.id).res = Some(Res::Local(v.clone()));
             let vi = v.borrow();
             return self.narrowed_ty_vi(&vi);
@@ -912,7 +925,7 @@ impl<'a> Sema<'a> {
         let errs_before = self.d.error_count;
         let t = self.check_expr(callee, None);
         if let TyS::Func(ps, ret) = &*t {
-            self.check_call_args(args, Some(ps.as_slice()), e.id);
+            self.check_call_args(args, Some(ps.as_slice()), None, e.id);
             return ret.clone();
         }
         // 名字本身没解析成功时，check_expr 已经报过 E3003；不要再连着报「不是可调用对象」
@@ -935,35 +948,49 @@ impl<'a> Sema<'a> {
         &mut self,
         args: &[ast::N<ast::Arg>],
         want: Option<&[Ty]>,
-        eid: u32,
+        borrows: Option<&[Option<String>]>,
+        _eid: u32,
     ) {
         for (i, a) in args.iter().enumerate() {
             let exp = want.and_then(|w| w.get(i)).cloned();
             self.check_expr(&a.k.expr, exp.as_ref());
+            let rejected = self.reject_arena_ref_arg(&a.k.expr);
             if a.k.borrow {
-                self.check_borrow(&a.k.expr, true);
+                // 借用强度由被调函数的形参声明决定（签名负责契约）；签名
+                // 不可知（函数值调用等）时保守按可变借用处理
+                let mutable = borrows
+                    .and_then(|b| b.get(i))
+                    .map(|b| b.as_deref() == Some("mut"))
+                    .unwrap_or(true);
+                self.check_borrow(&a.k.expr, mutable);
+                self.record_borrow_use(&a.k.expr, mutable);
             } else if let Some(e) = &exp {
-                self.coerce(&a.k.expr, e, "实参");
-                if self.moves(e) {
-                    self.take(&a.k.expr);
+                if !rejected {
+                    self.coerce(&a.k.expr, e, "实参");
+                    if self.moves(e) {
+                        self.take(&a.k.expr);
+                    }
                 }
             }
             let at = self.ty_of(a.k.expr.id);
             self.sl(a.id).ty = at;
         }
-        self.check_borrow_conflicts(args, eid);
     }
 
     fn check_borrow(&mut self, e: &ast::EPtr, mutable: bool) {
         match &e.k {
             Expr::Path { segs, .. } => {
                 if let Some(v) = self.lookup_var(&segs[0]) {
-                    let (is_const, name) = {
+                    let (is_const, name, ty) = {
                         let b = v.borrow();
-                        (b.is_const, b.name.clone())
+                        (b.is_const, b.name.clone(), b.ty.clone())
                     };
                     if is_const && mutable {
                         self.err("E7009", &e.tok, "O-9", "不能对 const `{0}` 取可变借用（写 `&const`）", &[&name]);
+                    }
+                    // O-10：对 copy 类型借用合法但无收益，等价传值 → W1003 提示
+                    if Self::is_copy_ty(&ty) {
+                        self.warn("W1003", &e.tok, "O-10", "对 copy 类型 `{0}` 写借用等价于传值，`&` 是多余的", &[&self.ts(&ty)]);
                     }
                 }
             }
@@ -974,228 +1001,138 @@ impl<'a> Sema<'a> {
         }
     }
 
-    fn check_borrow_conflicts(&mut self, args: &[ast::N<ast::Arg>], _eid: u32) {
-        let mut places: Vec<(String, Vec<&ast::N<ast::Arg>>)> = Vec::new();
-        for a in args {
-            self.walk_arg(a, &mut places);
+    /// O-10 判据：赋值即整份复制、不走 move 的类型（规格书 11.1 表）。
+    /// 堆对象（class / T[] / map / object / ArenaRef）不在其列。
+    fn is_copy_ty(t: &Ty) -> bool {
+        matches!(
+            &**t,
+            TyS::Bool
+                | TyS::Str
+                | TyS::Float
+                | TyS::Decimal
+                | TyS::Int(..)
+                | TyS::Tuple(_)
+                | TyS::Func(..)
+                | TyS::Record(_)
+                | TyS::Enum(_)
+                | TyS::Range
+        )
+    }
+
+    /// region 的 arena 声明作用域是否仍在当前作用域链上
+    ///（使用点在声明块内或其嵌套块 → 合法；否则逃逸，O-18）。
+    pub fn region_in_scope(&self, r: u32) -> bool {
+        let target = match self.arena_regions.get(&r) {
+            None => return true, // region 来源不可知（如函数形参），不强查
+            Some(s) => s,
+        };
+        let mut cur = self.scope.clone();
+        while let Some(s) = cur {
+            if Rc::ptr_eq(&s, target) {
+                return true;
+            }
+            cur = s.borrow().parent.clone();
         }
-        for (key, uses) in &places {
-            if uses.len() > 1 {
-                let tok = uses[1].tok.clone();
-                self.err("E7002", &tok, "O-7", "同一语句内对 `{0}` 有多个借用（至少一个是可变的）", &[&key]);
+        false
+    }
+
+    /// O-18：ArenaRef 不能作为实参传给任何调用——"会存起来的位置"
+    /// 语法上无法穷举，按规格保守全部拦截（区域内的字段赋值走
+    /// check_simple，不经这里）。返回 true 表示已拦截，调用方跳过
+    /// coerce（ArenaRef 与形参类型不匹配的 E4001 不再叠加）。
+    fn reject_arena_ref_arg(&mut self, e: &ast::EPtr) -> bool {
+        if let Some(t) = self.ty_of(e.id) {
+            if matches!(&*t, TyS::ArenaRef(_)) {
+                self.err(
+                    "E7006",
+                    &e.tok,
+                    "O-18",
+                    "`ArenaRef` 不能逃出 arena 的作用域（{0}）",
+                    &[&"作为实参传出调用"],
+                );
+                return true;
+            }
+        }
+        false
+    }
+
+    /// 记录一条借用使用（O-7）：强度来自被调函数的形参声明——
+    /// 借用强度由签名负责，调用点不重复标注（文稿 8.2）。
+    fn record_borrow_use(&mut self, e: &ast::EPtr, mutable: bool) {
+        if let Some(place) = self.place_key(e) {
+            self.stmt_uses.push(StmtUse {
+                place,
+                kind: if mutable {
+                    UseKind::BorrowMut
+                } else {
+                    UseKind::BorrowConst
+                },
+                tok: e.tok.clone(),
+            });
+        }
+    }
+
+    /// 语句出口扫描（O-7/O-12，规格书 11.4 的单语句一遍扫描）：
+    /// 同一 place 上借用互斥——多个 `&const` 合法共存；出现可变借用、
+    /// move 或写即冲突（move 视作独占使用）。借用不跨语句：
+    /// 扫描完语句即失效，这是语言设计（借用不可存储）的直接结果。
+    pub fn scan_stmt_uses(&mut self) {
+        let uses = std::mem::take(&mut self.stmt_uses);
+        if uses.len() < 2 {
+            return;
+        }
+        for i in 0..uses.len() {
+            for j in (i + 1)..uses.len() {
+                let a = &uses[i];
+                let b = &uses[j];
+                if !Self::places_conflict(&a.place, &b.place) {
+                    continue;
+                }
+                let ab = matches!(a.kind, UseKind::BorrowConst | UseKind::BorrowMut);
+                let bb = matches!(b.kind, UseKind::BorrowConst | UseKind::BorrowMut);
+                if ab && bb {
+                    if a.kind == UseKind::BorrowConst && b.kind == UseKind::BorrowConst {
+                        continue; // 多只读借用共存（O-7 明确允许）
+                    }
+                    self.err(
+                        "E7002",
+                        &b.tok,
+                        "O-7",
+                        "同一语句内对 `{0}` 有多个借用（至少一个是可变的）",
+                        &[&a.place],
+                    );
+                    return;
+                }
+                if ab || bb {
+                    // 借用期间所有者被 move / 写（O-12）
+                    let place = if ab { &a.place } else { &b.place };
+                    self.err(
+                        "E7004",
+                        &b.tok,
+                        "O-12",
+                        "`{0}` 正在被借用，同一语句内不能移动或写入它",
+                        &[place],
+                    );
+                    return;
+                }
+                // Move+Move：状态机已对第二个使用报 E7001，不在此重复
             }
         }
     }
 
-    /// 借用检查 walk 的 Arg 分支：可借用实参记录位置键，
-    /// 然后继续沿表达式下行走嵌套调用里的借用。
-    fn walk_arg<'m>(
-        &self,
-        a: &'m ast::N<ast::Arg>,
-        places: &mut Vec<(String, Vec<&'m ast::N<ast::Arg>>)>,
-    ) {
-        if a.k.borrow {
-            if let Some(key) = self.place_key(&a.k.expr) {
-                match places.iter_mut().find(|(k, _)| *k == key) {
-                    Some((_, v)) => v.push(a),
-                    None => places.push((key, vec![a])),
-                }
-            }
+    /// 两个 place 是否指到同一存储：精确相等，或一个是另一个的
+    /// 字段/元素前缀（借容器与写元素互斥：`&a` 与 `a[0] = 1` 冲突）。
+    fn places_conflict(a: &str, b: &str) -> bool {
+        if a == b {
+            return true;
         }
-        self.walk_expr(&a.k.expr, places);
+        let (short, long) = if a.len() <= b.len() { (a, b) } else { (b, a) };
+        long.starts_with(short)
+            && matches!(long[short.len()..].chars().next(), Some('.') | Some('['))
     }
 
-    /// 借用检查 walk 的通用分支：沿 AST 子节点下行，找嵌套的 Arg 节点。
-    fn walk_expr<'m>(
-        &self,
-        e: &'m ast::EPtr,
-        places: &mut Vec<(String, Vec<&'m ast::N<ast::Arg>>)>,
-    ) {
-        let mut kids: Vec<&'m ast::EPtr> = Vec::new();
-        match &e.k {
-            Expr::Call { callee, args } => {
-                kids.push(callee);
-                for a in args {
-                    self.walk_arg(a, places);
-                }
-            }
-            Expr::MethodCall { recv, args, .. } | Expr::SafeCall { recv, args, .. } => {
-                kids.push(recv);
-                for a in args {
-                    self.walk_arg(a, places);
-                }
-            }
-            Expr::New { args, .. } => {
-                for a in args {
-                    self.walk_arg(a, places);
-                }
-            }
-            Expr::Unary { operand, .. } => kids.push(operand),
-            Expr::Binary { lhs, rhs, .. } => {
-                kids.push(lhs);
-                kids.push(rhs);
-            }
-            Expr::Ternary { cond, then_, els } => {
-                kids.push(cond);
-                kids.push(then_);
-                kids.push(els);
-            }
-            Expr::Coalesce { lhs, rhs } => {
-                kids.push(lhs);
-                kids.push(rhs);
-            }
-            Expr::Range { lo, hi, .. } => {
-                kids.push(lo);
-                kids.push(hi);
-            }
-            Expr::Try { inner } => kids.push(inner),
-            Expr::Index { recv, index } => {
-                kids.push(recv);
-                kids.push(index);
-            }
-            Expr::FieldAccess { recv, .. } | Expr::SafeAccess { recv, .. } => kids.push(recv),
-            Expr::TupleLit { elems } | Expr::ArrayLit { elems } => {
-                for x in elems {
-                    kids.push(x);
-                }
-            }
-            Expr::BraceLit { pairs } => {
-                for (_, v) in pairs {
-                    kids.push(v);
-                }
-            }
-            Expr::StrLit { parts } => {
-                for p in parts {
-                    if let ast::SPart::Interp { expr, .. } = p {
-                        kids.push(expr);
-                    }
-                }
-            }
-            Expr::If(n) => {
-                kids.push(&n.cond);
-                for s in &n.then_.stmts {
-                    self.walk_stmt(s, places);
-                }
-                match &n.els {
-                    Some(ast::IfTail::Block(b)) => {
-                        for s in &b.stmts {
-                            self.walk_stmt(s, places);
-                        }
-                    }
-                    Some(ast::IfTail::If(inner)) => {
-                        // 包装成临时遍历：直接走 IfNode
-                        kids.push(&inner.k.cond);
-                        for s in &inner.k.then_.stmts {
-                            self.walk_stmt(s, places);
-                        }
-                    }
-                    None => {}
-                }
-            }
-            Expr::Match(n) => {
-                kids.push(&n.scrutinee);
-                for a in &n.arms {
-                    kids.push(&a.body);
-                }
-            }
-            Expr::AnonFunc { body, .. } => {
-                for s in &body.stmts {
-                    self.walk_stmt(s, places);
-                }
-            }
-            _ => {}
-        }
-        for k in kids {
-            self.walk_expr(k, places);
-        }
-    }
-
-    fn walk_stmt<'m>(
-        &self,
-        s: &'m ast::SPtr,
-        places: &mut Vec<(String, Vec<&'m ast::N<ast::Arg>>)>,
-    ) {
-        let mut kids: Vec<&'m ast::EPtr> = Vec::new();
-        match &s.k {
-            ast::Stmt::Simple { lhs, rhs, .. } => {
-                kids.push(lhs);
-                if let Some(r) = rhs {
-                    kids.push(r);
-                }
-            }
-            ast::Stmt::If(n) => {
-                kids.push(&n.cond);
-                for s2 in &n.then_.stmts {
-                    self.walk_stmt(s2, places);
-                }
-                if let Some(ast::IfTail::Block(b)) = &n.els {
-                    for s2 in &b.stmts {
-                        self.walk_stmt(s2, places);
-                    }
-                }
-            }
-            ast::Stmt::Match(n) => {
-                kids.push(&n.scrutinee);
-                for a in &n.arms {
-                    kids.push(&a.body);
-                }
-            }
-            ast::Stmt::Block(b) => {
-                for s2 in &b.stmts {
-                    self.walk_stmt(s2, places);
-                }
-            }
-            ast::Stmt::For { kind, body, .. } => {
-                match kind {
-                    ast::ForKind::Range { lo, hi, .. } => {
-                        kids.push(lo);
-                        kids.push(hi);
-                    }
-                    ast::ForKind::Iter { iterable, .. } | ast::ForKind::Kv { iterable, .. } => {
-                        kids.push(iterable);
-                    }
-                    ast::ForKind::Cond => {}
-                }
-                for s2 in &body.stmts {
-                    self.walk_stmt(s2, places);
-                }
-            }
-            ast::Stmt::Return { value } => {
-                if let Some(v) = value {
-                    kids.push(v);
-                }
-            }
-            ast::Stmt::Throw { msg, .. } => kids.push(msg),
-            ast::Stmt::TryCatch(n) => {
-                for s2 in &n.body.stmts {
-                    self.walk_stmt(s2, places);
-                }
-                for c in &n.catches {
-                    for s2 in &c.body.stmts {
-                        self.walk_stmt(s2, places);
-                    }
-                }
-                if let Some(f) = &n.finally {
-                    for s2 in &f.stmts {
-                        self.walk_stmt(s2, places);
-                    }
-                }
-            }
-            ast::Stmt::Defer { call } => kids.push(call),
-            ast::Stmt::VarDecl { init, .. } => {
-                if let Some(v) = init {
-                    kids.push(v);
-                }
-            }
-            ast::Stmt::VarTuple { init, .. } => kids.push(init),
-            ast::Stmt::Const { init, .. } => kids.push(init),
-            ast::Stmt::Break { .. } | ast::Stmt::Continue { .. } => {}
-        }
-        for k in kids {
-            self.walk_expr(k, places);
-        }
-    }
-
+    /// 位置键（O-7 借用扫描用）：`x` / `x.f` / `xs[]`——
+    /// 根变量名 + 字段/元素链，同根即可能同存储。
     pub fn place_key(&self, e: &ast::EPtr) -> Option<String> {
         match &e.k {
             Expr::Path { segs, .. } => Some(segs[0].clone()),
@@ -1322,7 +1259,7 @@ impl<'a> Sema<'a> {
         ptypes: Vec<Ty>,
         ret: Ty,
     ) -> Ty {
-        self.check_call_args(args, Some(&ptypes), e.id);
+        self.check_call_args(args, Some(&ptypes), None, e.id);
         if args.len() != ptypes.len() {
             self.err("E4031", &e.tok, "N-20", "`{0}` 需要 {1} 个实参，得到 {2}", &[&name, &ptypes.len(), &args.len()]);
         }
@@ -1528,12 +1465,17 @@ impl<'a> Sema<'a> {
             } else if matches!(a.k.expr.k, Expr::AnonFunc { .. }) {
                 self.check_expr(&a.k.expr, exp.as_ref());
             }
+            let rejected = self.reject_arena_ref_arg(&a.k.expr);
             if a.k.borrow {
-                self.check_borrow(&a.k.expr, true);
+                let mutable = params.get(i).map(|p| p.2.as_deref() == Some("mut")).unwrap_or(true);
+                self.check_borrow(&a.k.expr, mutable);
+                self.record_borrow_use(&a.k.expr, mutable);
             } else if let Some(ex) = &exp {
-                self.coerce(&a.k.expr, ex, "实参");
-                if self.moves(ex) {
-                    self.take(&a.k.expr);
+                if !rejected {
+                    self.coerce(&a.k.expr, ex, "实参");
+                    if self.moves(ex) {
+                        self.take(&a.k.expr);
+                    }
                 }
             }
             let at = self.ty_of(a.k.expr.id);
@@ -1541,7 +1483,6 @@ impl<'a> Sema<'a> {
             s.ty = at;
             s.decl_ty = exp;
         }
-        self.check_borrow_conflicts(args, e.id);
         let s = self.sl(e.id);
         s.ckind = Some("func");
         s.func = Some(target_f);
@@ -1990,7 +1931,8 @@ impl<'a> Sema<'a> {
             None => Vec::new(),
         };
         let ptypes: Vec<Ty> = params.iter().map(|p| p.1.clone()).collect();
-        self.check_call_args(args, Some(&ptypes), e.id);
+        let borrows: Vec<Option<String>> = params.iter().map(|p| p.2.clone()).collect();
+        self.check_call_args(args, Some(&ptypes), Some(&borrows), e.id);
         if args.len() != params.len() {
             self.err("E4031", &e.tok, "文稿 6.2", "`parent(...)` 需要 {0} 个实参，得到 {1}", &[&params.len(), &args.len()]);
         }
@@ -2314,7 +2256,15 @@ impl<'a> Sema<'a> {
             for a in args {
                 self.check_expr(&a.k.expr, None);
             }
+            // O-20：`new Arena()` 创建区域，region 绑定当前作用域——
+            // 区域内 ArenaRef 的所有使用点都不得逃出这个块（O-18）
+            let region = self.next_region;
+            self.next_region += 1;
+            if let Some(sc) = self.scope.clone() {
+                self.arena_regions.insert(region, sc);
+            }
             self.sl(e.id).ckind = Some("arena");
+            self.sl(e.id).arena_region = Some(region);
             return t_named(DefId::Name("Arena"), Vec::new());
         }
         let d = match d {

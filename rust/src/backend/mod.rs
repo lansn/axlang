@@ -249,7 +249,9 @@ impl<'s, 'a> CodeGen<'s, 'a> {
             TyS::Func(..) => format!("axfn_{}", self.cn(ty)),
             TyS::Nullable(_) => format!("axopt_{}", self.cn(ty)),
             TyS::Result(_) => format!("axres_{}", self.cn(ty)),
-            TyS::ArenaRef(inner) => format!("{}*", self.ct(inner)),
+            // ArenaRef<T> 的 C 类型就是 T 的指针形态：class 实例本来就是
+            // 指针（Node*），区域收养的正是这个指针；不再额外加 *。
+            TyS::ArenaRef(inner) => self.ct(inner),
             TyS::Enum(_) => "uint32_t".to_string(),
             TyS::Param(_) => "int64_t".to_string(),
             TyS::Meta(_) | TyS::ModuleT(_) => "int64_t".to_string(),

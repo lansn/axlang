@@ -1,0 +1,11 @@
+// EXPECT: E7004
+// O-12：借用期间所有者被 move（move 视作独占使用）
+void fill(&int[] xs, int[] backup) {
+    xs[0] = backup[0]
+}
+
+int main() {
+    int[] a = [1, 2]
+    fill(&a, a)
+    return 0
+}

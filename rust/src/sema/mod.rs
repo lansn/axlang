@@ -303,6 +303,9 @@ pub struct VarInfo {
     pub decl_line: u32,
     pub is_param: bool,
     pub idx: usize,
+    /// ArenaRef 变量绑定的 region id（`ar.Alloc(x)` 的来源区域）。
+    /// 所有使用点必须位于该 region 的 arena 声明块内（O-18/E7006）。
+    pub arena_region: Option<u32>,
 }
 
 pub struct ConstCell {
@@ -422,12 +425,36 @@ pub struct Slot {
     /// `Print(x)` / `Println(x)` 的实参不是字符串但可直接插值：codegen 按
     /// `"{x}"` 的方式拼串输出（等价于隐式插值，不新增格式化能力）。
     pub interp_arg: bool,
+    /// 本表达式所属的 arena region（`new Arena()` 与 `ar.Alloc(x)` 记录；
+    /// ArenaRef 变量声明/赋值据此绑定 region 做逃逸检测）。
+    pub arena_region: Option<u32>,
 }
 
 // ---------------------------------------------------------------- Sema
 
 /// 语义检查主上下文：类型表、函数表、常量表、作用域链、
 /// 收窄状态、控制流深度（loop/try），以及最终的语义槽 `slots`。
+/// 单语句内的"使用"记录（O-7/O-12 单语句一遍扫描）。
+/// 借用不跨语句（借用不可存储，文稿 8.2），所以每个语句结束前
+/// 把本语句收集的使用按 place 分组互查，语句结束全部失效。
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum UseKind {
+    /// `&const` 实参（只读借用，可多个共存）
+    BorrowConst,
+    /// `&` 实参且形参声明为可变借用（同一时刻最多一个）
+    BorrowMut,
+    /// move（值被存进某个地方：实参、赋值、返回、初始化）
+    Move,
+    /// 写（赋值左侧的 place）
+    Write,
+}
+
+pub struct StmtUse {
+    pub place: String,
+    pub kind: UseKind,
+    pub tok: Tok,
+}
+
 pub struct Sema<'a> {
     pub mod_: &'a ast::Module,
     pub d: &'a mut Diags,
@@ -491,6 +518,17 @@ pub struct Sema<'a> {
     pub pending_insts: Vec<usize>,
     /// 当前函数的单态化链深（模板 0；实例 = 创建它时的链深 + 1，GX-09 上限 64）
     pub cur_gdepth: u32,
+    /// 当前语句收集的使用（O-7/O-12）。`check_stmt` 入口清空、出口扫描；
+    /// 借用互斥只在同一条语句内成立——语句结束借用即失效。
+    pub stmt_uses: Vec<StmtUse>,
+    /// 探测模式（O-5 循环第一遍）：只收集"体内会 move 哪些外层变量"的
+    /// 状态变化，不产出诊断、不计错误数。第二遍按最保守合并后的状态
+    /// 正式检查，此时 use-after-move 才会在使用点报 E7001。
+    pub probe: bool,
+    /// arena region 注册表：region id → 声明所在作用域（O-18 逃逸检测：
+    /// ArenaRef 的使用点必须在 region 作用域内或其后代）。
+    pub arena_regions: HashMap<u32, Rc<RefCell<ScopeNode>>>,
+    pub next_region: u32,
     pub checked_funcs: HashSet<usize>,
     /// 匿名函数合成的 FuncInfo 下标（文稿 4.1；codegen 据此生成顶层函数）
     pub anon_funcs: Vec<usize>,
@@ -604,6 +642,10 @@ impl<'a> Sema<'a> {
             next_inst: 1,
             pending_insts: Vec::new(),
             cur_gdepth: 0,
+            stmt_uses: Vec::new(),
+            probe: false,
+            arena_regions: HashMap::new(),
+            next_region: 1,
             checked_funcs: HashSet::new(),
             anon_funcs: Vec::new(),
             extras: Vec::new(),
@@ -954,6 +996,9 @@ impl<'a> Sema<'a> {
         args: &[&dyn std::fmt::Display],
     ) {
         // 诊断归属当前正在检查的模块文件（用户模块的错误行号对应模块文件本身）
+        if self.probe {
+            return;
+        }
         let path = if self.cur_mod_path.is_empty() {
             self.path.clone()
         } else {
@@ -973,6 +1018,28 @@ impl<'a> Sema<'a> {
     ) {
         let t = dummy_tok();
         self.err(code, &t, rule, zh, args);
+    }
+
+    /// 警告（W 组）：只提示，不算错误、不影响退出码（文稿 0.4"能否降级为 linter 警告"）。
+    pub fn warn(
+        &mut self,
+        code: &str,
+        tok: &Tok,
+        rule: &str,
+        zh: &str,
+        args: &[&dyn std::fmt::Display],
+    ) {
+        if self.probe {
+            return;
+        }
+        let path = if self.cur_mod_path.is_empty() {
+            self.path.clone()
+        } else {
+            self.cur_mod_path.clone()
+        };
+        let msg = crate::diag_msg::tr(self.d.lang, code, zh, args);
+        self.d
+            .warn(code, msg, &path, tok.line, tok.col, tok.eline, tok.ecol, rule);
     }
 
     /// 槽表键：`(实例号 << 32) | 节点 id`。非泛型世界实例号恒 0，键值与
@@ -1600,6 +1667,9 @@ impl<'a> Sema<'a> {
                     .get(*id as usize)
                     .map_or(false, |d| d.kind == "class")
             }
+            // ArenaRef 是指向区域对象的指针：struct 值复制会共享它，
+            // struct 又可能活得比区域久 → 与 class 引用同等禁止（T-29）
+            TyS::ArenaRef(_) => true,
             TyS::Array(e, _) => self.contains_class(e),
             TyS::Map(k, v) => self.contains_class(k) || self.contains_class(v),
             TyS::Tuple(elems) => elems.iter().any(|x| self.contains_class(x)),
@@ -2110,6 +2180,7 @@ impl<'a> Sema<'a> {
                     decl_line: 0,
                     is_param: true,
                     idx: i,
+                    arena_region: None,
                 })),
             );
         }
@@ -2205,10 +2276,17 @@ impl<'a> Sema<'a> {
                 }
                 let fields = self.typedefs[d as usize].fields.clone();
                 let ctor_tok = self.funcs[cf].tok.clone();
-                for (fn_, _, _, _) in &fields {
-                    if !assigned.contains(fn_) {
-                        self.err("E3009", &ctor_tok, "文稿 6.1", "constructor 没有给字段 `{0}` 赋值", &[&fn_]);
+                for (fn_, fty, _, _) in &fields {
+                    if assigned.contains(fn_) {
+                        continue;
                     }
+                    // ArenaRef 字段豁免：构造期还没有区域可借（arena 在使用点
+                    // 才创建），C 层 calloc 清零即空指针；逃逸检查保证使用
+                    // 时不指向已释放的区域
+                    if matches!(&**fty, TyS::ArenaRef(_)) {
+                        continue;
+                    }
+                    self.err("E3009", &ctor_tok, "文稿 6.1", "constructor 没有给字段 `{0}` 赋值", &[&fn_]);
                 }
             }
             // override 检查（父类方法优先，其次 interface 声明）

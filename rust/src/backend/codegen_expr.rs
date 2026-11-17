@@ -1310,6 +1310,21 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
         if mk == "FromCodepoint" {
             return self.from_codepoint(e);
         }
+        if mk == "arena_alloc" {
+            // O-17：`ar.Alloc(x)` —— 区域收养对象指针，返回值即 ArenaRef<T>
+            //（C 层 T*）。实参在 sema 已按 move 处理。
+            let recv = match &e.k {
+                Expr::MethodCall { recv, .. } => recv,
+                _ => unreachable!(),
+            };
+            let ar = self.gen(recv, None, false, false);
+            let x = self.gen(&args[0].k.expr, None, false, false);
+            let inner = match &*self.ty_or_int(e.id) {
+                TyS::ArenaRef(i) => self.cg.ct(i),
+                _ => "void*".to_string(),
+            };
+            return format!("(({})ax_arena_adopt({}, {}))", inner, ar, x);
+        }
         // virtual
         let fid = match sl.method {
             Some(f) => f,
@@ -2062,7 +2077,9 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             .and_then(|s| s.ckind)
             .unwrap_or("");
         if ck == "arena" {
-            return "NULL".to_string();
+            // O-20：`new Arena()` 创建区域分配器；区域变量离开作用域时
+            // 由块尾的 ax_arena_free 整体释放（codegen_fn 的 var_decl 挂钩）
+            return "ax_arena_create()".to_string();
         }
         let ty = self.ty_or_int(e.id);
         let d: u32 = match &*ty {

@@ -13,6 +13,56 @@ use std::rc::Rc;
 impl<'a> Sema<'a> {
     // ---------------------------------------------------------------- 成员访问
 
+    /// `ar.Alloc(x)`（O-17）：把 x move 进区域，返回 ArenaRef<T>（copy 语义）。
+    fn check_arena_method(&mut self, e: &ast::EPtr, args: &[ast::N<ast::Arg>], name: &str) -> Ty {
+        if name != "Alloc" {
+            self.err(
+                "E3003",
+                &e.tok,
+                "O-17",
+                "`Arena` 没有 {0} 方法（只有 `Alloc`）",
+                &[&name],
+            );
+            return t_object();
+        }
+        let recv = match &e.k {
+            Expr::MethodCall { recv, .. } => recv,
+            _ => unreachable!(),
+        };
+        let region = self.slot(&recv.id).and_then(|s| s.arena_region);
+        if args.len() != 1 {
+            self.err(
+                "E4031",
+                &e.tok,
+                "O-17",
+                "`arena.Alloc` 需要 1 个实参，得到 {0}",
+                &[&args.len()],
+            );
+            return t_object();
+        }
+        let t = self.check_expr(&args[0].k.expr, None);
+        // 只收养指针表示的类型：class 实例 / object 盒子。数组、map 在 C 层
+        // 是值结构（ax_arr/ax_map），区域无法按指针收养。
+        let adoptable = matches!(&*t, TyS::Object)
+            || matches!(&*t, TyS::Named(DefId::Id(id), _)
+                if self.typedefs.get(*id as usize).map_or(false, |d| d.kind == "class"));
+        if !adoptable {
+            self.err(
+                "E7005",
+                &args[0].k.expr.tok,
+                "O-17",
+                "`arena.Alloc` 只收引用类型（class 实例），得到 {0}",
+                &[&self.ts(&t)],
+            );
+            return Rc::new(TyS::ArenaRef(t));
+        }
+        self.take(&args[0].k.expr);
+        let s = self.sl(e.id);
+        s.mkind = Some("arena_alloc");
+        s.arena_region = region;
+        Rc::new(TyS::ArenaRef(t))
+    }
+
     pub fn check_field_access(&mut self, e: &ast::EPtr, expected: Option<&Ty>) -> Ty {
         let (recv, name) = match &e.k {
             Expr::FieldAccess { recv, name } => (recv, name.clone()),
@@ -93,6 +143,13 @@ impl<'a> Sema<'a> {
             }
             return t_unknown();
         }
+        // ArenaRef<T> 解引用：字段访问落到 T 的字段（C 层 ArenaRef<T> 就是 T*，
+        // 与 class 引用同形，字段读写生成不变）
+        let rt = if let TyS::ArenaRef(inner) = &*rt {
+            inner.clone()
+        } else {
+            rt
+        };
         if let TyS::Named(DefId::Id(id), _) = &*rt {
             let d = match self.typedefs.get(*id as usize) {
                 Some(d) => d.clone(),
@@ -121,9 +178,17 @@ impl<'a> Sema<'a> {
                     self.check_field_vis(d.id, &name, &e.tok);
                     let owner = self.find_field_owner(d.id, &name);
                     let idx = self.field_index(owner, &name);
+                    // O-18：经区域内对象读出的 ArenaRef 继承来源 region，
+                    // 之后的使用点照样受逃逸检查约束
+                    let rr = if matches!(&*fty, TyS::ArenaRef(_)) {
+                        self.slot(&recv.id).and_then(|x| x.arena_region)
+                    } else {
+                        None
+                    };
                     let s = self.sl(e.id);
                     s.field_owner = Some(owner);
                     s.field_idx = idx;
+                    s.arena_region = rr;
                     fty
                 }
             }
@@ -410,7 +475,9 @@ impl<'a> Sema<'a> {
                 Some(m) => m,
             };
             let ptypes: Vec<Ty> = self.funcs[m].params.iter().map(|p| p.1.clone()).collect();
-            self.check_call_args(args, Some(&ptypes), e.id);
+            let borrows: Vec<Option<String>> =
+                self.funcs[m].params.iter().map(|p| p.2.clone()).collect();
+            self.check_call_args(args, Some(&ptypes), Some(&borrows), e.id);
             let ret = self.funcs[m].ret.clone();
             let s = self.sl(e.id);
             s.mkind = Some("super");
@@ -450,6 +517,19 @@ impl<'a> Sema<'a> {
         } else {
             rt.clone()
         };
+        // Arena 内建方法（O-17）：`ar.Alloc(x)` 把 x move 进区域
+        if let TyS::Named(DefId::Name(nm), _) = &*rt {
+            if *nm == "Arena" {
+                return self.check_arena_method(e, args, &name);
+            }
+        }
+        // ArenaRef<T> 解引用：方法调用落到 T 的方法（C 层 ArenaRef<T> 就是 T*，
+        // 与 class 引用同形，虚派发生成不变）
+        let rt = if let TyS::ArenaRef(inner) = &*rt {
+            inner.clone()
+        } else {
+            rt
+        };
         if let Some(intr) = self.intrinsic(e, args, &rt) {
             return intr;
         }
@@ -477,7 +557,9 @@ impl<'a> Sema<'a> {
             }
             self.check_member_vis(d, m, &e.tok);
             let ptypes: Vec<Ty> = self.funcs[m].params.iter().map(|p| p.1.clone()).collect();
-            self.check_call_args(args, Some(&ptypes), e.id);
+            let borrows: Vec<Option<String>> =
+                self.funcs[m].params.iter().map(|p| p.2.clone()).collect();
+            self.check_call_args(args, Some(&ptypes), Some(&borrows), e.id);
             if args.len() != ptypes.len() {
                 self.err("E4031", &e.tok, "N-20", "`{0}` 需要 {1} 个实参，得到 {2}", &[&name, &ptypes.len(), &args.len()]);
             }
@@ -526,7 +608,7 @@ impl<'a> Sema<'a> {
             }
         };
         let (ptypes, ret) = sig;
-        self.check_call_args(args, Some(&ptypes), e.id);
+        self.check_call_args(args, Some(&ptypes), None, e.id);
         if args.len() != ptypes.len() {
             self.err("E4031", &e.tok, "N-20", "`{0}` 需要 {1} 个实参，得到 {2}", &[&mname, &ptypes.len(), &args.len()]);
         }
@@ -618,7 +700,7 @@ impl<'a> Sema<'a> {
                     return t_object();
                 }
             };
-            self.check_call_args(args, Some(&ptypes), e.id);
+            self.check_call_args(args, Some(&ptypes), None, e.id);
             return ret;
         }
         // Meta 里的名字可能是裸名（`Product.Sample()`）或注册名（`product__Product`），
@@ -650,7 +732,9 @@ impl<'a> Sema<'a> {
         }
         self.check_member_vis(d, m, &e.tok);
         let ptypes: Vec<Ty> = self.funcs[m].params.iter().map(|p| p.1.clone()).collect();
-        self.check_call_args(args, Some(&ptypes), e.id);
+        let borrows: Vec<Option<String>> =
+            self.funcs[m].params.iter().map(|p| p.2.clone()).collect();
+        self.check_call_args(args, Some(&ptypes), Some(&borrows), e.id);
         if args.len() != self.funcs[m].params.len() {
             self.err("E4031", &e.tok, "N-20", "`{0}` 需要 {1} 个实参，得到 {2}", &[&name, &self.funcs[m].params.len(), &args.len()]);
         }
@@ -672,7 +756,7 @@ impl<'a> Sema<'a> {
             _ => unreachable!(),
         };
         if name == "Parse" {
-            self.check_call_args(args, Some(&[t_string()]), e.id);
+            self.check_call_args(args, Some(&[t_string()]), None, e.id);
             if type_name == "string" {
                 self.err("E3003", &e.tok, "N-17", "string 没有 parse", &[]);
                 return t_string();
@@ -684,7 +768,7 @@ impl<'a> Sema<'a> {
             return t_result(tgt);
         }
         if name == "Truncate" && matches!(type_name, "int8" | "int16" | "int32") {
-            self.check_call_args(args, Some(&[t_int()]), e.id);
+            self.check_call_args(args, Some(&[t_int()]), None, e.id);
             let tgt = builtin_scalar(type_name).unwrap();
             let s = self.sl(e.id);
             s.mkind = Some("Truncate");
@@ -692,7 +776,7 @@ impl<'a> Sema<'a> {
             return tgt;
         }
         if name == "FromCodepoint" && type_name == "string" {
-            self.check_call_args(args, Some(&[t_int()]), e.id);
+            self.check_call_args(args, Some(&[t_int()]), None, e.id);
             self.sl(e.id).mkind = Some("FromCodepoint");
             return t_result(t_string());
         }
@@ -710,7 +794,7 @@ impl<'a> Sema<'a> {
             Expr::MethodCall { name, .. } => name.clone(),
             _ => unreachable!(),
         };
-        self.check_call_args(args, None, e.id);
+        self.check_call_args(args, None, None, e.id);
         let sig = match module_sig(m, &name) {
             None => {
                 self.err("E3003", &e.tok, "文稿 9.2", "模块 `{0}` 没有符号 `{1}`", &[&m, &name]);
@@ -946,7 +1030,7 @@ impl<'a> Sema<'a> {
             Expr::MethodCall { name, .. } => name.clone(),
             _ => unreachable!(),
         };
-        self.check_call_args(args, Some(ptypes), e.id);
+        self.check_call_args(args, Some(ptypes), None, e.id);
         if args.len() != ptypes.len() {
             self.err("E4031", &e.tok, "N-20", "`{0}` 需要 {1} 个实参，得到 {2}", &[&name, &ptypes.len(), &args.len()]);
         }

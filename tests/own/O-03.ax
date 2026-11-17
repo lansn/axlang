@@ -1,0 +1,14 @@
+// EXPECT: E7007
+// O-03：借用目标必须是 place（变量、字段、元素），字面量不行
+int sum(&const int[] xs) {
+    int t = 0
+    for v in xs {
+        t += v
+    }
+    return t
+}
+
+int main() {
+    int t = sum(&[1, 2, 3])
+    return t
+}

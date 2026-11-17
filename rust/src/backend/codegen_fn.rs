@@ -34,6 +34,14 @@ pub struct TryCtx<'a> {
     pub finally: Option<&'a ast::Block>,
 }
 
+/// 块尾清理动作：用户 `defer` 调用，或 arena 变量的整体释放（O-20：
+/// 区域变量离开作用域时 `ax_arena_free` 一次性释放区域内全部对象）。
+#[derive(Clone)]
+pub enum DeferAction<'a> {
+    Call(&'a ast::EPtr),
+    ArenaFree(String),
+}
+
 /// 单个函数的 C 生成器。`defers` / `loop_labels` / `try_stack` 三个栈分别
 /// 对应 defer、带标签循环、try 块的嵌套展开——跳转与 return 前要按栈序
 /// 补跑 finally / defer；`try_seq` 给标签与临时量编号去重。
@@ -44,7 +52,7 @@ pub struct FnGen<'s, 'a, 'c> {
     pub owner: Option<u32>,
     pub lines: Vec<String>,
     pub ind: usize,
-    pub defers: Vec<Vec<&'a ast::EPtr>>,
+    pub defers: Vec<Vec<DeferAction<'a>>>,
     pub loop_labels: Vec<(Option<String>, usize, String)>,
     pub try_stack: Vec<TryCtx<'a>>,
     pub try_seq: usize,
@@ -270,9 +278,9 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             }
             self.stmt(sp);
         }
-        let frame: Vec<&'a ast::EPtr> = self.defers.pop().unwrap_or_default();
-        for call in frame.iter().rev() {
-            self.emit_defer_call(call);
+        let frame: Vec<DeferAction<'a>> = self.defers.pop().unwrap_or_default();
+        for act in frame.iter().rev() {
+            self.emit_defer_action(act);
         }
         self.ind -= 1;
         self.emit("}".to_string());
@@ -305,7 +313,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             Stmt::Throw { .. } => self.throw_stmt(s),
             Stmt::TryCatch(_) => self.try_catch_stmt(s),
             Stmt::Defer { call } => {
-                self.defers.last_mut().unwrap().push(call);
+                self.defers.last_mut().unwrap().push(DeferAction::Call(call));
             }
             Stmt::Break { .. } => self.break_stmt(s, true),
             Stmt::Continue { .. } => self.break_stmt(s, false),
@@ -333,6 +341,14 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
         let lv = self.lv(name);
         let ct = self.cg.ct(&ty);
         self.emit(format!("{} {} = {};", ct, lv, expr));
+        // O-20：区域变量离开作用域时整体释放。复用 defer 清理栈，
+        // return / throw / break 的提前退出路径同样触发。
+        if matches!(&*ty, TyS::Named(DefId::Name("Arena"), _)) {
+            self.defers
+                .last_mut()
+                .unwrap()
+                .push(DeferAction::ArenaFree(lv.clone()));
+        }
         if let Some(i) = init {
             if self.is_move(i.id) && matches!(&i.k, Expr::Path { .. }) {
                 self.emit_zero(i, &ty);
@@ -642,6 +658,8 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 let ty = self.ty_or_int(node.id);
                 match &*ty {
                     TyS::Nullable(_) => (name, false),
+                    // ArenaRef<T> 在 C 层就是 T*，与 class 引用同形
+                    TyS::ArenaRef(_) => (name, true),
                     TyS::Named(did, _) => {
                         let is_class = self.cg.def_of(did).map_or(false, |d| d.kind == "class");
                         if is_class {
@@ -666,6 +684,10 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                     if is_class {
                         return (expr, true);
                     }
+                }
+                // ArenaRef<T> 的临时变量就是 T 的指针形态，同样走 ->
+                if matches!(&*ty, TyS::ArenaRef(_)) {
+                    return (expr, true);
                 }
                 (expr, false)
             }
@@ -954,11 +976,10 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
     pub fn emit_defers(&mut self, upto: Option<usize>) {
         let n = self.defers.len();
         let end = upto.unwrap_or(n);
-        let frames: Vec<Vec<&'a ast::EPtr>> = self.defers[..end].to_vec();
+        let frames: Vec<Vec<DeferAction<'a>>> = self.defers[..end].to_vec();
         for frame in frames.iter().rev() {
-            for call in frame.iter().rev() {
-                let c = *call;
-                self.emit_defer_call(c);
+            for act in frame.iter().rev() {
+                self.emit_defer_action(act);
             }
         }
     }
@@ -967,11 +988,19 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
     pub fn emit_defers_from(&mut self, from: usize) {
         let n = self.defers.len();
         let start = from.min(n);
-        let frames: Vec<Vec<&'a ast::EPtr>> = self.defers[start..].to_vec();
+        let frames: Vec<Vec<DeferAction<'a>>> = self.defers[start..].to_vec();
         for frame in frames.iter().rev() {
-            for call in frame.iter().rev() {
-                let c = *call;
-                self.emit_defer_call(c);
+            for act in frame.iter().rev() {
+                self.emit_defer_action(act);
+            }
+        }
+    }
+
+    fn emit_defer_action(&mut self, a: &DeferAction<'a>) {
+        match a {
+            DeferAction::Call(c) => self.emit_defer_call(c),
+            DeferAction::ArenaFree(v) => {
+                self.emit(format!("ax_arena_free({});", v));
             }
         }
     }
