@@ -1,4 +1,0 @@
-// EXPECT: E2001
-int f() {
-    return throw error.IO("x")
-}

@@ -1,7 +1,0 @@
-int main() {
-    int[] a = [1]
-    int z = 2
-    int x = a[z]
-    print("{x}")
-    return 0
-}

@@ -1,6 +1,0 @@
-// EXPECT: E2004
-int main() {
-    int x = 1
-    if x print("a")
-    return x
-}

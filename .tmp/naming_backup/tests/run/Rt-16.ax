@@ -1,5 +1,0 @@
-int main() {
-    string s = "中文"
-    print("{s.byte_len()}")
-    return 0
-}

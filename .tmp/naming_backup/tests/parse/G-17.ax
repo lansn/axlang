@@ -1,9 +1,0 @@
-// EXPECT: E2009
-string g() {
-    return "ab"
-}
-
-int main() {
-    int n = g() try.len()
-    return n
-}

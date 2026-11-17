@@ -1,9 +1,0 @@
-// EXPECT: PASS
-int main() {
-    int price = 2
-    int count = 3
-    int shipping = 1
-    int ok = price * count +
-             shipping
-    return ok
-}

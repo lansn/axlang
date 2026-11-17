@@ -1,9 +1,21 @@
 # Build and Release Folders
 
+# Rust 构建产物（cargo 自己生成，几百 MB，绝不入库）
+/rust/target/
+
+# 测试临时目录：编译器跑用例时把 .c / 可执行文件落在这里
+/tests/.build/
+
+# 编辑器 / 系统
+.DS_Store
+Thumbs.db
+
 # Other files and folders
 .tmp/
 
 # Executables
+# 注意：`/dist/` 是刻意跟踪的——`dist/axc.exe` 是分发用的编译器本体，
+# 与源码版本号同步更新，不进忽略清单。
 # *.swf
 # *.air
 # *.ipa

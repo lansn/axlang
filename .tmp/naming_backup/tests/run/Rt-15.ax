@@ -1,5 +1,0 @@
-int main() {
-    decimal d = 100.00d.divide(3, 2, Rounding.HalfUp)
-    print("{d}")
-    return 0
-}

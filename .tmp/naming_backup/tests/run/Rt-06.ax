@@ -1,6 +1,0 @@
-int main() {
-    int z = 64
-    int x = 1 << z
-    print("{x}")
-    return 0
-}

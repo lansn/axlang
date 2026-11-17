@@ -1,8 +1,0 @@
-int main() {
-    decimal? d = 12.50d
-    decimal? e = null
-    float? f = 1.5
-    bool? b = true
-    Println("d={d} e={e} f={f} b={b}")
-    return 0
-}

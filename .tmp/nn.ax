@@ -1,8 +1,0 @@
-int main() {
-    string? x = "hi"
-    Println("v={x}")
-    if x != null {
-        Println("raw={x}")
-    }
-    return 0
-}

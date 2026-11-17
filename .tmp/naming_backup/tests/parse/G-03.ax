@@ -1,9 +1,0 @@
-// EXPECT: E2003
-int main() {
-    int price = 2
-    int count = 3
-    int shipping = 1
-    decimal bad = price * count
-    + shipping
-    return 0
-}
