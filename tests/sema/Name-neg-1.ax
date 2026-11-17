@@ -1,0 +1,8 @@
+// EXPECT: E3003
+// 模块函数一律小写：io.ReadLine 是旧写法（方法才 PascalCase）
+import io
+
+int main() {
+    string? line = io.ReadLine()
+    return 0
+}

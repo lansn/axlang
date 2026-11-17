@@ -1,20 +1,20 @@
 // 隐式 main：入口文件的顶层语句自动包成 int main()，单文件即完整程序
-Println("start")
+println("start")
 
 int x = 5
 var name = "ax"
 
 void hello(string who) {
-    Println("hi, {who}")
+    println("hi, {who}")
 }
 
 hello(name)
-Println("x={x} name={name}")
+println("x={x} name={name}")
 
 for i in 0..2 {
-    Println("i={i}")
+    println("i={i}")
 }
 
 if x > 3 {
-    Println("big")
+    println("big")
 }

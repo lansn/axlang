@@ -3,6 +3,6 @@
 import model.{greet}
 
 int main() {
-    Println(model.hidden("x"))
+    println(model.hidden("x"))
     return 0
 }

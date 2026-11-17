@@ -39,7 +39,7 @@ int main() {
     var r = new Rect(3d, 4d)
     var s = new Square(5d)
 
-    Println("{r.name()} 面积 {r.area()}")
-    Println("{s.name()} 面积 {s.area()}")
+    println("{r.name()} 面积 {r.area()}")
+    println("{s.name()} 面积 {s.area()}")
     return 0
 }

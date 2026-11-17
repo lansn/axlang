@@ -3,8 +3,8 @@ type Table<T> = map<string, T>
 type Names = string[]
 int main() {
     Table<int> t = {"a": 1, "b": 2}
-    Println(t["a"] + t["b"])
+    println(t["a"] + t["b"])
     Names ns = ["x", "y"]
-    Println(ns.Len())
+    println(ns.Len())
     return 0
 }

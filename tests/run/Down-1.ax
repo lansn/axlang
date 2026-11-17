@@ -17,9 +17,9 @@ class Circle implement Shape {
 int main() {
     Animal a = new Dog("旺财")
     Dog d = Dog(a)
-    Println("下转 OK：{d.name}")
+    println("下转 OK：{d.name}")
     Shape s = new Circle(2)
     Circle c = Circle(s)
-    Println("接口下转 OK：{c.describe()}")
+    println("接口下转 OK：{c.describe()}")
     return 0
 }

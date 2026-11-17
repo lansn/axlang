@@ -100,7 +100,7 @@
 | `E3002` | 变量声明必须有初值（文稿 3.3） | a variable declaration must have an initializer |
 
 | `E3003` | Rounding 没有成员 `{0}`（N-17） | Rounding has no member `{0}` |
-| `E3003` | `print` 已拆分为 `Print`（不换行）与 `Println`（换行）（文稿 11.2） | `print` has been split into `Print` (no newline) and `Println` (with newline) |
+| `E3003` | 内置库函数名一律小写：`{0}` 请写 `{1}`（文稿 2.3） | built-in function names are lowercase: write `{1}` instead of `{0}` |
 | `E3003` | `{0}.{1}` 不存在（N-17） | `{0}.{1}` does not exist |
 | `E3003` | `{0}.{1}` 是常量，不可调用（文稿 9.2） | `{0}.{1}` is a constant and cannot be called |
 | `E3003` | `{0}` 不是 enum（N-18） | `{0}` is not an enum |

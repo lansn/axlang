@@ -10,31 +10,31 @@ int main() {
     // ---- 二进制浮点的经典误差 ----
     float f1 = 0.1
     float f2 = 0.2
-    Println("float: 0.1 + 0.2 = {f1 + f2}")
+    println("float: 0.1 + 0.2 = {f1 + f2}")
 
     // ---- decimal 精确 ----
     decimal d1 = 0.1d
     decimal d2 = 0.2d
-    Println("decimal: 0.1 + 0.2 = {d1 + d2}")
+    println("decimal: 0.1 + 0.2 = {d1 + d2}")
 
     // ---- 乘法不丢精度 ----
     decimal price = 19.99d
     decimal count = 3d
-    Println("19.99 × 3 = {price * count}")
+    println("19.99 × 3 = {price * count}")
 
     // ---- 除不尽时必须显式指定精度和舍入方式 ----
     decimal third = 100.00d.Divide(3, 2, Rounding.HalfUp)
-    Println("100 / 3 保留 2 位（四舍五入）= {third}")
+    println("100 / 3 保留 2 位（四舍五入）= {third}")
 
     decimal even = 2.345d.Divide(1, 2, Rounding.HalfEven)
-    Println("2.345 保留 2 位（银行家舍入）= {even}")
+    println("2.345 保留 2 位（银行家舍入）= {even}")
 
     // ---- round 直接对已有值取位数 ----
     decimal r = 123.456d.Round(2, Rounding.HalfUp)
-    Println("123.456 → {r}")
+    println("123.456 → {r}")
 
     // ---- 折扣计算：全程 decimal，最后一步才舍入 ----
     decimal total = price * count * 0.9d
-    Println("打九折 = {total.Round(2, Rounding.HalfUp)}")
+    println("打九折 = {total.Round(2, Rounding.HalfUp)}")
     return 0
 }

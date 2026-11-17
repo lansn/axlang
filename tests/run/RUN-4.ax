@@ -6,6 +6,6 @@ int fib(int n) {
 }
 
 int main() {
-    Println("{fib(30)}")
+    println("{fib(30)}")
     return 0
 }

@@ -4,7 +4,7 @@ int main() {
     m["a"] = 2
     m["b"] = 3
     for (k, v) in m {
-        Println("{k}")
+        println("{k}")
     }
     return 0
 }

@@ -9,7 +9,7 @@ class Util {
 }
 int main() {
     int s = Util.add(2, 3)
-    Println("s = {s}")
+    println("s = {s}")
     Util u = Util.zero()
     return 0
 }

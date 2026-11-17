@@ -7,6 +7,31 @@
 > **1.0 及以上永远保留给语法冻结**（语言设计不再做破坏性变更）之后。
 > 阶段进位条件见 `ARCHITECTURE.md` §8。
 
+## [0.0.23] — 2026-11
+
+### 命名规则按调用形状分：库函数全小写，方法 PascalCase
+
+破坏性改名（用户拍板）。此前 ㉞（v0.31）把**模块函数也按 PascalCase** 统一（`io.ReadLine`、`math.Equals`），
+理由是"标准库方法一律 C# 风格"；后果是 `io.ReadLine()` 与 `s.Len()` 同形——读代码时分不清哪个是
+"某个对象上的方法"、哪个是"库里的一支自由函数"。本轮按**调用形状**重新划线：
+
+- **内建库函数一律全小写**（多词 snake_case）：`print` / `println`（原 `Print` / `Println`）、
+  `io.read_line` / `io.read_file`、`file.open` / `file.create` / `file.append`、`json.parse`、
+  `math.compare` / `math.equals`、`db.query`、`time.now_ms`。`名字(...)` 即函数。
+- **方法一律 PascalCase**（C# 风格）——实例方法、静态方法、接口方法都算：`s.Len()`、`f.ReadLine()`、
+  `decimal.Parse(s)`、`x.ToString()`；内建接口同步为 `Printable.ToString()` / `Comparable.Compare(other)` /
+  `Hashable.Hash()`（原 `to_string` / `compare` / `hash`，此前是 PascalCase 规则的例外）。
+- **旧名不静默兼容**：`Print` / `Println` 报 `E3003` 并指名改写成 `print` / `println`；
+  `io.ReadLine` 这类旧写法报"模块没有该符号"。
+
+顺带修两个此前无用例覆盖的生成 bug：`io.read_file` 按单实参调用 `ax_read_file(path)`（运行时签名是
+`(path, &out)`，C 编译直接失败）、`io.read_line` 按无实参调用 `ax_read_line()`（同样是 out 参数形态）——
+现在都按 `string?` / `result<string>` 的 out 参数形态生成。运行时 `axrt.h` 补 `#include <math.h>`
+（`math.equals` 生成 `fabs`，此前隐式声明报警告）。
+
+验收：**166/166** 通过、Rust 零警告（新增 `Math-1` 模块函数正例、`IO-2` `io.read_file` 回读、
+`Name-neg-1` 旧写法负例；`Out-1` 改为断言 `Print` 的迁移提示）。
+
 ## [0.0.22] — 2026-11
 
 ### 所有权 / 借用 / arena 落地（M7，O-01…O-20 全通）

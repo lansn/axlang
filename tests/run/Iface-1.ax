@@ -52,17 +52,17 @@ Shape pick(int which) {
 
 int main() {
     Shape s = new Circle(2)               // 上转：声明处
-    Println(tag(s))
+    println(tag(s))
     s = new Square(3)                     // 同 interface 再赋另一实现
-    Println(tag(s))
+    println(tag(s))
 
-    Println(tag(new Circle(4)))           // 直接把子类实例传给 interface 参数
+    println(tag(new Circle(4)))           // 直接把子类实例传给 interface 参数
     Shape t = pick(1)
-    Println(tag(t))
+    println(tag(t))
 
     Shape[] shapes = [new Circle(1), new Square(2)]   // interface 数组
     for x in shapes {
-        Println(tag(x))
+        println(tag(x))
     }
     return 0
 }

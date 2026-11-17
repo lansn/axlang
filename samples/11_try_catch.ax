@@ -19,55 +19,55 @@ result<int> parse_and_double(string s) {
 result<int> load(string raw) {
     try {
         int v = parse_and_double(raw)       // 失败 → 跳到本块 catch
-        Println("解析成功：{raw} -> {v}")
+        println("解析成功：{raw} -> {v}")
         return ok(v)
     } catch (error.Invalid e) {
-        Println("参数不合法：{e.msg}")
+        println("参数不合法：{e.msg}")
         throw error.Money("上游要的是钱相关的错：{e.msg}")   // 本层不重捕获，先跑 finally
     } finally {
-        Println("load finally（{raw}）")
+        println("load finally（{raw}）")
     }
 }
 
 int main() {
     // 1) 成功路径
     match load("21") {
-        ok(v) => Println("main 收到 {v}"),
-        fail(e) => Println("main 收到失败：{e.msg}"),
+        ok(v) => println("main 收到 {v}"),
+        fail(e) => println("main 收到失败：{e.msg}"),
     }
 
     // 2) 解析失败（Invalid）→ 内层改写成 Money → 外层兜底 catch 接住
     try {
         int a = load("abc")
-        Println("不会到这里 {a}")
+        println("不会到这里 {a}")
     } catch (error e) {
-        Println("外层兜底：{e.msg}")
+        println("外层兜底：{e.msg}")
     } finally {
-        Println("外层 finally")
+        println("外层 finally")
     }
 
     // 3) 只写 finally 不写 catch：错误不被处理，继续往外，finally 照样执行
     try {
         try {
             int b = load("-3")
-            Println("不会到这里 {b}")
+            println("不会到这里 {b}")
         } finally {
-            Println("内层只写 finally")
+            println("内层只写 finally")
         }
     } catch (error.Money e) {
-        Println("外层接到 Money：{e.msg}")
+        println("外层接到 Money：{e.msg}")
     }
 
     // 4) defer 是块级清理，先于 catch 执行
     try {
-        defer Println("defer：离开 try 块")
+        defer println("defer：离开 try 块")
         throw error.IO("文件读不到")
     } catch (error.IO e) {
-        Println("catch 接住：{e.msg}")
+        println("catch 接住：{e.msg}")
     } finally {
-        Println("finally：最后一个")
+        println("finally：最后一个")
     }
 
-    Println("全部结束")
+    println("全部结束")
     return 0
 }

@@ -12,31 +12,31 @@ use std::rc::Rc;
 pub fn module_sig(mod_: &str, name: &str) -> Option<(Vec<Option<Ty>>, Ty)> {
     let t = |k: TyS| -> Ty { Rc::new(k) };
     Some(match (mod_, name) {
-        ("io", "ReadLine") => (vec![], t(TyS::Nullable(t_string()))),
-        ("io", "ReadFile") => (vec![Some(t_string())], t_result(t_string())),
-        ("math", "Equals") => (
+        ("io", "read_line") => (vec![], t(TyS::Nullable(t_string()))),
+        ("io", "read_file") => (vec![Some(t_string())], t_result(t_string())),
+        ("math", "equals") => (
             vec![Some(t_float()), Some(t_float()), Some(t_float())],
             t_bool(),
         ),
-        ("math", "Compare") => (vec![Some(t_float()), Some(t_float())], t_int()),
-        ("json", "Parse") => (
+        ("math", "compare") => (vec![Some(t_float()), Some(t_float())], t_int()),
+        ("json", "parse") => (
             vec![Some(t_string())],
             t_result(t_map(t_string(), t_object())),
         ),
         ("json", "stringify") => (vec![Some(t_object())], t_string()),
-        ("db", "Query") => (
+        ("db", "query") => (
             vec![Some(t_string())],
             t_result(t_named(DefId::Name("Row"), Vec::new())),
         ),
-        ("file", "Open") => (
+        ("file", "open") => (
             vec![Some(t_string())],
             t_result(t_named(DefId::Name("File"), Vec::new())),
         ),
-        ("file", "Create") => (
+        ("file", "create") => (
             vec![Some(t_string())],
             t_result(t_named(DefId::Name("File"), Vec::new())),
         ),
-        ("file", "Append") => (
+        ("file", "append") => (
             vec![Some(t_string())],
             t_result(t_named(DefId::Name("File"), Vec::new())),
         ),
@@ -107,7 +107,7 @@ impl<'a> Sema<'a> {
                             self.err("E5002", &expr.tok, "T-10", "插值里不能直接用 object；先落成具体类型", &[]);
                         } else if !interp_supported(&pt) && !self.implements_printable(&pt) {
                             let t = self.ts(&pt);
-                            self.err("E5006", &expr.tok, "文稿 11.2", "插值暂不支持 `{0}` 类型；先取其中的标量或自己拼接（实现 `Printable.to_string` 后即可直接插值）", &[&t]);
+                            self.err("E5006", &expr.tok, "文稿 11.2", "插值暂不支持 `{0}` 类型；先取其中的标量或自己拼接（实现 `Printable.ToString` 后即可直接插值）", &[&t]);
                         }
                     }
                 }
@@ -575,7 +575,7 @@ impl<'a> Sema<'a> {
             } else if matches!(&*lt, TyS::Int(..) | TyS::Decimal | TyS::Str) {
                 // 内建可比类型直接放行
             } else if let TyS::Named(DefId::Id(d), _) = &*lt {
-                // 实现 Comparable 的类：`a > b` 按 `a.compare(b) > 0` 生成
+                // 实现 Comparable 的类：`a > b` 按 `a.Compare(b) > 0` 生成
                 let ok = self.types.contains_key("Comparable")
                     && self.implements(*d, self.types["Comparable"]);
                 if !ok {
@@ -825,13 +825,20 @@ impl<'a> Sema<'a> {
             self.sl(e.id).res = Some(Res::Module(name.clone()));
             return Rc::new(TyS::ModuleT(name.clone()));
         }
-        if name == "Print" || name == "Println" {
+        if name == "print" || name == "println" {
             self.sl(e.id).res = Some(Res::Builtin(name.clone()));
             return t_fn(vec![t_string()], t_void());
         }
-        if name == "print" {
-            // 旧名迁移提示（v0.33）：输出拆成"不换行 / 换行"两个名字，名字本身说明行为
-            self.err("E3003", &e.tok, "文稿 11.2", "`print` 已拆分为 `Print`（不换行）与 `Println`（换行）", &[]);
+        if name == "Print" || name == "Println" {
+            // 旧名迁移提示（v0.45）：内置库函数名一律小写，方法才 PascalCase
+            let low = name.to_lowercase();
+            self.err(
+                "E3003",
+                &e.tok,
+                "文稿 2.3",
+                "内置库函数名一律小写：`{0}` 请写 `{1}`",
+                &[&name, &low],
+            );
             return t_fn(vec![t_string()], t_void());
         }
         if name == "ok" || name == "fail" {
@@ -908,7 +915,7 @@ impl<'a> Sema<'a> {
             if segs.len() == 1 && name == "sizeof" {
                 return self.call_sizeof(e, args);
             }
-            if segs.len() == 1 && (name == "Print" || name == "Println") {
+            if segs.len() == 1 && (name == "print" || name == "println") {
                 return self.call_print(e, args, name);
             }
             if segs.len() == 1 && name == "parent" {
@@ -1206,8 +1213,8 @@ impl<'a> Sema<'a> {
         t_string()
     }
 
-    /// `Print` / `Println`（文稿 11.2）：签名是 `void Print(string)`，但允许
-    /// 「可直接插值的单个值」直接传——语义等价于 `Print("{x}")`，只是省掉花括号。
+    /// `print` / `println`（文稿 11.2）：签名是 `void print(string)`，但允许
+    /// 「可直接插值的单个值」直接传——语义等价于 `print("{x}")`，只是省掉花括号。
     /// 仍然只有一种格式化能力（插值），占位符与多实参依旧不支持。
     fn call_print(
         &mut self,

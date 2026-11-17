@@ -3,7 +3,7 @@ import model.{greet, PORT, Config}
 
 int main() {
     Config c = new Config(PORT)
-    Println(greet("named"))
-    Println("port={c.port}")
+    println(greet("named"))
+    println("port={c.port}")
     return 0
 }

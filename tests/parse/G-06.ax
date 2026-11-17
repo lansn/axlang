@@ -1,6 +1,6 @@
 // EXPECT: E2004
 int main() {
     int x = 1
-    if x Println("a")
+    if x println("a")
     return x
 }

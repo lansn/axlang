@@ -4,7 +4,7 @@
 设计：
   - **方法名 / 归属**：直接从 rust/src/sema 源码抽取（intrinsic 类型方法表、
     check_builtin_instance 的 Row/File 表、check_builtin_static、expr.rs 的
-    module_sig、全局函数 Print/Println/ok/fail）。新增方法只要进了这些表，
+    module_sig、全局函数 print/println/ok/fail）。新增方法只要进了这些表，
     重新运行本脚本就会自动出现在文档里。
   - **签名 / 说明**：来自下面的 DESC 字典。源码里有而字典没有的条目
     会以「签名待补充」占位——补字典后重跑即可，不会漏。
@@ -22,8 +22,8 @@ OUT = os.path.join(ROOT, "docs", "STDLIB.md")
 
 DESC = {
     # 全局函数
-    ("global", "Print"):   ("Print(s: string) / Print(x: 可插值)", "输出不换行；实参非字符串时等价于 `Print(\"{x}\")`"),
-    ("global", "Println"): ("Println(s: string) / Println(x: 可插值)", "输出并换行；实参非字符串时等价于 `Println(\"{x}\")`"),
+    ("global", "print"):   ("print(s: string) / print(x: 可插值)", "输出不换行；实参非字符串时等价于 `print(\"{x}\")`"),
+    ("global", "println"): ("println(s: string) / println(x: 可插值)", "输出并换行；实参非字符串时等价于 `println(\"{x}\")`"),
     ("global", "typeof"): ("typeof(expr: 表达式) -> string", "编译期常量，返回实参静态类型显示名（int / int8 / Dog / int[] / int? / map<string, object>）；生成字符串字面量，零运行时开销"),
     ("global", "sizeof"): ("sizeof(expr: 表达式) -> int", "编译期大小：实参类型在 C 侧的存储字节数（int=8 / uint8=1 / string=16 / int[]=24 / class=指针 8）；对象本身的大小不在此问"),
     ("global", "ok"):      ("ok(v: T) -> result<T>", "构造成功结果，配合 try/throw 使用"),
@@ -31,17 +31,17 @@ DESC = {
     ("global", "parent"):  ("parent(实参...)", "在子类 constructor 第一条语句调用父类构造器"),
 
     # 内建模块
-    ("module", "io.ReadLine"):   ("io.ReadLine() -> string?", "从标准输入读一行；EOF 返回 null"),
-    ("module", "io.ReadFile"):   ("io.ReadFile(path: string) -> result<string>", "读整个文本文件"),
-    ("module", "math.Equals"):   ("math.Equals(a: float, b: float, eps: float) -> bool", "浮点带容差比较"),
-    ("module", "math.Compare"):  ("math.Compare(a: float, b: float) -> int", "浮点比较：-1/0/1"),
-    ("module", "json.Parse"):    ("json.Parse(s: string) -> result<map<string, object>>", "解析 JSON 文本"),
+    ("module", "io.read_line"):   ("io.read_line() -> string?", "从标准输入读一行；EOF 返回 null"),
+    ("module", "io.read_file"):   ("io.read_file(path: string) -> result<string>", "读整个文本文件"),
+    ("module", "math.equals"):   ("math.equals(a: float, b: float, eps: float) -> bool", "浮点带容差比较"),
+    ("module", "math.compare"):  ("math.compare(a: float, b: float) -> int", "浮点比较：-1/0/1"),
+    ("module", "json.parse"):    ("json.parse(s: string) -> result<map<string, object>>", "解析 JSON 文本"),
     ("module", "json.stringify"): ("json.stringify(v: object) -> string", "序列化 object 为 JSON"),
-    ("module", "db.Query"):      ("db.Query(sql: string) -> result<Row[]>", "执行查询，返回行数组"),
-    ("module", "file.Open"):     ("file.Open(path: string) -> result<File>", "以读写打开文件"),
-    ("module", "file.Create"):   ("file.Create(path: string) -> result<File>", "创建/截断文件"),
-    ("module", "file.Append"):   ("file.Append(path: string) -> result<File>", "以追加打开文件"),
-    ("module", "string.FromCodepoint"): ("string.FromCodepoint(cp: int) -> result<string>", "码点转字符"),
+    ("module", "db.query"):      ("db.query(sql: string) -> result<Row[]>", "执行查询，返回行数组"),
+    ("module", "file.open"):     ("file.open(path: string) -> result<File>", "以读写打开文件"),
+    ("module", "file.create"):   ("file.create(path: string) -> result<File>", "创建/截断文件"),
+    ("module", "file.append"):   ("file.append(path: string) -> result<File>", "以追加打开文件"),
+    ("module", "string.FromCodepoint"): ("string.FromCodepoint(cp: int) -> result<string>", "码点转字符（`string` 既是类型也是模块，与静态方法同名同拼写）"),
     ("module", "time.now_ms"):   ("time.now_ms() -> int", "当前 Unix 时间（毫秒）"),
 
     # string 实例方法
@@ -178,7 +178,7 @@ def main():
     named = named_tables(member_src)
     mods = module_tables(expr_src)
     statics = static_names(member_src)
-    globals_ = ["Print", "Println", "ok", "fail", "parent", "typeof", "sizeof"]
+    globals_ = ["print", "println", "ok", "fail", "parent", "typeof", "sizeof"]
 
     pending = []
     def row(key, owner, name):
@@ -246,12 +246,12 @@ def main():
         L.append(row("static", "static", n))
     L.append("")
 
-    L += ["## 数据库行：`Row`（`db.Query` 的元素）", "", "| 方法 | 签名 / 说明 |", "|---|---|"]
+    L += ["## 数据库行：`Row`（`db.query` 的元素）", "", "| 方法 | 签名 / 说明 |", "|---|---|"]
     for n in named.get("Row", []):
         L.append(row("Row", "Row", n))
     L.append("")
 
-    L += ["## 文件句柄：`File`（`file.Open/Create/Append` 的返回值）", "", "| 方法 | 签名 / 说明 |", "|---|---|"]
+    L += ["## 文件句柄：`File`（`file.open/create/append` 的返回值）", "", "| 方法 | 签名 / 说明 |", "|---|---|"]
     for n in named.get("File", []):
         L.append(row("File", "File", n))
     L.append("")

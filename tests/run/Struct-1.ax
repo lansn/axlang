@@ -13,9 +13,9 @@ int main() {
     Point a = Point(1, 2)
     Point b = a
     b.x = 99
-    Println("a={a.x},{a.y} b={b.x},{b.y}")
+    println("a={a.x},{a.y} b={b.x},{b.y}")
 
     Box box = Box(Point(0, 0), Point(10, 20))
-    Println("box={box.tl.x},{box.br.y}")
+    println("box={box.tl.x},{box.br.y}")
     return 0
 }

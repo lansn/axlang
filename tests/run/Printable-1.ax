@@ -3,19 +3,19 @@ class Point implement Printable {
     public int x
     public int y
     constructor(int x, int y) { this.x = x; this.y = y }
-    public override string to_string() {
+    public override string ToString() {
         return "({this.x}, {this.y})"
     }
 }
 
 int main() {
     Point p = new Point(3, 4)
-    Println("点：{p}")
+    println("点：{p}")
     Printable q = p
-    Println("接口：{q}")
+    println("接口：{q}")
     Point? maybe = p
-    Println("可空：{maybe}")
+    println("可空：{maybe}")
     Point? none = null
-    Println("空：{none}")
+    println("空：{none}")
     return 0
 }

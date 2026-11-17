@@ -3,6 +3,6 @@
 import lib
 
 int main() {
-    Println("{lib.f()}")
+    println("{lib.f()}")
     return 0
 }

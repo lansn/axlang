@@ -1,0 +1,12 @@
+// io 模块函数一律小写：io.read_file（file.* 同理为 file.create / file.open / file.append）
+import io
+import file
+
+int main() {
+    File f = file.create("io2.txt") try
+    f.WriteLine("第一行") try
+    f.Close()
+    string text = io.read_file("io2.txt") try
+    print(text)
+    return 0
+}

@@ -36,11 +36,11 @@ string shout(Animal a) {
 
 int main() {
     Animal a = new Dog("旺财")     // 上转：声明处
-    Println(a.speak())
+    println(a.speak())
     a = new Animal("阿咪")         // 同类型赋值（不应多余强转）
-    Println(a.speak())
-    Println(shout(new Dog("小黑")))
+    println(a.speak())
+    println(shout(new Dog("小黑")))
     Animal b = make("豆豆")
-    Println(b.speak())
+    println(b.speak())
     return 0
 }

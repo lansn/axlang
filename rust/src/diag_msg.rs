@@ -200,7 +200,7 @@ pub static CATALOG: &[(&str, &str, &str)] = &[
     ("E3001", "变量 `{0}` 遮蔽了外层同名变量（第 {1} 行）", "variable `{0}` shadows an outer variable of the same name (line {1})"),
     ("E3002", "变量声明必须有初值", "a variable declaration must have an initializer"),
     ("E3003", "Rounding 没有成员 `{0}`", "Rounding has no member `{0}`"),
-    ("E3003", "`print` 已拆分为 `Print`（不换行）与 `Println`（换行）", "`print` has been split into `Print` (no newline) and `Println` (with newline)"),
+    ("E3003", "内置库函数名一律小写：`{0}` 请写 `{1}`", "built-in function names are lowercase: write `{1}` instead of `{0}`"),
     ("E3003", "`{0}.{1}` 不存在", "`{0}.{1}` does not exist"),
     ("E3003", "`{0}.{1}` 是常量，不可调用", "`{0}.{1}` is a constant and cannot be called"),
     ("E3003", "`{0}` 不是 enum", "`{0}` is not an enum"),

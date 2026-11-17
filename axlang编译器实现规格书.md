@@ -1,6 +1,6 @@
 # axlang 编译器实现规格书（AI 执行版）
 
-> 版本：v0.21　配套：`axlang语法设计文稿.md` v0.44
+> 版本：v0.22　配套：`axlang语法设计文稿.md` v0.45
 > 读者：具备代码生成能力的 AI（及人类实现者）
 > 用途：**唯一目的**是从零产出可运行的 `axc` 编译器（词法 → 语法 → 语义 → 代码生成 → 运行时）
 > 本文件不是语言设计稿，不新增任何语言特性；语言事实一律以文稿为准
@@ -329,7 +329,7 @@ string object void result error func map Self range Rounding Arena ArenaRef
 |---|---|
 | `L-22` | 标识符 `[A-Za-z_][A-Za-z0-9_]*`；单独 `_` → `UNDERSCORE` token（只用于 `match` 通配） |
 | `L-23` | `@` 后必须是 IDENT，构成 `ATTR` token（`@os` / `@arch`）；其他名字 → `E3029` |
-| `L-24` | 命名风格不参与词法与语法：**不产生任何诊断**。用户侧命名只作文档推荐（PascalCase），编译器不检查；唯一硬约束是标准库/内建方法的拼写本身必须 PascalCase，否则该名字不存在 |
+| `L-24` | 命名风格不参与词法与语法：**不产生任何诊断**。用户侧命名只作文档推荐（PascalCase），编译器不检查；唯一硬约束是标准库/内建名字的拼写本身——**库函数全小写（多词 snake_case）、方法 PascalCase**，写错就是"该名字不存在" |
 
 ---
 
@@ -614,7 +614,7 @@ literal       = INT_LIT | FLOAT_LIT | DECIMAL_LIT | TEMPLATE_LIT
 | `DecimalLit` | `value: Decimal`, `raw` | 十进制系数 + 标度，不用 f64 |
 | `BoolLit` / `NullLit` | — | |
 | `StringLit` | `parts: Vec<TemplatePart>` | `Text(String)` \| `Interp{expr, format: Option<u8>}` |
-| `Path` | `segs: Vec<Ident>`, `args: Vec<TypeAst>` | `io.ReadLine`、`Status.Ok`、`T` |
+| `Path` | `segs: Vec<Ident>`, `args: Vec<TypeAst>` | `io.read_line`、`Status.Ok`、`T` |
 | `This` / `Parent` | — | |
 | `TupleLit` | `elems: Vec<ExprId>` | |
 | `ArrayLit` | `elems: Vec<ExprId>` | `[]` 合法（需目标类型） |
@@ -727,7 +727,7 @@ MODULE goods
 | 类别 | 符号 |
 |---|---|
 | 类型 | 见 §3.4 的保留类型名表（含 `result`/`error`/`func`/`map`/`Self`/`range`/`Rounding`/`Arena`/`ArenaRef`） |
-| 值 | `Print` / `Println`（`void Print(string)`；非字符串的单个可插值实参按 `"{x}"` 处理）、`true`/`false`/`null`（关键字） |
+| 值 | `print` / `println`（`void print(string)`；非字符串的单个可插值实参按 `"{x}"` 处理）、`true`/`false`/`null`（关键字） |
 | 类型静态命名空间 | `int.Parse` `float.Parse` `decimal.Parse` `int32.Truncate`（及 `int8/int16` 的 `.Truncate`）`string.FromCodepoint` |
 | 枚举成员 | `Rounding.HalfUp` `Rounding.HalfEven` `Rounding.Down` |
 | 错误变体 | `error.NotFound` `error.Invalid` `error.Money` `error.IO` |
@@ -1285,7 +1285,7 @@ MutBorrowed --(借用结束)--> Live
 | `??` 右侧求值后赋给左侧 | 按赋值规则 |
 | `Push(e)` / `insert` 等容器方法 | move（方法签名标注为 move 语义） |
 
-**不 move 的位置**：`&` 借用实参、`.Len()`/`.At()`/`.Get()` 等只读方法、`==` 比较、`Print`/`Println`/插值（内部按只读借用处理）。
+**不 move 的位置**：`&` 借用实参、`.Len()`/`.At()`/`.Get()` 等只读方法、`==` 比较、`print`/`println`/插值（内部按只读借用处理）。
 
 > 判据一句话：**"值被存进某个地方"就 move，"只是看一眼"就借用**。实现里给每个 intrinsic 与标准库方法标注 `transfer`（move）/`borrow`/`copy` 三种属性，见 §15。
 
@@ -1593,8 +1593,8 @@ if (t1.has) { ax_sb_push(&b, t1.v); } else { ax_sb_push(&b, AX_S("null")); }
   插值只做显示、不产生可空值逃逸，因此**不触发 `E4001`**；赋值与传参处仍照常要求判空。
 - **当前实现边界**：已落地 `int`/`uint`、`float`、`decimal`、`bool`、`string`、`enum` 及其可空形式，以及**实现了 `Printable` 的 class/struct**（含 `Printable` 接口变量的虚派发）；数组 / `map` / 元组 / `func` 的默认显示**尚未实现**，插值它们报 `E5006`（`GAP-12` 剩余部分）。codegen 的兜底分支只留注释，不允许退化成静默输出 `?`。
 - `.N` 只允许数值类型（`E4030`），舍入固定 `Rounding.HalfUp`；可空数值不参与 `:.N`（先判空取出）。
-- `Print(s)` 直接 `ax_write_stdout(s)`；`Println(s)` 在同一句后追加 `ax_write_stdout(AX_S("\n"))`。两者都不经过 `printf`（格式串一律由插入式拼接生成，避免 `%` 转义问题）。
-- 实参不是 `string` 但可插值时（sema 打 `interp_arg` 标记），按 `str_lit` 的同一条路径生成：`ax_sb` 初始化 → `push_interp` 推入一个片段 → `ax_sb_finish` → 输出。语义等价于 `Print("{x}")`，不新增任何格式化分支。
+- `print(s)` 直接 `ax_write_stdout(s)`；`println(s)` 在同一句后追加 `ax_write_stdout(AX_S("\n"))`。两者都不经过 `printf`（格式串一律由插入式拼接生成，避免 `%` 转义问题）。
+- 实参不是 `string` 但可插值时（sema 打 `interp_arg` 标记），按 `str_lit` 的同一条路径生成：`ax_sb` 初始化 → `push_interp` 推入一个片段 → `ax_sb_finish` → 输出。语义等价于 `print("{x}")`，不新增任何格式化分支。
 
 ### 13.8 装箱与解箱（B-14）
 
@@ -1777,14 +1777,14 @@ void    ax_file_close(ax_file* f);                   /* 幂等 */
 
 | 符号 | 签名 | transfer | 依据 |
 |---|---|---|---|
-| `Print` | `void Print(string)`（不换行）；实参也可直接是能插值的值，等价于 `Print("{x}")` | borrow | 文稿 11.2 |
-| `Println` | `void Println(string)`（末尾补 `\n`）；同上 | borrow | 文稿 11.2 |
+| `print` | `void print(string)`（不换行）；实参也可直接是能插值的值，等价于 `print("{x}")` | borrow | 文稿 11.2 |
+| `println` | `void println(string)`（末尾补 `\n`）；同上 | borrow | 文稿 11.2 |
 | `int.Parse` | `result<int> parse(string)` | borrow | 文稿 3.1 |
 | `float.Parse` | `result<float> parse(string)` | borrow | 文稿 3.1 |
 | `decimal.Parse` | `result<decimal> parse(string)` | borrow | 文稿 3.1/3.2 |
 | `int8.Truncate` `int16.Truncate` `int32.Truncate` | `T truncate(int)` | copy | 文稿 3.1 |
 | `string.FromCodepoint` | `result<string> from_codepoint(int)` | copy | 文稿 11.2 |
-| `x.ToString()` | `string to_string()`（数值/`bool`/`enum`/`string`） | copy | 文稿 11.2 |
+| `x.ToString()` | `string ToString()`（数值/`bool`/`enum`/`string`） | copy | 文稿 11.2 |
 | `typeof(expr)` | `string`（编译期常量：实参静态类型的显示名，生成字符串字面量） | copy | 文稿 11.2 |
 | `sizeof(expr)` | `int`（编译期：实参类型在 C 侧的存储大小；class 按引用给指针大小；不能进 const） | copy | 文稿 11.2 |
 
@@ -1829,7 +1829,7 @@ void    ax_file_close(ax_file* f);                   /* 幂等 */
 | `file` | `File.WriteLine(s)` | `result<int>` 写入字节数（含 `\n`） | 文稿 11.3 |
 | `file` | `File.Close()` | `void`，幂等 | 文稿 11.3 |
 | `math` | `Equals` | `bool equals(float, float, float eps)` | 文稿 3.7 |
-| `math` | `Compare` | `int compare(float, float)` | 文稿 3.7 |
+| `math` | `Compare` | `int Compare(float, float)` | 文稿 3.7 |
 | `json` | `Parse` | `result<Json> parse(string)`，`Json = map<string, object>` | 文稿 6.7 |
 | `json` | `stringify` | `string stringify(object)`，JSON 文本（标量 / map / 数组；无法识别的复合值输出 `null`） | 文稿 6.7 |
 | `time` | `now_ms` | `int now_ms()`，Unix 毫秒时间戳 | 文稿 15 |
@@ -1874,7 +1874,7 @@ void    ax_file_close(ax_file* f);                   /* 幂等 */
 | `G-03` | `decimal bad = price * count` ⏎ `+ shipping` | `E2003` |
 | `G-04` | `decimal ok = price * count +` ⏎ `shipping` | 通过 |
 | `G-05` | `if x` ⏎ `{ }` | 通过（`{` 换行） |
-| `G-06` | `if x Println("a")` | `E2004` |
+| `G-06` | `if x println("a")` | `E2004` |
 | `G-07` | `int s = if x >= 0 { 1 }` | `E2005` |
 | `G-08` | `int a = i++` | `E2010` |
 | `G-09` | `++i` | `E2010` |
@@ -1887,8 +1887,8 @@ void    ax_file_close(ax_file* f);                   /* 幂等 */
 | `G-16` | `int f() { g() try + 1 }` | 解析为 `(g() try) + 1`（见 `--dump=ast`） |
 | `G-17` | `g() try.Len()` | `E2009` |
 | `G-18` | 文稿 §12 完整示例 | `--dump=ast` 无 error |
-| `Top-1` | 显式 `int main()` + 顶层 `Println("top level")` | `E3041`（两处入口，只报一条） |
-| `Top-3` | 纯顶层语句（`Println` / `int x = 5` / `var` / `if` / `for` / 调用后面定义的函数） | 通过（隐式 `main`，`Top-3.out`） |
+| `Top-1` | 显式 `int main()` + 顶层 `println("top level")` | `E3041`（两处入口，只报一条） |
+| `Top-3` | 纯顶层语句（`println` / `int x = 5` / `var` / `if` / `for` / 调用后面定义的函数） | 通过（隐式 `main`，`Top-3.out`） |
 
 ### 16.3 名称 / 作用域 / 可见性（M3）
 
@@ -1916,7 +1916,7 @@ void    ax_file_close(ax_file* f);                   /* 幂等 */
 | `Mod-neg-private` | 用别的模块的非 `public` 符号 | `E3030` |
 | `Mod-neg-cycle` | 两个模块互相 `import` | `E3026` |
 | `Mod-neg-builtin` | 目录里有 `io.ax` 且 `import io` | `E3039`（内建模块优先，文件不被加载） |
-| `Mod-neg-top` | 被 `import` 的 `lib.ax` 顶层写 `Println("side effect")` | `E3024`（顶层代码只允许出现在入口文件） |
+| `Mod-neg-top` | 被 `import` 的 `lib.ax` 顶层写 `println("side effect")` | `E3024`（顶层代码只允许出现在入口文件） |
 | `Mod-4` | `import model.{greet, PORT, Config}` 后裸名用函数/常量/类型 | 通过（`Mod-4.out`：`hello, named` / `port=80`） |
 | `Mod-neg-named` | `import model.{greet}` 后写 `model.hidden(...)` | 恰好一条 `E3030`（不再连带 `E5002`） |
 | `Mod-5` | `import net.http` 后写 `http.ping()` / `http.PORT` / `new http.Server(...)` | 通过（末段短名与全路径等价） |
@@ -1930,12 +1930,15 @@ void    ax_file_close(ax_file* f);                   /* 幂等 */
 | `Iface-2` | `interface Pet extend Animal`：父 interface 方法经子 interface 变量调用；实现 `Pet` 隐式实现 `Animal`（直接上转） | 通过（`Iface-2.out`） |
 | `Pat-1` | 类型模式四种来源：`object` 箱上的类模式、类引用上的类模式（按对象头真实 tag，`Animal a = new Cat(...)` 命中 `Cat`）、`object` 箱上的标量模式（`int` / `string`） | 通过（`Pat-1.out`） |
 | `Pat-neg-1` | 标量值上写类型模式（`string s` 配 `int n =>`） | 恰好一条 `E4001` |
-| `Print-1` | `Println(123)` / `Println(3.5)` / `Println(true)` / `Print(42)` 不换行 / `Println(Printable 类实例)` / `Println(enum)` | 通过（`Print-1.out`；等价于补花括号的插值） |
-| `Print-neg-1` | `Println(xs)`（`xs` 为 `int[]`） | `E4001`（复合类型不参与插值） |
+| `Print-1` | `println(123)` / `println(3.5)` / `println(true)` / `print(42)` 不换行 / `println(Printable 类实例)` / `println(enum)` | 通过（`Print-1.out`；等价于补花括号的插值） |
+| `Print-neg-1` | `println(xs)`（`xs` 为 `int[]`） | `E4001`（复合类型不参与插值） |
+| `Math-1` | `math.compare(1.0, 2.0)` / `math.equals(0.1 + 0.2, 0.3, 1e-6)` | 通过（`Math-1.out`：`-1 0 1 true false`；全小写模块函数名） |
+| `IO-2` | `file.create(...)` 写入一行后 `io.read_file(...)` 读回 | 通过（`IO-2.out`：`第一行`） |
 | `demo/OrderDemo` | 示例工程（`samples/demo/`）：`catalog.product` / `catalog.inventory` / `checkout.bill`（具名导入）/ `checkout.wholesale`（跨模块继承）；入口用**裸类型名**构造，另混用全路径写法作对照，含数组字段 `Push`、可空返回判空、`:.2` 金额 | 通过（`main.out` 逐字节比对） |
 | `Struct-1` | `Point(1, 2)` 位置构造、字段写、赋值即复制、嵌套 `Box(Point(...), ...)` | 通过（`b.x = 99` 不影响 `a`） |
 | `Main-1` | `void main() { }` | `E3025`（`check` 就报，不必等 `run`） |
-| `N-17` | 写旧名 `print("x")` | `E3003`，提示必须同时含 `Print` 与 `Println` |
+| `Out-1` | 写旧名 `Print("x")` | 恰好一条 `E3003`，提示"内置库函数名一律小写：`Print` 请写 `print`" |
+| `Name-neg-1` | `import io` 后写 `io.ReadLine()` | 恰好一条 `E3003`（模块函数一律小写；方法才 PascalCase） |
 
 ### 16.4 类型（M3/M4）
 
@@ -2039,8 +2042,8 @@ void    ax_file_close(ax_file* f);                   /* 幂等 */
 | `O-02` | `f(&x, &x)`（`f` 收两个 `&`） | `E7002` |
 | `O-03` | `f(&[1,2,3])` | `E7007` |
 | `O-04` | `const int n = 1; g(&n)` | `E7009` |
-| `O-05` | 两条 `defer Println("a")` / `defer Println("b")` | 运行输出 `b` 再 `a` |
-| `O-06` | `defer Println("{x}")` 在 `int x = 1` 之前 | `E7008` |
+| `O-05` | 两条 `defer println("a")` / `defer println("b")` | 运行输出 `b` 再 `a` |
+| `O-06` | `defer println("{x}")` 在 `int x = 1` 之前 | `E7008` |
 | `O-07` | `ArenaRef` 赋给 arena 块外的变量 | `E7006` |
 | `O-08` | `string s = "ab"; f(&s)` | 通过 + `W1003` |
 | `O-09` | `var b = new Buffer(8); var c = b; b = new Buffer(4)` | 通过（重新赋值复活） |
@@ -2081,15 +2084,15 @@ void    ax_file_close(ax_file* f);                   /* 幂等 */
 | `RUN-3` | 同上，`load(9999)` 返回空行 | stdout `商品不存在`，退出码 1 |
 | `RUN-4` | 递归 `fib(30)` | 正确结果，无栈溢出（`axc -O1`） |
 | `RUN-5` | 10 万次 `map` 插入 + 遍历 | 顺序与插入一致，耗时 < 2s |
-| `RUN-6` | `IO-1`：`Print("a")` `Print("b")` `Println("c")` `Println("")` `Print("x")` `Println("y")` | stdout 逐字节为 `abc\n\nxy\n`（`Print` 不换行、`Println` 换行） |
+| `RUN-6` | `IO-1`：`print("a")` `print("b")` `println("c")` `println("")` `print("x")` `println("y")` | stdout 逐字节为 `abc\n\nxy\n`（`print` 不换行、`println` 换行） |
 | `RUN-7` | `File-1`：`Create` → 两次 `WriteLine` → `Read` / 三次 `ReadLine` → `Append` → 再 `Read` | 中文与行尾无损；第三次 `ReadLine` 得 `null`；追加后内容为三行 |
 
 ### 16.11 标准库 IO（M8）
 
 | ID | 源 | 期望 |
 |---|---|---|
-| `IO-1` | `Print` / `Println` 交替 | 只有 `Println` 补 `\n` |
-| `FILE-1` | `file.Create("…") try` + `WriteLine` + `Close`，再 `file.Open` + `Read` | 内容与写入一致；`Read` 返回 `result<string>` |
+| `IO-1` | `print` / `println` 交替 | 只有 `println` 补 `\n` |
+| `FILE-1` | `file.create("…") try` + `WriteLine` + `Close`，再 `file.open` + `Read` | 内容与写入一致；`Read` 返回 `result<string>` |
 | `FILE-2` | 同一句柄连续 `ReadLine` 到末尾 | 行尾 `\r` 被剥掉，末尾返回 `null` |
 | `FILE-3` | 写只读路径 / 不存在的读路径 | `error.IO`，`e.msg` 为 `cannot open file` |
 
@@ -2116,7 +2119,7 @@ void    ax_file_close(ax_file* f);                   /* 幂等 */
 | `GAP-12` | GAP | 分配失败算什么 | 环境限制，非语言崩溃：`R100 out-of-memory`，退出码 2（不列入七类） | `Rt-4` |
 | `GAP-13` | GAP | 分支中 move 后汇合的状态 | 只要任一分支 move，汇合后视为 `Moved`（保守）；不做分支敏感合并 | `O-4` |
 | `GAP-14` | GAP | `.Step(n)` 的 `n <= 0` | 常量可判 → `E4009`；否则 trap `R101`，detail `step <= 0` | `B-2` |
-| `GAP-15` | GAP | `io.ReadLine()` 在 EOF 时返回什么 | `string?`，EOF → `null`。文稿 5.2 的示例需写成 `ReadLine() ?? ""` 或判空 | `§15.4` |
+| `GAP-15` | GAP | `io.read_line()` 在 EOF 时返回什么 | `string?`，EOF → `null`。文稿 5.2 的示例需写成 `ReadLine() ?? ""` 或判空 | `§15.4` |
 | `GAP-16` | GAP | 元组解构能否带显式类型 | **只能 `var (a, b) = t`**（文稿 5.3 只有这一种写法） | `G-1` |
 | `GAP-17` | GAP | `import io.{a}` 与 `import net.http.server` 的解析 | 先解析 `ident ('.' ident)*`；若下一个 token 是 `.` + `{` → 具名导入；是 `as` → 别名；否则是模块路径 | `G-1` |
 | `GAP-18` | **CONFLICT** | `for (k, v) in m` 的 `v` 若是 class 引用，move 会掏空 map | `k`/`v` 是**只读借用视图**；要取出引用就 `m[k]`（会 move，且此时禁止遍历期修改的规则不适用——但取出后 map 该位置为空，`GAP-18a`） | `B-2` |

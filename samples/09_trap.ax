@@ -13,38 +13,38 @@ int main() {
         // R101 下标越界：动态数组的下标在运行期检查
         int[] a = [1, 2, 3]
         int i = 5
-        Println("{a[i]}")
+        println("{a[i]}")
     }
     if TRAP == 2 {
         // R102 整数除零
         int z = 0
-        Println("{1 / z}")
+        println("{1 / z}")
     }
     if TRAP == 3 {
         // R103 decimal 除不尽（金额不允许悄悄近似）
         decimal u = 100.00d / 3d
-        Println("{u}")
+        println("{u}")
     }
     if TRAP == 4 {
         // R104 整数溢出（wrapping_add 才是显式取回绕）
         int m = 9223372036854775807
-        Println("{m + 1}")
+        println("{m + 1}")
     }
     if TRAP == 5 {
         // R105 移位数超出位宽
         int z = 64
-        Println("{1 << z}")
+        println("{1 << z}")
     }
     if TRAP == 6 {
         // R106 浮点结果不是有限值
         float f = 1.0
         float zero = 0.0
-        Println("{f / zero}")
+        println("{f / zero}")
     }
     if TRAP == 7 {
         // R107 转换失败：字符串转数字
         decimal d = decimal.Parse("abc") try
-        Println("{d}")
+        println("{d}")
     }
     return 0
 }

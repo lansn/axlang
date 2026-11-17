@@ -5,12 +5,12 @@ int main() {
     string? b = null
     int? n = 7
     int? z = null
-    Println("a={a} b={b} n={n} z={z}")
+    println("a={a} b={b} n={n} z={z}")
 
     decimal? d = 12.50d
     decimal? e = null
     float? f = 1.5
     bool? t = true
-    Println("d={d} e={e} f={f} t={t}")
+    println("d={d} e={e} f={f} t={t}")
     return 0
 }

@@ -9,31 +9,31 @@ int main() {
     int a = 42                  // 有符号 64 位
     int8 b = 127
     uint c = 300                // 无符号，负数赋给它会被挡在类型检查
-    Println("a={a} b={b} c={c}")
+    println("a={a} b={b} c={c}")
 
     // ---- float：唯一的 64 位二进制浮点，不做金额 ----
     float f = 1.5
     float g = 2.0
-    Println("f/g={f / g}")
+    println("f/g={f / g}")
 
     // ---- decimal：128 位十进制定点，金额专用 ----
     decimal p = 19.99d
     decimal q = 3d              // 整数字面量可落到 decimal
-    Println("p*q={p * q}")
+    println("p*q={p * q}")
 
     // ---- 无隐式转换：下面这行必须显式写 decimal(a) ----
     decimal d = decimal(a)
-    Println("d={d}")
+    println("d={d}")
 
     // ---- bool 与三元 ----
     bool ok = a > 40
     string s = ok ? "大于" : "不大于"
-    Println("a {s} 40")
+    println("a {s} 40")
 
     // ---- string 常用方法 ----
     string t = "  axlang  "
-    Println("trim=[{t.Trim()}]")
-    Println("contains={t.Contains("ax")}")
-    Println("at(2)={t.Trim().At(2)}")
+    println("trim=[{t.Trim()}]")
+    println("contains={t.Contains("ax")}")
+    println("at(2)={t.Trim().At(2)}")
     return 0
 }

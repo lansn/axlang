@@ -4,6 +4,6 @@ import net.http
 import web.http
 
 int main() {
-    Println(http.ping())
+    println(http.ping())
     return 0
 }

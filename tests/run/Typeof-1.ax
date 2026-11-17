@@ -11,15 +11,15 @@ int main() {
     int[] xs = [1, 2]
     int? m = 5
     Dog dg = new Dog("旺财")
-    Println(typeof(a))
-    Println(typeof(u))
-    Println(typeof(d))
-    Println(typeof(s))
-    Println(typeof(xs))
-    Println(typeof(m))
-    Println(typeof(dg))
-    Println("调试：{typeof(a)} {typeof(m)}")
+    println(typeof(a))
+    println(typeof(u))
+    println(typeof(d))
+    println(typeof(s))
+    println(typeof(xs))
+    println(typeof(m))
+    println(typeof(dg))
+    println("调试：{typeof(a)} {typeof(m)}")
     const string KNOWN = typeof(s)
-    Println(KNOWN)
+    println(KNOWN)
     return 0
 }

@@ -23,10 +23,10 @@ class Dog implement Pet {
 
 int main() {
     Pet p = new Dog()
-    Println(p.speak())        // speak 来自 extends 的父 interface
-    Println(p.name())
+    println(p.speak())        // speak 来自 extends 的父 interface
+    println(p.name())
 
     Animal a = new Dog()      // 实现 Pet 即隐式实现 Animal（直接上转到父 interface）
-    Println(a.speak())
+    println(a.speak())
     return 0
 }

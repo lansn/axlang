@@ -15,15 +15,15 @@ int apply<T>(T x, func(T) int f) {
     return f(x)
 }
 int main() {
-    Println(max(1, 2))
-    Println(max(2, 1))
-    Println(max(100, 42))
-    Println(max<string>("apple", "banana"))
-    Println(max<int>(7, 3))
-    Println(clamp(15, 1, 10))
-    Println(clamp(5, 1, 10))
-    Println(clamp<string>("m", "a", "z"))
-    Println(pair("头", "尾"))
-    Println(apply(42, (int v) { return v * 2 }))
+    println(max(1, 2))
+    println(max(2, 1))
+    println(max(100, 42))
+    println(max<string>("apple", "banana"))
+    println(max<int>(7, 3))
+    println(clamp(15, 1, 10))
+    println(clamp(5, 1, 10))
+    println(clamp<string>("m", "a", "z"))
+    println(pair("头", "尾"))
+    println(apply(42, (int v) { return v * 2 }))
     return 0
 }

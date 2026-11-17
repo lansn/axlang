@@ -1,5 +1,5 @@
 int main() {
     string s = "中文"
-    Println("{s.ByteLen()}")
+    println("{s.ByteLen()}")
     return 0
 }

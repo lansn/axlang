@@ -5,7 +5,7 @@ result<int> f(int n) {
 
 int main() {
     match f(1) {
-        ok(p) => Println("{p}"),
+        ok(p) => println("{p}"),
     }
     return 0
 }

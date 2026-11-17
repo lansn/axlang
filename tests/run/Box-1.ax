@@ -7,8 +7,8 @@ int main() {
     bool b = a[3]
     object o = a[1]
     string s2 = o
-    Println("{i} {s} {f} {b} {s2}")
+    println("{i} {s} {f} {b} {s2}")
     object[] empty = []
-    Println("{empty.Len()}")
+    println("{empty.Len()}")
     return 0
 }

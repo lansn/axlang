@@ -4,6 +4,6 @@ T max<T: Comparable>(T a, T b) {
     return if a > b { a } else { b }
 }
 int main() {
-    Println(max(1.0, 2.0))
+    println(max(1.0, 2.0))
     return 0
 }

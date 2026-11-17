@@ -30,17 +30,17 @@ struct Pair<T> {
 }
 int main() {
     Box<int> b = new Box(42)
-    Println(b.value)
-    Println(b.get())
+    println(b.value)
+    println(b.get())
     Box<string> sb = new Box("文本")
-    Println(sb.get())
+    println(sb.get())
     Node<int> n = new Node(7)
     Box<Box<int>> bb = n.wrap()
-    Println(bb.value.value)
+    println(bb.value.value)
     Box2<int> b2 = new Box2(1)
     Named nm = b2
-    Println(nm.title())
+    println(nm.title())
     Pair<int> p = Pair(1, 2)
-    Println(p.first + p.second)
+    println(p.first + p.second)
     return 0
 }

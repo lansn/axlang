@@ -23,24 +23,24 @@ result<int> divide_twice(int a, int b, int c) {
 int main() {
     // ---- 成功路径 ----
     match divide(100, 4) {
-        ok(v) => Println("100 / 4 = {v}"),
-        fail(e) => Println("失败：{e.msg}"),
+        ok(v) => println("100 / 4 = {v}"),
+        fail(e) => println("失败：{e.msg}"),
     }
 
     // ---- 失败路径：业务错误是值，不会崩，退出码仍是 0 ----
     match divide(1, 0) {
-        ok(v) => Println("不会走到这里"),
-        fail(e) => Println("捕获到：{e.msg}"),
+        ok(v) => println("不会走到这里"),
+        fail(e) => println("捕获到：{e.msg}"),
     }
 
     // ---- try 链式传播：第二层除零，第一层的错误一路上浮 ----
     match divide_twice(8, 2, 0) {
-        ok(v) => Println("结果 {v}"),
-        fail(e) => Println("链式传播：{e.msg}"),
+        ok(v) => println("结果 {v}"),
+        fail(e) => println("链式传播：{e.msg}"),
     }
 
     // ---- main 自己返回 result 时，try 会直接结束程序 ----
     int good = divide(9, 3) try
-    Println("9 / 3 = {good}")
+    println("9 / 3 = {good}")
     return 0
 }

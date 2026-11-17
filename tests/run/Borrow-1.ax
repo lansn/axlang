@@ -32,20 +32,20 @@ int main() {
     bump(&a)                 // 可变借用，语句结束即失效
     int p = pair(&a, &a)     // 多个 &const 共存合法
     // a[0] 被 bump 改成 101；pair = 101 + 3 = 104
-    Println("sum={s} pair={p} len={a.Len()}")
-    Println("first={a[0]}")
+    println("sum={s} pair={p} len={a.Len()}")
+    println("first={a[0]}")
 
     // O-09：move 后重新赋值可复活
     var b = new Buf(8)
     var c = b                // 所有权移走
     b = new Buf(4)           // 重新赋值复活
     b.write("xy")            // 合法
-    Println("b.n={b.n}")
+    println("b.n={b.n}")
 
     // W1003：对 copy 类型（string）借用等价传值，只警告不报错
     string msg = "hi"
     int n = echo(&msg)
-    Println("n={n} msg={msg}")
+    println("n={n} msg={msg}")
     return 0
 }
 

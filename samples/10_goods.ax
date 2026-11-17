@@ -17,7 +17,7 @@ class Goods {
     }
 
     public static result<Goods?> load(int id) {
-        var row = db.Query("select id, name, price, stock from goods where id = ?", id) try
+        var row = db.query("select id, name, price, stock from goods where id = ?", id) try
         if row.Empty() {
             return ok(null)
         }
@@ -65,16 +65,16 @@ class DiscountedGoods extend Goods implement Describable {
 int main() {
     Goods? g = Goods.load(1001) try               // result<Goods?> 传播
     if g == null {
-        Println("商品不存在")
+        println("商品不存在")
         return 1
     }
 
     var d = new DiscountedGoods(g, 0.9d)
     match d.final_price(3) {
-        ok(total) => Println("折后小计 {total:.2}"),
-        fail(e)   => Println("下单失败：{e.msg}"),
+        ok(total) => println("折后小计 {total:.2}"),
+        fail(e)   => println("下单失败：{e.msg}"),
     }
 
-    Println(d.describe())
+    println(d.describe())
     return 0
 }

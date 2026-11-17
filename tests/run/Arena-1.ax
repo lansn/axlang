@@ -14,9 +14,9 @@ int main() {
     a.next = b          // 区域内对象的字段可以存 ArenaRef——图结构
     b.next = a          // 循环引用：唯一靠 arena 才写得出来
     ArenaRef<Node> c = a.next   // 同区域别名，copy 语义
-    Println("a.v={a.v} b.v={b.v} c.v={c.v}")
-    Println("next.v={a.next.v}")
+    println("a.v={a.v} b.v={b.v} c.v={c.v}")
+    println("next.v={a.next.v}")
     int total = a.v + a.next.v + a.next.next.v
-    Println("total={total}")
+    println("total={total}")
     return 0
 }

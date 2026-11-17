@@ -10,8 +10,8 @@
 
 | 函数 | 签名 / 说明 |
 |---|---|
-| `Print` | Print(s: string) / Print(x: 可插值)——输出不换行；实参非字符串时等价于 `Print("{x}")` |
-| `Println` | Println(s: string) / Println(x: 可插值)——输出并换行；实参非字符串时等价于 `Println("{x}")` |
+| `print` | print(s: string) / print(x: 可插值)——输出不换行；实参非字符串时等价于 `print("{x}")` |
+| `println` | println(s: string) / println(x: 可插值)——输出并换行；实参非字符串时等价于 `println("{x}")` |
 | `ok` | ok(v: T) -> result<T>——构造成功结果，配合 try/throw 使用 |
 | `fail` | fail(e: error)——构造失败结果，只允许在返回 result 的函数内 |
 | `parent` | parent(实参...)——在子类 constructor 第一条语句调用父类构造器 |
@@ -25,32 +25,32 @@
 
 ### db
 
-| `db.Query` | db.Query(sql: string) -> result<Row[]>——执行查询，返回行数组 |
+| `db.query` | db.query(sql: string) -> result<Row[]>——执行查询，返回行数组 |
 
 ### file
 
-| `file.Open` | file.Open(path: string) -> result<File>——以读写打开文件 |
-| `file.Create` | file.Create(path: string) -> result<File>——创建/截断文件 |
-| `file.Append` | file.Append(path: string) -> result<File>——以追加打开文件 |
+| `file.open` | file.open(path: string) -> result<File>——以读写打开文件 |
+| `file.create` | file.create(path: string) -> result<File>——创建/截断文件 |
+| `file.append` | file.append(path: string) -> result<File>——以追加打开文件 |
 
 ### io
 
-| `io.ReadLine` | io.ReadLine() -> string?——从标准输入读一行；EOF 返回 null |
-| `io.ReadFile` | io.ReadFile(path: string) -> result<string>——读整个文本文件 |
+| `io.read_line` | io.read_line() -> string?——从标准输入读一行；EOF 返回 null |
+| `io.read_file` | io.read_file(path: string) -> result<string>——读整个文本文件 |
 
 ### json
 
-| `json.Parse` | json.Parse(s: string) -> result<map<string, object>>——解析 JSON 文本 |
+| `json.parse` | json.parse(s: string) -> result<map<string, object>>——解析 JSON 文本 |
 | `json.stringify` | json.stringify(v: object) -> string——序列化 object 为 JSON |
 
 ### math
 
-| `math.Equals` | math.Equals(a: float, b: float, eps: float) -> bool——浮点带容差比较 |
-| `math.Compare` | math.Compare(a: float, b: float) -> int——浮点比较：-1/0/1 |
+| `math.equals` | math.equals(a: float, b: float, eps: float) -> bool——浮点带容差比较 |
+| `math.compare` | math.compare(a: float, b: float) -> int——浮点比较：-1/0/1 |
 
 ### string
 
-| `string.FromCodepoint` | string.FromCodepoint(cp: int) -> result<string>——码点转字符 |
+| `string.FromCodepoint` | string.FromCodepoint(cp: int) -> result<string>——码点转字符（`string` 既是类型也是模块，与静态方法同名同拼写） |
 
 ### time
 
@@ -120,7 +120,7 @@
 | `Truncate` | int8/int16/int32.Truncate(x: int) -> T——把 int 截断到窄类型 |
 | `FromCodepoint` | string.FromCodepoint(cp: int) -> result<string>——码点转字符（与模块 string 同名方法等价） |
 
-## 数据库行：`Row`（`db.Query` 的元素）
+## 数据库行：`Row`（`db.query` 的元素）
 
 | 方法 | 签名 / 说明 |
 |---|---|
@@ -129,7 +129,7 @@
 | `GetInt` | row.GetInt(col: string) -> int——取整数列 |
 | `GetDecimal` | row.GetDecimal(col: string) -> decimal——取金额列 |
 
-## 文件句柄：`File`（`file.Open/Create/Append` 的返回值）
+## 文件句柄：`File`（`file.open/create/append` 的返回值）
 
 | 方法 | 签名 / 说明 |
 |---|---|

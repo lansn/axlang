@@ -14,6 +14,6 @@ int main() {
     Calc c = new Calc(3)
     int d = c.double_it()
     int s = Calc.add(1, 2)
-    Println("d = {d}, s = {s}")
+    println("d = {d}, s = {s}")
     return 0
 }

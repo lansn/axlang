@@ -6,9 +6,9 @@ int main() {
             if i == 1 {
                 break
             }
-            Println("{i}")
+            println("{i}")
         } catch (error e) {
-            Println("{e.msg}")
+            println("{e.msg}")
         }
     }
     return 0

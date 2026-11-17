@@ -1,10 +1,10 @@
-// Print 不换行、Println 换行：行为由名字直接说明（文稿 11.2）
+// print 不换行、println 换行：行为由名字直接说明（文稿 11.2）
 int main() {
-    Print("a")
-    Print("b")
-    Println("c")
-    Println("")
-    Print("x")
-    Println("y")
+    print("a")
+    print("b")
+    println("c")
+    println("")
+    print("x")
+    println("y")
     return 0
 }

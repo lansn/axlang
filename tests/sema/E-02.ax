@@ -2,7 +2,7 @@
 int main() {
     int code = 200
     match code {
-        200 => Println("ok"),
+        200 => println("ok"),
     }
     return 0
 }

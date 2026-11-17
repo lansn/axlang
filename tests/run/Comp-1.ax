@@ -2,12 +2,12 @@
 class Money implement Comparable, Hashable {
     public int cents
     constructor(int cents) { this.cents = cents }
-    public override int compare(Self other) {
+    public override int Compare(Self other) {
         if this.cents < other.cents { return -1 }
         if this.cents > other.cents { return 1 }
         return 0
     }
-    public override uint hash() {
+    public override uint Hash() {
         uint c = uint(this.cents)
         uint k = uint(31)
         uint s = uint(7)
@@ -20,11 +20,11 @@ int main() {
     Money b = new Money(250)
     Comparable ca = a
     Comparable cb = b
-    Println("compare={ca.compare(cb)}")
-    Println("compare={cb.compare(ca)}")
+    println("compare={ca.Compare(cb)}")
+    println("compare={cb.Compare(ca)}")
     Comparable cc = a
-    Println("compare={ca.compare(cc)}")
+    println("compare={ca.Compare(cc)}")
     Hashable ha = b
-    Println("hash={ha.hash()}")
+    println("hash={ha.Hash()}")
     return 0
 }

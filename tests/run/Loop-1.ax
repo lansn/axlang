@@ -9,6 +9,6 @@ int main() {
             sum = sum + 1
         }
     }
-    Println("{sum}")
+    println("{sum}")
     return 0
 }

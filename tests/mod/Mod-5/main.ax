@@ -3,7 +3,7 @@ import net.http
 
 int main() {
     http.Server s = new http.Server(http.PORT)
-    Println("short: {http.ping()} {s.port}")
-    Println("full:  {net.http.ping()} {net.http.PORT}")
+    println("short: {http.ping()} {s.port}")
+    println("full:  {net.http.ping()} {net.http.PORT}")
     return 0
 }

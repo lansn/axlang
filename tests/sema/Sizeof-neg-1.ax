@@ -2,6 +2,6 @@
 // `sizeof` 是编译期函数，不带括号不是标识符
 int main() {
     int a = 1
-    Println(sizeof)
+    println(sizeof)
     return 0
 }

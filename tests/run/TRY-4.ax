@@ -9,12 +9,12 @@ int main() {
             if i == 2 {
                 break
             }
-            Println("i={i}")
+            println("i={i}")
         }
     } catch (error e) {
-        Println("不该到这里：{e.msg}")
+        println("不该到这里：{e.msg}")
     } finally {
-        Println("finally 照常执行")
+        println("finally 照常执行")
     }
 
     try {
@@ -22,10 +22,10 @@ int main() {
             if i == 1 {
                 continue
             }
-            Println("c={i}")
+            println("c={i}")
         }
     } finally {
-        Println("continue 版也照常收尾")
+        println("continue 版也照常收尾")
     }
     return 0
 }

@@ -2,38 +2,38 @@
 import file
 
 int main() {
-    var f = file.Create("tests/.build/file-1.txt") try
+    var f = file.create("tests/.build/file-1.txt") try
     f.WriteLine("alpha") try
     f.WriteLine("第二行") try
     f.Close()
 
-    var g = file.Open("tests/.build/file-1.txt") try
+    var g = file.open("tests/.build/file-1.txt") try
     string all = g.Read() try
-    Print("全文=[{all}]")
+    print("全文=[{all}]")
     g.Close()
 
-    var h = file.Open("tests/.build/file-1.txt") try
+    var h = file.open("tests/.build/file-1.txt") try
     string? l1 = h.ReadLine()
     if l1 != null {
-        Println("1={l1}")
+        println("1={l1}")
     }
     string? l2 = h.ReadLine()
     if l2 != null {
-        Println("2={l2}")
+        println("2={l2}")
     }
     string? l3 = h.ReadLine()
     if l3 == null {
-        Println("3=EOF")
+        println("3=EOF")
     }
     h.Close()
 
-    var a = file.Append("tests/.build/file-1.txt") try
+    var a = file.append("tests/.build/file-1.txt") try
     a.WriteLine("gamma") try
     a.Close()
 
-    var n = file.Open("tests/.build/file-1.txt") try
+    var n = file.open("tests/.build/file-1.txt") try
     string all2 = n.Read() try
-    Println("追加后=[{all2}]")
+    println("追加后=[{all2}]")
     n.Close()
     return 0
 }

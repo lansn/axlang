@@ -9,11 +9,11 @@ int main() {
     // ---- if / else if / else（分支体即使只有一条语句也必须带 {}）----
     int score = 76
     if score >= 90 {
-        Println("A")
+        println("A")
     } else if score >= 75 {
-        Println("B")
+        println("B")
     } else {
-        Println("C")
+        println("C")
     }
 
     // ---- 区间遍历：0..n 是半开，0..=n 是闭区间 ----
@@ -21,13 +21,13 @@ int main() {
     for i in 0..5 {
         sum = sum + i
     }
-    Println("0..5 求和 = {sum}")
+    println("0..5 求和 = {sum}")
 
     int sum2 = 0
     for i in 1..=5 {
         sum2 = sum2 + i
     }
-    Println("1..=5 求和 = {sum2}")
+    println("1..=5 求和 = {sum2}")
 
     // ---- 数组遍历 ----
     int[] nums = [3, 1, 4, 1, 5]
@@ -35,7 +35,7 @@ int main() {
     for x in nums {
         total = total + x
     }
-    Println("数组求和 = {total}")
+    println("数组求和 = {total}")
 
     // ---- continue / break ----
     int odd = 0
@@ -45,7 +45,7 @@ int main() {
         }
         odd = odd + 1
     }
-    Println("奇数个数 = {odd}")
+    println("奇数个数 = {odd}")
 
     // ---- 标签：从内层直接跳外层 ----
     int found = -1
@@ -57,7 +57,7 @@ int main() {
             }
         }
     }
-    Println("找到 = {found}")
+    println("找到 = {found}")
 
     // ---- 无头 for + break：等价于别的语言的 while ----
     int n = 0
@@ -67,6 +67,6 @@ int main() {
             break
         }
     }
-    Println("循环了 {n} 次")
+    println("循环了 {n} 次")
     return 0
 }

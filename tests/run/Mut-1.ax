@@ -2,19 +2,19 @@ int main() {
     int[] xs = [3, 1, 2]
     xs.Push(4)
     int n = xs.Len()
-    Println("push 后 {n}")
+    println("push 后 {n}")
 
     int v = xs.Pop()
     int m = xs.Len()
-    Println("pop 得 {v}，剩 {m}")
+    println("pop 得 {v}，剩 {m}")
 
     int[] ys = [9, 8, 7]
     ys.Remove(1)
     int k = ys.Len()
-    Println("remove 后 {k}")
+    println("remove 后 {k}")
 
     ys.Clear()
     int c = ys.Len()
-    Println("clear 后 {c}")
+    println("clear 后 {c}")
     return 0
 }

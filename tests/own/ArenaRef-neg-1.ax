@@ -8,7 +8,7 @@ class Node {
 }
 
 void peek(Node n) {
-    Println("{n.v}")
+    println("{n.v}")
 }
 
 int main() {

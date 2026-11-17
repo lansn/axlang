@@ -5,6 +5,6 @@ int main() {
     int b = p["y"]
     p["x"] = 10
     int c = p["x"]
-    Println("{a} {b} {c}")
+    println("{a} {b} {c}")
     return 0
 }

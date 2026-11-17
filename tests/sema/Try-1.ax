@@ -2,11 +2,11 @@
 // `catch (error e)` 已经吃掉全部变体，后面的 catch 永远进不去
 int main() {
     try {
-        Println("body")
+        println("body")
     } catch (error e) {
-        Println("兜底 {e.msg}")
+        println("兜底 {e.msg}")
     } catch (error.NotFound e) {
-        Println("不可达 {e.msg}")
+        println("不可达 {e.msg}")
     }
     return 0
 }

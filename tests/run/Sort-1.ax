@@ -14,14 +14,14 @@ int byPrice(Product a, Product b) {
 int main() {
     int[] xs = [5, 3, 9, 1]
     xs.Sort((int a, int b) { return a - b })
-    Println("{xs[0]} {xs[1]} {xs[2]} {xs[3]}")
+    println("{xs[0]} {xs[1]} {xs[2]} {xs[3]}")
 
     Product[] ps = [new Product("c", 3), new Product("a", 1), new Product("b", 2)]
     ps.Sort(byPrice)
-    Println("{ps[0].name} {ps[1].name} {ps[2].name}")
+    println("{ps[0].name} {ps[1].name} {ps[2].name}")
 
     string[] ss = ["pear", "apple", "fig"]
     ss.Sort((string x, string y) { return x.Len() - y.Len() })
-    Println("{ss[0]} {ss[1]} {ss[2]}")
+    println("{ss[0]} {ss[1]} {ss[2]}")
     return 0
 }

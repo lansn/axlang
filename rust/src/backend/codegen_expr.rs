@@ -409,7 +409,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 }
                 TyS::Int(..) => self.emit(format!("ax_sb_push_int(&{}, (int64_t)({}));", sb, val)),
                 TyS::Named(did, _) => {
-                    // Printable（文稿 7.1）：实现类/struct 直接调 to_string；
+                    // Printable（文稿 7.1）：实现类/struct 直接调 ToString；
                     // Printable 类型变量本身经虚表动态派发。可空形式已在
                     // 上面的 Nullable 分支拆包，落到这里的内层值。
                     let printable = self.cg.s.types.get("Printable").copied();
@@ -418,7 +418,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                             let c = *c;
                             let td = self.cg.s.typedefs[c as usize].clone();
                             if td.kind == "class" && self.cg.s.implements(c, p) {
-                                let fid = match td.methods.get("to_string") {
+                                let fid = match td.methods.get("ToString") {
                                     Some(&f) => f,
                                     None => 0,
                                 };
@@ -426,7 +426,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                                 self.emit(format!("ax_sb_push(&{}, {}({}));", sb, fname, val));
                                 true
                             } else if td.kind == "struct" && self.cg.s.implements(c, p) {
-                                let fid = match td.methods.get("to_string") {
+                                let fid = match td.methods.get("ToString") {
                                     Some(&f) => f,
                                     None => 0,
                                 };
@@ -436,7 +436,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                             } else if td.kind == "interface" && c == p {
                                 let iname = format!("Iface_{}", san(&td.name));
                                 self.emit(format!(
-                                    "ax_sb_push(&{sb}, (({iname}_VT*){val}.vt)->to_string((void*){val}.obj));",
+                                    "ax_sb_push(&{sb}, (({iname}_VT*){val}.vt)->ToString((void*){val}.obj));",
                                     sb = sb,
                                     iname = iname,
                                     val = val
@@ -711,7 +711,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                     if td.map(|t| t.kind == "class") != Some(true) {
                         break;
                     }
-                    if let Some(&fid) = td.and_then(|t| t.methods.get("compare")) {
+                    if let Some(&fid) = td.and_then(|t| t.methods.get("Compare")) {
                         cfid = Some(fid);
                         break;
                     }
@@ -1026,7 +1026,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 .slot(&e.id)
                 .and_then(|s| s.bname.clone())
                 .unwrap_or_default();
-            if bname == "Print" || bname == "Println" {
+            if bname == "print" || bname == "println" {
                 let interp = self
                     .cg
                     .slot(&e.id)
@@ -1047,7 +1047,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                     self.gen(&args[0].k.expr, Some(&t_string()), false, false)
                 };
                 self.emit(format!("ax_write_stdout({});", v));
-                if bname == "Println" {
+                if bname == "println" {
                     self.emit("ax_write_stdout(AX_S(\"\\n\"));".to_string());
                 }
                 return "0".to_string();
@@ -1547,16 +1547,32 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             a.push(v);
         }
         match (module.as_str(), name.as_str()) {
-            ("io", "ReadLine") => "ax_read_line()".to_string(),
-            ("io", "ReadFile") => format!("ax_read_file({})", a[0]),
-            ("math", "Equals") => {
+            // 返回值走 axrt 的 out 参数形态：read_line 给 string?（EOF → has=0），
+            // read_file 给 result<string>（失败 → fail）。原先按单值/无参生成，
+            // 与 axrt.h 的签名不符，C 编译直接失败（此前没有用例覆盖）
+            ("io", "read_line") => {
+                let tyc = self.cg.ct(&self.ty_or_int(e.id));
+                format!(
+                    "({{ {tyc} r_; ax_str o_; if (ax_read_line(&o_) == 0) {{ r_.has = 1; r_.v = o_; }} else {{ r_.has = 0; r_.v = ax_str_empty(); }} r_; }})",
+                    tyc = tyc
+                )
+            }
+            ("io", "read_file") => {
+                let tyc = self.cg.ct(&self.ty_or_int(e.id));
+                format!(
+                    "({{ {tyc} r_; ax_str o_; if (ax_read_file({p}, &o_) == 0) {{ r_.tag = 1; r_.u.ok = o_; }} else {{ r_.tag = 0; r_.u.err = ax_err_new(4, AX_S(\"read failed\")); }} r_; }})",
+                    tyc = tyc,
+                    p = a[0]
+                )
+            }
+            ("math", "equals") => {
                 format!("(fabs(({}) - ({})) <= ({}))", a[0], a[1], a[2])
             }
-            ("math", "Compare") => format!(
+            ("math", "compare") => format!(
                 "((({0}) < ({1})) ? -1 : ((({0}) > ({1})) ? 1 : 0))",
                 a[0], a[1]
             ),
-            ("db", "Query") => {
+            ("db", "query") => {
                 let arg = if a.len() > 1 {
                     a[1].clone()
                 } else {
@@ -1564,11 +1580,11 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 };
                 format!("ax_db_query_result({}, {})", a[0], arg)
             }
-            ("json", "Parse") => format!("ax_json_parse_result({})", a[0]),
+            ("json", "parse") => format!("ax_json_parse_result({})", a[0]),
             ("json", "stringify") => format!("ax_json_stringify({})", a[0]),
-            ("file", "Open") => format!("ax_file_open_result({}, 0)", a[0]),
-            ("file", "Create") => format!("ax_file_open_result({}, 1)", a[0]),
-            ("file", "Append") => format!("ax_file_open_result({}, 2)", a[0]),
+            ("file", "open") => format!("ax_file_open_result({}, 0)", a[0]),
+            ("file", "create") => format!("ax_file_open_result({}, 1)", a[0]),
+            ("file", "append") => format!("ax_file_open_result({}, 2)", a[0]),
             ("time", "now_ms") => "ax_now_ms()".to_string(),
             _ => "0".to_string(),
         }

@@ -6,6 +6,6 @@ int main() {
     for x in a {
         s = s + x
     }
-    Println("{a[0]} {a[1]} {a[2]} {s}")
+    println("{a[0]} {a[1]} {a[2]} {s}")
     return 0
 }

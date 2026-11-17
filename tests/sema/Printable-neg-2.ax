@@ -7,6 +7,6 @@ class Raw {
 
 int main() {
     Raw r = new Raw(1)
-    Println("r={r}")
+    println("r={r}")
     return 0
 }

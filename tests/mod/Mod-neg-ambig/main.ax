@@ -5,6 +5,6 @@ import b
 
 int main() {
     Product p = new Product("x")
-    Println(p.name)
+    println(p.name)
     return 0
 }

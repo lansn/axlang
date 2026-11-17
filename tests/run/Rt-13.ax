@@ -1,5 +1,5 @@
 int main() {
     decimal t = 19.99d * 3
-    Println("{t}")
+    println("{t}")
     return 0
 }

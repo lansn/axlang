@@ -1,10 +1,10 @@
 //int main(){
-Print("hello")
-//Print(123)
+print("hello")
+//print(123)
 int a = 10
 
-//Print(typeof(a),a)
-Print(a++)
-Print(a+2)
-Print(a+2, a+5)
+//print(typeof(a),a)
+print(a++)
+print(a+2)
+print(a+2, a+5)
 //}

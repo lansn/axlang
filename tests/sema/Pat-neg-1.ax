@@ -3,8 +3,8 @@
 int main() {
     string s = "x"
     match s {
-        int n => Println("{n}"),
-        _ => Println("其他")
+        int n => println("{n}"),
+        _ => println("其他")
     }
     return 0
 }

@@ -10,6 +10,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 
 
 /* ---------------- arena（区域分配器，规格书 8.4 / O-17…O-20） ----------------

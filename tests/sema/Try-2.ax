@@ -2,9 +2,9 @@
 // error 只有四个内建变体，用户不能新增
 int main() {
     try {
-        Println("body")
+        println("body")
     } catch (error.Nope e) {
-        Println("不存在的变体 {e.msg}")
+        println("不存在的变体 {e.msg}")
     }
     return 0
 }
