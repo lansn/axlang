@@ -1,0 +1,5 @@
+int main() {
+    decimal u = 100.00d / 3
+    Println("{u}")
+    return 0
+}

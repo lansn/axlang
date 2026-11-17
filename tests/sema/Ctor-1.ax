@@ -1,0 +1,10 @@
+// EXPECT: E4042
+class Util {
+    public static int add(int a, int b) {
+        return a + b
+    }
+}
+int main() {
+    Util u = new Util()
+    return 0
+}

@@ -1,0 +1,11 @@
+// EXPECT: E3018
+class Point {
+    public int x
+    constructor(int x) {
+        this.x = x
+    }
+}
+
+int Point(int a) {
+    return a
+}

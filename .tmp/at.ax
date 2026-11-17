@@ -1,0 +1,5 @@
+int main() {
+    string[] xs = ["aa", "bb"]
+    Println(xs.At(0))
+    return 0
+}

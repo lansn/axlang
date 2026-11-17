@@ -1,0 +1,6 @@
+// EXPECT: PASS
+int main() {
+    int a = 1_000_000
+    Println("{a}")
+    return 0
+}

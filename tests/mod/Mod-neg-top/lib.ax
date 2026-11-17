@@ -1,0 +1,5 @@
+Println("side effect")
+
+public int f() {
+    return 1
+}

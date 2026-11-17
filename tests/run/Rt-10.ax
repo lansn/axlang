@@ -1,0 +1,6 @@
+int main() {
+    map<string, int> m = {"a": 1}
+    int x = m["b"]
+    Println("{x}")
+    return 0
+}

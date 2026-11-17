@@ -1,0 +1,8 @@
+// EXPECT: E3001
+int main() {
+    int total = 0
+    if total > 0 {
+        int total = 5
+    }
+    return total
+}

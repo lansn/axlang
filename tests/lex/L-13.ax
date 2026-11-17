@@ -1,0 +1,5 @@
+// EXPECT: PASS
+int main() {
+    string s = r"C:/path/a"
+    return 0
+}

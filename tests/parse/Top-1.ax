@@ -1,0 +1,8 @@
+// EXPECT: E3041
+// 显式 main 与顶层语句只能留一个（顶层语句会被包成隐式 main）
+int main() {
+    Println("in main")
+    return 0
+}
+
+Println("top level")

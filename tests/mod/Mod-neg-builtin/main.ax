@@ -1,0 +1,6 @@
+// EXPECT: E3039
+import io
+
+int main() {
+    return 0
+}

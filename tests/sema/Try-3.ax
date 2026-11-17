@@ -1,0 +1,15 @@
+// EXPECT: E6013
+// break 会跳过 finally，所以不能写在 try 块里
+int main() {
+    for i in 0..3 {
+        try {
+            if i == 1 {
+                break
+            }
+            Println("{i}")
+        } catch (error e) {
+            Println("{e.msg}")
+        }
+    }
+    return 0
+}

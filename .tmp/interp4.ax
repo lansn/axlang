@@ -1,0 +1,5 @@
+int main(string[] args) {
+    string s = "v={args.At(0)}"
+    Println("[{s}]")
+    return 0
+}

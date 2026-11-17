@@ -1,0 +1,14 @@
+// object[] 异构数组：装箱 / 自动解箱 / 标签不符终止（文稿 6.7）
+int main() {
+    object[] a = [1, "two", 3.5, true]
+    int i = a[0]
+    string s = a[1]
+    float f = a[2]
+    bool b = a[3]
+    object o = a[1]
+    string s2 = o
+    Println("{i} {s} {f} {b} {s2}")
+    object[] empty = []
+    Println("{empty.Len()}")
+    return 0
+}

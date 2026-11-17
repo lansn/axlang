@@ -1,0 +1,13 @@
+public const int PORT = 8080
+
+public class Server {
+    public int port
+
+    constructor(int port) {
+        this.port = port
+    }
+}
+
+public string ping() {
+    return "pong"
+}

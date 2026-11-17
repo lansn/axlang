@@ -1,0 +1,9 @@
+// `import net.http` 同时绑定全路径与末段短名（文稿 9.2）
+import net.http
+
+int main() {
+    http.Server s = new http.Server(http.PORT)
+    Println("short: {http.ping()} {s.port}")
+    Println("full:  {net.http.ping()} {net.http.PORT}")
+    return 0
+}

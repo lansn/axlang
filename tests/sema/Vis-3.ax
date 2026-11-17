@@ -1,0 +1,8 @@
+// EXPECT: E3037
+class Outer {
+    class Inner {
+    }
+}
+int main() {
+    return 0
+}

@@ -1,0 +1,4 @@
+// 模块 net.http：路径即目录结构（net/http.ax）
+public string get() {
+    return "响应内容"
+}

@@ -1,0 +1,24 @@
+public class Product {
+    public int id
+    public string name
+    public decimal price
+
+    constructor(int id, string name, decimal price) {
+        this.id = id
+        this.name = name
+        this.price = price
+    }
+
+    public string Label() {
+        return "#{this.id} {this.name}"
+    }
+
+    public static Product Free(string name) {
+        return new Product(0, name, 0.00d)
+    }
+}
+
+public struct Point {
+    int x
+    int y
+}

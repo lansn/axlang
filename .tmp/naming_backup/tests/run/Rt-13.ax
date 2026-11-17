@@ -1,0 +1,5 @@
+int main() {
+    decimal t = 19.99d * 3
+    print("{t}")
+    return 0
+}

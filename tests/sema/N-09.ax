@@ -1,0 +1,10 @@
+// EXPECT: E3017
+class A {
+    public void f() {
+    }
+}
+
+class B extend A {
+    public void f() {
+    }
+}

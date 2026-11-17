@@ -1,0 +1,4 @@
+import b
+public int fa() {
+    return 1
+}

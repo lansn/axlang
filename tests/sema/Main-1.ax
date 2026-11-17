@@ -1,0 +1,3 @@
+// EXPECT: E3025
+void main() {
+}

@@ -1,0 +1,5 @@
+// EXPECT: E4018
+int main() {
+    map<float, int> m = {}
+    return 0
+}

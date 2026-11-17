@@ -1,0 +1,5 @@
+// EXPECT: E1004
+int main() {
+    string s = "\q"
+    return 0
+}

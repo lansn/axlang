@@ -1,0 +1,15 @@
+class User {
+    public string name
+
+    constructor(string name) {
+        this.name = name
+    }
+}
+
+int main() {
+    string[] xs = ["aa", "bb"]
+    Println("arr={xs}")
+    User u = new User("neo")
+    Println("user={u}")
+    return 0
+}

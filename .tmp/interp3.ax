@@ -1,0 +1,7 @@
+int main(string[] args) {
+    string s = "v={args.At(0)}"
+    Println("[{s}]")
+    decimal? d = 1.5d
+    Println("d={d:.2}")
+    return 0
+}

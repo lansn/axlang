@@ -1,0 +1,10 @@
+// EXPECT: E3010
+class A {
+    public int x
+    constructor(int a) {
+        this.x = a
+    }
+    constructor(string s) {
+        this.x = 0
+    }
+}

@@ -1,0 +1,30 @@
+// 模块 catalog.product —— 目录即模块路径，文件名即模块名（文稿 9.1）
+//
+// 一个模块只需要把要对外的东西标 public；模块内不加修饰的成员默认私有。
+
+public const decimal TAX_RATE = 0.13d
+
+public class Product {
+    public string sku
+    public string name
+    public decimal price
+
+    constructor(string sku, string name, decimal price) {
+        this.sku = sku
+        this.name = name
+        this.price = price
+    }
+
+    public string Label() {
+        return "[{this.sku}] {this.name}"
+    }
+
+    public decimal PriceWithTax() {
+        return (this.price * (1.00d + TAX_RATE)).Round(2, Rounding.HalfUp)
+    }
+
+    // 静态工厂：类名当命名空间用，不写 new
+    public static Product Sample() {
+        return new Product("SKU-000", "样品", 0.00d)
+    }
+}

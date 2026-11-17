@@ -1,0 +1,5 @@
+// EXPECT: PASS
+int main() {
+    decimal p = 19d
+    return 0
+}

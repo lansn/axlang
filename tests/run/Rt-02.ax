@@ -1,0 +1,6 @@
+int main() {
+    int z = 0
+    int x = 1 / z
+    Println("{x}")
+    return 0
+}

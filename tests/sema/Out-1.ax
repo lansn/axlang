@@ -1,0 +1,6 @@
+// EXPECT: E3003
+// 旧名 print 已拆分为 Print / Println：报错要指名道姓，不能让用户猜
+int main() {
+    print("x")
+    return 0
+}

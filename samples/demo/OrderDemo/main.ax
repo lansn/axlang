@@ -1,0 +1,49 @@
+// OrderDemo —— 多模块 + 类的引入与调用（可直接运行）
+//
+//   axc run samples/demo/OrderDemo/main.ax
+//
+// 目录结构即模块结构：catalog/product.ax 的模块名是 catalog.product。
+// import 之后类型名直接写 `Product` 即可——`product.Product`（末段短名）与
+// `catalog.product.Product`（全路径）同样合法，三者指向同一个类。
+// 只有两个模块导出同名类型时，才必须写全路径（否则报 E3042）。
+
+import catalog.product
+import catalog.inventory
+import checkout.bill as bill
+import checkout.wholesale
+
+int main() {
+    // ---- 1. 裸名构造：import 已经把类型引进作用域 ----
+    Product kb = new Product("SKU-001", "机械键盘", 299.00d)
+    Println("{kb.Label()} ¥{kb.price:.2}")
+    Println("含税：¥{kb.PriceWithTax():.2}")
+
+    // ---- 2. 另一个模块的类：构造、调用、把对象交出去 ----
+    Inventory inv = new Inventory()
+    inv.Add(kb)                                    // 交出去之后 kb 归 inv 所有
+    inv.Add(new catalog.product.Product("SKU-002", "无线鼠标", 99.00d))   // 全路径写法
+    Println("入库 {inv.items.Len()} 件，合计 ¥{inv.Total():.2}")
+
+    // ---- 3. 可空返回：查到用，查不到走 else ----
+    var hit = inv.Find("SKU-002")
+    if hit != null {
+        Println("查到 {hit.Label()}")
+    } else {
+        Println("未找到")
+    }
+    var miss = inv.Find("SKU-999")
+    if miss == null {
+        Println("SKU-999 未找到")
+    }
+
+    // ---- 4. 具名导入的模块：Bill 自己管账 ----
+    Bill b = new Bill()
+    b.Add(new Product("SKU-001", "机械键盘", 299.00d))
+    b.Add(new Product("SKU-002", "无线鼠标", 99.00d))
+    Println("小计 ¥{b.Subtotal():.2} 税 ¥{b.Tax():.2} 合计 ¥{b.Total():.2}")
+
+    // ---- 5. 跨模块继承：批发品复用 Product 的 Label ----
+    WholesaleProduct wp = new WholesaleProduct("SKU-101", "显示器", 1299.00d, 12)
+    Println(wp.BatchLabel())
+    return 0
+}

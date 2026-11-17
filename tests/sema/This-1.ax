@@ -1,0 +1,13 @@
+// EXPECT: E3038
+class Calc {
+    public int base
+    constructor(int base) {
+        this.base = base
+    }
+    public static int get_base() {
+        return this.base
+    }
+}
+int main() {
+    return 0
+}

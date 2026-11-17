@@ -1,0 +1,9 @@
+// EXPECT: E3037
+class Calc {
+    static bool is_pos(int x) {
+        return x > 0
+    }
+}
+int main() {
+    return 0
+}

@@ -1,0 +1,10 @@
+// EXPECT: E3042
+// 两个已导入模块都导出 `Product`：裸名没有唯一答案，必须写全路径
+import a
+import b
+
+int main() {
+    Product p = new Product("x")
+    Println(p.name)
+    return 0
+}

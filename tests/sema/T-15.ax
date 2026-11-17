@@ -1,0 +1,5 @@
+// EXPECT: E4007
+int main() {
+    var e = {}
+    return 0
+}

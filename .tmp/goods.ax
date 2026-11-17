@@ -1,0 +1,53 @@
+import db
+
+public class Goods {
+    public int id
+    public string name
+    public decimal price
+    public int stock
+
+    constructor(int id, string name, decimal price, int stock) {
+        this.id = id
+        this.name = name
+        this.price = price
+        this.stock = stock
+    }
+
+    public decimal total(int count) {
+        return this.price * decimal(count)
+    }
+
+    public static result<Goods?> load(int id) {
+        Row row = db.query("select * from goods where id = {id}", id) try
+        if row.empty() {
+            return ok(null)
+        }
+        return ok(Goods(int(row.get_int("id")), row.get_string("name"),
+                        decimal(row.get_decimal("price")), row.get_int("stock")))
+    }
+}
+
+public class DiscountedGoods extend Goods {
+    public decimal rate
+
+    constructor(int id, string name, decimal price, int stock, decimal rate) {
+        parent(id, name, price, stock)
+        this.rate = rate
+    }
+
+    public override decimal total(int count) {
+        return parent.total(count) * this.rate
+    }
+}
+
+int main() {
+    var g = Goods.load(1001) try
+    if g == null {
+        print("商品不存在")
+        return 1
+    }
+    decimal subtotal = g.total(3)
+    print("折后小计 {subtotal:.2}")
+    print("{g.name} ￥{g.price:.2}（库存 {g.stock}）")
+    return 0
+}

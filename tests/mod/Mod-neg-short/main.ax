@@ -1,0 +1,9 @@
+// EXPECT: E3040
+// 两个模块的末段同名：短名不能同时绑定，必须用 `as` 区分
+import net.http
+import web.http
+
+int main() {
+    Println(http.ping())
+    return 0
+}

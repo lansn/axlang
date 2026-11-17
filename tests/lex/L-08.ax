@@ -1,0 +1,5 @@
+// EXPECT: PASS
+int main() {
+    float f = 1.5e-3
+    return 0
+}

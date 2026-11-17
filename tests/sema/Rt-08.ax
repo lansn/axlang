@@ -1,0 +1,5 @@
+// EXPECT: E4009
+int main() {
+    int x = 1 / 0
+    return x
+}

@@ -1,0 +1,10 @@
+// EXPECT: E3037
+class Bag {
+    int n
+    constructor(int n) {
+        this.n = n
+    }
+}
+int main() {
+    return 0
+}

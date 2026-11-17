@@ -1,0 +1,5 @@
+// EXPECT: E1001
+int main() {
+    int a = 010
+    return a
+}

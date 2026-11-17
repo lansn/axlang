@@ -1,0 +1,38 @@
+// 06_collections.ax —— 数组、map（插入序）、record（键固定）
+//
+//   axc run samples/06_collections.ax
+
+int main() {
+    // ---- 数组：变长用 T[]，定长用 T[N] ----
+    int[] nums = [1, 2, 3]
+    nums.Push(4)
+    Println("长度 {nums.Len()}，第一个 {nums[0]}")
+
+    int[3] fixed = [10, 20, 30]         // 定长：元素个数写死在类型里
+    Println("定长数组 {fixed[0]} {fixed[1]} {fixed[2]}")
+
+    // ---- map：键值可混搭，遍历按插入顺序（可复现，不是哈希序）----
+    map<string, int> stock = {}
+    stock["apple"] = 10
+    stock["banana"] = 5
+    stock["cherry"] = 7
+    for (k, v) in stock {
+        Println("{k} = {v}")
+    }
+
+    // ---- record：键是类型的一部分，写错键名编译期就报 E4008 ----
+    var cfg = {
+        "name": "server",
+        "port": 8080,
+    }
+    string host = cfg["name"]
+    int port = cfg["port"]
+    Println("record: {host}:{port}")
+
+    // record 的键固定，不能加新键；要动态增删就用 map
+    map<string, object> bag = {}
+    bag["count"] = 3
+    bag["label"] = "动态"
+    Println("map 有 {bag.Len()} 个键")
+    return 0
+}

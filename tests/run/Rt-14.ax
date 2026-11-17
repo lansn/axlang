@@ -1,0 +1,5 @@
+int main() {
+    decimal d = 123.456d.Round(2, Rounding.HalfUp)
+    Println("{d}")
+    return 0
+}

@@ -1,0 +1,36 @@
+// 模块 checkout.bill —— 具名导入：只把需要的名字拉进本模块（文稿 9.2）
+//
+//   import catalog.product.{Product, TAX_RATE}
+//
+// 之后 Product / TAX_RATE 裸名可用，模块里其余成员在本模块不可见。
+
+import catalog.product.{Product, TAX_RATE}
+
+public class Bill {
+    public Product[] lines
+
+    constructor() {
+        this.lines = []
+    }
+
+    public Bill Add(Product p) {
+        this.lines.Push(p)
+        return this
+    }
+
+    public decimal Subtotal() {
+        decimal sum = 0.00d
+        for p in this.lines {
+            sum = sum + p.price
+        }
+        return sum
+    }
+
+    public decimal Tax() {
+        return (this.Subtotal() * TAX_RATE).Round(2, Rounding.HalfUp)
+    }
+
+    public decimal Total() {
+        return this.Subtotal() + this.Tax()
+    }
+}

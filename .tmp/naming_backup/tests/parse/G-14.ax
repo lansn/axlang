@@ -1,0 +1,4 @@
+// EXPECT: PASS
+result<int> notfound() {
+    throw error.NotFound("x")
+}

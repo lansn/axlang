@@ -1,0 +1,5 @@
+// EXPECT: PASS
+int main() {
+    string s = "a\n"
+    return 0
+}

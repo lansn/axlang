@@ -1,0 +1,2 @@
+public int ping() { return 1 }
+public const int PORT = 8080

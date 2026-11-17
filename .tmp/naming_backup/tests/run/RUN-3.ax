@@ -1,0 +1,80 @@
+// goods.ax —— 模块：goods  （文稿 §12 原文，RUN-1 验收用例）
+
+import db               // print 是根模块内建函数，无需 import
+
+// ---- 类：数据与行为一体 ----
+class Goods {
+    public int id
+    public string name
+    public decimal price         // 金额只用 decimal
+    public int stock
+
+    constructor(int id, string name, decimal price, int stock) {
+        this.id = id
+        this.name = name
+        this.price = price
+        this.stock = stock
+    }
+
+    public static result<Goods?> load(int id) {
+        var row = db.query("select id, name, price, stock from goods where id = ?", id) try
+        if row.empty() {
+            return ok(null)
+        }
+        decimal price = decimal.parse(row.get_string("price")) try    // 解析失败即向上传播
+        return ok(new Goods(
+            id,
+            row.get_string("name"),
+            price,
+            row.get_int("stock"),
+        ))
+    }
+
+    public result<decimal> subtotal(int count) {
+        if this.stock < count {
+            throw error.Money("insufficient stock")
+        }
+        return ok(this.price * count)
+    }
+}
+
+// ---- 继承与接口 ----
+interface Describable {
+    string describe()
+}
+
+class DiscountedGoods extend Goods implement Describable {
+    public decimal rate          // 折扣率，如 0.9d 表示九折
+
+    constructor(Goods goods, decimal rate) {
+        parent(goods.id, goods.name, goods.price, goods.stock)
+        this.rate = rate
+    }
+
+    public result<decimal> final_price(int count) {
+        decimal total = this.subtotal(count) try                 // 复用父类方法
+        return ok((total * this.rate).round(2, Rounding.HalfUp))  // 精确十进制 + 显式舍入
+    }
+
+    public override string describe() {
+        return "{this.name} ¥{this.price:.2}（库存 {this.stock}）"
+    }
+}
+
+// ---- 入口 ----
+int main() {
+    Goods? g = Goods.load(9999) try               // result<Goods?> 传播
+    if g == null {
+        print("商品不存在")
+        return 1
+    }
+
+    var d = new DiscountedGoods(g, 0.9d)
+    match d.final_price(3) {
+        ok(total) => print("折后小计 {total:.2}"),
+        fail(e)   => print("下单失败：{e.msg}"),
+    }
+
+    print(d.describe())
+    return 0
+}

@@ -1,0 +1,36 @@
+// 模块 catalog.inventory —— 库存：把商品按数组收进来
+//
+// 模块内引用别的模块同样要 import（路径从入口文件所在目录算起）。
+
+import catalog.product
+
+public class Inventory {
+    public product.Product[] items
+
+    constructor() {
+        this.items = []
+    }
+
+    // 入一件，返回当前总数。items 是字段，Push 直接作用在原数组上
+    public int Add(product.Product p) {
+        this.items.Push(p)
+        return this.items.Len()
+    }
+
+    public product.Product? Find(string sku) {
+        for p in this.items {
+            if p.sku == sku {
+                return p
+            }
+        }
+        return null
+    }
+
+    public decimal Total() {
+        decimal sum = 0.00d
+        for p in this.items {
+            sum = sum + p.price
+        }
+        return sum
+    }
+}

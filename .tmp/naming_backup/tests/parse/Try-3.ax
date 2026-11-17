@@ -1,0 +1,8 @@
+// EXPECT: E2001
+// try 后面必须跟 catch 或 finally
+int main() {
+    try {
+        print("body")
+    }
+    return 0
+}

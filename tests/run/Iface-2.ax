@@ -1,0 +1,32 @@
+// interface extend（GAP #13 回归补充）：父 interface 的方法经子 interface
+// 变量调用；类实现子 interface 即隐式实现父 interface。
+
+interface Animal {
+    string speak()
+}
+
+interface Pet extend Animal {
+    string name()
+}
+
+class Dog implement Pet {
+    constructor() {}
+
+    public string speak() {
+        return "{this.name()}：汪"
+    }
+
+    public string name() {
+        return "旺财"
+    }
+}
+
+int main() {
+    Pet p = new Dog()
+    Println(p.speak())        // speak 来自 extends 的父 interface
+    Println(p.name())
+
+    Animal a = new Dog()      // 实现 Pet 即隐式实现 Animal（直接上转到父 interface）
+    Println(a.speak())
+    return 0
+}

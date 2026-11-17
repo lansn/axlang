@@ -1,0 +1,19 @@
+import utils
+import utils as u                  // 别名：同一模块的另一个视图
+import net.http
+
+int main() {
+    int s = utils.add(2, 3)
+    Println("add = {s}")
+    Println("MAX = {utils.MAX}")
+    Println("double = {utils.double_it(21)}")
+
+    utils.Calc c = utils.Calc(5)
+    Println("twice = {c.twice()}")
+    utils.Calc z = utils.Calc.zero()
+    Println("zero base = {z.base}")
+
+    Println("alias add = {u.add(1, 1)}")
+    Println("http get = {net.http.get()}")
+    return 0
+}

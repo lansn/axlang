@@ -1,0 +1,16 @@
+// EXPECT: E4022
+class User {
+    public int id
+    constructor(int id) {
+        this.id = id
+    }
+}
+
+result<User?> find(int id) {
+    return ok(null)
+}
+
+int main() {
+    User? u = find(1) try
+    return u.id
+}

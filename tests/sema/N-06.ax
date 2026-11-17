@@ -1,0 +1,4 @@
+// EXPECT: E3011
+struct P {
+    public int x
+}

@@ -1,0 +1,16 @@
+// EXPECT: E7001
+class Buffer {
+    public int n
+    constructor(int n) {
+        this.n = n
+    }
+    public void write(string s) {
+    }
+}
+
+int main() {
+    var b = new Buffer(8)
+    var c = b
+    b.write("x")
+    return 0
+}

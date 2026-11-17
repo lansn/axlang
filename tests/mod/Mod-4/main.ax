@@ -1,0 +1,9 @@
+// 具名导入把名字引入当前作用域（文稿 9.2）：函数、常量、类型都能裸名使用
+import model.{greet, PORT, Config}
+
+int main() {
+    Config c = new Config(PORT)
+    Println(greet("named"))
+    Println("port={c.port}")
+    return 0
+}

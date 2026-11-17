@@ -1,0 +1,39 @@
+// 02_types.ax —— 类型系统一览
+//
+// 规则：没有隐式数值转换，跨类型一律写 T(x)；金额只用 decimal。
+//
+//   axc run samples/02_types.ax
+
+int main() {
+    // ---- 整数家族：显式位宽，越界在运行期崩（R104），不静默截断 ----
+    int a = 42                  // 有符号 64 位
+    int8 b = 127
+    uint c = 300                // 无符号，负数赋给它会被挡在类型检查
+    print("a={a} b={b} c={c}")
+
+    // ---- float：唯一的 64 位二进制浮点，不做金额 ----
+    float f = 1.5
+    float g = 2.0
+    print("f/g={f / g}")
+
+    // ---- decimal：128 位十进制定点，金额专用 ----
+    decimal p = 19.99d
+    decimal q = 3d              // 整数字面量可落到 decimal
+    print("p*q={p * q}")
+
+    // ---- 无隐式转换：下面这行必须显式写 decimal(a) ----
+    decimal d = decimal(a)
+    print("d={d}")
+
+    // ---- bool 与三元 ----
+    bool ok = a > 40
+    string s = ok ? "大于" : "不大于"
+    print("a {s} 40")
+
+    // ---- string 常用方法 ----
+    string t = "  axlang  "
+    print("trim=[{t.trim()}]")
+    print("contains={t.contains("ax")}")
+    print("at(2)={t.trim().at(2)}")
+    return 0
+}

@@ -1,0 +1,6 @@
+int main() {
+    int m = 9223372036854775807
+    int x = m.wrapping_add(1)
+    print("{x}")
+    return 0
+}

@@ -1,0 +1,7 @@
+int main(string[] args) {
+    Println("n={args.Len()}")
+    Println(args.At(0))
+    string s = args.At(0)
+    Println("[{s}]")
+    return 0
+}

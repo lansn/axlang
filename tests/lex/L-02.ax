@@ -1,0 +1,5 @@
+// EXPECT: E1002
+int main() {
+    string c = 'a'
+    return 0
+}

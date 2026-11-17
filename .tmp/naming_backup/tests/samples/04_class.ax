@@ -1,0 +1,45 @@
+// 04_class.ax —— class / 继承 / override / interface
+//
+//   axc run samples/04_class.ax
+
+interface Shape {
+    string name()
+    decimal area()
+}
+
+class Rect implement Shape {
+    public decimal w
+    public decimal h
+
+    constructor(decimal w, decimal h) {
+        this.w = w
+        this.h = h
+    }
+
+    public string name() {
+        return "矩形"
+    }
+
+    public decimal area() {
+        return this.w * this.h
+    }
+}
+
+class Square extend Rect {
+    constructor(decimal side) {
+        parent(side, side)          // 调父类构造，必须写在构造函数第一条
+    }
+
+    public override string name() {
+        return "正方形"
+    }
+}
+
+int main() {
+    var r = new Rect(3d, 4d)
+    var s = new Square(5d)
+
+    print("{r.name()} 面积 {r.area()}")
+    print("{s.name()} 面积 {s.area()}")
+    return 0
+}

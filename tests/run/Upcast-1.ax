@@ -1,0 +1,46 @@
+// 上转赋值（GAP #14 回归）：子类实例赋给父类变量、参数、返回值。
+// 子类结构体把父类字段排在最前，布局兼容，但 C 看到的是两个不同的
+// struct 指针类型——生成处需显式强转，否则 gcc 刷
+// -Wincompatible-pointer-types。方法派发走对象内虚表，
+// 上转后仍调到子类的 override 实现。
+
+class Animal {
+    public string name
+
+    constructor(string name) {
+        this.name = name
+    }
+
+    public string speak() {
+        return "{this.name}：喵"
+    }
+}
+
+class Dog extend Animal {
+    constructor(string name) {
+        parent(name)
+    }
+
+    public override string speak() {
+        return "{this.name}：汪汪"
+    }
+}
+
+Animal make(string name) {
+    return new Dog(name)          // 上转：return 处
+}
+
+string shout(Animal a) {
+    return a.speak() + "!"        // 上转：传参处
+}
+
+int main() {
+    Animal a = new Dog("旺财")     // 上转：声明处
+    Println(a.speak())
+    a = new Animal("阿咪")         // 同类型赋值（不应多余强转）
+    Println(a.speak())
+    Println(shout(new Dog("小黑")))
+    Animal b = make("豆豆")
+    Println(b.speak())
+    return 0
+}
