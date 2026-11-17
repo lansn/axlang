@@ -1,0 +1,17 @@
+// ASCII / 码点处理（文稿 11.2）：语言里没有 char，一个字符是长度 1 的 string；
+// 字符 ↔ 码点走 CodepointAt（string?，越界 null）与 string.FromCodepoint（result<string>）
+int main() {
+    string s = "AB中文"
+    Println(s.CodepointAt(0))
+    Println(s.CodepointAt(1))
+    Println(s.CodepointAt(2))
+    Println(s.CodepointAt(99))
+    Println(string.FromCodepoint(65) try)
+    Println(string.FromCodepoint(0x4E2D) try)
+    string out = ""
+    for c in s {
+        out += c
+    }
+    Println(out)
+    return 0
+}

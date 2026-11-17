@@ -705,8 +705,12 @@ impl<'a> Lexer<'a> {
         self.i = j + 1;
     }
 
-    /// `{` 是否开启插值：其后（跳过空白）是标识符字符 / `(` / `t`（this）。
-    /// `{` 后跟其它字符（引号、反斜杠、数字……）一律当字面 `{`。
+    /// `{` 是否开启插值。判定规则（只为把字面 JSON 文本和插值区分开）：
+    /// - `{}`（后紧跟 `}`）→ 字面 `{`；
+    /// - `{"k":`（字符串字面量后跟 `:`）→ 字面 `{`（JSON 对象文本形态）；
+    /// - 其余一律按插值，包括标识符 / 数字 / `(` / 一元 `- + !` / 非 ASCII
+    ///   标识符 / **字符串字面量表达式**（`{"中文".ByteLen()}`）。
+    /// 要写字面 `{` 但形状不巧撞上插值时，用 `{{` 转义。
     fn interp_start(&self) -> bool {
         let mut j = self.i + 1;
         while j < self.n && (self.src[j] == ' ' || self.src[j] == '\t') {
@@ -716,7 +720,34 @@ impl<'a> Lexer<'a> {
             return false;
         }
         let c = self.src[j];
-        c == '(' || c == '_' || c.is_ascii_alphabetic() || (c as u32) > 127
+        if c == '}' || c == '\\' {
+            // `{}` 字面；`{\"...`（JSON 文本里转义的引号）也当字面
+            return false;
+        }
+        if c == '"' && self.json_key_ahead(j) {
+            return false;
+        }
+        true
+    }
+
+    /// j 指向字符串字面量的开引号：跳过整个字面量（含转义）后，下一个
+    /// 非空白字符是 `:` → 形如 JSON 的 `"key": value`。
+    fn json_key_ahead(&self, mut j: usize) -> bool {
+        j += 1; // 跳过开引号
+        while j < self.n {
+            match self.src[j] {
+                '\\' => j += 2,
+                '"' => {
+                    j += 1;
+                    break;
+                }
+                _ => j += 1,
+            }
+        }
+        while j < self.n && (self.src[j] == ' ' || self.src[j] == '\t') {
+            j += 1;
+        }
+        j < self.n && self.src[j] == ':'
     }
 
     /// self.i 指向 `{`。返回插值片段或 None。

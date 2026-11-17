@@ -1,0 +1,10 @@
+// EXPECT: E4001
+// 类型模式只能用于 object 或类引用；标量值的 match 分支用字面量/区间模式
+int main() {
+    string s = "x"
+    match s {
+        int n => Println("{n}"),
+        _ => Println("其他")
+    }
+    return 0
+}

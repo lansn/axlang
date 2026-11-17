@@ -1,0 +1,38 @@
+// sizeof(expr)：编译期发 C 的 sizeof（文稿 11.2），返回实参类型的存储大小；
+// class 按引用语义给指针大小（用户裁定，与赋值语义一致），对象大小不在此问
+interface Shape { string describe() }
+class Dog implement Shape {
+    public string name
+    public int age
+    constructor(string name) { this.name = name; this.age = 0 }
+    public override string describe() { return "狗" }
+}
+struct Point {
+    int x
+    int y
+}
+int main() {
+    int a = 1
+    uint8 u = 1
+    decimal d = 1.5d
+    string s = "x"
+    int[] xs = [1, 2]
+    int[3] fix = [1, 2, 3]
+    int? m = 5
+    Dog dg = new Dog("旺财")
+    Point pt = Point(1, 2)
+    Shape sh = dg
+    Println(sizeof(a))
+    Println(sizeof(u))
+    Println(sizeof(d))
+    Println(sizeof(s))
+    Println(sizeof(xs))
+    Println(sizeof(fix))
+    Println(sizeof(m))
+    Println(sizeof(dg))
+    Println(sizeof(pt))
+    Println(sizeof(sh))
+    Println("表达式也行：{sizeof(a) + sizeof(s)}")
+    Println("{dg.name} {pt.x} {sh.describe()} {xs.Len()} {fix.Len()}")
+    return 0
+}

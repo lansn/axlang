@@ -1,6 +1,6 @@
 # axlang 编译器实现规格书（AI 执行版）
 
-> 版本：v0.16　配套：`axlang语法设计文稿.md` v0.40
+> 版本：v0.20　配套：`axlang语法设计文稿.md` v0.44
 > 读者：具备代码生成能力的 AI（及人类实现者）
 > 用途：**唯一目的**是从零产出可运行的 `axc` 编译器（词法 → 语法 → 语义 → 代码生成 → 运行时）
 > 本文件不是语言设计稿，不新增任何语言特性；语言事实一律以文稿为准
@@ -727,7 +727,7 @@ MODULE goods
 | 类别 | 符号 |
 |---|---|
 | 类型 | 见 §3.4 的保留类型名表（含 `result`/`error`/`func`/`map`/`Self`/`range`/`Rounding`/`Arena`/`ArenaRef`） |
-| 值 | `Print` / `Println`（`void Print(string)`）、`true`/`false`/`null`（关键字） |
+| 值 | `Print` / `Println`（`void Print(string)`；非字符串的单个可插值实参按 `"{x}"` 处理）、`true`/`false`/`null`（关键字） |
 | 类型静态命名空间 | `int.Parse` `float.Parse` `decimal.Parse` `int32.Truncate`（及 `int8/int16` 的 `.Truncate`）`string.FromCodepoint` |
 | 枚举成员 | `Rounding.HalfUp` `Rounding.HalfEven` `Rounding.Down` |
 | 错误变体 | `error.NotFound` `error.Invalid` `error.Money` `error.IO` |
@@ -1376,7 +1376,8 @@ AST ──(sema)──> AST(带 ty/resolved/conv 槽) ──(lower)──> HIR �
 | `a ?? b` | `a != null ? a! : b`（`a!` 表示解包） |
 | `s = "a{x:.2}b"` | `ax_str_concat(ax_str_concat("a", fmt(x, 2)), "b")` |
 | `match`（enum） | 对 tag 的 `switch`（C 的 `switch` 可用，因无 fallthrough 需求时每臂 `break`） |
-| `match`（`object` 类型模式） | tag 比较链 + 解箱 |
+| `match`（`object` 上的类型模式） | 比 `ax_box.tag`（装箱时的静态类型），命中后按目标类型解箱：标量走 `ax_unbox_*`，class 取 `payload` 里的指针 |
+| `match`（类引用上的类型模式） | 比对象头 `__tag`（构造时写入的**真实**类型），命中后直接强转 |
 | `match`（区间/字面量） | 比较链（`if/else if`），按源码顺序，`_` 为最后 `else` |
 | `defer e` | 在当前块维护清理栈；块出口（含早退）按 LIFO 调用 |
 | `expr try` | `tmp = expr; if (tmp.tag == FAIL) { cleanup; return tmp; }` |
@@ -1590,9 +1591,10 @@ if (t1.has) { ax_sb_push(&b, t1.v); } else { ax_sb_push(&b, AX_S("null")); }
 ```
 
   插值只做显示、不产生可空值逃逸，因此**不触发 `E4001`**；赋值与传参处仍照常要求判空。
-- **当前实现边界**：已落地 `int`/`uint`、`float`、`decimal`、`bool`、`string`、`enum` 及其可空形式；数组 / `map` / 元组 / `func` / class / struct 的默认显示**尚未实现**，插值它们报 `E5006`（`GAP-12`）。上一条里这几项是设计目标，不是现状——codegen 的兜底分支只留注释，不允许退化成静默输出 `?`。
+- **当前实现边界**：已落地 `int`/`uint`、`float`、`decimal`、`bool`、`string`、`enum` 及其可空形式，以及**实现了 `Printable` 的 class/struct**（含 `Printable` 接口变量的虚派发）；数组 / `map` / 元组 / `func` 的默认显示**尚未实现**，插值它们报 `E5006`（`GAP-12` 剩余部分）。codegen 的兜底分支只留注释，不允许退化成静默输出 `?`。
 - `.N` 只允许数值类型（`E4030`），舍入固定 `Rounding.HalfUp`；可空数值不参与 `:.N`（先判空取出）。
 - `Print(s)` 直接 `ax_write_stdout(s)`；`Println(s)` 在同一句后追加 `ax_write_stdout(AX_S("\n"))`。两者都不经过 `printf`（格式串一律由插入式拼接生成，避免 `%` 转义问题）。
+- 实参不是 `string` 但可插值时（sema 打 `interp_arg` 标记），按 `str_lit` 的同一条路径生成：`ax_sb` 初始化 → `push_interp` 推入一个片段 → `ax_sb_finish` → 输出。语义等价于 `Print("{x}")`，不新增任何格式化分支。
 
 ### 13.8 装箱与解箱（B-14）
 
@@ -1775,14 +1777,16 @@ void    ax_file_close(ax_file* f);                   /* 幂等 */
 
 | 符号 | 签名 | transfer | 依据 |
 |---|---|---|---|
-| `Print` | `void Print(string)`（不换行） | borrow | 文稿 11.2 |
-| `Println` | `void Println(string)`（末尾补 `\n`） | borrow | 文稿 11.2 |
+| `Print` | `void Print(string)`（不换行）；实参也可直接是能插值的值，等价于 `Print("{x}")` | borrow | 文稿 11.2 |
+| `Println` | `void Println(string)`（末尾补 `\n`）；同上 | borrow | 文稿 11.2 |
 | `int.Parse` | `result<int> parse(string)` | borrow | 文稿 3.1 |
 | `float.Parse` | `result<float> parse(string)` | borrow | 文稿 3.1 |
 | `decimal.Parse` | `result<decimal> parse(string)` | borrow | 文稿 3.1/3.2 |
 | `int8.Truncate` `int16.Truncate` `int32.Truncate` | `T truncate(int)` | copy | 文稿 3.1 |
 | `string.FromCodepoint` | `result<string> from_codepoint(int)` | copy | 文稿 11.2 |
 | `x.ToString()` | `string to_string()`（数值/`bool`/`enum`/`string`） | copy | 文稿 11.2 |
+| `typeof(expr)` | `string`（编译期常量：实参静态类型的显示名，生成字符串字面量） | copy | 文稿 11.2 |
+| `sizeof(expr)` | `int`（编译期：实参类型在 C 侧的存储大小；class 按引用给指针大小；不能进 const） | copy | 文稿 11.2 |
 
 ### 15.2 `string` 方法
 
@@ -1827,6 +1831,8 @@ void    ax_file_close(ax_file* f);                   /* 幂等 */
 | `math` | `Equals` | `bool equals(float, float, float eps)` | 文稿 3.7 |
 | `math` | `Compare` | `int compare(float, float)` | 文稿 3.7 |
 | `json` | `Parse` | `result<Json> parse(string)`，`Json = map<string, object>` | 文稿 6.7 |
+| `json` | `stringify` | `string stringify(object)`，JSON 文本（标量 / map / 数组；无法识别的复合值输出 `null`） | 文稿 6.7 |
+| `time` | `now_ms` | `int now_ms()`，Unix 毫秒时间戳 | 文稿 15 |
 | `db` | `Query` | `result<Row> query(string, ...)` | 文稿 12 |
 | `db` | `Row.Empty()` / `GetString` / `GetInt` / `GetDecimal` | 见 §16 `RUN-1` 的 fixture | 文稿 12 |
 
@@ -1922,6 +1928,10 @@ void    ax_file_close(ax_file* f);                   /* 幂等 */
 | `Upcast-1` | 上转赋值：`Animal a = new Dog(...)`（声明 / 传参 / return 三处），派发走子类 override | 通过；生成 C 显式强转，`-Werror` 零警告（`Upcast-1.out`） |
 | `Iface-1` | interface 多态：interface 变量 / 参数 / 返回值 / 数组元素，两个实现类派发 | 通过（`Iface-1.out`） |
 | `Iface-2` | `interface Pet extend Animal`：父 interface 方法经子 interface 变量调用；实现 `Pet` 隐式实现 `Animal`（直接上转） | 通过（`Iface-2.out`） |
+| `Pat-1` | 类型模式四种来源：`object` 箱上的类模式、类引用上的类模式（按对象头真实 tag，`Animal a = new Cat(...)` 命中 `Cat`）、`object` 箱上的标量模式（`int` / `string`） | 通过（`Pat-1.out`） |
+| `Pat-neg-1` | 标量值上写类型模式（`string s` 配 `int n =>`） | 恰好一条 `E4001` |
+| `Print-1` | `Println(123)` / `Println(3.5)` / `Println(true)` / `Print(42)` 不换行 / `Println(Printable 类实例)` / `Println(enum)` | 通过（`Print-1.out`；等价于补花括号的插值） |
+| `Print-neg-1` | `Println(xs)`（`xs` 为 `int[]`） | `E4001`（复合类型不参与插值） |
 | `demo/OrderDemo` | 示例工程（`samples/demo/`）：`catalog.product` / `catalog.inventory` / `checkout.bill`（具名导入）/ `checkout.wholesale`（跨模块继承）；入口用**裸类型名**构造，另混用全路径写法作对照，含数组字段 `Push`、可空返回判空、`:.2` 金额 | 通过（`main.out` 逐字节比对） |
 | `Struct-1` | `Point(1, 2)` 位置构造、字段写、赋值即复制、嵌套 `Box(Point(...), ...)` | 通过（`b.x = 99` 不影响 `a`） |
 | `Main-1` | `void main() { }` | `E3025`（`check` 就报，不必等 `run`） |
@@ -2005,6 +2015,7 @@ void    ax_file_close(ax_file* f);                   /* 幂等 */
 | `E-13` | `main` 内 try 得 `fail` | 运行：stderr 打印 `e.msg`，退出码 1 |
 | `E-14` | `int f() { }` | `E2006` |
 | `E-15` | `int main() { }` | 通过（`main` 豁免） |
+| `E-16` | `match o { int n => f(n), string s => g(s), _ => h() }`（`o: object`，标量类型模式） | 通过（见 `Pat-1`；按装箱 tag 判定后解箱） |
 
 ### 16.7 泛型（M6）
 
@@ -2227,9 +2238,10 @@ GAP-REPORT n
 - [ ] `R101`…`R107` 插入点全部就位（含"常量走编译期"分流）
 
 **M6 泛型**
-- [ ] 约束检查（`Comparable`/`Hashable`/`Printable` + 用户 interface）
-- [ ] 单态化去重 + mangle 稳定 + 深度上限
-- [ ] `float` 无 `Comparable`（`GX-03` 报 `E4036`）
+- [x] 约束检查（`Comparable`/`Hashable`/`Printable` + 用户 interface；声明期 + 调用点双检）
+- [x] 单态化去重 + mangle 稳定 + 深度上限（`E4038`，函数链与类型链共 64 层）
+- [x] `float` 无 `Comparable`（`GX-03` 报 `E4036`）
+- [x] 泛型函数/类/struct 单态化 + 泛型别名引用期展开（v0.0.21）
 
 **M7 所有权**
 - [ ] move 位置穷举（`O-6`）+ 状态机 + use-after-move

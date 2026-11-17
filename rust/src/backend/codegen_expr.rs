@@ -154,9 +154,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
         if !self.suppress_implicit
             && self
                 .cg
-                .s
-                .slots
-                .get(&e.id)
+                .slot(&e.id)
                 .map_or(false, |s| s.implicit_try)
         {
             self.suppress_implicit = true;
@@ -255,7 +253,12 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 let l = self.gen(lhs, None, false, false);
                 let lty = self.ty_or_int(lhs.id);
                 let lv = self.declare(&lty, &l);
-                let r = self.gen(rhs, None, true, false);
+                // 右侧要转成可空的内层类型再参与三目（object? 的兜底值要装箱）
+                let inner = match &*lty {
+                    TyS::Nullable(i) => i.clone(),
+                    _ => lty.clone(),
+                };
+                let r = self.gen(rhs, Some(&inner), false, false);
                 format!("({}.has ? {}.v : {})", lv, lv, r)
             }
             Expr::Range { .. } => "0".to_string(),
@@ -298,9 +301,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 // 文稿 4.1：匿名函数值 = 合成顶层函数的地址（不捕获环境）
                 let fid = self
                     .cg
-                    .s
-                    .slots
-                    .get(&e.id)
+                    .slot(&e.id)
                     .and_then(|sl| sl.func)
                     .unwrap_or(0);
                 self.cg.fn_name_idx(fid)
@@ -647,7 +648,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
     }
 
     fn slot_folded(&self, id: u32) -> Option<crate::sema::ConstVal> {
-        self.cg.s.slots.get(&id).and_then(|s| s.folded.clone())
+        self.cg.slot(&id).and_then(|s| s.folded.clone())
     }
 
     fn binary(&mut self, e: &'a ast::EPtr) -> String {
@@ -666,7 +667,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
         let b = self.gen(rhs, None, true, false);
         let info = BinInfo {
             tok: &e.tok,
-            dec_conv: self.cg.s.slots.get(&e.id).and_then(|s| s.dec_conv),
+            dec_conv: self.cg.slot(&e.id).and_then(|s| s.dec_conv),
             null_lhs: matches!(&lhs.k, Expr::NullLit),
             null_rhs: matches!(&rhs.k, Expr::NullLit),
         };
@@ -701,6 +702,29 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 "<" | "<=" | ">" | ">=" => format!("(ax_str_cmp({}, {}) {} 0)", a, b, op),
                 _ => format!("({} {} {})", a, op, b),
             },
+            // 实现 Comparable 的类（文稿 7.1）：`a > b` 按 `a.compare(b) > 0`
+            TyS::Named(DefId::Id(d), _) if matches!(op, "<" | "<=" | ">" | ">=") => {
+                let mut cur = Some(*d);
+                let mut cfid = None;
+                while let Some(c) = cur {
+                    let td = self.cg.s.typedefs.get(c as usize);
+                    if td.map(|t| t.kind == "class") != Some(true) {
+                        break;
+                    }
+                    if let Some(&fid) = td.and_then(|t| t.methods.get("compare")) {
+                        cfid = Some(fid);
+                        break;
+                    }
+                    cur = td.and_then(|t| t.parent);
+                }
+                match cfid {
+                    Some(fid) => {
+                        let cn = self.cg.fn_name_idx(fid);
+                        format!("({}({}, {}) {} 0)", cn, a, b, op)
+                    }
+                    None => format!("({} {} {})", a, op, b),
+                }
+            }
             TyS::Decimal => match op {
                 "+" => format!("ax_dec_add({}, {})", a, b),
                 "-" => format!("ax_dec_sub({}, {})", a, b),
@@ -902,9 +926,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
         }
         let ck = self
             .cg
-            .s
-            .slots
-            .get(&e.id)
+            .slot(&e.id)
             .and_then(|s| s.ckind)
             .unwrap_or("");
         if ck == "ctor" {
@@ -969,9 +991,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             }
             let pd = self
                 .cg
-                .s
-                .slots
-                .get(&e.id)
+                .slot(&e.id)
                 .and_then(|s| s.parent_def)
                 .unwrap_or(0);
             let ptd = self.cg.s.typedefs[pd as usize].clone();
@@ -982,16 +1002,50 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 parts.join(", ")
             );
         }
+        if ck == "sizeof" {
+            // 编译期大小：实参不出现在生成代码里，只发 C 的 sizeof；
+            // ct 已按语义定形——class 是 `T*`（引用），string 是 `ax_str`，
+            // 数组是 `ax_arr`，对象大小不在此问
+            let arg = &args[0].k.expr;
+            let aty = self.ty_or_int(arg.id);
+            let cty = self.cg.ct(&aty);
+            return format!("((int64_t)sizeof({}))", cty);
+        }
+        if ck == "typeof" {
+            // 编译期常量：直接生成字符串字面量，实参根本不出现在生成代码里
+            let name = self
+                .cg
+                .slot(&e.id)
+                .and_then(|s| s.bname.clone())
+                .unwrap_or_default();
+            return format!("AX_S({})", cstr(&name));
+        }
         if ck == "builtin" {
             let bname = self
                 .cg
-                .s
-                .slots
-                .get(&e.id)
+                .slot(&e.id)
                 .and_then(|s| s.bname.clone())
                 .unwrap_or_default();
             if bname == "Print" || bname == "Println" {
-                let v = self.gen(&args[0].k.expr, Some(&t_string()), false, false);
+                let interp = self
+                    .cg
+                    .slot(&e.id)
+                    .map(|s| s.interp_arg)
+                    .unwrap_or(false);
+                let v = if interp {
+                    // `Print(x)`（x 非 string）：等价于 `Print("{x}")`，按插值拼串
+                    let arg = &args[0].k.expr;
+                    let aty = self.ty_or_int(arg.id);
+                    let sb = self.tmpn();
+                    self.emit(format!("ax_sb {}; ax_sb_init(&{});", sb, sb));
+                    let av = self.gen(arg, None, false, false);
+                    self.push_interp(&sb, &av, &aty, None, arg);
+                    let t = self.tmpn();
+                    self.emit(format!("ax_str {} = ax_sb_finish(&{});", t, sb));
+                    t
+                } else {
+                    self.gen(&args[0].k.expr, Some(&t_string()), false, false)
+                };
                 self.emit(format!("ax_write_stdout({});", v));
                 if bname == "Println" {
                     self.emit("ax_write_stdout(AX_S(\"\\n\"));".to_string());
@@ -1003,9 +1057,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
         if ck == "func" {
             let fid = self
                 .cg
-                .s
-                .slots
-                .get(&e.id)
+                .slot(&e.id)
                 .and_then(|s| s.func)
                 .unwrap_or(0);
             let nm = self.cg.fn_name_idx(fid);
@@ -1029,7 +1081,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             Expr::Call { args, .. } => args,
             _ => &[],
         };
-        let conv = self.cg.s.slots.get(&e.id).and_then(|s| s.conv);
+        let conv = self.cg.slot(&e.id).and_then(|s| s.conv);
         let arg = match args.first() {
             Some(a) => &a.k.expr,
             None => return "0".to_string(),
@@ -1037,9 +1089,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
         let src_ty = self.ty_or_int(arg.id);
         let cast_to = self
             .cg
-            .s
-            .slots
-            .get(&e.id)
+            .slot(&e.id)
             .and_then(|s| s.cast_to.clone());
         let dst = cast_to.unwrap_or_else(|| self.ty_or_int(e.id));
         let v = match conv {
@@ -1187,7 +1237,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             Expr::MethodCall { recv, args, .. } => (recv, args),
             _ => unreachable!(),
         };
-        let sl = self.cg.s.slots.get(&e.id).cloned().unwrap_or_default();
+        let sl = self.cg.slot(&e.id).cloned().unwrap_or_default();
         let mk = sl.mkind.unwrap_or("");
         if mk == "module" {
             return self.module_call(e);
@@ -1351,9 +1401,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
         let tv = self.declare(&recv_ty, &rv);
         let b = self
             .cg
-            .s
-            .slots
-            .get(&e.id)
+            .slot(&e.id)
             .and_then(|s| s.bname.clone())
             .unwrap_or_default();
         match b.as_str() {
@@ -1420,7 +1468,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
         // 用户模块调用（文稿 9.2）：sema 已把符号解析为 func/ctor，
         // 这里按 slot 标记生成——顶层函数直接调用，类型走构造
         {
-            let sl = self.cg.s.slots.get(&e.id).cloned().unwrap_or_default();
+            let sl = self.cg.slot(&e.id).cloned().unwrap_or_default();
             if sl.ckind.as_deref() == Some("func") {
                 if let Some(f) = sl.func {
                     let params = self.cg.s.funcs[f].params.clone();
@@ -1472,8 +1520,15 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             _ => String::new(),
         };
         let mut a: Vec<String> = Vec::new();
-        for x in args {
-            let v = self.gen(&x.k.expr, None, false, false);
+        // 实参按模块签名声明的形参类型转换（map → object 要装箱，等等）——
+        // 与用户函数调用走同一套 coerce 规则
+        let ptypes = crate::sema::module_sig(&module, &name).map(|(ps, _)| ps);
+        for (i, x) in args.iter().enumerate() {
+            let pt = ptypes.as_ref().and_then(|ps| ps.get(i).cloned().flatten());
+            let v = match pt {
+                Some(pt) => self.gen(&x.k.expr, Some(&pt), false, false),
+                None => self.gen(&x.k.expr, None, false, false),
+            };
             a.push(v);
         }
         match (module.as_str(), name.as_str()) {
@@ -1590,7 +1645,11 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                     self.declare(&rt, &rv)
                 };
                 match name.as_str() {
-                    "Len" => format!("{}.len", tv),
+                    // 定长数组没有 .len 成员：长度是类型的一部分，直接编译期常数
+                    "Len" => match &*rt {
+                        TyS::Array(_, Some(n)) => format!("((int64_t){})", n),
+                        _ => format!("{}.len", tv),
+                    },
                     "Push" => {
                         let v = self.declare(&et, &a[0]);
                         let etc = self.cg.ct(&et);
@@ -1779,7 +1838,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             _ => &[],
         };
         let s = self.gen(&args[0].k.expr, Some(&t_string()), false, false);
-        let sl = self.cg.s.slots.get(&e.id).cloned().unwrap_or_default();
+        let sl = self.cg.slot(&e.id).cloned().unwrap_or_default();
         let target = sl.parse_to.unwrap_or_else(t_object);
         let rt = self.ty_or_int(e.id);
         let n = self.tmpn();
@@ -1922,9 +1981,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 let (recv_c, deref) = self.recv_c(recv);
                 let key = self
                     .cg
-                    .s
-                    .slots
-                    .get(&e.id)
+                    .slot(&e.id)
                     .and_then(|s| s.key.clone())
                     .unwrap_or_default();
                 let sep = if deref { "->" } else { "." };
@@ -2001,9 +2058,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
         };
         let ck = self
             .cg
-            .s
-            .slots
-            .get(&e.id)
+            .slot(&e.id)
             .and_then(|s| s.ckind)
             .unwrap_or("");
         if ck == "arena" {
@@ -2044,9 +2099,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
     ) {
         let st = self
             .cg
-            .s
-            .slots
-            .get(&node_id)
+            .slot(&node_id)
             .and_then(|s| s.scrut_ty.clone())
             .unwrap_or_else(t_object);
         if let TyS::Enum(d_id) = &*st {
@@ -2079,7 +2132,12 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                     let val = self.gen(&arm.body, Some(want.unwrap()), false, false);
                     self.emit(format!("{} = {};", ov, val));
                 } else {
-                    self.gen(&arm.body, None, false, true);
+                    // 臂体是表达式：纯表达式形态的调用（无 emit 副作用）必须
+                    // 落成语句，否则整个调用被静默丢弃（与 Stmt::Simple 同理）
+                    let v = self.gen(&arm.body, None, false, true);
+                    if !v.is_empty() && v != "0" {
+                        self.emit(format!("(void)({});", v));
+                    }
                 }
                 self.emit("break;".to_string());
                 self.ind -= 1;
@@ -2130,7 +2188,11 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 let val = self.gen(&arm.body, Some(want.unwrap()), false, false);
                 self.emit(format!("{} = {};", ov, val));
             } else {
-                self.gen(&arm.body, None, false, true);
+                // 同上：纯表达式臂体必须落成语句
+                let v = self.gen(&arm.body, None, false, true);
+                if !v.is_empty() && v != "0" {
+                    self.emit(format!("(void)({});", v));
+                }
             }
             self.ind -= 1;
             self.emit("}".to_string());
@@ -2169,13 +2231,16 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             Pat::Type { .. } => {
                 let pty = self
                     .cg
-                    .s
-                    .slots
-                    .get(&p.id)
+                    .slot(&p.id)
                     .and_then(|s| s.ty.clone())
                     .unwrap_or_else(t_object);
                 let tid = tag_of(&pty);
-                Some(format!("({0} != NULL && {0}->__tag == {1}u)", sv, tid))
+                // 两种来源的 tag 字段不同：`object` 是装箱句柄 `ax_box`（成员 `tag`），
+                // 类引用是对象头 `T*`（成员 `__tag`，构造时写入真实类型标签）
+                match &**st {
+                    TyS::Object => Some(format!("({0} != NULL && {0}->tag == {1}u)", sv, tid)),
+                    _ => Some(format!("({0} != NULL && {0}->__tag == {1}u)", sv, tid)),
+                }
             }
         }
     }
@@ -2200,13 +2265,41 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             Pat::Type { bind, .. } => {
                 let pty = self
                     .cg
-                    .s
-                    .slots
-                    .get(&p.id)
+                    .slot(&p.id)
                     .and_then(|s| s.ty.clone())
                     .unwrap_or_else(t_object);
                 let tc = self.cg.ct(&pty);
-                self.emit(format!("{} {} = ({}){};", tc, self.lv(bind), tc, sv));
+                // `object` 的箱内 payload 分两种：class 装箱按 sizeof(T*) 存指针本身，
+                // 标量装箱直接存值（按 ax_box_new 的 tag 校验解箱）
+                match &**st {
+                    TyS::Object => {
+                        let pa = self.pos_args(&p.tok);
+                        let init = match &*pty {
+                            TyS::Bool => format!("ax_unbox_bool({}, {})", sv, pa),
+                            TyS::Int(bits, signed) => {
+                                let raw = format!("ax_unbox_int({}, {})", sv, pa);
+                                if *bits == 64 {
+                                    raw
+                                } else {
+                                    format!(
+                                        "ax_narrow({}, {}, {}, {})",
+                                        raw,
+                                        bits,
+                                        if *signed { 1 } else { 0 },
+                                        pa
+                                    )
+                                }
+                            }
+                            TyS::Float => format!("ax_unbox_f64({}, {})", sv, pa),
+                            TyS::Decimal => format!("ax_unbox_dec({}, {})", sv, pa),
+                            TyS::Str => format!("ax_unbox_str({}, {})", sv, pa),
+                            _ => format!("({})(*(void**)({}->payload))", tc, sv),
+                        };
+                        let b = self.lv(bind);
+                        self.emit(format!("{} {} = {};", tc, b, init));
+                    }
+                    _ => self.emit(format!("{} {} = ({}){};", tc, self.lv(bind), tc, sv)),
+                }
             }
             Pat::Bind { name } => {
                 let stc = self.cg.ct(st);

@@ -1,0 +1,18 @@
+// EXPECT: E4001
+// GX-08：泛型类型不变型——Box<Dog> 不是 Box<Animal>，即使 Dog 是子类
+class Animal {
+    public string name
+    constructor(string name) { this.name = name }
+}
+class Dog extend Animal {
+    constructor(string name) { parent(name) }
+}
+class Box<T> {
+    public T value
+    constructor(T v) { this.value = v }
+}
+int main() {
+    Box<Dog> bd = new Box(new Dog("旺财"))
+    Box<Animal> ba = bd
+    return 0
+}

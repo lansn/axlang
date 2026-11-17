@@ -1,0 +1,6 @@
+name=tom age=18 score=91.5 vip=true
+nick-null=true
+keys=4
+parse-error=true
+{"a":1,"b":[1,2.5,true,"x"],"c":{"d":"y"},"e":"he\"llo\n"}
+time-ok=true

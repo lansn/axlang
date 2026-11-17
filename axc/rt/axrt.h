@@ -192,6 +192,11 @@ ax_str  ax_json_stringify(ax_box* v);
 
 int64_t ax_now_ms(void);
 
+/* json.Parse 的 result<map<string, object>> 形态（文稿 11.3）：
+   ok 携带 ax_map（string → ax_box*），fail 携带解析错误（code=1 + 位置信息）。 */
+typedef struct { uint8_t tag; union { ax_map ok; ax_err err; } u; } ax_res_map;
+ax_res_map ax_json_parse_result(ax_str s);
+
 /* 输入 / 解析 */
 int   ax_read_line(ax_str* out);          /* 0=读到, 1=EOF */
 int   ax_read_file(ax_str path, ax_str* out);

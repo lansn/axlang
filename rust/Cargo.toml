@@ -1,6 +1,6 @@
 [package]
 name = "axc"
-version = "0.0.17"
+version = "0.0.21"
 edition = "2021"
 description = "axlang compiler: Python-free front end, C11 back end"
 

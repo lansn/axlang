@@ -1,0 +1,23 @@
+// Print/Println 的实参放宽（文稿 11.2）：非字符串的可插值直接输出，
+// 等价于 `Print("{x}")`——仍然只有插值一种格式化能力
+class User implement Printable {
+    public int id
+    public string name
+    constructor(int id, string name) { this.id = id; this.name = name }
+    public override string to_string() { return "User({this.id}, {this.name})" }
+}
+enum Color { Red, Green, Blue }
+
+int main() {
+    Println(123)
+    Println(3.5)
+    Println(true)
+    Print("不换行：")
+    Println(42)
+    Println(new User(7, "阿蓝"))
+    Println(Color.Green)
+    int n = 9
+    Println(n)
+    Println("字符串常量照旧")
+    return 0
+}

@@ -1,0 +1,8 @@
+// EXPECT: E4036
+// GX-07：约束必须是 interface 名，不能是具体类型
+int f<T: int>(T x) {
+    return 0
+}
+int main() {
+    return 0
+}

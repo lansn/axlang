@@ -87,7 +87,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
     }
 
     pub fn ty_opt(&self, id: u32) -> Option<Ty> {
-        self.cg.s.ty_of(id)
+        self.slot(id).and_then(|s| s.ty.clone())
     }
 
     /// 节点没有类型结论时按 int 兜底（如已报错的表达式）。
@@ -96,11 +96,11 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
     }
 
     pub fn res_of(&self, id: u32) -> Option<Res> {
-        self.cg.s.res_of(id)
+        self.slot(id).and_then(|s| s.res.clone())
     }
 
-    fn slot(&self, id: u32) -> Option<&'s crate::sema::Slot> {
-        self.cg.s.slots.get(&id)
+    fn slot(&self, id: u32) -> Option<&crate::sema::Slot> {
+        self.cg.slot(&id)
     }
 
     pub fn is_move(&self, id: u32) -> bool {
@@ -309,13 +309,16 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             }
             Stmt::Break { .. } => self.break_stmt(s, true),
             Stmt::Continue { .. } => self.break_stmt(s, false),
-            Stmt::Const { .. } => {}
+            Stmt::Const { .. } => self.var_decl(s),
         }
     }
 
     fn var_decl(&mut self, s: &'a ast::N<Stmt>) {
-        let (name, init) = match &s.k {
-            Stmt::VarDecl { name, init, .. } => (name, init),
+        // 局部 `const` 与 `var` 同一条生成路径：const 在 sema 已 declare 成
+        // 只读变量，使用处按 `v_<name>` 引用，这里不生成声明就会 undeclared
+        let (name, init): (&String, Option<&'a ast::EPtr>) = match &s.k {
+            Stmt::VarDecl { name, init, .. } => (name, init.as_ref()),
+            Stmt::Const { name, init, .. } => (name, Some(init)),
             _ => unreachable!(),
         };
         let varinfo = self.slot(s.id).and_then(|sl| sl.varinfo.clone());
@@ -340,7 +343,14 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
     /// move 之后把源变量置空（drop 容空，消除 double free 一类问题）。
     fn emit_zero(&mut self, node: &'a ast::EPtr, ty: &Ty) {
         if let Expr::Path { segs, .. } = &node.k {
-            let name = self.lv(&segs[0]);
+            // 参数被 move 时置空要写参数名 p_x，不是局部变量名 v_x
+            let (_, v) = self.var_c(node);
+            let is_param = v.map(|x| x.borrow().is_param).unwrap_or(false);
+            let name = if is_param {
+                self.pv(&segs[0])
+            } else {
+                self.lv(&segs[0])
+            };
             match &**ty {
                 TyS::Array(..) => {
                     self.emit(format!(

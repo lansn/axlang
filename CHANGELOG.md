@@ -7,6 +7,239 @@
 > **1.0 及以上永远保留给语法冻结**（语言设计不再做破坏性变更）之后。
 > 阶段进位条件见 `ARCHITECTURE.md` §8。
 
+## [0.0.21] — 2026-11
+
+### 泛型单态化落地（GAP 泛型 #1，GX-01…09 全通）
+
+- **泛型函数**：`(函数, 类型实参)` 生成一份 FuncInfo 实例（签名替换、
+  体共享 AST），实例体按具体类型重查，codegen 只生成实例（模板跳过）。
+  推断修复：实参先按无期望类型预查再统一（原实现推断时实参还没查过，
+  恒报 E4037）；匿名函数实参推断期跳过（E4043），主循环按替换后形参检查。
+- **泛型类 / struct**：`(类, 类型实参)` 生成实例 typedef（骨架立即入表，
+  构造期间的自引用/嵌套实参命中注册表，不再撞 id），字段/ctor/方法签名
+  全部替换并 concretize；`new Box(...)` 从 ctor 实参推断、构造实参推断
+  优先于期望类型（实参写错要报错，不被期望悄悄带过）；struct 构造按位
+  对应字段推断。实例类实现 interface → 胖指针派发直接可用。
+- **泛型别名**：`type Table<T> = map<string, T>` 声明期带参数环境校验，
+  引用期 expand_alias 展开（GX-05）。
+- **槽表按实例隔离**：键从 `节点 id` 变为 `(实例号 << 32) | 节点 id`；
+  实例号 0 是非泛型世界，现有代码零成本。实例体内合成的匿名函数继承
+  实例号；codegen 侧 `CodeGen::slot()` 按当前实例取键。
+- **约束**：声明期 + 调用点双检；约束失败不实例化（E4036 一条诊断）；
+  `Comparable` 类实例的 `a > b` 按 `a.compare(b) > 0` 生成（顺带修正
+  Param 分支永不可达的死代码）。
+- **不变型**（GX-08）：实例 id 不同即不同类型，`Box<Dog>` → `Box<Animal>`
+  天然报 E4001。
+- **深度上限**（GX-09）：函数链与类型链共 64 层，触顶报一次 E4038；
+  超限实例照常物化（签名具体、调用点类型正确），只不再查其函数体——
+  致命错误之外零级联。
+- **修 move 清零的参数名**：`this.f = p`（p 是引用类型参数）置空时误写
+  `v_p`，应为 `p_p`——泛型类构造测试暴露。
+- 修 `resolve_type` 泛型环境只认 Param 值的限制：实例环境是具体类型，
+  实例体内 `sink<T[]>` 这类引用模板参数的写法因此可用。
+
+### 测试
+
+- 新增 `GX-1`（泛型函数六种场景）、`GX-2`（泛型类/struct/interface）、
+  `GX-3`（泛型别名）、`GX-neg-1..4`（E4036×2 / E4001 / E4038）。
+- **150/150** 通过，`-Werror` 零警告；规格书 v0.20（M6 勾完）、
+  配套文稿 v0.44，GAP 泛型 #1 关闭。
+
+## [0.0.21] — 2026-11
+
+### 泛型单态化落地（GAP 泛型 #1，GX-01…09 全通）
+
+- **泛型函数**：`(函数, 类型实参)` 生成一份 FuncInfo 实例（签名替换、
+  体共享 AST），实例体按具体类型重查，codegen 只生成实例（模板跳过）。
+  推断修复：实参先按无期望类型预查再统一（原实现推断时实参还没查过，
+  恒报 E4037）；匿名函数实参推断期跳过（E4043），主循环按替换后形参检查。
+- **泛型类 / struct**：`(类, 类型实参)` 生成实例 typedef（骨架立即入表，
+  构造期间的自引用/嵌套实参命中注册表，不再撞 id），字段/ctor/方法签名
+  全部替换并 concretize；`new Box(...)` 从 ctor 实参推断、构造实参推断
+  优先于期望类型（实参写错要报错，不被期望悄悄带过）；struct 构造按位
+  对应字段推断。实例类实现 interface → 胖指针派发直接可用。
+- **泛型别名**：`type Table<T> = map<string, T>` 声明期带参数环境校验，
+  引用期 expand_alias 展开（GX-05）。
+- **槽表按实例隔离**：键从 `节点 id` 变为 `(实例号 << 32) | 节点 id`；
+  实例号 0 是非泛型世界，现有代码零成本。实例体内合成的匿名函数继承
+  实例号；codegen 侧 `CodeGen::slot()` 按当前实例取键。
+- **约束**：声明期 + 调用点双检；约束失败不实例化（E4036 一条诊断）；
+  `Comparable` 类实例的 `a > b` 按 `a.compare(b) > 0` 生成（顺带修正
+  Param 分支永不可达的死代码）。
+- **不变型**（GX-08）：实例 id 不同即不同类型，`Box<Dog>` → `Box<Animal>`
+  天然报 E4001。
+- **深度上限**（GX-09）：函数链与类型链共 64 层，触顶报一次 E4038；
+  超限实例照常物化（签名具体、调用点类型正确），只不再查其函数体——
+  致命错误之外零级联。
+- **修 move 清零的参数名**：`this.f = p`（p 是引用类型参数）置空时误写
+  `v_p`，应为 `p_p`——泛型类构造测试暴露。
+- 修 `resolve_type` 泛型环境只认 Param 值的限制：实例环境是具体类型，
+  实例体内 `sink<T[]>` 这类引用模板参数的写法因此可用。
+
+### 测试
+
+- 新增 `GX-1`（泛型函数六种场景）、`GX-2`（泛型类/struct/interface）、
+  `GX-3`（泛型别名）、`GX-neg-1..4`（E4036×2 / E4001 / E4038）。
+- **150/150** 通过，`-Werror` 零警告；规格书 v0.20（M6 勾完）、
+  配套文稿 v0.44，GAP 泛型 #1 关闭。
+
+## [0.0.20] — 2026-11
+
+### `typeof(表达式)` 落地（文稿 11.2）
+
+- **编译期常量**：返回实参静态类型的显示名（`int` / `int8` / `Dog` /
+  `int[]` / `int?` / `map<string, object>`）。sema 在 `check_call` 求名后
+  同时存 `bname`（codegen 拼字符串字面量）与 `const_value`（供常量求值）；
+  codegen 直接 `AX_S("...")`，实参不出现在生成代码里，零运行时开销。
+- 可用于 `Println(typeof(a))`、插值 `{typeof(x)}`、
+  `const string K = typeof(s)`。
+- 边界：裸写 `typeof` 报 `E3003` 并提示写成 `typeof(表达式)`；实参有错时
+  只报实参的错；与 `match` 类型模式不重叠（`typeof` = 编译器认为是什么，
+  `match` = 运行期实际是什么，`object` 装箱值 typeof 恒为 `object`）。
+
+### 同轮修掉的真 bug
+
+- **函数内局部 `const` 从未生成声明**：`Stmt::Const` 的 codegen 是空语句，
+  sema 已 declare 成只读变量、使用处引用 `v_<name>`，于是
+  `const string K = "x"; Println(K)` 炸 `v_K undeclared`（全局 const 走
+  另一条路，所以从未暴露）。改为与 `var` 同一条 `var_decl` 路径。
+
+### `sizeof(表达式)` 落地（文稿 11.2，用户裁定 class 给指针大小）
+
+- **编译期大小**：返回实参类型在 C 侧的存储字节数（`int`），codegen 直接发
+  `(int64_t)sizeof(<ct>)`——`int` = 8、`uint8` = 1、`decimal` = 32、
+  `string` = 16、`int[]` = 24、class 按引用语义给**指针大小**（8），
+  对象本身的大小不在此问（与赋值语义一致）。
+- 值由 C 编译器计算，sema 不算 → 不能进 `const` 声明；`void` 实参拒绝；
+  裸写 `sizeof` 报 `E3003` 带提示（与 `typeof` 同款）。
+- 顺带修：定长数组 `int[3]` 调 `.Len()` 生成了 `.len` 成员访问，但
+  `axfix_*` 结构没有 `len` 成员——改为发编译期常数。
+
+### 测试
+
+- 新增 `Typeof-1`（七种类型显示名 + 插值 + const）、`Typeof-neg-1`
+  （裸 `typeof`）、`Lit-1`（`0x`/`0b`/`0o` 进制字面量专项）、
+  `Str-1`（码点往返专项：`CodepointAt` 越界 `null` / `FromCodepoint` /
+  逐码点迭代）、`Sizeof-1`（十一种类型的存储大小 + 表达式）、
+  `Sizeof-neg-1`（裸 `sizeof`）。
+- **143/143** 通过，`-Werror` 零警告；规格书 v0.19（§15.1 增 `typeof` /
+  `sizeof`），配套文稿 v0.43。
+
+## [0.0.20] — 2026-11
+
+### `typeof(表达式)` 落地（文稿 11.2）
+
+- **编译期常量**：返回实参静态类型的显示名（`int` / `int8` / `Dog` /
+  `int[]` / `int?` / `map<string, object>`）。sema 在 `check_call` 求名后
+  同时存 `bname`（codegen 拼字符串字面量）与 `const_value`（供常量求值）；
+  codegen 直接 `AX_S("...")`，实参不出现在生成代码里，零运行时开销。
+- 可用于 `Println(typeof(a))`、插值 `{typeof(x)}`、
+  `const string K = typeof(s)`。
+- 边界：裸写 `typeof` 报 `E3003` 并提示写成 `typeof(表达式)`；实参有错时
+  只报实参的错；与 `match` 类型模式不重叠（`typeof` = 编译器认为是什么，
+  `match` = 运行期实际是什么，`object` 装箱值 typeof 恒为 `object`）。
+
+### 同轮修掉的真 bug
+
+- **函数内局部 `const` 从未生成声明**：`Stmt::Const` 的 codegen 是空语句，
+  sema 已 declare 成只读变量、使用处引用 `v_<name>`，于是
+  `const string K = "x"; Println(K)` 炸 `v_K undeclared`（全局 const 走
+  另一条路，所以从未暴露）。改为与 `var` 同一条 `var_decl` 路径。
+
+### `sizeof(表达式)` 落地（文稿 11.2，用户裁定 class 给指针大小）
+
+- **编译期大小**：返回实参类型在 C 侧的存储字节数（`int`），codegen 直接发
+  `(int64_t)sizeof(<ct>)`——`int` = 8、`uint8` = 1、`decimal` = 32、
+  `string` = 16、`int[]` = 24、class 按引用语义给**指针大小**（8），
+  对象本身的大小不在此问（与赋值语义一致）。
+- 值由 C 编译器计算，sema 不算 → 不能进 `const` 声明；`void` 实参拒绝；
+  裸写 `sizeof` 报 `E3003` 带提示（与 `typeof` 同款）。
+- 顺带修：定长数组 `int[3]` 调 `.Len()` 生成了 `.len` 成员访问，但
+  `axfix_*` 结构没有 `len` 成员——改为发编译期常数。
+
+### 测试
+
+- 新增 `Typeof-1`（七种类型显示名 + 插值 + const）、`Typeof-neg-1`
+  （裸 `typeof`）、`Lit-1`（`0x`/`0b`/`0o` 进制字面量专项）、
+  `Str-1`（码点往返专项：`CodepointAt` 越界 `null` / `FromCodepoint` /
+  逐码点迭代）、`Sizeof-1`（十一种类型的存储大小 + 表达式）、
+  `Sizeof-neg-1`（裸 `sizeof`）。
+- **143/143** 通过，`-Werror` 零警告；规格书 v0.19（§15.1 增 `typeof` /
+  `sizeof`），配套文稿 v0.43。
+
+## [0.0.19] — 2026-11
+
+### `match` 类型模式补实（文稿 5.3）
+
+- **codegen 从没写对过**：`check_match` 在 arm 结束处把**臂体返回类型**写回
+  `arm.pat.id`，覆盖了 `check_pattern` 存下的目标类型，于是判 tag 时按 `void`
+  的哈希比（`Dog` / `Cat` 撞成同一个 `51847u`），绑定变量还声明成 `void v_d`，
+  单文件就 `void value not ignored`。删掉这行（`arm_tys` 早已收集臂值类型）。
+- **两种来源的 tag 字段分开处理**：`object` 是 `ax_box`（成员 `tag`），类引用
+  是对象头 `T*`（成员 `__tag`，构造时写入真实类型）。原实现一律发 `->__tag`，
+  对 `object` 直接编译失败。现在 `object` 比 `tag` 后从 `payload` 取指针（class）
+  或 `ax_unbox_*`（标量）；类引用比 `__tag` 后强转——`Animal a = new Cat(...)`
+  用 `Cat c` 也能命中。
+- **标量类型模式落地**：`bool` / `int` 系 / `float` / `decimal` / `string` 可作
+  模式，异构 `object[]` 不必再靠断言式下转分流。数组 / `map` / 元组 / `func` /
+  interface 仍拒绝（interface 是胖指针，复合类型运行期只剩装箱标签）。
+
+### `Print` / `Println` 实参放宽（文稿 11.2）
+
+- 签名仍是 `void Print(string)`，但实参是单个**可插值值**时按 `Print("{x}")`
+  生成（`ax_sb` → `push_interp` → `ax_sb_finish`）：`Println(123)`、
+  `Println(3.5)`、`Println(true)`、`Println(enum)`、`Println(实现 Printable 的类)`
+  都能直接用。
+- 不是第二套格式化：占位符仍不支持、多实参仍报 `E4031`、`int[]` / `map` /
+  元组仍报 `E4001`——省掉的只是花括号。
+- 修一处旧文案：`Println(args.At(0))` 不再要求判空，与 `Println("{args.At(0)}")`
+  一样输出值或 `null`。
+
+### 测试
+
+- 新增 `Pat-1`（object 箱 / 类引用 / 标量模式四种来源）、`Pat-neg-1`、
+  `Print-1`（隐式插值各类型）、`Print-neg-1`（复合类型拒绝）。
+- **137/137** 通过，`-Werror` 零警告；规格书 §13 / §15.1 / §16 同步
+  （v0.17，配套文稿 v0.41）。
+
+## [0.0.18] — 2026-11
+
+### json / time 模块实化（GAP #5）
+
+- **`json.Parse`**：手写递归下降解析器（`ax_json_parse_result`），支持 object /
+  array / string / int / float / true / false / null，`\uXXXX`（含 UTF-16 代理对）
+  解码，语法错误返回带位置的 fail 消息。顶层必须是 object，否则 fail。
+- **JSON null 的语义定案**：`map<string, object>` 里没有 null 的合法载体
+  （`object` 不能为空），所以 **null 值的键不入表**——`Get` 返回 `has=0`，
+  `== null` 与 `??` 都能安全生效，不会在解箱时 trap。数组内的 null 保留占位。
+- **`json.stringify`**：标量 / map / 数组递归序列化，字符串按 JSON 规则转义
+  （`"` `\` `\n` `\r` `\t` 与 `\u00XX`），嵌套结构与往返一致。
+- **`time.now_ms`**：`GetSystemTimeAsFileTime` 换算 Unix 毫秒（此前恒返回 0）。
+- `result<map<string, object>>` 在 C 侧走运行时同形结构 `ax_res_map`
+  （与 `ax_res_row` / `ax_res_file` 同模式）。
+
+### 同轮修掉的真 bug
+
+- **match 臂体调用被静默丢弃**：臂是表达式，`ok(v) => userFunc(v)` 这类
+  「纯 C 表达式形态」的调用生成后字符串被丢掉，整个调用不执行（`Println`
+  这类走 emit 的内建看不出问题）。两处 match codegen 补 `(void)(expr);` 落句，
+  与 `Stmt::Simple` 一致。
+- **`??` 对 `object?` 的兜底值没装箱**：`t.has ? t.v : "x"` 里 `ax_box*` 与
+  `ax_str` 类型不匹配（C 编译失败）；右侧改为先按可空内层类型转换。
+- **内建模块实参不按签名转换**：`json.stringify(m)` 传 map 给 `object` 形参时
+  没装箱；模块调用改为与用户函数同一套 coerce 规则。
+- **字符串里的 JSON 文本被误当插值**：`"{\"k\":1}"` 的 `{` 触发插值解析。
+  lexer 规则改为：`{}`、`{\"...`、`{"k":`（字符串字面量后跟 `:`）当字面 `{`，
+  其余按插值——`{"中文".ByteLen()}` 这种「字符串字面量开头的插值」保持可用；
+  负号插值 `{-7 / 2}` 不回归（Rt-12）。
+
+### 测试与示例
+
+- 新增 `tests/run/Json-1`：解析 + 各类型解箱 + null 键缺席 + 语法错误 fail +
+  stringify 往返 + `now_ms` 可用性。
+- **133/133** 通过（132 → 133），示例 13/13（`samples/test.ax` 为用户草稿，
+  顶层 `Print(123)` 报 `E4001` 属设计行为，未改动）。
+
 ## [0.0.17] — 2026-11
 
 ### 内建 interface 落地（文稿 7.1，GAP #10/#12）

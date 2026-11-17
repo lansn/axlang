@@ -1,0 +1,29 @@
+// GX-01/02/06/07：泛型函数——推断、显式实参、多实例共存、嵌套实例化、
+// 约束组合（Comparable + Printable）、实例体内的匿名函数（GAP 泛型 #1）
+T max<T: Comparable>(T a, T b) {
+    return if a > b { a } else { b }
+}
+T clamp<T: Comparable>(T x, T lo, T hi) {
+    return max(max(x, lo), hi)
+}
+string pair<T: Printable>(T x, T y) {
+    string s = "{x}"
+    s = s + "|" + "{y}"
+    return s
+}
+int apply<T>(T x, func(T) int f) {
+    return f(x)
+}
+int main() {
+    Println(max(1, 2))
+    Println(max(2, 1))
+    Println(max(100, 42))
+    Println(max<string>("apple", "banana"))
+    Println(max<int>(7, 3))
+    Println(clamp(15, 1, 10))
+    Println(clamp(5, 1, 10))
+    Println(clamp<string>("m", "a", "z"))
+    Println(pair("头", "尾"))
+    Println(apply(42, (int v) { return v * 2 }))
+    return 0
+}

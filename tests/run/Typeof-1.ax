@@ -1,0 +1,25 @@
+// typeof(expr)：编译期常量，返回静态类型显示名（文稿 11.2）
+class Dog {
+    public string name
+    constructor(string name) { this.name = name }
+}
+int main() {
+    int a = 1
+    uint8 u = 3
+    decimal d = 1.5d
+    string s = "x"
+    int[] xs = [1, 2]
+    int? m = 5
+    Dog dg = new Dog("旺财")
+    Println(typeof(a))
+    Println(typeof(u))
+    Println(typeof(d))
+    Println(typeof(s))
+    Println(typeof(xs))
+    Println(typeof(m))
+    Println(typeof(dg))
+    Println("调试：{typeof(a)} {typeof(m)}")
+    const string KNOWN = typeof(s)
+    Println(KNOWN)
+    return 0
+}

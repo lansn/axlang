@@ -411,6 +411,7 @@ pub static CATALOG: &[(&str, &str, &str)] = &[
     ("E4036", "类型参数 `{0}` 缺少 `Comparable` 约束", "type parameter `{0}` is missing the `Comparable` constraint"),
     ("E4036", "约束 `{0}` 必须是 interface", "a constraint `{0}` must be an interface"),
     ("E4037", "无法推断 `{0}` 的类型实参，请显式写 `{1}<...>(...)`", "cannot infer the type arguments of `{0}`; write `{1}<...>(...)` explicitly"),
+    ("E4038", "泛型实例化递归超过 64 层：`{0}`", "generic instantiation recursion exceeds 64 levels: `{0}`"),
     ("E4039", "`Self` 只能用在 class/struct/interface 体内", "`Self` can only be used inside a class/struct/interface body"),
     ("E4041", "定长数组过大（{0} × {1} 字节 > 8 MiB）", "fixed-size array too large ({0} x {1} bytes > 8 MiB)"),
     ("E4042", "`{0}` 没有 constructor，不能 new\n  = 它的静态方法请直接用类名调用：`{1}.xxx(...)`\n  = 如果确实需要实例，请先为 `{2}` 添加 constructor", "`{0}` has no constructor and cannot be new'd\n  = call its static methods directly on the class: `{1}.xxx(...)`\n  = if an instance is really needed, add a constructor to `{2}` first"),

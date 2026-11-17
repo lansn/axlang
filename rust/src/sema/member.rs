@@ -1000,7 +1000,9 @@ impl<'a> Sema<'a> {
                 has_wild = true;
             }
             let t = self.check_expr(&arm.body, expected);
-            self.sl(arm.pat.id).ty = Some(t.clone());
+            // 注意：不能把臂值类型写回 `arm.pat.id`——类型模式（`Dog d`）已在
+            // check_pattern 里把该节点的 ty 存成被匹配的目标类型，臂值类型是
+            // 另一件事。写回会把它覆盖成 void/臂类型，codegen 判 tag 时全错。
             arm_tys.push(t);
             self.pop_scope();
         }
@@ -1187,8 +1189,16 @@ impl<'a> Sema<'a> {
                 // 语义类型挂到模式节点上供 codegen 收窄用（存 resolved Ty 而非
                 // AST 类型节点，后端无法直接用；诊断行为不受影响）
                 self.sl(p.id).ty = Some(t.clone());
-                if !matches!(&*t, TyS::Named(..)) {
-                    self.err("E4001", &p.tok, "文稿 5.3", "类型模式必须是 class 或 interface", &[]);
+                if !matches!(
+                    &*t,
+                    TyS::Named(..)
+                        | TyS::Bool
+                        | TyS::Int(..)
+                        | TyS::Float
+                        | TyS::Decimal
+                        | TyS::Str
+                ) {
+                    self.err("E4001", &p.tok, "文稿 5.3", "类型模式必须是 class 或标量类型", &[]);
                 }
                 if !matches!(&**st, TyS::Object | TyS::Named(..)) {
                     self.err("E4001", &p.tok, "文稿 5.3", "类型模式只能用于 object 或类引用，得到 {0}", &[&self.ts(st)]);
@@ -1240,7 +1250,7 @@ impl<'a> Sema<'a> {
             },
             Expr::FieldAccess { .. } => {
                 // Rounding / enum_variant 记录在 res/enum_variant 槽
-                if let Some(slot) = self.slots.get(&e.id) {
+                if let Some(slot) = self.slot(&e.id) {
                     if let Some((d, v)) = &slot.enum_variant {
                         return Some(ConstVal::Enum(*d, v.clone()));
                     }
@@ -1251,7 +1261,7 @@ impl<'a> Sema<'a> {
                 None
             }
             Expr::Unary { op, operand, .. } => {
-                if let Some(slot) = self.slots.get(&e.id) {
+                if let Some(slot) = self.slot(&e.id) {
                     if let Some(f) = &slot.folded {
                         return Some(f.clone());
                     }
@@ -1287,6 +1297,12 @@ impl<'a> Sema<'a> {
                 Some(a)
             }
             Expr::Call { callee, args } => {
+                // `typeof(x)` 的结果在 check_call 时已作为常量存进槽（编译期字符串）
+                if let Some(slot) = self.slot(&e.id) {
+                    if let Some(v) = &slot.const_value {
+                        return Some(v.clone());
+                    }
+                }
                 let name = match &callee.k {
                     Expr::Path { segs, .. } if segs.len() == 1 => &segs[0],
                     _ => return None,

@@ -413,7 +413,7 @@
 | `E5002` | 插值里不能直接用 object；先落成具体类型（T-10） | object cannot be used inside interpolation directly; bind it to a concrete type first |
 
 | `E5003` | interface 只能从实现它的类构造（C-14） | an interface can only be constructed from a class that implements it |
-| `E5003` | 向下转型的目标必须是子类（`{0}` 不是 `{1}` 的子类）（C-14） | the target of a downcast must be a subclass (`{0}` is not a subclass of `{1}`) |
+| `E5003` | 向下转型的目标必须是子类（`{0}` 不是 `{1}` 的子类） | the target of a downcast must be a subclass (`{0}` is not a subclass of `{1}`) |
 
 | `E5004` | `{0}(x)` 的实参类型 {1} 不能转换（C-1） | the argument type {1} of `{0}(x)` cannot be converted |
 | `E5004` | `{0}` 不是可构造类型（N-20） | `{0}` is not a constructible type |

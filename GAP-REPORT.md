@@ -99,9 +99,9 @@
 | M1 词法 | 36 关键字、长运算符优先、三类字符串、`{{`/`}}`、插值片段化、`r"..."`、嵌套块注释、`0x/0b/0o`、`1_000`、`d` 后缀、码点列号换算、`L-01…L-15` | 完成 |
 | M2 语法 | 全部语句/表达式、`nl()` 与 `expect_term()` 分工、`G-10` 投机解析、`G-11` 类型模式、`G-12` 标签、`G-13`/`G-14` 语法层不判定、`G-16` 恢复（≤20 条）、`E2003`/`E2004`/`E2009` | 完成 |
 | M3 名称 | 作用域、遮蔽 `E3001`、可见性、`constructor` 全量赋值 `E3009`、`override` `E3016`/`E3017`/`E3019`、struct 规则 `E3021`/`E3022`/`E3023`、`E3025` | 完成 |
-| M4 类型 | 全部类型构造、`assignable` 唯一入口、`T-8` 零隐式、字面量落地、可空收窄 `T-21`–`T-24`、`object` 装箱/解箱 `P1…P8`、记录键固定 `E4008` | 完成（泛型仅签名层） |
+| M4 类型 | 全部类型构造、`assignable` 唯一入口、`T-8` 零隐式、字面量落地、可空收窄 `T-21`–`T-24`、`object` 装箱/解箱 `P1…P8`、记录键固定 `E4008` | 完成 |
 | M5 错误/`match` | `result<T>`、`try`、`throw`、七种模式、穷尽检查 `E6001`/`E6002`/`E6006`/`E6007` | 完成 |
-| M6 泛型 | 解析、约束检查 `E4036`、`Box<T>` 声明 | **部分**（未做单态化代码生成） |
+| M6 泛型 | 解析、约束检查 `E4036`、单态化（函数+类+struct+别名）、深度上限 `E4038` | **已完成**（v0.0.21）：泛型函数/类/struct 按实例单态化，别名引用期展开，不变型天然成立（实例 id 不同） |
 | M7 所有权 | `E7001`（move 后使用）、`E7002`（借用冲突）、`E7009`（const 借用）、`defer` 逆序、`move` 后置空 | **部分**（`O-05…O-08`、`O-12` 未做） |
 | M8 后端+运行时 | C11 生成（继承拉平、vtable、构造/析构、`defer` 展开、decimal/整数/移位/浮点 trap）、`axrt`（字符串、decimal、数组、map 插入序、Row/db 夹具）、`RUN-1…RUN-4`、`Rt-01…Rt-16` | 完成 |
 | CLI | `check`/`build`/`run`、`--emit=c`、`--dump=ast\|types\|c`、`--diag=text\|json`、`-Werror`、`--cc`、退出码 0/1/2 | 完成 |
@@ -111,11 +111,11 @@
 
 | # | 缺口 | 影响用例 | 说明 |
 |---|---|---|---|
-| 1 | 泛型单态化 | `GX-01…GX-09` | 语义层已接受泛型声明与约束，后端不生成实例；`max(1,2)` 会退化为签名层通过、后端不支持 |
+| ~~1~~ | 泛型单态化 | `GX-01…GX-09` | **已修**（v0.0.21）：`(函数, 类型实参)` 生成 FuncInfo 实例、`(类, 类型实参)` 生成实例 typedef，体按实例重查、codegen 只生成实例；推断（实参统一 + 期望兜底）、约束检查、mangle 去重、E4038 深度上限 |
 | 2 | 完整所有权分析 | `O-03`、`O-05…O-08`、`O-10…O-12` | 借用是"单语句一遍扫描"，未做跨语句借用生命周期；`defer` 后置声明、`ArenaRef` 逃逸未检查 |
 | 3 | `arena` 语句与 `ArenaRef` | `O-07` | 语法可解析、后端未生成 |
 | 4 | 函数值（文稿 4.1）的边角 | §4.1 | **主体已实现**（v0.0.3）：`func(...) T` 类型语法（此前解析器把 `func` 当普通类型名，整章语法不可用）、匿名函数字面量（合成顶层函数、不捕获环境）、顶层函数/静态方法引用（`twice`、`Num.neg`）、函数值经参数传递与间接调用。**注**：匿名函数不捕获环境是文稿 4.1 的明文设计（583 行：函数值就是 8 字节函数指针），不是缺口。**剩余**：泛型函数值实例化 |
-| 5 | `json` / `time` 模块 | §15 全表 | 只有签名与桩实现。**`file` 已在 v0.0.5 实化**：`Open`/`Create`/`Append` + `Read`/`ReadLine`/`Write`/`WriteLine`/`Close` 全部经 `ax_file` 句柄走真实 `FILE*`（二进制模式），`ReadLine` 剥 `\r`；此前 `file.Open` 生成的 `ax_file` 类型根本未定义（一用就 C 编译失败）、`ReadAll` 恒返回 `fail("file not supported")`。`json` 只有 `Parse`/`stringify`，`time` 只有 `now_ms` |
+| 5 | ~~`json` / `time` 模块~~ **已修（0.0.18）** | §15 全表 | `json.Parse` / `json.stringify` / `time.now_ms` 已从桩补为真实实现：手写递归下降 JSON 解析（object/array/string/int/float/bool/null、`\uXXXX` 代理对、错误定位消息）、stringify 往返（嵌套 map/数组 + 转义）、`now_ms` 用 `GetSystemTimeAsFileTime`。`json` 与 `time` 仍需显式 `import`。历史描述：只有签名与桩实现。**`file` 已在 v0.0.5 实化**：`Open`/`Create`/`Append` + `Read`/`ReadLine`/`Write`/`WriteLine`/`Close` 全部经 `ax_file` 句柄走真实 `FILE*`（二进制模式），`ReadLine` 剥 `\r`；此前 `file.Open` 生成的 `ax_file` 类型根本未定义（一用就 C 编译失败）、`ReadAll` 恒返回 `fail("file not supported")`。`json` 只有 `Parse`/`stringify`，`time` 只有 `now_ms` |
 | 6 | `string` 方法子集 | 部分 | `len`/`byte_len`/`at`/`contains`/`split`/`trim` 已通，其余按桩 |
 | 7 | `--dump=hir` | §1.2 | 未产出 HIR 层 dump（`ast`/`types`/`c` 已有） |
 | 8 | `R101` 消息带实际键值 | §10.1 | map 越界目前 `keydesc` 固定为 `"key"`，未拼出 string 键的真实值 |

@@ -17,6 +17,9 @@ mod expr;
 mod member;
 mod stmt;
 
+/// 后端查内建模块签名用（`json.stringify` 的实参要按声明类型装箱）
+pub use expr::module_sig;
+
 use crate::frontend::ast;
 use crate::frontend::ast::{Expr, Item, Stmt};
 use crate::diag::Diags;
@@ -327,6 +330,10 @@ pub struct FuncInfo<'a> {
     pub body: Option<&'a ast::Block>,
     /// 隐式 `main`：入口文件的顶层语句包出来的（文稿 9.4）
     pub implicit: bool,
+    /// 单态化链深：模板 0；实例 = 创建时的 `cur_gdepth + 1`（GX-09 上限 64）
+    pub gdepth: u32,
+    /// 单态化实例的 mangle 后缀（如 `Some("int")` → C 名 `max$int`）；模板 None
+    pub mangle: Option<String>,
 }
 
 #[derive(Clone)]
@@ -412,6 +419,9 @@ pub struct Slot {
     /// 在 `try` 块内，本节点的 `result<T>` 被隐式展开为 `T`（等价于自动加了 `try`）。
     /// codegen 见到此标记时按"失败跳 catch"生成。
     pub implicit_try: bool,
+    /// `Print(x)` / `Println(x)` 的实参不是字符串但可直接插值：codegen 按
+    /// `"{x}"` 的方式拼串输出（等价于隐式插值，不新增格式化能力）。
+    pub interp_arg: bool,
 }
 
 // ---------------------------------------------------------------- Sema
@@ -451,7 +461,36 @@ pub struct Sema<'a> {
     pub loop_labels: Vec<String>,
     pub iter_targets: Vec<String>,
     pub next_type_id: u32,
-    pub slots: HashMap<u32, Slot>,
+    /// 语义槽：键 = `(实例号 << 32) | 节点 id`。实例号 0 是"非泛型世界"；
+    /// 泛型函数的每个单态化实例有独立实例号，同一份 AST 体按不同类型实参
+    /// 重查时互不覆盖（GAP 泛型 #1）。
+    pub slots: HashMap<u64, Slot>,
+    /// 当前检查中的单态化实例号（`check_func` 对实例函数时 > 0）
+    pub cur_inst: u32,
+    /// 实例 fid → 其类型实参环境（`T` → 具体类型）。实例体内再写
+    /// `sink<T[]>` 这类引用模板参数的类型时，按此映射落成具体类型。
+    pub inst_env: HashMap<usize, HashMap<String, Ty>>,
+    /// 泛型 class/struct 实例注册表：mangle 名 → 实例 typedef id（GX-04）
+    pub mat_registry: HashMap<String, u32>,
+    /// 实例 typedef id → (模板 id, 类型实参)——`new Box(...)` 按期望类型
+    /// 回查实参用
+    pub mat_of: HashMap<u32, (u32, Vec<Ty>)>,
+    /// 当前泛型类实例化链深（GX-09 与函数共用 64 上限）
+    pub cur_mat_depth: u32,
+    /// E4038 已报过一次（函数链与类型链各自触顶时只报第一条，避免一屏重复）
+    pub depth_err_reported: bool,
+    /// 实例 typedef id → 实例名。实例在构造期间（typedef 尚未 push）被
+    /// 自引用时，命名与显示从此表取，避免退化成 `type#4`。
+    pub inst_names: HashMap<u32, String>,
+    /// 实例注册表：`mangle 名 → 实例 FuncInfo 下标`（去重保证同名同实参只查/生成一次）
+    pub inst_registry: HashMap<String, usize>,
+    /// 实例 FuncInfo 下标 → 实例号（codegen 读取槽表时按此取键）
+    pub inst_slot_of: HashMap<usize, u32>,
+    pub next_inst: u32,
+    /// 待查函数体的实例（调用点发现新实例时入队，`drain_insts` 消费）
+    pub pending_insts: Vec<usize>,
+    /// 当前函数的单态化链深（模板 0；实例 = 创建它时的链深 + 1，GX-09 上限 64）
+    pub cur_gdepth: u32,
     pub checked_funcs: HashSet<usize>,
     /// 匿名函数合成的 FuncInfo 下标（文稿 4.1；codegen 据此生成顶层函数）
     pub anon_funcs: Vec<usize>,
@@ -553,6 +592,18 @@ impl<'a> Sema<'a> {
             iter_targets: Vec::new(),
             next_type_id: 1,
             slots: HashMap::new(),
+            cur_inst: 0,
+            inst_env: HashMap::new(),
+            mat_registry: HashMap::new(),
+            mat_of: HashMap::new(),
+            cur_mat_depth: 0,
+            depth_err_reported: false,
+            inst_names: HashMap::new(),
+            inst_registry: HashMap::new(),
+            inst_slot_of: HashMap::new(),
+            next_inst: 1,
+            pending_insts: Vec::new(),
+            cur_gdepth: 0,
             checked_funcs: HashSet::new(),
             anon_funcs: Vec::new(),
             extras: Vec::new(),
@@ -646,6 +697,8 @@ impl<'a> Sema<'a> {
                 is_override: false,
                 body: None,
                 implicit: false,
+                gdepth: 0,
+                mangle: None,
             };
             self.funcs.push(f);
             let fid = self.funcs.len() - 1;
@@ -922,16 +975,28 @@ impl<'a> Sema<'a> {
         self.err(code, &t, rule, zh, args);
     }
 
+    /// 槽表键：`(实例号 << 32) | 节点 id`。非泛型世界实例号恒 0，键值与
+    /// 旧版 `u32` 节点 id 一致，现有代码零成本。
+    pub fn skey(&self, id: u32) -> u64 {
+        ((self.cur_inst as u64) << 32) | id as u64
+    }
+
     pub fn sl(&mut self, id: u32) -> &mut Slot {
-        self.slots.entry(id).or_default()
+        let k = self.skey(id);
+        self.slots.entry(k).or_default()
+    }
+
+    /// 键控只读读取（`eval_const` 等不持有 cur_inst 写权限的场景用）
+    pub fn slot(&self, id: &u32) -> Option<&Slot> {
+        self.slots.get(&self.skey(*id))
     }
 
     pub fn ty_of(&self, id: u32) -> Option<Ty> {
-        self.slots.get(&id).and_then(|s| s.ty.clone())
+        self.slots.get(&self.skey(id)).and_then(|s| s.ty.clone())
     }
 
     pub fn res_of(&self, id: u32) -> Option<Res> {
-        self.slots.get(&id).and_then(|s| s.res.clone())
+        self.slots.get(&self.skey(id)).and_then(|s| s.res.clone())
     }
 
     pub fn new_node_id(&mut self) -> u32 {
@@ -944,7 +1009,10 @@ impl<'a> Sema<'a> {
             DefId::Name(s) => s.to_string(),
             DefId::Id(i) => match self.typedefs.get(i as usize) {
                 Some(d) => d.name.clone(),
-                None => format!("type#{}", i),
+                None => match self.inst_names.get(&i) {
+                    Some(n) => n.clone(),
+                    None => format!("type#{}", i),
+                },
             },
         }
     }
@@ -1223,6 +1291,8 @@ impl<'a> Sema<'a> {
             is_override: false,
             body: Some(body),
             implicit,
+            gdepth: 0,
+            mangle: None,
         };
         self.funcs.push(f);
         self.func_by_name.insert(reg.clone(), self.funcs.len() - 1);
@@ -1252,10 +1322,9 @@ impl<'a> Sema<'a> {
             ast::Ty::Named { path, args } => {
                 if path.len() == 1 {
                     let n = &path[0];
+                    // 泛型环境：模板里是 Param 占位，实例里是具体类型——都按实参用
                     if let Some(t) = env.get(n) {
-                        if matches!(&**t, TyS::Param(_)) {
-                            return t.clone();
-                        }
+                        return t.clone();
                     }
                     if let Some(t) = builtin_scalar(n) {
                         return t;
@@ -1341,6 +1410,16 @@ impl<'a> Sema<'a> {
                         }
                         if dkind == "enum" {
                             return Rc::new(TyS::Enum(id));
+                        }
+                        // 泛型 class/struct + 具体实参 → 单态化实例（GX-04）；
+                        // 模板上下文（实参还是 Param）保持原样
+                        if (dkind == "class" || dkind == "struct")
+                            && ngen > 0
+                            && args.len() == ngen
+                            && !args.iter().any(|a| self.ty_contains_param(a))
+                        {
+                            let inst = self.materialize(id, &args, &ast.tok);
+                            return t_named(DefId::Id(inst), Vec::new());
                         }
                         return t_named(DefId::Id(id), args);
                     }
@@ -1580,16 +1659,32 @@ impl<'a> Sema<'a> {
         }
         self.funcs[f].params = ps;
         self.funcs[f].ret = self.resolve_type(ret);
+        // 声明期校验：约束必须是 interface 名（GX-07）
+        for gp in generics {
+            for c in &gp.constraints {
+                if !matches!(c.as_str(), "Comparable" | "Hashable" | "Printable")
+                    && !self.types.contains_key(c)
+                {
+                    self.err("E4036", &item.tok, "T-31", "约束 `{0}` 必须是 interface", &[&c]);
+                }
+            }
+        }
         self.generic_env = old;
     }
 
     fn resolve_typedef(&mut self, d: u32, item: &'a ast::N<Item>) {
-        // TypeAlias：声明期只校验 target（用环境为空的 generic_env，泛型参数
-        // 在此会报 E3003——历史行为，测试钉死，不做"顺手修正"）；
-        // 真正的展开在 expand_alias（使用处）。
-        if let Item::TypeAlias { target, .. } = &item.k {
+        // TypeAlias：声明期校验 target 可解析（泛型别名带自身参数环境，
+        // `type Table<T> = map<string, T>` 合法——GX-05；真正展开在使用处
+        // expand_alias）
+        if let Item::TypeAlias { target, generics, .. } = &item.k {
             self.typedefs[d as usize].alias_node = Some(target.clone());
+            let old = self.generic_env.clone();
+            self.generic_env = generics
+                .iter()
+                .map(|g| (g.name.clone(), Rc::new(TyS::Param(g.name.clone())) as Ty))
+                .collect();
             let _ = self.resolve_type(target);
+            self.generic_env = old;
             return;
         }
         let kind = self.typedefs[d as usize].kind;
@@ -1710,6 +1805,8 @@ impl<'a> Sema<'a> {
                                 is_static: *is_static,
                                 is_override: *is_override,
                                 implicit: false,
+                gdepth: 0,
+                mangle: None,
                                 body: Some(body),
                             };
                             self.funcs.push(f);
@@ -1741,6 +1838,8 @@ impl<'a> Sema<'a> {
                                 is_static: false,
                                 is_override: false,
                                 implicit: false,
+                gdepth: 0,
+                mangle: None,
                                 body: Some(body),
                             };
                             self.funcs.push(f);
@@ -1773,6 +1872,8 @@ impl<'a> Sema<'a> {
                         is_static: false,
                         is_override: false,
                         implicit: false,
+                gdepth: 0,
+                mangle: None,
                         body: m.k.default_body.as_ref(),
                     };
                     self.funcs.push(f);
@@ -1903,13 +2004,15 @@ impl<'a> Sema<'a> {
                 *cell.value.borrow_mut() = v;
             }
         }
-        // 函数体
+        // 函数体（泛型模板的体不在此查——按实例重查，GX-01/02）
         for (item, modc) in items.iter().zip(mods.iter()) {
             self.set_active_module(modc);
             if let Item::FuncDecl { name, .. } = &item.k {
                 let reg = self.reg_name(name);
                 if let Some(&f) = self.func_by_name.get(&reg) {
-                    self.check_func(f);
+                    if self.funcs[f].generics.is_empty() {
+                        self.check_func(f);
+                    }
                 }
             }
         }
@@ -1924,7 +2027,21 @@ impl<'a> Sema<'a> {
         }
         self.set_active_module(&None);
         self.check_main();
+        // 泛型实例：check_main / 常量求值期间又可能发现新实例，drain 循环到空
+        self.drain_insts();
         self.check_struct_recursion();
+    }
+
+    /// 消费待查实例队列：实例体检查中再发现新实例会继续入队，直到收敛。
+    /// 每个实例恢复其所属模块的检查环境（`FuncInfo.module`）。
+    fn drain_insts(&mut self) {
+        while let Some(f) = self.pending_insts.pop() {
+            let m = self.funcs[f].module.clone();
+            let modc = if m.is_empty() { None } else { Some(m) };
+            self.set_active_module(&modc);
+            self.check_func(f);
+        }
+        self.set_active_module(&None);
     }
 
     // ---------------------------------------------------------------- 函数体
@@ -1946,6 +2063,8 @@ impl<'a> Sema<'a> {
                 fi.body,
             )
         };
+        let fi_gdepth = self.funcs[f].gdepth;
+        let saved_gdepth = self.cur_gdepth;
         let saved_ctx = (
             self.scope.clone(),
             self.current_func,
@@ -1955,10 +2074,18 @@ impl<'a> Sema<'a> {
         );
         self.current_func = Some(f);
         self.cur_class = owner;
+        self.cur_gdepth = fi_gdepth;
+        // 实例函数的槽写入按实例号隔离（同一模板的多个实例互不覆盖）
+        let saved_inst = self.cur_inst;
+        self.cur_inst = self.inst_slot_of.get(&f).copied().unwrap_or(0);
         self.generic_env = generics
             .iter()
             .map(|(g, _)| (g.clone(), Rc::new(TyS::Param(g.clone())) as Ty))
             .collect();
+        // 实例：模板参数名 → 具体类型（GX-09 递归实例化时体里写 `T[]` 等）
+        if let Some(env) = self.inst_env.get(&f) {
+            self.generic_env = env.clone();
+        }
         self.generic_cons = generics.iter().cloned().collect();
         self.scope = Some(Rc::new(RefCell::new(ScopeNode {
             parent: None,
@@ -2040,6 +2167,8 @@ impl<'a> Sema<'a> {
         self.cur_class = saved_ctx.2;
         self.generic_env = saved_ctx.3;
         self.generic_cons = saved_ctx.4;
+        self.cur_inst = saved_inst;
+        self.cur_gdepth = saved_gdepth;
     }
 
     /// 诊断里给人看的类型名：模块内的类型注册成 `模块__类名`（C 侧要唯一），
@@ -2212,23 +2341,26 @@ impl<'a> Sema<'a> {
                 self.err("E3004", &tok, "N-4", "struct 字段重名", &[]);
             }
         }
-        // 方法体
-        let mut holders: Vec<usize> = self
-            .typedefs[d as usize]
-            .methods
-            .values()
-            .copied()
-            .collect();
-        if let Some(c) = self.typedefs[d as usize].ctor {
-            holders.push(c);
-        }
-        if kind == "interface" {
-            for (_, sig) in self.all_iface_methods(d) {
-                holders.push(sig);
+        // 方法体（泛型模板的体不在此查——实例化后按具体类型重查，GX-04）
+        let is_template = !self.typedefs[d as usize].generics.is_empty();
+        if !is_template {
+            let mut holders: Vec<usize> = self
+                .typedefs[d as usize]
+                .methods
+                .values()
+                .copied()
+                .collect();
+            if let Some(c) = self.typedefs[d as usize].ctor {
+                holders.push(c);
             }
-        }
-        for f in holders {
-            self.check_func(f);
+            if kind == "interface" {
+                for (_, sig) in self.all_iface_methods(d) {
+                    holders.push(sig);
+                }
+            }
+            for f in holders {
+                self.check_func(f);
+            }
         }
     }
 

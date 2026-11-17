@@ -216,7 +216,7 @@ impl<'a> Sema<'a> {
             Expr::SafeAccess { .. } => self.check_safe_access(e, expected),
             Expr::SafeCall { .. } => self.check_safe_call(e, expected),
             Expr::Index { .. } => self.check_index(e, expected),
-            Expr::New { .. } => self.check_new(e),
+            Expr::New { .. } => self.check_new(e, expected),
             Expr::If(n) => {
                 self.check_if(e.id, &e.tok, n, expected);
                 return self.ty_of(e.id).unwrap_or_else(t_void);
@@ -264,9 +264,17 @@ impl<'a> Sema<'a> {
                     is_static: false,
                     is_override: false,
                     implicit: false,
+                gdepth: 0,
+                mangle: None,
                     body: Some(leaked),
                 });
                 self.anon_funcs.push(f);
+                // 实例体内合成的匿名函数继承当前实例号：其体已按实例的槽键检查，
+                // codegen 生成它时要取到同一批槽
+                if self.cur_inst > 0 {
+                    let iid = self.cur_inst;
+                    self.inst_slot_of.insert(f, iid);
+                }
                 self.check_func(f);
                 let fret = self.funcs[f].ret.clone();
                 self.sl(e.id).func = Some(f);
@@ -559,13 +567,22 @@ impl<'a> Sema<'a> {
             }
             if matches!(&*lt, TyS::Float) {
                 self.err("E4017", &lhs.tok, "文稿 7.1", "`float` 不实现 Comparable（浮点比较请用 math.compare）", &[]);
-            } else if !matches!(&*lt, TyS::Int(..) | TyS::Decimal | TyS::Str) {
-                self.err("E4017", &lhs.tok, "文稿 7.1", "{0} 不实现 Comparable", &[&self.ts(&lt)]);
             } else if let TyS::Param(pn) = &*lt {
                 let cons = self.generic_cons.get(pn).cloned().unwrap_or_default();
                 if !cons.iter().any(|c| c == "Comparable") {
                     self.err("E4036", &lhs.tok, "T-32", "类型参数 `{0}` 缺少 `Comparable` 约束", &[&pn]);
                 }
+            } else if matches!(&*lt, TyS::Int(..) | TyS::Decimal | TyS::Str) {
+                // 内建可比类型直接放行
+            } else if let TyS::Named(DefId::Id(d), _) = &*lt {
+                // 实现 Comparable 的类：`a > b` 按 `a.compare(b) > 0` 生成
+                let ok = self.types.contains_key("Comparable")
+                    && self.implements(*d, self.types["Comparable"]);
+                if !ok {
+                    self.err("E4017", &lhs.tok, "文稿 7.1", "{0} 不实现 Comparable", &[&self.ts(&lt)]);
+                }
+            } else {
+                self.err("E4017", &lhs.tok, "文稿 7.1", "{0} 不实现 Comparable", &[&self.ts(&lt)]);
             }
             return t_bool();
         }
@@ -815,6 +832,26 @@ impl<'a> Sema<'a> {
         if name == "Self" {
             return Rc::new(TyS::Meta(name.clone()));
         }
+        if name == "typeof" {
+            self.err(
+                "E3003",
+                &e.tok,
+                "文稿 11.2",
+                "`typeof` 是编译期函数，要写成 `typeof(表达式)`",
+                &[],
+            );
+            return t_string();
+        }
+        if name == "sizeof" {
+            self.err(
+                "E3003",
+                &e.tok,
+                "文稿 11.2",
+                "`sizeof` 是编译期函数，要写成 `sizeof(表达式)`",
+                &[],
+            );
+            return t_int();
+        }
         self.err("E3003", &e.tok, "N-5", "未定义的标识符 `{0}`", &[&name]);
         t_object()
     }
@@ -852,8 +889,14 @@ impl<'a> Sema<'a> {
             if segs.len() == 1 && (name == "ok" || name == "fail") {
                 return self.call_ok_fail(e, args, name);
             }
+            if segs.len() == 1 && name == "typeof" {
+                return self.call_typeof(e, args);
+            }
+            if segs.len() == 1 && name == "sizeof" {
+                return self.call_sizeof(e, args);
+            }
             if segs.len() == 1 && (name == "Print" || name == "Println") {
-                return self.call_plain(e, args, name, vec![t_string()], t_void());
+                return self.call_print(e, args, name);
             }
             if segs.len() == 1 && name == "parent" {
                 return self.call_parent_ctor(e, args);
@@ -1164,6 +1207,113 @@ impl<'a> Sema<'a> {
         }
     }
 
+    /// `sizeof(表达式)`（文稿 11.2）：编译期生成 C 的 `sizeof`，返回
+    /// **实参类型在 C 里的存储大小**（`int`）——`int` = 8、`uint8` = 1、
+    /// `string` = `sizeof(ax_str)`、`int[]` = `sizeof(ax_arr)`、class 按引用
+    /// 语义给**指针大小**（与赋值语义一致，对象本身的大小不给）。值 sema
+    /// 不算，交给 C 编译器，所以不能用于 `const`（声明会报"必须是常量表达式"）。
+    fn call_sizeof(&mut self, e: &ast::EPtr, args: &[ast::N<ast::Arg>]) -> Ty {
+        if args.len() != 1 {
+            self.err(
+                "E4031",
+                &e.tok,
+                "文稿 11.2",
+                "`sizeof` 需要 1 个实参（表达式），得到 {1}",
+                &[&args.len()],
+            );
+            return t_int();
+        }
+        let arg = &args[0].k.expr;
+        let errs_before = self.d.error_count;
+        let t = self.check_expr(arg, None);
+        // 实参本身有错时不再追问类型，避免一处误用两条诊断
+        if self.d.error_count > errs_before {
+            return t_int();
+        }
+        if matches!(&*t, TyS::Void | TyS::Never) {
+            self.err("E4001", &arg.tok, "文稿 11.2", "`sizeof` 的实参不能是 `void`", &[]);
+            return t_int();
+        }
+        self.sl(args[0].id).ty = Some(t);
+        self.sl(e.id).ckind = Some("sizeof");
+        t_int()
+    }
+
+    /// `typeof(表达式)`（文稿 11.2）：**编译期常量**，返回实参静态类型的显示名
+    /// （`int` / `int8` / `string` / `Dog` / `int[]` / `int?` / `map<string, object>`）。
+    /// 不是运行期查询——codegen 直接生成字符串字面量，零运行时开销；
+    /// 运行期判别仍走 `match` 类型模式（文稿 5.3），两者不重叠。
+    fn call_typeof(&mut self, e: &ast::EPtr, args: &[ast::N<ast::Arg>]) -> Ty {
+        if args.len() != 1 {
+            self.err(
+                "E4031",
+                &e.tok,
+                "文稿 11.2",
+                "`typeof` 需要 1 个实参（表达式），得到 {1}",
+                &[&args.len()],
+            );
+            return t_string();
+        }
+        let arg = &args[0].k.expr;
+        let errs_before = self.d.error_count;
+        let t = self.check_expr(arg, None);
+        // 实参本身有错时不再追问类型，避免一处误用两条诊断
+        if self.d.error_count > errs_before {
+            return t_string();
+        }
+        let name = self.ts(&t);
+        self.sl(args[0].id).ty = Some(t);
+        self.sl(e.id).ckind = Some("typeof");
+        self.sl(e.id).bname = Some(name.clone());
+        self.sl(e.id).const_value = Some(ConstVal::Str(name));
+        t_string()
+    }
+
+    /// `Print` / `Println`（文稿 11.2）：签名是 `void Print(string)`，但允许
+    /// 「可直接插值的单个值」直接传——语义等价于 `Print("{x}")`，只是省掉花括号。
+    /// 仍然只有一种格式化能力（插值），占位符与多实参依旧不支持。
+    fn call_print(
+        &mut self,
+        e: &ast::EPtr,
+        args: &[ast::N<ast::Arg>],
+        name: &str,
+    ) -> Ty {
+        if args.len() == 1 && !args[0].k.borrow {
+            let errs_before = self.d.error_count;
+            let t = self.check_expr(&args[0].k.expr, None);
+            // 实参本身有错（E3003 等）时不再追问类型，避免一处误用两条诊断
+            if self.d.error_count > errs_before {
+                return t_void();
+            }
+            if matches!(&*t, TyS::Str) {
+                // 常规形态：本来就是字符串，直接输出
+                self.sl(args[0].id).ty = Some(t);
+                self.sl(e.id).ckind = Some("builtin");
+                self.sl(e.id).bname = Some(name.to_string());
+                return t_void();
+            }
+            let interpable = !matches!(&*t, TyS::Object | TyS::Void)
+                && (interp_supported(&t) || self.implements_printable(&t));
+            if interpable {
+                let at = self.ty_of(args[0].k.expr.id);
+                self.sl(args[0].id).ty = at;
+                self.sl(e.id).interp_arg = true;
+                self.sl(e.id).ckind = Some("builtin");
+                self.sl(e.id).bname = Some(name.to_string());
+                return t_void();
+            }
+            self.err(
+                "E4001",
+                &args[0].tok,
+                "文稿 11.2",
+                "`{0}` 的实参必须是 string，或能直接插值的值（数字 / 布尔 / 字符串 / 枚举 / 实现了 Printable 的类），得到 {1}",
+                &[&name, &self.ts(&t)],
+            );
+            return t_void();
+        }
+        self.call_plain(e, args, name, vec![t_string()], t_void())
+    }
+
     fn call_plain(
         &mut self,
         e: &ast::EPtr,
@@ -1227,6 +1377,11 @@ impl<'a> Sema<'a> {
             (fi.name.clone(), fi.generics.clone())
         };
         let mut generic_args: Vec<Ty> = Vec::new();
+        // 推断失败（E4037）时不做实例化——object 兜底实参不该生成实例
+        let mut infer_failed = false;
+        // 推断路径下实参先按无期望类型预查一遍（infer_generics 依赖实参类型，
+        // 而主循环的 check_expr 用替换后的形参类型作期望——顺序必须如此）
+        let mut prechecked = false;
         if !callee_targs.is_empty() {
             if callee_targs.len() != generics.len() {
                 self.err("E4035", &e.tok, "G-1", "`{0}` 需要 {1} 个类型实参", &[&fname, &generics.len()]);
@@ -1235,29 +1390,48 @@ impl<'a> Sema<'a> {
             for ((g, _), a) in generics.iter().zip(callee_targs.iter()) {
                 subst.insert(g.clone(), self.resolve_type(a));
             }
-            self.check_generic_constraints(&generics, &subst, &e.tok);
+            if !self.check_generic_constraints(&generics, &subst, &e.tok) {
+                // 约束不满足：不实例化（E4036 已报），调用点按未实例化处理
+                self.sl(e.id).ckind = Some("func");
+                self.sl(e.id).func = Some(f);
+                return t_object();
+            }
             generic_args = generics
                 .iter()
                 .map(|(g, _)| subst.get(g).cloned().unwrap_or_else(t_object))
                 .collect();
-        } else {
-            if !generics.is_empty() {
-                match self.infer_generics(f, args) {
-                    None => {
-                        self.err("E4037", &e.tok, "T-16", "无法推断 `{0}` 的类型实参，请显式写 `{1}<...>(...)`", &[&fname, &fname]);
-                        generic_args = vec![t_object(); generics.len()];
-                    }
-                    Some(inf) => {
-                        generic_args = inf;
-                        let subst: HashMap<String, Ty> = generics
-                            .iter()
-                            .zip(generic_args.iter())
-                            .map(|((g, _), t)| (g.clone(), t.clone()))
-                            .collect();
-                        self.check_generic_constraints(&generics, &subst, &e.tok);
+        } else if !generics.is_empty() {
+            let mut arg_tys: Vec<Ty> = Vec::with_capacity(args.len());
+            for a in args {
+                // 匿名函数没有目标类型就报 E4043：推断期还没有形参类型可当
+                // 期望，跳过它，留到主循环按替换后的形参类型检查
+                if matches!(a.k.expr.k, Expr::AnonFunc { .. }) {
+                    arg_tys.push(t_object());
+                    continue;
+                }
+                arg_tys.push(self.check_expr(&a.k.expr, None));
+            }
+            match self.infer_generics(f, &arg_tys) {
+                None => {
+                    self.err("E4037", &e.tok, "T-16", "无法推断 `{0}` 的类型实参，请显式写 `{1}<...>(...)`", &[&fname, &fname]);
+                    generic_args = vec![t_object(); generics.len()];
+                    infer_failed = true;
+                }
+                Some(inf) => {
+                    generic_args = inf;
+                    let subst: HashMap<String, Ty> = generics
+                        .iter()
+                        .zip(generic_args.iter())
+                        .map(|((g, _), t)| (g.clone(), t.clone()))
+                        .collect();
+                    if !self.check_generic_constraints(&generics, &subst, &e.tok) {
+                        self.sl(e.id).ckind = Some("func");
+                        self.sl(e.id).func = Some(f);
+                        return t_object();
                     }
                 }
             }
+            prechecked = true;
         }
         self.sl(e.id).generic_args = generic_args.clone();
         // 参数替换
@@ -1271,11 +1445,77 @@ impl<'a> Sema<'a> {
                 .collect();
             params = params
                 .into_iter()
-                .map(|(n, t, b)| (n, self.subst_ty(&t, &subst), b))
+                .map(|(n, t, b)| {
+                    let t2 = self.subst_ty(&t, &subst);
+                    (n, self.concretize(&t2, &e.tok), b)
+                })
                 .collect();
-            ret = self.subst_ty(&self.funcs[f].ret, &subst);
+            let r2 = self.subst_ty(&self.funcs[f].ret, &subst);
+            ret = self.concretize(&r2, &e.tok);
         } else {
             ret = self.funcs[f].ret.clone();
+        }
+        // —— 单态化（GAP 泛型 #1，GX-01/02/09）：每个 (函数, 类型实参) 组合
+        // 生成一份 FuncInfo 实例（参数/返回已替换、体共享 AST），实例体在
+        // drain_insts 里按具体类型重查；调用点指向实例，codegen 只生成实例。
+        let mut target_f = f;
+        if !generics.is_empty() && !generic_args.is_empty() && !infer_failed {
+            let mangle = self.mangle_inst(&fname, &generic_args);
+            if let Some(&inst) = self.inst_registry.get(&mangle) {
+                target_f = inst;
+            } else {
+                let depth = self.cur_gdepth + 1;
+                // 深度超限：报一次 E4038，实例照常物化（签名具体、调用点类型
+                // 正确、后续收敛不级联），只是不再查它的函数体
+                let check_body = depth <= 64;
+                if !check_body && !self.depth_err_reported {
+                    self.err(
+                        "E4038",
+                        &e.tok,
+                        "T-37",
+                        "泛型实例化递归超过 64 层：`{0}`",
+                        &[&mangle],
+                    );
+                    self.depth_err_reported = true;
+                }
+                if self.inst_registry.contains_key(&mangle) {
+                    target_f = self.inst_registry[&mangle];
+                } else {
+                    let fi = &self.funcs[f];
+                    let inst_fi = crate::sema::FuncInfo {
+                        name: fi.name.clone(),
+                        tok: fi.tok.clone(),
+                        module: fi.module.clone(),
+                        owner: fi.owner,
+                        params: params.clone(),
+                        ret: ret.clone(),
+                        generics: Vec::new(),
+                        vis: fi.vis.clone(),
+                        is_static: fi.is_static,
+                        is_override: fi.is_override,
+                        body: fi.body,
+                        implicit: false,
+                        gdepth: depth,
+                        mangle: Some(mangle.clone()),
+                    };
+                    let inst = self.funcs.len();
+                    self.funcs.push(inst_fi);
+                    let iid = self.next_inst;
+                    self.next_inst += 1;
+                    self.inst_registry.insert(mangle, inst);
+                    self.inst_slot_of.insert(inst, iid);
+                    let env: HashMap<String, Ty> = generics
+                        .iter()
+                        .zip(generic_args.iter())
+                        .map(|((g, _), t)| (g.clone(), t.clone()))
+                        .collect();
+                    self.inst_env.insert(inst, env);
+                    if check_body {
+                        self.pending_insts.push(inst);
+                    }
+                    target_f = inst;
+                }
+            }
         }
         // 实参个数
         if args.len() != params.len() {
@@ -1283,7 +1523,11 @@ impl<'a> Sema<'a> {
         }
         for (i, a) in args.iter().enumerate() {
             let exp = params.get(i).map(|p| p.1.clone());
-            self.check_expr(&a.k.expr, exp.as_ref());
+            if !prechecked {
+                self.check_expr(&a.k.expr, exp.as_ref());
+            } else if matches!(a.k.expr.k, Expr::AnonFunc { .. }) {
+                self.check_expr(&a.k.expr, exp.as_ref());
+            }
             if a.k.borrow {
                 self.check_borrow(&a.k.expr, true);
             } else if let Some(ex) = &exp {
@@ -1300,16 +1544,88 @@ impl<'a> Sema<'a> {
         self.check_borrow_conflicts(args, e.id);
         let s = self.sl(e.id);
         s.ckind = Some("func");
-        s.func = Some(f);
+        s.func = Some(target_f);
         ret
     }
 
+    /// 实例 mangle 名：`函数名$类型mangle…`。稳定（同名同实参必同串）、
+    /// 去 C 标识符以外字符，用于实例注册表去重与 C 函数名。
+    fn mangle_inst(&self, fname: &str, args: &[Ty]) -> String {
+        let parts: Vec<String> = args.iter().map(|t| self.mangle_ty(t)).collect();
+        format!("{}${}", fname, parts.join("_"))
+    }
+
+    /// 类型 → C 安全的 mangle 片段（`int` / `uint8` / `map_string_int` /
+    /// `Dog_Animal` / `opt_int` …）。与显示名分离：显示名给人看，这个给 C。
+    fn mangle_ty(&self, t: &Ty) -> String {
+        match &**t {
+            TyS::Bool => "bool".to_string(),
+            TyS::Str => "string".to_string(),
+            TyS::Float => "float".to_string(),
+            TyS::Decimal => "decimal".to_string(),
+            TyS::Object => "object".to_string(),
+            TyS::Null => "null".to_string(),
+            TyS::Int(w, s) => format!("{}int{}", if *s { "" } else { "u" }, w),
+            TyS::Array(e, None) => format!("arr_{}", self.mangle_ty(e)),
+            TyS::Array(e, Some(n)) => format!("fix{}_{}", n, self.mangle_ty(e)),
+            TyS::Map(k, v) => format!("map_{}_{}", self.mangle_ty(k), self.mangle_ty(v)),
+            TyS::Nullable(i) => format!("opt_{}", self.mangle_ty(i)),
+            TyS::Result(r) => format!("res_{}", self.mangle_ty(r)),
+            TyS::Tuple(elems) => {
+                let ps: Vec<String> = elems.iter().map(|t| self.mangle_ty(t)).collect();
+                format!("tuple_{}", ps.join("_"))
+            }
+            TyS::Func(ps, r) => {
+                let mut all: Vec<String> = ps.iter().map(|t| self.mangle_ty(t)).collect();
+                all.push(self.mangle_ty(r));
+                format!("fn_{}", all.join("_"))
+            }
+            TyS::Named(DefId::Id(id), as_) => {
+                let base = self
+                    .typedefs
+                    .get(*id as usize)
+                    .map(|d| d.name.clone())
+                    .or_else(|| self.inst_names.get(id).cloned())
+                    .unwrap_or_else(|| "t".to_string());
+                if as_.is_empty() {
+                    base
+                } else {
+                    let ps: Vec<String> = as_.iter().map(|t| self.mangle_ty(t)).collect();
+                    format!("{}_{}", base, ps.join("_"))
+                }
+            }
+            TyS::Named(DefId::Name(n), as_) => {
+                if as_.is_empty() {
+                    n.to_string()
+                } else {
+                    let ps: Vec<String> = as_.iter().map(|t| self.mangle_ty(t)).collect();
+                    format!("{}_{}", n, ps.join("_"))
+                }
+            }
+            TyS::Enum(id) => self
+                .typedefs
+                .get(*id as usize)
+                .map(|d| d.name.clone())
+                .unwrap_or_else(|| "enum".to_string()),
+            TyS::Param(n) => format!("T_{}", n),
+            _ => {
+                let d = self.ts(t);
+                d.chars()
+                    .map(|c| if c.is_ascii_alphanumeric() || c == '_' { c } else { '_' })
+                    .collect()
+            }
+        }
+    }
+
+    /// 校验类型实参是否满足约束；返回 false 表示有 `E4036`（调用方据此
+    /// 跳过实例化——类型不合法的实例不该生成，也不该再查它的体）。
     fn check_generic_constraints(
         &mut self,
         generics: &[(String, Vec<String>)],
         subst: &HashMap<String, Ty>,
         tok: &crate::frontend::lexer::Tok,
-    ) {
+    ) -> bool {
+        let mut ok = true;
         for (name, ty) in subst {
             let cons = generics
                 .iter()
@@ -1321,44 +1637,43 @@ impl<'a> Sema<'a> {
                     && !self.types.contains_key(c)
                 {
                     self.err("E4036", tok, "T-31", "约束 `{0}` 必须是 interface", &[&c]);
+                    ok = false;
                     continue;
                 }
                 if c == "Comparable" && matches!(&**ty, TyS::Float) {
                     self.err("E4036", tok, "T-33", "`float` 不实现 Comparable", &[]);
+                    ok = false;
                 }
                 if matches!(&**ty, TyS::Param(_)) {
                     continue;
                 }
                 if self.types.contains_key(c) {
                     if let TyS::Named(DefId::Id(id), _) = &**ty {
-                        let ok = match self.typedefs.get(*id as usize) {
+                        let impl_ok = match self.typedefs.get(*id as usize) {
                             Some(d) => self.implements(d.id, self.types[c]),
                             None => false,
                         };
-                        if !ok {
+                        if !impl_ok {
                             self.err("E4036", tok, "T-36", "{0} 不满足约束 `{1}`", &[&self.ts(ty), &c]);
+                            ok = false;
                         }
                     }
                 }
             }
         }
+        ok
     }
 
-    fn infer_generics(&mut self, f: usize, args: &[ast::N<ast::Arg>]) -> Option<Vec<Ty>> {
+    fn infer_generics(&mut self, f: usize, arg_tys: &[Ty]) -> Option<Vec<Ty>> {
         let names: Vec<String> = self.funcs[f].generics.iter().map(|g| g.0.clone()).collect();
         let params = self.funcs[f].params.clone();
         let mut subst: HashMap<String, Ty> = HashMap::new();
-        for (i, a) in args.iter().enumerate() {
+        for (i, aty) in arg_tys.iter().enumerate() {
             if i >= params.len() {
                 break;
             }
             let pty = params[i].1.clone();
-            let aty = self.ty_of(a.k.expr.id);
-            let aty = match aty {
-                Some(t) => t,
-                None => continue,
-            };
-            self.unify(&pty, &aty, &names, &mut subst);
+            self.unify(&pty, aty, &names, &mut subst);
         }
         if subst.len() != names.len() {
             return None;
@@ -1374,6 +1689,28 @@ impl<'a> Sema<'a> {
             }
         }
         match (&**p, &**a) {
+            // 泛型类形参 `Box<T>` 对实例实参 `Box$int`：形参 id 是模板、实参
+            // id 是实例，按 mat_of 回到模板再逐个统一类型实参
+            (
+                TyS::Named(DefId::Id(pid), pargs),
+                TyS::Named(DefId::Id(aid), aargs),
+            ) if *pid != *aid => {
+                let same_tmpl = self.mat_of.get(aid).map(|(t, _)| *t == *pid);
+                let inst_targs = self.mat_of.get(aid).map(|(_, t)| t.clone());
+                if same_tmpl == Some(true) && pargs.len() == inst_targs.as_ref().map(|t| t.len()).unwrap_or(0) {
+                    let it = inst_targs.unwrap();
+                    for (pp, aa) in pargs.iter().zip(it.iter()) {
+                        self.unify(pp, aa, names, subst);
+                    }
+                }
+            }
+            (TyS::Named(DefId::Id(pid), pargs), TyS::Named(DefId::Id(aid), aargs))
+                if *pid == *aid =>
+            {
+                for (pp, aa) in pargs.iter().zip(aargs.iter()) {
+                    self.unify(pp, aa, names, subst);
+                }
+            }
             (TyS::Array(p1, _), TyS::Array(a1, _)) => self.unify(p1, a1, names, subst),
             (TyS::Map(p1, p2), TyS::Map(a1, a2)) => {
                 self.unify(p1, a1, names, subst);
@@ -1383,6 +1720,232 @@ impl<'a> Sema<'a> {
             (TyS::Result(p1), TyS::Result(a1)) => self.unify(p1, a1, names, subst),
             _ => {}
         }
+    }
+
+    /// 类型树里是否还有未替换的 `Param`（深查——`Box<Box<T>>` 的外层实参
+    /// 是 Named 而内层才是 Param，浅查会把模板误物化）
+    pub fn ty_contains_param(&self, t: &Ty) -> bool {
+        match &**t {
+            TyS::Param(_) => true,
+            TyS::Named(_, args) => args.iter().any(|a| self.ty_contains_param(a)),
+            TyS::Array(e, _) => self.ty_contains_param(e),
+            TyS::Map(k, v) => self.ty_contains_param(k) || self.ty_contains_param(v),
+            TyS::Nullable(i) => self.ty_contains_param(i),
+            TyS::Result(i) => self.ty_contains_param(i),
+            TyS::Tuple(elems) => elems.iter().any(|a| self.ty_contains_param(a)),
+            TyS::Func(ps, r) => {
+                ps.iter().any(|a| self.ty_contains_param(a)) || self.ty_contains_param(r)
+            }
+            _ => false,
+        }
+    }
+
+    /// 把类型里所有"泛型模板 + 具体实参"的 Named 落成实例（GX-04）。
+    /// subst_ty 只做词法替换，替换结果仍指向模板；实例化统一在这里收口。
+    pub fn concretize(&mut self, t: &Ty, tok: &crate::frontend::lexer::Tok) -> Ty {
+        match &**t {
+            TyS::Named(DefId::Id(id), args) if !args.is_empty() => {
+                let tmpl_gen = self.typedefs.get(*id as usize).map(|d| d.generics.len());
+                let kind = self.typedefs.get(*id as usize).map(|d| d.kind);
+                if tmpl_gen == Some(args.len())
+                    && matches!(kind, Some("class") | Some("struct"))
+                    && !args.iter().any(|a| self.ty_contains_param(a))
+                {
+                    let args2: Vec<Ty> =
+                        args.iter().map(|a| self.concretize(a, tok)).collect();
+                    let inst = self.materialize(*id, &args2, tok);
+                    return t_named(DefId::Id(inst), Vec::new());
+                }
+                let args2: Vec<Ty> = args.iter().map(|a| self.concretize(a, tok)).collect();
+                t_named(DefId::Id(*id), args2)
+            }
+            TyS::Named(DefId::Id(_), _) => t.clone(),
+            TyS::Named(DefId::Name(n), args) => {
+                let args2: Vec<Ty> = args.iter().map(|a| self.concretize(a, tok)).collect();
+                t_named(DefId::Name(*n), args2)
+            }
+            TyS::Array(e, l) => t_array(self.concretize(e, tok), *l),
+            TyS::Map(k, v) => t_map(self.concretize(k, tok), self.concretize(v, tok)),
+            TyS::Nullable(i) => t_nullable(self.concretize(i, tok)),
+            TyS::Result(i) => t_result(self.concretize(i, tok)),
+            _ => t.clone(),
+        }
+    }
+
+    /// 泛型 class/struct 单态化：以模板为蓝本生成实例 typedef（字段、ctor、
+    /// 方法签名全部替换为具体类型），方法体入队按实例重查。同名同实参只
+    /// 物化一次（注册表去重），递归深度超 64 报 `E4038`（GX-09）。
+    pub fn materialize(&mut self, tmpl_id: u32, targs: &[Ty], tok: &crate::frontend::lexer::Tok) -> u32 {
+        let tmpl = self.typedefs[tmpl_id as usize].clone();
+        let parts: Vec<String> = targs.iter().map(|t| self.mangle_ty(t)).collect();
+        let mangle = format!("{}${}", tmpl.name, parts.join("_"));
+        if let Some(&inst) = self.mat_registry.get(&mangle) {
+            return inst;
+        }
+        // 链深取两者较大：物化递归期间看 cur_mat_depth；实例体检查期间
+        // cur_mat_depth 已还原，看当前实例的 gdepth（check_func 会带上）。
+        // 深度超限：报一次 E4038，实例照常物化（签名具体、类型不级联），
+        // 只是方法体不再按实例重查。
+        let depth = self.cur_mat_depth.max(self.cur_gdepth) + 1;
+        let check_body = depth <= 64;
+        if !check_body && !self.depth_err_reported {
+            self.err("E4038", tok, "T-37", "泛型实例化递归超过 64 层：`{0}`", &[&mangle]);
+            self.depth_err_reported = true;
+        }
+        let saved_depth = self.cur_mat_depth;
+        self.cur_mat_depth = depth;
+        // 实例号先占位登记：构造字段/方法签名时的自引用（`Node<Node<T>>` 的
+        // 内层就是自己）直接命中注册表返回本实例，不再入递归
+        let inst = self.typedefs.len() as u32;
+        self.mat_registry.insert(mangle.clone(), inst);
+        self.inst_names.insert(inst, mangle.clone());
+        // 骨架 typedef 立即入表：构造期间的递归物化（自引用/嵌套实参）再算
+        // typedefs.len() 时不会撞上同一个 id
+        self.typedefs.push(crate::sema::TypeDef {
+            id: inst,
+            name: mangle.clone(),
+            kind: tmpl.kind,
+            tok: tmpl.tok.clone(),
+            vis: tmpl.vis.clone(),
+            generics: Vec::new(),
+            fields: Vec::new(),
+            methods: std::collections::BTreeMap::new(),
+            ctor: None,
+            ctor_count: tmpl.ctor_count,
+            parent: None,
+            impls: Vec::new(),
+            extends: Vec::new(),
+            variants: Vec::new(),
+            alias_target: None,
+            alias_node: None,
+            nested: std::collections::BTreeMap::new(),
+            expanding: false,
+        });
+        let tmod0 = self.typedef_mod.get(tmpl_id as usize).cloned().flatten();
+        self.typedef_mod.push(tmod0);
+        let subst: HashMap<String, Ty> = tmpl
+            .generics
+            .iter()
+            .zip(targs.iter())
+            .map(|((g, _), t)| (g.clone(), t.clone()))
+            .collect();
+        let env: HashMap<String, Ty> = subst.clone();
+        // 实例号：该类实例的所有方法共享一个槽隔离空间
+        let iid = self.next_inst;
+        self.next_inst += 1;
+        let mut fields = Vec::new();
+        for (fn_, ft, vis, idx) in &tmpl.fields {
+            let ft2 = self.subst_ty(ft, &subst);
+            let ft2 = self.concretize(&ft2, tok);
+            fields.push((fn_.clone(), ft2, vis.clone(), *idx));
+        }
+        // 方法 / ctor：签名替换，体共享 AST，入队按实例重查
+        let mut methods = tmpl.methods.clone();
+        for (mn, fid) in tmpl.methods.iter() {
+            let (fname, ftok, fmod, fparams, fret, fvis, fstatic, foverride, fbody) = {
+                let fi = &self.funcs[*fid];
+                (fi.name.clone(), fi.tok.clone(), fi.module.clone(), fi.params.clone(), fi.ret.clone(), fi.vis.clone(), fi.is_static, fi.is_override, fi.body)
+            };
+            let mut params = fparams;
+            for p in params.iter_mut() {
+                p.1 = self.subst_ty(&p.1, &subst);
+                p.1 = self.concretize(&p.1, tok);
+            }
+            let ret = self.subst_ty(&fret, &subst);
+            let ret = self.concretize(&ret, tok);
+            let nfid = self.funcs.len();
+            self.funcs.push(crate::sema::FuncInfo {
+                name: fname,
+                tok: ftok,
+                module: fmod,
+                owner: None, // 先占位，实例 typedef 建好后再改指
+                params,
+                ret,
+                generics: Vec::new(),
+                vis: fvis,
+                is_static: fstatic,
+                is_override: foverride,
+                body: fbody,
+                implicit: false,
+                gdepth: depth,
+                mangle: None,
+            });
+            self.inst_slot_of.insert(nfid, iid);
+            self.inst_env.insert(nfid, env.clone());
+            if check_body {
+                self.pending_insts.push(nfid);
+            }
+            methods.insert(mn.clone(), nfid);
+        }
+        let mut ctor = None;
+        if let Some(cf) = tmpl.ctor {
+            let (fname, ftok, fmod, fparams, fret, fvis, fstatic, foverride, fbody) = {
+                let fi = &self.funcs[cf];
+                (fi.name.clone(), fi.tok.clone(), fi.module.clone(), fi.params.clone(), fi.ret.clone(), fi.vis.clone(), fi.is_static, fi.is_override, fi.body)
+            };
+            let mut params = fparams;
+            for p in params.iter_mut() {
+                p.1 = self.subst_ty(&p.1, &subst);
+                p.1 = self.concretize(&p.1, tok);
+            }
+            let nfid = self.funcs.len();
+            self.funcs.push(crate::sema::FuncInfo {
+                name: fname,
+                tok: ftok,
+                module: fmod,
+                owner: None,
+                params,
+                ret: fret,
+                generics: Vec::new(),
+                vis: fvis,
+                is_static: fstatic,
+                is_override: foverride,
+                body: fbody,
+                implicit: false,
+                gdepth: depth,
+                mangle: None,
+            });
+            self.inst_slot_of.insert(nfid, iid);
+            self.inst_env.insert(nfid, env.clone());
+            if check_body {
+                self.pending_insts.push(nfid);
+            }
+            ctor = Some(nfid);
+        }
+        // 父类：泛型父类按同一组实参实例化（`Box<T> extend Container<T>`）
+        let parent = match tmpl.parent {
+            Some(p) => {
+                let pgen = self.typedefs.get(p as usize).map(|d| d.generics.len());
+                if pgen == Some(0) {
+                    Some(p)
+                } else if pgen.is_some() && pgen == Some(targs.len()) {
+                    let pi = self.materialize(p, targs, tok);
+                    Some(pi)
+                } else {
+                    Some(p)
+                }
+            }
+            None => None,
+        };
+        let method_fids: Vec<usize> = methods.values().copied().collect();
+        for nfid in &method_fids {
+            self.funcs[*nfid].owner = Some(inst);
+        }
+        {
+            let d = &mut self.typedefs[inst as usize];
+            d.fields = fields;
+            d.methods = methods;
+            d.ctor = ctor;
+            d.parent = parent;
+            d.impls = tmpl.impls.clone();
+            d.extends = tmpl.extends.clone();
+        }
+        self.mat_of.insert(inst, (tmpl_id, targs.to_vec()));
+        if let Some(cf) = ctor {
+            self.funcs[cf].owner = Some(inst);
+        }
+        self.cur_mat_depth = saved_depth;
+        inst
     }
 
     pub fn subst_ty(&self, t: &Ty, subst: &HashMap<String, Ty>) -> Ty {
@@ -1631,6 +2194,8 @@ impl<'a> Sema<'a> {
                     return t_named(DefId::Id(d), Vec::new());
                 }
             }
+            // 泛型 struct：从实参按位对应字段推断类型实参（GX-04）
+            let d = self.infer_struct_targs(e, d, args);
             return self.construct(e, args, d);
         }
         if kind == "enum" {
@@ -1699,7 +2264,7 @@ impl<'a> Sema<'a> {
         )
     }
 
-    fn check_new(&mut self, e: &ast::EPtr) -> Ty {
+    fn check_new(&mut self, e: &ast::EPtr, expected: Option<&Ty>) -> Ty {
         let (path, args) = match &e.k {
             Expr::New { path, args } => (path, args),
             _ => unreachable!(),
@@ -1767,6 +2332,129 @@ impl<'a> Sema<'a> {
             self.err("E2012", &e.tok, "G-9", "`new` 只能用于 class（struct/enum/interface 不需要 new）", &[]);
             return t_object();
         }
+        // 泛型类：`new` 语法带不了类型实参，从期望类型或 ctor 实参推断（GX-04）
+        let d = self.infer_new_targs(e, d, args, expected);
         self.construct(e, args, d)
+    }
+
+    /// 泛型 struct 的构造推断：实参按位对应模板字段，统一出 `T` → 实例。
+    fn infer_struct_targs(
+        &mut self,
+        e: &ast::EPtr,
+        d: u32,
+        args: &[ast::N<ast::Arg>],
+    ) -> u32 {
+        let ngen = self.typedefs[d as usize].generics.len();
+        if ngen == 0 {
+            return d;
+        }
+        let fields: Vec<Ty> = self.typedefs[d as usize]
+            .fields
+            .iter()
+            .map(|f| f.1.clone())
+            .collect();
+        let names: Vec<String> = self.typedefs[d as usize]
+            .generics
+            .iter()
+            .map(|g| g.0.clone())
+            .collect();
+        let mut arg_tys: Vec<Ty> = Vec::with_capacity(args.len());
+        for a in args {
+            if matches!(a.k.expr.k, Expr::AnonFunc { .. }) {
+                arg_tys.push(t_object());
+                continue;
+            }
+            arg_tys.push(self.check_expr(&a.k.expr, None));
+        }
+        let mut subst: HashMap<String, Ty> = HashMap::new();
+        for (i, aty) in arg_tys.iter().enumerate() {
+            if let Some(fty) = fields.get(i) {
+                self.unify(fty, aty, &names, &mut subst);
+            }
+        }
+        let targs: Vec<Ty> = names
+            .iter()
+            .map(|n| subst.get(n).cloned().unwrap_or_else(t_object))
+            .collect();
+        if targs.iter().any(|t| matches!(&**t, TyS::Object)) {
+            let dname = self.typedefs[d as usize].name.clone();
+            self.err(
+                "E4037",
+                &e.tok,
+                "T-16",
+                "无法推断 `{0}` 的类型实参；给变量标注类型，或把构造实参写成具体类型",
+                &[&dname],
+            );
+            return d;
+        }
+        self.materialize(d, &targs, &e.tok)
+    }
+
+    /// 泛型类的 `new` 目标解析：期望类型命中实例 → 直接用；否则用 ctor
+    /// 形参（含 `Param`）对实参做统一；推不出报 `E4037`。
+    fn infer_new_targs(
+        &mut self,
+        e: &ast::EPtr,
+        d: u32,
+        args: &[ast::N<ast::Arg>],
+        expected: Option<&Ty>,
+    ) -> u32 {
+        let ngen = self.typedefs[d as usize].generics.len();
+        if ngen == 0 {
+            return d;
+        }
+        // 1) ctor 形参统一推断（匿名函数没有目标类型会报 E4043，推断期跳过）。
+        //    实参推断优先于期望类型：`Box<int> b = new Box(new Box(1))` 这类
+        //    写错实参的代码要报"实参与 T 不符"，而不是被期望类型悄悄带过。
+        // 2) 推不出再看期望类型是否已是本模板的实例（零参构造等场景）。
+        let ctor_params: Vec<(String, Ty, Option<String>)> = match self.typedefs[d as usize].ctor {
+            Some(c) => self.funcs[c].params.clone(),
+            None => Vec::new(),
+        };
+        let mut arg_tys: Vec<Ty> = Vec::with_capacity(args.len());
+        for a in args {
+            if matches!(a.k.expr.k, Expr::AnonFunc { .. }) {
+                arg_tys.push(t_object());
+                continue;
+            }
+            arg_tys.push(self.check_expr(&a.k.expr, None));
+        }
+        let names: Vec<String> = self.typedefs[d as usize]
+            .generics
+            .iter()
+            .map(|g| g.0.clone())
+            .collect();
+        let mut subst: HashMap<String, Ty> = HashMap::new();
+        for (i, aty) in arg_tys.iter().enumerate() {
+            if let Some(p) = ctor_params.get(i) {
+                self.unify(&p.1, aty, &names, &mut subst);
+            }
+        }
+        let targs: Vec<Ty> = names
+            .iter()
+            .map(|n| subst.get(n).cloned().unwrap_or_else(t_object))
+            .collect();
+        if !targs.iter().any(|t| matches!(&**t, TyS::Object)) {
+            return self.materialize(d, &targs, &e.tok);
+        }
+        // 2) 期望类型兜底
+        if let Some(t) = expected {
+            if let TyS::Named(DefId::Id(id), _) = &**t {
+                if let Some((tmpl, _)) = self.mat_of.get(id) {
+                    if *tmpl == d {
+                        return *id;
+                    }
+                }
+            }
+        }
+        let dname = self.typedefs[d as usize].name.clone();
+        self.err(
+            "E4037",
+            &e.tok,
+            "T-16",
+            "无法推断 `{0}` 的类型实参；给变量标注类型，或把构造实参写成具体类型",
+            &[&dname],
+        );
+        d
     }
 }

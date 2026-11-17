@@ -155,6 +155,8 @@ pub fn tag_of(ty: &Ty) -> u32 {    match &**ty {
 /// `tmp_n` 为临时变量编号；`emitted` 去重已生成 C 定义的类型。
 pub struct CodeGen<'s, 'a> {
     pub s: &'s Sema<'a>,
+    /// 当前生成中的单态化实例号（槽表键的高 32 位；0 = 非泛型世界）
+    pub cur_inst: u32,
     pub path: String,
     pub mod_name: String,
     pub emitted: HashSet<Ty>,
@@ -169,6 +171,12 @@ pub struct CodeGen<'s, 'a> {
 }
 
 impl<'s, 'a> CodeGen<'s, 'a> {
+    /// 槽表键控读取：按当前实例号取（与 Sema::skey 同一公式）。
+    pub fn slot(&self, id: &u32) -> Option<&crate::sema::Slot> {
+        let k = ((self.cur_inst as u64) << 32) | *id as u64;
+        self.s.slots.get(&k)
+    }
+
     pub fn new(s: &'s Sema<'a>, path: &str) -> Self {
         let base = std::path::Path::new(path)
             .file_stem()
@@ -178,6 +186,7 @@ impl<'s, 'a> CodeGen<'s, 'a> {
             s,
             path: path.to_string(),
             mod_name: san(&base),
+            cur_inst: 0,
             emitted: HashSet::new(),
             emitted_defs: HashSet::new(),
             type_defs: Vec::new(),
@@ -341,6 +350,13 @@ impl<'s, 'a> CodeGen<'s, 'a> {
                 if file_ {
                     // 运行时已定义同形结构（axrt.h 的 ax_res_file）
                     self.type_defs.push(format!("typedef ax_res_file {};", name));
+                    return;
+                }
+                let json_map = matches!(&**inner, TyS::Map(k, v)
+                    if matches!(&**k, TyS::Str) && matches!(&**v, TyS::Object));
+                if json_map {
+                    // json.Parse 的返回形态：运行时已定义同形结构（axrt.h 的 ax_res_map）
+                    self.type_defs.push(format!("typedef ax_res_map {};", name));
                     return;
                 }
                 let it = self.ct(inner);
@@ -524,9 +540,9 @@ impl<'s, 'a> CodeGen<'s, 'a> {
 
     pub fn run(&mut self) -> String {
         let s = self.s;
-        // 前向声明所有 class 及其虚表
+        // 前向声明所有 class 及其虚表（泛型模板不生成，只生成实例）
         for d in &s.typedefs {
-            if d.kind == "class" {
+            if d.kind == "class" && d.generics.is_empty() {
                 let n = san(&d.name);
                 self.forward
                     .push(format!("typedef struct {0} {0};", n));
@@ -541,9 +557,9 @@ impl<'s, 'a> CodeGen<'s, 'a> {
                     .push(format!("typedef struct {0} {0};", n));
             }
         }
-        // 结构体 / 类体定义
+        // 结构体 / 类体定义（泛型模板跳过）
         for d in &s.typedefs {
-            if d.kind == "class" || d.kind == "struct" {
+            if (d.kind == "class" || d.kind == "struct") && d.generics.is_empty() {
                 let d = d.clone();
                 self.need_typedef(&d);
             }
@@ -555,9 +571,9 @@ impl<'s, 'a> CodeGen<'s, 'a> {
                 self.need_typedef(&d);
             }
         }
-        // 收集所有用到的类型
+        // 收集所有用到的类型（泛型模板跳过——实例各自收集）
         for d in &s.typedefs {
-            if d.kind == "class" || d.kind == "struct" {
+            if (d.kind == "class" || d.kind == "struct") && d.generics.is_empty() {
                 let d = d.clone();
                 for (_, ft, _, _) in &d.fields {
                     self.need(ft);
@@ -600,13 +616,15 @@ impl<'s, 'a> CodeGen<'s, 'a> {
         let mut fns: Vec<String> = Vec::new();
         let free_ids: Vec<usize> = (0..s.funcs.len())
             .filter(|&i| s.funcs[i].owner.is_none())
+            // 泛型模板不生成（GX-01/02）：只生成单态化实例
+            .filter(|&i| s.funcs[i].generics.is_empty())
             .collect();
         for fid in free_ids {
             let cname = self.fn_name_idx(fid);
             fns.push(self.gen_func(fid, cname, None));
         }
         for d in &s.typedefs {
-            if d.kind == "class" || d.kind == "struct" {
+            if (d.kind == "class" || d.kind == "struct") && d.generics.is_empty() {
                 let d = d.clone();
                 fns.extend(self.gen_type_methods(&d));
             }
@@ -666,17 +684,23 @@ impl<'s, 'a> CodeGen<'s, 'a> {
 
     pub fn fn_name_idx(&self, fid: usize) -> String {
         let f = &self.s.funcs[fid];
+        // 单态化实例：函数名后拼 mangle 后缀（`max$int` → `ax__max_int`）
+        let inst_suffix = match &f.mangle {
+            Some(m) => format!("_{}", san(&m.replace('$', "_"))),
+            None => String::new(),
+        };
         match f.owner {
             Some(o) => {
                 let d = self.s.typedefs[o as usize].clone();
                 format!(
-                    "{}__{}__{}",
+                    "{}__{}__{}{}",
                     self.mod_name,
                     self.class_name(&d),
-                    san(&f.name)
+                    san(&f.name),
+                    inst_suffix
                 )
             }
-            None => format!("{}__{}", self.mod_name, san(&f.name)),
+            None => format!("{}__{}{}", self.mod_name, san(&f.name), inst_suffix),
         }
     }
 
@@ -758,6 +782,8 @@ impl<'s, 'a> CodeGen<'s, 'a> {
     pub fn gen_func(&mut self, fid: usize, cname: String, owner: Option<u32>) -> String {
         // self.s 是 &'s Sema，这里取到的 &'s FuncInfo 与 &mut self 互不冲突
         let s = self.s;
+        // 槽表按实例号隔离：生成实例函数体时切到该实例的槽
+        self.cur_inst = s.inst_slot_of.get(&fid).copied().unwrap_or(0);
         let f: &'s crate::sema::FuncInfo<'a> = &s.funcs[fid];
         let mut fg = crate::backend::codegen_fn::FnGen::new(self, f, cname, owner, false);
         let decl = fg.decl();
@@ -788,6 +814,10 @@ impl<'s, 'a> CodeGen<'s, 'a> {
         let mut out = Vec::new();
         let nm = format!("{}__{}__init", self.mod_name, self.class_name(d));
         let ctor_fid = d.ctor;
+        // 槽键：实例类的 ctor 是实例函数，用它的实例号；普通类回 0
+        self.cur_inst = ctor_fid
+            .and_then(|c| self.s.inst_slot_of.get(&c).copied())
+            .unwrap_or(0);
         let ctor_params: Vec<(String, Ty, Option<String>)> = match ctor_fid {
             Some(c) => self.s.funcs[c].params.clone(),
             None => Vec::new(),
@@ -842,7 +872,7 @@ impl<'s, 'a> CodeGen<'s, 'a> {
     pub fn build_vtables(&mut self) -> Vec<String> {
         let mut out = Vec::new();
         for d in &self.s.typedefs {
-            if d.kind != "class" {
+            if d.kind != "class" || !d.generics.is_empty() {
                 continue;
             }
             let d = d.clone();
@@ -889,7 +919,7 @@ impl<'s, 'a> CodeGen<'s, 'a> {
     pub fn build_iface_vtables(&mut self) -> Vec<String> {
         let mut out = Vec::new();
         for d in &self.s.typedefs {
-            if d.kind != "class" {
+            if d.kind != "class" || !d.generics.is_empty() {
                 continue;
             }
             let d = d.clone();

@@ -2,6 +2,9 @@
 Print("hello")
 //Print(123)
 int a = 10
-object s = typeof(a)
-Print(s)
+
+//Print(typeof(a),a)
+Print(a++)
+Print(a+2)
+Print(a+2, a+5)
 //}

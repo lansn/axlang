@@ -10,11 +10,13 @@
 
 | 函数 | 签名 / 说明 |
 |---|---|
-| `Print` | Print(s: string)——输出不换行 |
-| `Println` | Println(s: string)——输出并换行 |
+| `Print` | Print(s: string) / Print(x: 可插值)——输出不换行；实参非字符串时等价于 `Print("{x}")` |
+| `Println` | Println(s: string) / Println(x: 可插值)——输出并换行；实参非字符串时等价于 `Println("{x}")` |
 | `ok` | ok(v: T) -> result<T>——构造成功结果，配合 try/throw 使用 |
 | `fail` | fail(e: error)——构造失败结果，只允许在返回 result 的函数内 |
 | `parent` | parent(实参...)——在子类 constructor 第一条语句调用父类构造器 |
+| `typeof` | typeof(expr: 表达式) -> string——编译期常量，返回实参静态类型显示名（int / int8 / Dog / int[] / int? / map<string, object>）；生成字符串字面量，零运行时开销 |
+| `sizeof` | sizeof(expr: 表达式) -> int——编译期大小：实参类型在 C 侧的存储字节数（int=8 / uint8=1 / string=16 / int[]=24 / class=指针 8）；对象本身的大小不在此问 |
 
 ## 内建模块（`BUILTIN_MODULES`）
 

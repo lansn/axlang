@@ -1,0 +1,36 @@
+// 类型模式（文稿 5.3）：object 箱按装箱 tag 判定，类引用按对象真实 tag 判定，
+// 标量模式用于异构 object 数组的分流
+class Animal {
+    public string name
+    constructor(string name) { this.name = name }
+}
+class Dog extend Animal {
+    constructor(string name) { parent(name) }
+}
+class Cat extend Animal {
+    constructor(string name) { parent(name) }
+}
+int main() {
+    object o = new Dog("旺财")
+    match o {
+        Dog d => Println("object→Dog：{d.name}"),
+        Cat c => Println("object→Cat：{c.name}"),
+        _ => Println("其他")
+    }
+    Animal a = new Cat("咪咪")
+    match a {
+        Dog d => Println("ref→Dog：{d.name}"),
+        Cat c => Println("ref→Cat：{c.name}"),
+        _ => Println("其他")
+    }
+    object[] xs = [42, "文本"]
+    match xs[0] {
+        int n => Println("标量 int：{n}"),
+        _ => Println("非 int")
+    }
+    match xs[1] {
+        string s => Println("标量 string：{s}"),
+        _ => Println("非 string")
+    }
+    return 0
+}
