@@ -646,8 +646,11 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             }
             Expr::This => ("self".to_string(), true),
             _ => {
-                let expr = self.gen(node, None, false, false);
                 let ty = self.ty_or_int(node.id);
+                // 复杂接收者（下标、字段链、调用结果……）落临时变量再取成员：
+                // 裸表达式（如 `*(T**)ax_arr_at(...)`）直接接 `->field` 会被 C
+                // 解析成 `*(...->field)`——一元 `*` 低于后缀 `->`。
+                let expr = self.hoist(node, &ty);
                 if let TyS::Named(did, _) = &*ty {
                     let is_class = self.cg.def_of(did).map_or(false, |d| d.kind == "class");
                     if is_class {

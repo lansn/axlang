@@ -105,9 +105,9 @@ impl<'a> Sema<'a> {
                         }
                         if matches!(&*pt, TyS::Object) {
                             self.err("E5002", &expr.tok, "T-10", "插值里不能直接用 object；先落成具体类型", &[]);
-                        } else if !interp_supported(&pt) {
+                        } else if !interp_supported(&pt) && !self.implements_printable(&pt) {
                             let t = self.ts(&pt);
-                            self.err("E5006", &expr.tok, "文稿 11.2", "插值暂不支持 `{0}` 类型；先取其中的标量或自己拼接", &[&t]);
+                            self.err("E5006", &expr.tok, "文稿 11.2", "插值暂不支持 `{0}` 类型；先取其中的标量或自己拼接（实现 `Printable.to_string` 后即可直接插值）", &[&t]);
                         }
                     }
                 }
@@ -1562,16 +1562,28 @@ impl<'a> Sema<'a> {
                         .typedefs
                         .get(*src as usize)
                         .map_or(false, |sd| sd.kind == "class" || sd.kind == "interface");
-                    if src_known && *src != d {
-                        let src_name = self.typedefs[*src as usize].name.clone();
-                        if self.is_subclass(d, *src) || self.implements(d, *src) {
-                            self.err("E5003", &e.tok, "C-14", "向下转型的目标必须是子类（`{0}` 不是 `{1}` 的子类）", &[&dname, &src_name]);
-                        }
+                if src_known && *src != d {
+                    let src_name = self.typedefs[*src as usize].name.clone();
+                    let src_kind = self.typedefs[*src as usize].kind;
+                    if self.is_subclass(*src, d) {
+                        // 源是目标的子类：这其实是上转，值已是目标类型，恒成立
                         let s = self.sl(e.id);
-                        s.conv = Some("downcast");
+                        s.conv = Some("upcast");
                         s.cast_to = Some(t_named(DefId::Id(d), Vec::new()));
                         return t_named(DefId::Id(d), Vec::new());
                     }
+                    // 合法下转 = 源是目标的父类，或源是 interface（文稿 3.1：
+                    // 父类/interface → 派生类写 `Dog(a)`，运行时检查）。
+                    // 互不为父子的两个 class 下转不可能成立，编译期就拒绝。
+                    let impossible = src_kind == "class" && !self.is_subclass(d, *src);
+                    if impossible {
+                        self.err("E5003", &e.tok, "C-14", "向下转型的目标必须是 `{0}` 的子类（`{1}` 与它没有继承关系）", &[&src_name, &dname]);
+                    }
+                    let s = self.sl(e.id);
+                    s.conv = Some("downcast");
+                    s.cast_to = Some(t_named(DefId::Id(d), Vec::new()));
+                    return t_named(DefId::Id(d), Vec::new());
+                }
                 }
             }
             return self.construct(e, args, d);

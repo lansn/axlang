@@ -7,6 +7,48 @@
 > **1.0 及以上永远保留给语法冻结**（语言设计不再做破坏性变更）之后。
 > 阶段进位条件见 `ARCHITECTURE.md` §8。
 
+## [0.0.17] — 2026-11
+
+### 内建 interface 落地（文稿 7.1，GAP #10/#12）
+- **`Comparable` / `Hashable` / `Printable` 预置在根模块**：无需 import、不可重名声明
+  （重名 → `E3018`）。方法签名：`int compare(Self other)` / `uint hash()` / `string to_string()`，
+  声明为占位 FuncInfo（无默认方法体），实现类必须提供实现（缺失 → `E3019`）。
+- **`Self` 语义**：签名参数声明为 interface（Self）时，实现方直接写实现类类型——
+  implement 签名对照放宽匹配；派发处生成转换 thunk（胖指针 `.obj` → 实现类指针），
+  `Comparable ca = m; ca.compare(other)` 经 shim 虚表动态派发。
+- **`Printable` 接入插值（GAP #12 剩余）**：class / struct 实现 `to_string()` 后
+  `{p}` 直接插值；`Printable` 接口变量本身经虚表派发；可空形式有值显示、`null` 显示 `null`。
+  未实现的 class 插值仍报 `E5006`。
+- **数组 `Sort(cmp)` codegen（GAP #10）**：每个调用点派生文件级 qsort 适配器
+  （比较器暂存 + `(const void*, const void*)` 收敛），匿名函数 / 命名函数 / 函数值均可作比较器；
+  元素为 class / struct / string / 数值皆可。此前 sema 有签名、后端静默返回 `"0"`。
+
+### 修复
+- **`recv_c` 优先级坑**：复杂接收者的字段访问裸接 `->field` 被 C 解析成
+  `*(...->field)`（`ps[0].name` 编译失败）——复杂接收者先落临时变量。
+- **`ax_narrow` 的 `uint64` 分支 UB**：`1 << 64` 在 x86 移位量取模得 1 → 上界算成 0，
+  任何正数 `uint(x)` 都 trap「超出范围」——64 位特判 `UINT64_MAX`。
+- **interface 缺实现漏报**：`find_method` 的兜底（0.0.16 为类接收者调 interface
+  独有方法而加）会把 interface 签名本身返回回来，implement 校验被骗成 `Some`——
+  校验处改为仅沿父类链查找实现。
+- **下转 `T(x)` 语义写反**：合法的 `Dog(父类值)` 被报 `E5003`、无意义的
+  `Animal(子类值)` 反而放行成运行时 trap——改为：源是目标子类 = 上转恒成立；
+  源是目标父类或 interface = 合法下转（运行时 tag 检查）；互不为父子的两个
+  class 编译期拒绝。interface 胖指针作下转源时 codegen 先取 `.obj`。
+  回归用例 `tests/run/Down-1.ax`。
+- **object 自动解箱（0.0.16 追加）**：`string t = a[3]`（`a: object[]`）自动解箱路径
+  codegen 漏了，裸拷贝盒子指针 → C `invalid initializer`；`coerce_c` 统一出口补齐，
+  运行时标签不符 `R107` 终止。
+
+### 测试
+- 新增 `Sort-1`（三种比较器）、`Printable-1`（插值四场景）、`Comp-1`（Self 派发 / 多
+  implement / hash）、`Box-1`（object[] 装箱解箱）、`Printable-neg-1/2/3`
+  （重名声明 `E3018` / 未实现插值 `E5006` / 缺实现 `E3019`）。
+- 全部新用例 `-Werror` 构建零警告。
+
+### 验收
+`cargo build --release` 零警告 + **132/132** 通过（125 → 132），示例 **13/13**。
+
 ## [0.0.16] — 2026-11
 
 ### interface 多态落地（GAP #13 核心）

@@ -605,12 +605,20 @@ impl<'a> Lexer<'a> {
                     self.i += 2;
                     continue;
                 }
-                if !buf.is_empty() {
-                    parts.push(StrPart::Text(std::mem::take(&mut buf)));
+                // 插值判定：`{` 后（跳过空白）是标识符 / `this` / `(` 才进入
+                // 插值——`{` 开头的字面文本（如 JSON `{"k":1}`）不再被误当
+                // 插值解析；要写字面 `{` 插值表达式仍可用 `{{`。
+                if self.interp_start() {
+                    if !buf.is_empty() {
+                        parts.push(StrPart::Text(std::mem::take(&mut buf)));
+                    }
+                    if let Some(part) = self.interp() {
+                        parts.push(part);
+                    }
+                    continue;
                 }
-                if let Some(part) = self.interp() {
-                    parts.push(part);
-                }
+                buf.push('{');
+                self.i += 1;
                 continue;
             }
             if ch == '}' && self.here_is(&['}', '}']) {
@@ -695,6 +703,20 @@ impl<'a> Lexer<'a> {
         let text = self.slice(self.i + 1, j);
         self.emit("STR", TokVal::Str(vec![StrPart::Text(text)]), i0, j + 1);
         self.i = j + 1;
+    }
+
+    /// `{` 是否开启插值：其后（跳过空白）是标识符字符 / `(` / `t`（this）。
+    /// `{` 后跟其它字符（引号、反斜杠、数字……）一律当字面 `{`。
+    fn interp_start(&self) -> bool {
+        let mut j = self.i + 1;
+        while j < self.n && (self.src[j] == ' ' || self.src[j] == '\t') {
+            j += 1;
+        }
+        if j >= self.n {
+            return false;
+        }
+        let c = self.src[j];
+        c == '(' || c == '_' || c.is_ascii_alphabetic() || (c as u32) > 127
     }
 
     /// self.i 指向 `{`。返回插值片段或 None。

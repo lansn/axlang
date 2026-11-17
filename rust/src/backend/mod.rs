@@ -162,6 +162,9 @@ pub struct CodeGen<'s, 'a> {
     pub type_defs: Vec<String>,
     pub forward: Vec<String>,
     pub fn_decls: Vec<String>,
+    /// 函数体生成期间临时派生的文件级定义（如 `Sort(cmp)` 的 qsort 适配器），
+    /// 拼接时排在 fns 之后（其引用的 axfn_/元素类型定义在 type_defs，先于此处）。
+    pub extra_fns: Vec<String>,
     pub tmp_n: u32,
 }
 
@@ -180,6 +183,7 @@ impl<'s, 'a> CodeGen<'s, 'a> {
             type_defs: Vec::new(),
             forward: Vec::new(),
             fn_decls: Vec::new(),
+            extra_fns: Vec::new(),
             tmp_n: 0,
         }
     }
@@ -466,7 +470,7 @@ impl<'s, 'a> CodeGen<'s, 'a> {
             // 组合专属的 shim 虚表（GAP #13）。方法序 = all_iface_methods（自身在前、
             // extend 的追加在后），与 shim 初始化、调用点按字段名访问保持一致。
             let entries = self.iface_entries(&d);
-            for (_, ret, ptys) in &entries {
+            for (_, ret, ptys, _) in &entries {
                 self.need(ret);
                 for p in ptys {
                     self.need(p);
@@ -474,7 +478,7 @@ impl<'s, 'a> CodeGen<'s, 'a> {
             }
             let iname = format!("Iface_{}", san(&d.name));
             let mut lines: Vec<String> = Vec::new();
-            for (name, ret, ptys) in &entries {
+            for (name, ret, ptys, _) in &entries {
                 let mut ps = vec!["void*".to_string()];
                 ps.extend(ptys.iter().map(|p| self.ct(p)));
                 lines.push(format!(
@@ -499,8 +503,8 @@ impl<'s, 'a> CodeGen<'s, 'a> {
         }
     }
 
-    /// interface 的虚表条目（拉平 extends 链）：方法名 → (返回类型，参数类型)。
-    pub fn iface_entries(&self, d: &TypeDef) -> Vec<(String, Ty, Vec<Ty>)> {
+    /// interface 的虚表条目（拉平 extends 链）：方法名 → (返回类型，参数类型，签名 fid)。
+    pub fn iface_entries(&self, d: &TypeDef) -> Vec<(String, Ty, Vec<Ty>, usize)> {
         self.s
             .all_iface_methods(d.id)
             .into_iter()
@@ -510,6 +514,7 @@ impl<'s, 'a> CodeGen<'s, 'a> {
                     name,
                     f.ret.clone(),
                     f.params.iter().map(|p| p.1.clone()).collect(),
+                    fid,
                 )
             })
             .collect()
@@ -651,6 +656,7 @@ impl<'s, 'a> CodeGen<'s, 'a> {
         body.extend(consts_c);
         body.push(String::new());
         body.extend(fns);
+        body.extend(self.extra_fns.iter().cloned());
         body.push(String::new());
         body.push(self.gen_main_wrapper());
         body.join("\n")
@@ -927,17 +933,98 @@ impl<'s, 'a> CodeGen<'s, 'a> {
                     "__attribute__((unused)) static {}_VT {} = {{",
                     iname, vt_name
                 )];
-                for (k, (mname, _, _)) in entries.iter().enumerate() {
+                for (k, (mname, _, _, sig_fid)) in entries.iter().enumerate() {
                     let sep = if k + 1 < entries.len() { "," } else { "" };
-                    let impl_ = match self.class_impl_owner(&d, mname) {
+                    let entry = match self.class_impl_owner(&d, mname) {
                         Some(owner) => {
                             let od = self.s.typedefs[owner as usize].clone();
-                            format!(
+                            let impl_fid = match od.methods.get(mname) {
+                                Some(&f) => f,
+                                None => usize::MAX,
+                            };
+                            let direct = format!(
                                 "{}__{}__{}",
                                 self.mod_name,
                                 self.class_name(&od),
                                 san(mname)
-                            )
+                            );
+                            // Self 适配（文稿 7.1）：签名参数声明为 interface
+                            // （Self），实现参数是实现类——C 函数指针类型不同，
+                            // 生成转换 thunk（取胖指针 obj 落到实现类指针）。
+                            let adapter = match (impl_fid != usize::MAX)
+                                .then(|| ())
+                                .map(|_| {
+                                    let impl_f = &self.s.funcs[impl_fid];
+                                    let sig_f = &self.s.funcs[*sig_fid];
+                                    (
+                                        impl_f.params.iter().map(|p| p.1.clone()).collect::<Vec<_>>(),
+                                        sig_f.params.iter().map(|p| p.1.clone()).collect::<Vec<_>>(),
+                                        impl_f.ret.clone(),
+                                    )
+                                }) {
+                                Some((ipts, spts, ret)) if ipts != spts => {
+                                    let ad = format!(
+                                        "{}__{}__{}__ad",
+                                        self.mod_name,
+                                        self.class_name(&od),
+                                        san(mname)
+                                    );
+                                    let ret_c = self.ct(&ret);
+                                    let mut ps_decl = vec!["void* self_".to_string()];
+                                    let mut args = vec!["self_".to_string()];
+                                    for (j, (sp, ip)) in spts.iter().zip(ipts.iter()).enumerate() {
+                                        let pn = format!("p{}_{}", j, k);
+                                        ps_decl.push(format!("{} {}", self.ct(sp), pn));
+                                        let conv = match (&**sp, &**ip) {
+                                            (
+                                                TyS::Named(DefId::Id(i), _),
+                                                TyS::Named(DefId::Id(c), _),
+                                            ) => {
+                                                let is_iface = self
+                                                    .s
+                                                    .typedefs
+                                                    .get(*i as usize)
+                                                    .map_or(false, |td| td.kind == "interface");
+                                                let is_class = self
+                                                    .s
+                                                    .typedefs
+                                                    .get(*c as usize)
+                                                    .map_or(false, |td| td.kind == "class");
+                                                if is_iface && is_class {
+                                                    format!("({}){}.obj", self.ct(ip), pn)
+                                                } else {
+                                                    pn.clone()
+                                                }
+                                            }
+                                            _ => pn.clone(),
+                                        };
+                                        args.push(conv);
+                                    }
+                                    let proto = format!(
+                                        "static {} {}(void*, {});",
+                                        ret_c,
+                                        ad,
+                                        spts
+                                            .iter()
+                                            .map(|p| self.ct(p))
+                                            .collect::<Vec<_>>()
+                                            .join(", ")
+                                    );
+                                    let def = format!(
+                                        "static {} {}({}) {{\n  return {}({});\n}}",
+                                        ret_c,
+                                        ad,
+                                        ps_decl.join(", "),
+                                        direct,
+                                        args.join(", ")
+                                    );
+                                    self.fn_decls.push(proto);
+                                    self.extra_fns.push(def);
+                                    ad
+                                }
+                                _ => direct,
+                            };
+                            adapter
                         }
                         None => {
                             // 类链上没有实现：用 interface 默认方法体
@@ -949,7 +1036,7 @@ impl<'s, 'a> CodeGen<'s, 'a> {
                             )
                         }
                     };
-                    lines.push(format!("  {}{}", impl_, sep));
+                    lines.push(format!("  {}{}", entry, sep));
                 }
                 if entries.is_empty() {
                     lines.push("  0".to_string());

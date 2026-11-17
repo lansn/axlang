@@ -424,7 +424,7 @@
 
 | `E5005` | `{0}(x)` 只能有一个实参（构造请用构造调用）（C-1） | `{0}(x)` takes exactly one argument (use a constructor call to construct) |
 
-| `E5006` | 插值暂不支持 `{0}` 类型；先取其中的标量或自己拼接（文稿 11.2） | interpolation does not support type `{0}` yet; extract a scalar from it or concatenate manually |
+| `E5006` | 插值暂不支持 `{0}` 类型；先取其中的标量或自己拼接 | interpolation does not support type `{0}` yet; extract a scalar from it or concatenate manually |
 
 ## E6（match / 错误传播）
 

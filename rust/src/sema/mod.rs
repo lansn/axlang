@@ -526,7 +526,7 @@ pub fn dummy_tok() -> Tok {
 
 impl<'a> Sema<'a> {
     pub fn new(mod_: &'a ast::Module, d: &'a mut Diags, path: &str, require_main: bool) -> Self {
-        Sema {
+        let mut sema = Sema {
             mod_,
             d,
             path: path.to_string(),
@@ -571,6 +571,87 @@ impl<'a> Sema<'a> {
             typedef_mod: Vec::new(),
             bare_type_ambig: HashSet::new(),
             next_node_id: 1_000_000_000,
+        };
+        sema.seed_builtin_ifaces();
+        sema
+    }
+
+    /// 内建 interface（文稿 7.1）：`Comparable` / `Hashable` / `Printable`
+    /// 预置在根模块，无需 import，用户不可重名声明（types 表占用 → E3018）。
+    /// 方法签名是占位 FuncInfo（无 body）：实现类必须提供实现，
+    /// `Comparable.compare(Self other)` 的 Self 在实现方写实现类类型即可（见
+    /// implement 签名对照处的 Self 放宽）。
+    fn seed_builtin_ifaces(&mut self) {
+        let mut ids: HashMap<&str, u32> = HashMap::new();
+        for name in ["Comparable", "Hashable", "Printable"] {
+            // id 约定 == typedefs 下标（见 new_typedef），预置的三条占 0..3
+            let id = self.typedefs.len() as u32;
+            self.next_type_id += 1;
+            self.typedefs.push(TypeDef {
+                id,
+                name: name.to_string(),
+                kind: "interface",
+                tok: dummy_tok(),
+                vis: "public".to_string(),
+                generics: Vec::new(),
+                fields: Vec::new(),
+                methods: BTreeMap::new(),
+                ctor: None,
+                ctor_count: 0,
+                parent: None,
+                impls: Vec::new(),
+                extends: Vec::new(),
+                variants: Vec::new(),
+                alias_target: None,
+                alias_node: None,
+                nested: BTreeMap::new(),
+                expanding: false,
+            });
+            // typedef_mod 与 typedefs 平行：预置的三条都属于根模块
+            self.typedef_mod.push(None);
+            self.types.insert(name.to_string(), id);
+            ids.insert(name, id);
+        }
+        let sigs: [(&str, &str, Vec<(&str, Ty)>, Ty); 3] = [
+            (
+                "Comparable",
+                "compare",
+                vec![(
+                    "other",
+                    t_named(
+                        DefId::Id(*ids.get("Comparable").unwrap()),
+                        Vec::new(),
+                    ),
+                )],
+                t_int(),
+            ),
+            ("Hashable", "hash", vec![], t_uint()),
+            ("Printable", "to_string", vec![], t_string()),
+        ];
+        for (iname, mname, params, ret) in sigs {
+            let owner = *ids.get(iname).unwrap();
+            let f = FuncInfo {
+                name: mname.to_string(),
+                tok: dummy_tok(),
+                module: String::new(),
+                owner: Some(owner),
+                params: params
+                    .into_iter()
+                    .map(|(n, t)| (n.to_string(), t, None))
+                    .collect(),
+                ret,
+                generics: Vec::new(),
+                vis: "public".to_string(),
+                is_static: false,
+                is_override: false,
+                body: None,
+                implicit: false,
+            };
+            self.funcs.push(f);
+            let fid = self.funcs.len() - 1;
+            self.typedefs[owner as usize]
+                .methods
+                .insert(mname.to_string(), fid);
         }
     }
 
@@ -934,6 +1015,33 @@ impl<'a> Sema<'a> {
             }
         }
         false
+    }
+
+    /// 该类型的值能否直接进字符串插值——在 interp_supported 之外，
+    /// class / struct（含可空形式）实现内建 `Printable`（`to_string()`）即可
+    /// （文稿 7.1 / 11.2，GAP #12 剩余部分的接入点）。
+    pub fn implements_printable(&self, t: &Ty) -> bool {
+        let cid = match &**t {
+            TyS::Named(DefId::Id(i), _) => *i,
+            TyS::Nullable(inner) => match &**inner {
+                TyS::Named(DefId::Id(i), _) => *i,
+                _ => return false,
+            },
+            _ => return false,
+        };
+        let pd = match self.types.get("Printable") {
+            Some(&p) => p,
+            None => return false,
+        };
+        let td = match self.typedefs.get(cid as usize) {
+            Some(td) => td,
+            None => return false,
+        };
+        // Printable 类型变量本身（接口引用，动态派发 to_string）
+        if td.kind == "interface" && cid == pd {
+            return true;
+        }
+        (td.kind == "class" || td.kind == "struct") && self.implements(cid, pd)
     }
 
     // ---------------------------------------------------------------- 收集
@@ -2025,7 +2133,19 @@ impl<'a> Sema<'a> {
             // interface 实现
             for iface in &impls {
                 for (iname, sig) in self.all_iface_methods(*iface) {
-                    let m = self.find_method(d, &iname);
+                    // 只沿父类链找实现——不能用 find_method：它的兜底会把
+                    // interface 方法签名本身返回回来（类接收者调 interface
+                    // 独有方法的路径），缺实现检测会被它骗成 Some。
+                    let mut m: Option<usize> = None;
+                    let mut cur = Some(d);
+                    while let Some(c) = cur {
+                        let td = &self.typedefs[c as usize];
+                        if let Some(&x) = td.methods.get(&iname) {
+                            m = Some(x);
+                            break;
+                        }
+                        cur = td.parent;
+                    }
                     match m {
                         None => {
                             if self.funcs[sig].body.is_none() {
@@ -2036,15 +2156,39 @@ impl<'a> Sema<'a> {
                             let same = {
                                 let a = &self.funcs[m];
                                 let b = &self.funcs[sig];
-                                a.params
-                                    .iter()
-                                    .map(|p| &p.1)
-                                    .collect::<Vec<_>>()
-                                    == b.params
-                                        .iter()
-                                        .map(|p| &p.1)
-                                        .collect::<Vec<_>>()
-                                    && a.ret == b.ret
+                                // Self 语义（文稿 7.1）：签名参数声明为某个
+                                // interface（如 Comparable 的 compare(Self)）
+                                // 时，实现方写实现类类型——Self 在实现类里
+                                // 就是实现类自己。
+                                let params_match =
+                                    a.params.len() == b.params.len()
+                                        && a.params.iter().zip(b.params.iter()).all(
+                                            |(pa, pb)| {
+                                                if pa.1 == pb.1 {
+                                                    return true;
+                                                }
+                                                match (&*pa.1, &*pb.1) {
+                                                    (
+                                                        TyS::Named(DefId::Id(c), _),
+                                                        TyS::Named(DefId::Id(i), _),
+                                                    ) => {
+                                                        *c == d
+                                                            && self
+                                                                .typedefs
+                                                                .get(*i as usize)
+                                                                .map_or(
+                                                                    false,
+                                                                    |td| {
+                                                                        td.kind
+                                                                            == "interface"
+                                                                    },
+                                                                )
+                                                    }
+                                                    _ => false,
+                                                }
+                                            },
+                                        );
+                                params_match && a.ret == b.ret
                             };
                             if !same {
                                 let m_tok = self.funcs[m].tok.clone();

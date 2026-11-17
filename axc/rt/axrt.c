@@ -991,7 +991,8 @@ int64_t ax_narrow(int64_t v, int bits, int is_signed, const char* f, int l, int 
         if (v < lo || v > hi)
             ax_trap(R_CONVERT, f, l, c, "%" PRId64 " 超出 int%d 范围", v, bits);
     } else {
-        uint64_t hi = ((uint64_t)1 << bits) - 1;
+        /* bits==64 时 `1 << 64` 是 UB（x86 移位量取模 → 1），必须特判 */
+        uint64_t hi = (bits >= 64) ? UINT64_MAX : (((uint64_t)1 << bits) - 1);
         if (v < 0 || (uint64_t)v > hi)
             ax_trap(R_CONVERT, f, l, c, "%" PRId64 " 超出 uint%d 范围", v, bits);
     }

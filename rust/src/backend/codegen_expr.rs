@@ -407,6 +407,55 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                     self.emit(format!("ax_sb_push(&{}, {});", sb, en))
                 }
                 TyS::Int(..) => self.emit(format!("ax_sb_push_int(&{}, (int64_t)({}));", sb, val)),
+                TyS::Named(did, _) => {
+                    // Printable（文稿 7.1）：实现类/struct 直接调 to_string；
+                    // Printable 类型变量本身经虚表动态派发。可空形式已在
+                    // 上面的 Nullable 分支拆包，落到这里的内层值。
+                    let printable = self.cg.s.types.get("Printable").copied();
+                    let handled = match (printable, did) {
+                        (Some(p), DefId::Id(c)) => {
+                            let c = *c;
+                            let td = self.cg.s.typedefs[c as usize].clone();
+                            if td.kind == "class" && self.cg.s.implements(c, p) {
+                                let fid = match td.methods.get("to_string") {
+                                    Some(&f) => f,
+                                    None => 0,
+                                };
+                                let fname = self.cg.fn_name_idx(fid);
+                                self.emit(format!("ax_sb_push(&{}, {}({}));", sb, fname, val));
+                                true
+                            } else if td.kind == "struct" && self.cg.s.implements(c, p) {
+                                let fid = match td.methods.get("to_string") {
+                                    Some(&f) => f,
+                                    None => 0,
+                                };
+                                let fname = self.cg.fn_name_idx(fid);
+                                self.emit(format!("ax_sb_push(&{}, {}(&{}));", sb, fname, val));
+                                true
+                            } else if td.kind == "interface" && c == p {
+                                let iname = format!("Iface_{}", san(&td.name));
+                                self.emit(format!(
+                                    "ax_sb_push(&{sb}, (({iname}_VT*){val}.vt)->to_string((void*){val}.obj));",
+                                    sb = sb,
+                                    iname = iname,
+                                    val = val
+                                ));
+                                true
+                            } else {
+                                false
+                            }
+                        }
+                        _ => false,
+                    };
+                    if !handled {
+                        // 兜底：sema 应已拦下（E5006）。留注释而非静默 `?`，便于定位漏网类型。
+                        let name = self.cg.ct(ty);
+                        self.emit(format!(
+                            "ax_sb_push(&{}, ax_str_from_cstr(\"?\")); /* 插值未覆盖: {} */",
+                            sb, name
+                        ));
+                    }
+                }
                 // 兜底：sema 应已拦下（E5006）。留注释而非静默 `?`，便于定位漏网类型。
                 _ => {
                     let name = self.cg.ct(ty);
@@ -1009,13 +1058,21 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             Some("downcast") => {
                 let tid = tag_of(&dst);
                 let tv = self.declare(&src_ty, &v);
+                let dstc = self.cg.ct(&dst);
+                // 源是 interface（胖指针）时先取 .obj——对象指针在盒子里
+                let obj = match self.cg.def_of(&match &*src_ty {
+                    TyS::Named(d, _) => d.clone(),
+                    _ => DefId::Id(0),
+                }) {
+                    Some(d) if d.kind == "interface" => format!("(({}){}.obj)", dstc, tv),
+                    _ => tv.clone(),
+                };
                 let pa = self.pos_args(&e.tok);
                 self.emit(format!(
                     "if ({} == NULL || {}->__tag != {}u) ax_trap(107, {}, \"downcast\");",
-                    tv, tv, tid, pa
+                    obj, obj, tid, pa
                 ));
-                let dstc = self.cg.ct(&dst);
-                format!("({}){}", dstc, tv)
+                format!("({}){}", dstc, obj)
             }
             Some("record2struct") => {
                 let rv = self.declare(&src_ty, &v);
@@ -1565,6 +1622,45 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                     }
                     "Clear" => {
                         self.emit(format!("ax_arr_clear(&{});", tv));
+                        "0".to_string()
+                    }
+                    "Sort" => {
+                        // GAP #10：qsort + 文件级适配器。比较器是函数值（C 函数指针，
+                        // 值语义 func(T,T) int 返回 int64_t），qsort 要 (const void*, const void*)
+                        // 指针对——每个 Sort 调用点派生一个文件级适配器 + 比较器暂存变量。
+                        let et = et.clone();
+                        let etc = self.cg.ct(&et);
+                        let uid = self.tmpn();
+                        let ctx = format!("axsort_ctx_{}", uid);
+                        let cmpfn = format!("axsort_cmp_{}", uid);
+                        let fnty_ty = t_fn(vec![et.clone(), et.clone()], t_int());
+                        self.cg.need(&fnty_ty);
+                        let fnty = format!("axfn_{}", self.cg.cn(&fnty_ty));
+                        // 声明（qsort 调用点在函数体里，C 要求先声明；引用 axfn_
+                        // 类型定义，所以进 fn_decls——type_defs 之后、fns 之前）
+                        self.cg
+                            .fn_decls
+                            .push(format!("static int {}(const void*, const void*);", cmpfn));
+                        self.cg
+                            .fn_decls
+                            .push(format!("static {} {};", fnty, ctx));
+                        // 定义排在 fns 之后（引用 axfn_ 与元素类型定义，均在 type_defs）。
+                        // memcpy 取元素：值/指针元素统一，且不与比较器的非 const 形参冲突
+                        self.cg.extra_fns.push(format!(
+                            "static int {cmpfn}(const void* a_, const void* b_) {{\n  {etc} va_; {etc} vb_;\n  memcpy(&va_, a_, sizeof({etc}));\n  memcpy(&vb_, b_, sizeof({etc}));\n  return (int){ctx}(va_, vb_);\n}}",
+                            cmpfn = cmpfn,
+                            ctx = ctx,
+                            etc = etc
+                        ));
+                        self.emit(format!(
+                            "{ctx} = {cmp};",
+                            ctx = ctx,
+                            cmp = a[0]
+                        ));
+                        self.emit(format!(
+                            "qsort({0}.data, (size_t){0}.len, (size_t)sizeof({1}), {2});",
+                            tv, etc, cmpfn
+                        ));
                         "0".to_string()
                     }
                     "At" => {
