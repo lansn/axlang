@@ -865,7 +865,7 @@
  },
  {
   "code": "E4011",
-  "zh": "`float` 不能用 `{0}`（浮点比较请用 math.equals）"
+  "zh": "`float` 不能用 `{0}`（浮点比较请用 math.Equals）"
  },
  {
   "code": "E4012",
@@ -893,7 +893,7 @@
  },
  {
   "code": "E4017",
-  "zh": "`float` 不实现 Comparable（浮点比较请用 math.compare）"
+  "zh": "`float` 不实现 Comparable（浮点比较请用 math.Compare）"
  },
  {
   "code": "E4017",

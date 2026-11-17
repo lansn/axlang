@@ -25,28 +25,28 @@
 
 ### db
 
-| `db.query` | db.query(sql: string) -> result<Row[]>——执行查询，返回行数组 |
+| `db.Query` | db.Query(sql: string) -> result<Row[]>——执行查询，返回行数组 |
 
 ### file
 
-| `file.open` | file.open(path: string) -> result<File>——以读写打开文件 |
-| `file.create` | file.create(path: string) -> result<File>——创建/截断文件 |
-| `file.append` | file.append(path: string) -> result<File>——以追加打开文件 |
+| `file.Open` | file.Open(path: string) -> result<File>——以读写打开文件 |
+| `file.Create` | file.Create(path: string) -> result<File>——创建/截断文件 |
+| `file.Append` | file.Append(path: string) -> result<File>——以追加打开文件 |
 
 ### io
 
-| `io.read_line` | io.read_line() -> string?——从标准输入读一行；EOF 返回 null |
-| `io.read_file` | io.read_file(path: string) -> result<string>——读整个文本文件 |
+| `io.ReadLine` | io.ReadLine() -> string?——从标准输入读一行；EOF 返回 null |
+| `io.ReadFile` | io.ReadFile(path: string) -> result<string>——读整个文本文件 |
 
 ### json
 
-| `json.parse` | json.parse(s: string) -> result<map<string, object>>——解析 JSON 文本 |
-| `json.stringify` | json.stringify(v: object) -> string——序列化 object 为 JSON |
+| `json.Parse` | json.Parse(s: string) -> result<map<string, object>>——解析 JSON 文本 |
+| `json.Stringify` | json.Stringify(v: object) -> string——序列化 object 为 JSON |
 
 ### math
 
-| `math.equals` | math.equals(a: float, b: float, eps: float) -> bool——浮点带容差比较 |
-| `math.compare` | math.compare(a: float, b: float) -> int——浮点比较：-1/0/1 |
+| `math.Equals` | math.Equals(a: float, b: float, eps: float) -> bool——浮点带容差比较 |
+| `math.Compare` | math.Compare(a: float, b: float) -> int——浮点比较：-1/0/1 |
 
 ### string
 
@@ -54,7 +54,7 @@
 
 ### time
 
-| `time.now_ms` | time.now_ms() -> int——当前 Unix 时间（毫秒） |
+| `time.NowMs` | time.NowMs() -> int——当前 Unix 时间（毫秒） |
 
 ## 内建类型实例方法
 
@@ -120,7 +120,7 @@
 | `Truncate` | int8/int16/int32.Truncate(x: int) -> T——把 int 截断到窄类型 |
 | `FromCodepoint` | string.FromCodepoint(cp: int) -> result<string>——码点转字符（与模块 string 同名方法等价） |
 
-## 数据库行：`Row`（`db.query` 的元素）
+## 数据库行：`Row`（`db.Query` 的元素）
 
 | 方法 | 签名 / 说明 |
 |---|---|
@@ -129,7 +129,7 @@
 | `GetInt` | row.GetInt(col: string) -> int——取整数列 |
 | `GetDecimal` | row.GetDecimal(col: string) -> decimal——取金额列 |
 
-## 文件句柄：`File`（`file.open/create/append` 的返回值）
+## 文件句柄：`File`（`file.Open / file.Create / file.Append` 的返回值）
 
 | 方法 | 签名 / 说明 |
 |---|---|

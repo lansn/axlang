@@ -1,6 +1,6 @@
 # axlang 编译器实现规格书（AI 执行版）
 
-> 版本：v0.22　配套：`axlang语法设计文稿.md` v0.45
+> 版本：v0.23　配套：`axlang语法设计文稿.md` v0.46
 > 读者：具备代码生成能力的 AI（及人类实现者）
 > 用途：**唯一目的**是从零产出可运行的 `axc` 编译器（词法 → 语法 → 语义 → 代码生成 → 运行时）
 > 本文件不是语言设计稿，不新增任何语言特性；语言事实一律以文稿为准
@@ -329,7 +329,7 @@ string object void result error func map Self range Rounding Arena ArenaRef
 |---|---|
 | `L-22` | 标识符 `[A-Za-z_][A-Za-z0-9_]*`；单独 `_` → `UNDERSCORE` token（只用于 `match` 通配） |
 | `L-23` | `@` 后必须是 IDENT，构成 `ATTR` token（`@os` / `@arch`）；其他名字 → `E3029` |
-| `L-24` | 命名风格不参与词法与语法：**不产生任何诊断**。用户侧命名只作文档推荐（PascalCase），编译器不检查；唯一硬约束是标准库/内建名字的拼写本身——**库函数全小写（多词 snake_case）、方法 PascalCase**，写错就是"该名字不存在" |
+| `L-24` | 命名风格不参与词法与语法：**不产生任何诊断**。用户侧命名只作文档推荐（PascalCase），编译器不检查；唯一硬约束是标准库/内建名字的拼写本身——**裸调用的一等函数全小写（多词 snake_case），凡带 `.` 的调用一律 PascalCase**（模块成员、类型静态方法、实例方法、接口方法同待遇，不看 `.` 左边是模块还是类型），写错就是"该名字不存在"；旧写法给一条点名正确拼写的 `E3003`（`io.ReadLine` → `io.ReadLine`） |
 
 ---
 
@@ -614,7 +614,7 @@ literal       = INT_LIT | FLOAT_LIT | DECIMAL_LIT | TEMPLATE_LIT
 | `DecimalLit` | `value: Decimal`, `raw` | 十进制系数 + 标度，不用 f64 |
 | `BoolLit` / `NullLit` | — | |
 | `StringLit` | `parts: Vec<TemplatePart>` | `Text(String)` \| `Interp{expr, format: Option<u8>}` |
-| `Path` | `segs: Vec<Ident>`, `args: Vec<TypeAst>` | `io.read_line`、`Status.Ok`、`T` |
+| `Path` | `segs: Vec<Ident>`, `args: Vec<TypeAst>` | `io.ReadLine`、`Status.Ok`、`T` |
 | `This` / `Parent` | — | |
 | `TupleLit` | `elems: Vec<ExprId>` | |
 | `ArrayLit` | `elems: Vec<ExprId>` | `[]` 合法（需目标类型） |
@@ -673,7 +673,7 @@ MODULE goods
       THIS_FIELD id = PARAM id
       ...
     METHOD load is_static vis=public ret=result<Goods?>
-      VAR row ty=<infer> init=TRY(CALL(db.query) args=[STR,d])
+      VAR row ty=<infer> init=TRY(CALL(db.Query) args=[STR,d])
 ```
 
 要求：字段顺序稳定、类型打印用规范名（`result<Goods?>`、`int[]`、`map<string,object>`）、缩进 2 空格。
@@ -1932,13 +1932,13 @@ void    ax_file_close(ax_file* f);                   /* 幂等 */
 | `Pat-neg-1` | 标量值上写类型模式（`string s` 配 `int n =>`） | 恰好一条 `E4001` |
 | `Print-1` | `println(123)` / `println(3.5)` / `println(true)` / `print(42)` 不换行 / `println(Printable 类实例)` / `println(enum)` | 通过（`Print-1.out`；等价于补花括号的插值） |
 | `Print-neg-1` | `println(xs)`（`xs` 为 `int[]`） | `E4001`（复合类型不参与插值） |
-| `Math-1` | `math.compare(1.0, 2.0)` / `math.equals(0.1 + 0.2, 0.3, 1e-6)` | 通过（`Math-1.out`：`-1 0 1 true false`；全小写模块函数名） |
-| `IO-2` | `file.create(...)` 写入一行后 `io.read_file(...)` 读回 | 通过（`IO-2.out`：`第一行`） |
+| `Math-1` | `math.Compare(1.0, 2.0)` / `math.Equals(0.1 + 0.2, 0.3, 1e-6)` | 通过（`Math-1.out`：`-1 0 1 true false`；模块成员 PascalCase） |
+| `IO-2` | `file.Create(...)` 写入一行后 `io.ReadFile(...)` 读回 | 通过（`IO-2.out`：`第一行`） |
 | `demo/OrderDemo` | 示例工程（`samples/demo/`）：`catalog.product` / `catalog.inventory` / `checkout.bill`（具名导入）/ `checkout.wholesale`（跨模块继承）；入口用**裸类型名**构造，另混用全路径写法作对照，含数组字段 `Push`、可空返回判空、`:.2` 金额 | 通过（`main.out` 逐字节比对） |
 | `Struct-1` | `Point(1, 2)` 位置构造、字段写、赋值即复制、嵌套 `Box(Point(...), ...)` | 通过（`b.x = 99` 不影响 `a`） |
 | `Main-1` | `void main() { }` | `E3025`（`check` 就报，不必等 `run`） |
 | `Out-1` | 写旧名 `Print("x")` | 恰好一条 `E3003`，提示"内置库函数名一律小写：`Print` 请写 `print`" |
-| `Name-neg-1` | `import io` 后写 `io.ReadLine()` | 恰好一条 `E3003`（模块函数一律小写；方法才 PascalCase） |
+| `Name-neg-1` | `import io` 后写 `io.ReadLine()` | 恰好一条 `E3003`，提示含"模块成员一律 PascalCase：`io.ReadLine` 请写 `io.ReadLine`" |
 
 ### 16.4 类型（M3/M4）
 
@@ -2092,7 +2092,7 @@ void    ax_file_close(ax_file* f);                   /* 幂等 */
 | ID | 源 | 期望 |
 |---|---|---|
 | `IO-1` | `print` / `println` 交替 | 只有 `println` 补 `\n` |
-| `FILE-1` | `file.create("…") try` + `WriteLine` + `Close`，再 `file.open` + `Read` | 内容与写入一致；`Read` 返回 `result<string>` |
+| `FILE-1` | `file.Create("…") try` + `WriteLine` + `Close`，再 `file.Open` + `Read` | 内容与写入一致；`Read` 返回 `result<string>` |
 | `FILE-2` | 同一句柄连续 `ReadLine` 到末尾 | 行尾 `\r` 被剥掉，末尾返回 `null` |
 | `FILE-3` | 写只读路径 / 不存在的读路径 | `error.IO`，`e.msg` 为 `cannot open file` |
 
@@ -2119,7 +2119,7 @@ void    ax_file_close(ax_file* f);                   /* 幂等 */
 | `GAP-12` | GAP | 分配失败算什么 | 环境限制，非语言崩溃：`R100 out-of-memory`，退出码 2（不列入七类） | `Rt-4` |
 | `GAP-13` | GAP | 分支中 move 后汇合的状态 | 只要任一分支 move，汇合后视为 `Moved`（保守）；不做分支敏感合并 | `O-4` |
 | `GAP-14` | GAP | `.Step(n)` 的 `n <= 0` | 常量可判 → `E4009`；否则 trap `R101`，detail `step <= 0` | `B-2` |
-| `GAP-15` | GAP | `io.read_line()` 在 EOF 时返回什么 | `string?`，EOF → `null`。文稿 5.2 的示例需写成 `ReadLine() ?? ""` 或判空 | `§15.4` |
+| `GAP-15` | GAP | `io.ReadLine()` 在 EOF 时返回什么 | `string?`，EOF → `null`。文稿 5.2 的示例需写成 `ReadLine() ?? ""` 或判空 | `§15.4` |
 | `GAP-16` | GAP | 元组解构能否带显式类型 | **只能 `var (a, b) = t`**（文稿 5.3 只有这一种写法） | `G-1` |
 | `GAP-17` | GAP | `import io.{a}` 与 `import net.http.server` 的解析 | 先解析 `ident ('.' ident)*`；若下一个 token 是 `.` + `{` → 具名导入；是 `as` → 别名；否则是模块路径 | `G-1` |
 | `GAP-18` | **CONFLICT** | `for (k, v) in m` 的 `v` 若是 class 引用，move 会掏空 map | `k`/`v` 是**只读借用视图**；要取出引用就 `m[k]`（会 move，且此时禁止遍历期修改的规则不适用——但取出后 map 该位置为空，`GAP-18a`） | `B-2` |

@@ -17,7 +17,7 @@ mod expr;
 mod member;
 mod stmt;
 
-/// 后端查内建模块签名用（`json.stringify` 的实参要按声明类型装箱）
+/// 后端查内建模块签名用（`json.Stringify` 的实参要按声明类型装箱）
 pub use expr::module_sig;
 
 use crate::frontend::ast;

@@ -64,11 +64,11 @@
 - **保守性**：只减少噪声，不改变"是否报错"的结论；一处词法错误只报一条。
 - **需设计者裁决**：否
 
-### GAP-REPORT 5 — `db.query` 查无记录是 `fail` 还是空行
+### GAP-REPORT 5 — `db.Query` 查无记录是 `fail` 还是空行
 
 - **位置**：规格书 §15/§16.10 `RUN-3`；`ax_db_query_result` 的运行时语义
 - **问题**：文稿 §12 里 `db.Query(...) try` 之后紧接 `if row.Empty() { return ok(null) }`，说明"查无记录"是**空行**而不是错误；但 §15 的 `db` 签名只写"见 §16 fixture"，没有规定未命中的返回形态。`RUN-2`（`stock:0`）与 `RUN-3`（`id` 不存在）需要区分"查到但字段为 0"与"查不到"。
-- **临时决策**：`db.query` 返回 `result<Row>`；**查询成功但无记录 → `ok(空行)`**（`row.Empty() == true`）；**没有夹具 / 环境不可用 → `fail(error.IO)`**。夹具来自环境变量 `AX_DB_FIXTURE`，形如 `id=1001,name=柴犬粮,price=19.99,stock=10`。
+- **临时决策**：`db.Query` 返回 `result<Row>`；**查询成功但无记录 → `ok(空行)`**（`row.Empty() == true`）；**没有夹具 / 环境不可用 → `fail(error.IO)`**。夹具来自环境变量 `AX_DB_FIXTURE`，形如 `id=1001,name=柴犬粮,price=19.99,stock=10`。
 - **保守性**：`try` 只在"环境/驱动层失败"时中断；"数据不存在"走业务分支（`row.Empty()`），与文稿 §12 的控制流一致，不会把正常业务分支变成崩溃路径。
 - **需设计者裁决**：是（若定为 `fail`，则 `RUN-3` 的期望输出需改为 stderr 报错 + 退出码 1）
 
@@ -115,7 +115,7 @@
 | ~~2~~ | 完整所有权分析 | `O-03`、`O-05…O-08`、`O-10…O-12` | **已修**（v0.0.22）：借用改为强度感知的单语句扫描（多 `&const` 合法、`&`+`&const`/move/写报 E7002/E7004）；分支汇合按各分支快照独立检查后保守合并（O-4）；循环体两遍检查（probe 收集 → 合并状态正式查，O-5）；`W1003` 多余借用警告；修 O-9 复活（对已 move 变量赋值的左值读取不再误报 E7001）。**设计上不存在跨语句借用**（借用不可存储，文稿 8.2），故无需生命周期分析；`E7008`（defer 引后声明变量）恒不可达——注册时检查已由名字解析天然拦截，行为契约保留不触发 |
 | ~~3~~ | `arena` 语句与 `ArenaRef` | `O-07`、`O-17…O-20` | **已修**（v0.0.22）：`axrt` 增加 `ax_arena_create/adopt/free`；`new Arena()` 真实生成（原 `NULL` 占位）；`arena.Alloc(x)` move 进区域、返回 `ArenaRef<T>`（copy 语义）；`ArenaRef<T>` C 类型 = T 的指针形态；区域变量离开作用域整块释放（复用 defer 清理栈）；`E7006` 逃逸检测（作用域绑定 + return/实参/普通对象字段/容器四处拦截）；`E7005` 只收养 class 实例/object 盒子 |
 | 4 | 函数值（文稿 4.1）的边角 | §4.1 | **主体已实现**（v0.0.3）：`func(...) T` 类型语法（此前解析器把 `func` 当普通类型名，整章语法不可用）、匿名函数字面量（合成顶层函数、不捕获环境）、顶层函数/静态方法引用（`twice`、`Num.neg`）、函数值经参数传递与间接调用。**注**：匿名函数不捕获环境是文稿 4.1 的明文设计（583 行：函数值就是 8 字节函数指针），不是缺口。**剩余**：泛型函数值实例化 |
-| 5 | ~~`json` / `time` 模块~~ **已修（0.0.18）** | §15 全表 | `json.Parse` / `json.stringify` / `time.now_ms` 已从桩补为真实实现：手写递归下降 JSON 解析（object/array/string/int/float/bool/null、`\uXXXX` 代理对、错误定位消息）、stringify 往返（嵌套 map/数组 + 转义）、`now_ms` 用 `GetSystemTimeAsFileTime`。`json` 与 `time` 仍需显式 `import`。历史描述：只有签名与桩实现。**`file` 已在 v0.0.5 实化**：`Open`/`Create`/`Append` + `Read`/`ReadLine`/`Write`/`WriteLine`/`Close` 全部经 `ax_file` 句柄走真实 `FILE*`（二进制模式），`ReadLine` 剥 `\r`；此前 `file.Open` 生成的 `ax_file` 类型根本未定义（一用就 C 编译失败）、`ReadAll` 恒返回 `fail("file not supported")`。`json` 只有 `Parse`/`stringify`，`time` 只有 `now_ms` |
+| 5 | ~~`json` / `time` 模块~~ **已修（0.0.18）** | §15 全表 | `json.Parse` / `json.Stringify` / `time.NowMs` 已从桩补为真实实现：手写递归下降 JSON 解析（object/array/string/int/float/bool/null、`\uXXXX` 代理对、错误定位消息）、stringify 往返（嵌套 map/数组 + 转义）、`now_ms` 用 `GetSystemTimeAsFileTime`。`json` 与 `time` 仍需显式 `import`。历史描述：只有签名与桩实现。**`file` 已在 v0.0.5 实化**：`Open`/`Create`/`Append` + `Read`/`ReadLine`/`Write`/`WriteLine`/`Close` 全部经 `ax_file` 句柄走真实 `FILE*`（二进制模式），`ReadLine` 剥 `\r`；此前 `file.Open` 生成的 `ax_file` 类型根本未定义（一用就 C 编译失败）、`ReadAll` 恒返回 `fail("file not supported")`。`json` 只有 `Parse`/`stringify`，`time` 只有 `now_ms` |
 | 6 | `string` 方法子集 | 部分 | `len`/`byte_len`/`at`/`contains`/`split`/`trim` 已通，其余按桩 |
 | 7 | `--dump=hir` | §1.2 | 未产出 HIR 层 dump（`ast`/`types`/`c` 已有） |
 | 8 | `R101` 消息带实际键值 | §10.1 | map 越界目前 `keydesc` 固定为 `"key"`，未拼出 string 键的真实值 |
@@ -179,4 +179,4 @@ python samples/run_all.py         # 11 个示例程序跑一遍看输出
 | 1 | GAP-1 `decimal` ⊕ 整数是否合法 | 删 `check_binary` 的 decimal/int 分支 + 改文稿 §12 示例 | 2 处 + 1 个用例 |
 | 2 | GAP-2 整数字面量可落到 `decimal` | 删 `check_int_lit` 的 decimal 分支 + `Rt-15` 改成 `decimal(3)` | 2 处 |
 | 3 | D-03' `check` 是否强制 `main` | `require_main` 默认改 `True`，§16 负例补 `main` | 1 行 + 约 20 个用例 |
-| 4 | GAP-5 `db.query` 未命中形态 | 改 `ax_db_query_result` 返回 `tag=0`，`RUN-3` 期望改 stderr | 2 处 |
+| 4 | GAP-5 `db.Query` 未命中形态 | 改 `ax_db_query_result` 返回 `tag=0`，`RUN-3` 期望改 stderr | 2 处 |

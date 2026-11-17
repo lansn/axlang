@@ -1550,14 +1550,14 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             // 返回值走 axrt 的 out 参数形态：read_line 给 string?（EOF → has=0），
             // read_file 给 result<string>（失败 → fail）。原先按单值/无参生成，
             // 与 axrt.h 的签名不符，C 编译直接失败（此前没有用例覆盖）
-            ("io", "read_line") => {
+            ("io", "ReadLine") => {
                 let tyc = self.cg.ct(&self.ty_or_int(e.id));
                 format!(
                     "({{ {tyc} r_; ax_str o_; if (ax_read_line(&o_) == 0) {{ r_.has = 1; r_.v = o_; }} else {{ r_.has = 0; r_.v = ax_str_empty(); }} r_; }})",
                     tyc = tyc
                 )
             }
-            ("io", "read_file") => {
+            ("io", "ReadFile") => {
                 let tyc = self.cg.ct(&self.ty_or_int(e.id));
                 format!(
                     "({{ {tyc} r_; ax_str o_; if (ax_read_file({p}, &o_) == 0) {{ r_.tag = 1; r_.u.ok = o_; }} else {{ r_.tag = 0; r_.u.err = ax_err_new(4, AX_S(\"read failed\")); }} r_; }})",
@@ -1565,14 +1565,14 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                     p = a[0]
                 )
             }
-            ("math", "equals") => {
+            ("math", "Equals") => {
                 format!("(fabs(({}) - ({})) <= ({}))", a[0], a[1], a[2])
             }
-            ("math", "compare") => format!(
+            ("math", "Compare") => format!(
                 "((({0}) < ({1})) ? -1 : ((({0}) > ({1})) ? 1 : 0))",
                 a[0], a[1]
             ),
-            ("db", "query") => {
+            ("db", "Query") => {
                 let arg = if a.len() > 1 {
                     a[1].clone()
                 } else {
@@ -1580,12 +1580,12 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 };
                 format!("ax_db_query_result({}, {})", a[0], arg)
             }
-            ("json", "parse") => format!("ax_json_parse_result({})", a[0]),
-            ("json", "stringify") => format!("ax_json_stringify({})", a[0]),
-            ("file", "open") => format!("ax_file_open_result({}, 0)", a[0]),
-            ("file", "create") => format!("ax_file_open_result({}, 1)", a[0]),
-            ("file", "append") => format!("ax_file_open_result({}, 2)", a[0]),
-            ("time", "now_ms") => "ax_now_ms()".to_string(),
+            ("json", "Parse") => format!("ax_json_parse_result({})", a[0]),
+            ("json", "Stringify") => format!("ax_json_stringify({})", a[0]),
+            ("file", "Open") => format!("ax_file_open_result({}, 0)", a[0]),
+            ("file", "Create") => format!("ax_file_open_result({}, 1)", a[0]),
+            ("file", "Append") => format!("ax_file_open_result({}, 2)", a[0]),
+            ("time", "NowMs") => "ax_now_ms()".to_string(),
             _ => "0".to_string(),
         }
     }

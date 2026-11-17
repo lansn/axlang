@@ -12,38 +12,52 @@ use std::rc::Rc;
 pub fn module_sig(mod_: &str, name: &str) -> Option<(Vec<Option<Ty>>, Ty)> {
     let t = |k: TyS| -> Ty { Rc::new(k) };
     Some(match (mod_, name) {
-        ("io", "read_line") => (vec![], t(TyS::Nullable(t_string()))),
-        ("io", "read_file") => (vec![Some(t_string())], t_result(t_string())),
-        ("math", "equals") => (
+        ("io", "ReadLine") => (vec![], t(TyS::Nullable(t_string()))),
+        ("io", "ReadFile") => (vec![Some(t_string())], t_result(t_string())),
+        ("math", "Equals") => (
             vec![Some(t_float()), Some(t_float()), Some(t_float())],
             t_bool(),
         ),
-        ("math", "compare") => (vec![Some(t_float()), Some(t_float())], t_int()),
-        ("json", "parse") => (
+        ("math", "Compare") => (vec![Some(t_float()), Some(t_float())], t_int()),
+        ("json", "Parse") => (
             vec![Some(t_string())],
             t_result(t_map(t_string(), t_object())),
         ),
-        ("json", "stringify") => (vec![Some(t_object())], t_string()),
-        ("db", "query") => (
+        ("json", "Stringify") => (vec![Some(t_object())], t_string()),
+        ("db", "Query") => (
             vec![Some(t_string())],
             t_result(t_named(DefId::Name("Row"), Vec::new())),
         ),
-        ("file", "open") => (
+        ("file", "Open") => (
             vec![Some(t_string())],
             t_result(t_named(DefId::Name("File"), Vec::new())),
         ),
-        ("file", "create") => (
+        ("file", "Create") => (
             vec![Some(t_string())],
             t_result(t_named(DefId::Name("File"), Vec::new())),
         ),
-        ("file", "append") => (
+        ("file", "Append") => (
             vec![Some(t_string())],
             t_result(t_named(DefId::Name("File"), Vec::new())),
         ),
         ("string", "FromCodepoint") => (vec![Some(t_int())], t_result(t_string())),
-        ("time", "now_ms") => (vec![], t_int()),
+        ("time", "NowMs") => (vec![], t_int()),
         _ => return None,
     })
+}
+
+/// `read_line` → `ReadLine`、`now_ms` → `NowMs`：只用于给旧写法一条精确的
+/// 迁移提示（文稿 2.3「凡带 `.` 的调用一律 PascalCase」），不参与解析。
+pub fn pascal_member(name: &str) -> String {
+    let mut out = String::new();
+    for seg in name.split('_').filter(|s| !s.is_empty()) {
+        let mut chars = seg.chars();
+        if let Some(c) = chars.next() {
+            out.extend(c.to_uppercase());
+            out.push_str(chars.as_str());
+        }
+    }
+    out
 }
 
 impl<'a> Sema<'a> {
@@ -542,7 +556,7 @@ impl<'a> Sema<'a> {
                 return t_bool();
             }
             if matches!(&*lt, TyS::Float) || matches!(&*rt, TyS::Float) {
-                self.err("E4011", &lhs.tok, "文稿 3.7", "`float` 不能用 `{0}`（浮点比较请用 math.equals）", &[&op]);
+                self.err("E4011", &lhs.tok, "文稿 3.7", "`float` 不能用 `{0}`（浮点比较请用 math.Equals）", &[&op]);
                 return t_bool();
             }
             if lt != rt {
@@ -566,7 +580,7 @@ impl<'a> Sema<'a> {
                 return t_bool();
             }
             if matches!(&*lt, TyS::Float) {
-                self.err("E4017", &lhs.tok, "文稿 7.1", "`float` 不实现 Comparable（浮点比较请用 math.compare）", &[]);
+                self.err("E4017", &lhs.tok, "文稿 7.1", "`float` 不实现 Comparable（浮点比较请用 math.Compare）", &[]);
             } else if let TyS::Param(pn) = &*lt {
                 let cons = self.generic_cons.get(pn).cloned().unwrap_or_default();
                 if !cons.iter().any(|c| c == "Comparable") {

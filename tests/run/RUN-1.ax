@@ -17,7 +17,7 @@ class Goods {
     }
 
     public static result<Goods?> load(int id) {
-        var row = db.query("select id, name, price, stock from goods where id = ?", id) try
+        var row = db.Query("select id, name, price, stock from goods where id = ?", id) try
         if row.Empty() {
             return ok(null)
         }

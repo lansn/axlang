@@ -311,7 +311,7 @@
 
 | `E4010` | `+` 两边必须都是 string（拼接）；数值请用 `{x}{y}` 插值（文稿 11.2） | both sides of `+` must be string (for concatenation); for numbers use `{x}{y}` interpolation |
 
-| `E4011` | `float` 不能用 `{0}`（浮点比较请用 math.equals）（文稿 3.7） | `float` cannot use `{0}` (compare floats with math.equals) |
+| `E4011` | `float` 不能用 `{0}`（浮点比较请用 math.Equals）（文稿 3.7） | `float` cannot use `{0}` (compare floats with math.Equals) |
 
 | `E4012` | 常量移位量 {0} 越界（0 <= n < {1}）（S-1） | constant shift amount {0} is out of range (0 <= n < {1}) |
 
@@ -324,7 +324,7 @@
 
 | `E4016` | 比较不能连写（`a < b < c` 请写成 `a < b && b < c`）（文稿 11.1） | comparisons cannot be chained (write `a < b < c` as `a < b && b < c`) |
 
-| `E4017` | `float` 不实现 Comparable（浮点比较请用 math.compare）（文稿 7.1） | `float` does not implement Comparable (compare floats with math.compare) |
+| `E4017` | `float` 不实现 Comparable（浮点比较请用 math.Compare）（文稿 7.1） | `float` does not implement Comparable (compare floats with math.Compare) |
 | `E4017` | {0} 不实现 Comparable（文稿 7.1） | {0} does not implement Comparable |
 
 | `E4018` | map 键类型必须是 Hashable + Comparable（不能是 {0}）（文稿 3.3） | map key types must be Hashable + Comparable ({0} is not allowed) |

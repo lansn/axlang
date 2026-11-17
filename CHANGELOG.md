@@ -7,6 +7,32 @@
 > **1.0 及以上永远保留给语法冻结**（语言设计不再做破坏性变更）之后。
 > 阶段进位条件见 `ARCHITECTURE.md` §8。
 
+## [0.0.24] — 2026-11
+
+### 模块成员回到 PascalCase：分界线是"有没有限定"
+
+0.0.23 按"库函数全小写"执行后，代码里出现**同形不同拼法**：`string.FromCodepoint()`（理由是
+`string` 是类型）与 `io.read_line()`（理由是 `io` 是模块）语法完全一样，读者得先知道 `io` 是什么
+才能猜出拼写。分界线因此从"函数 vs 方法"移到"**有没有那个点**"：
+
+- `名字(...)` —— 值层一等函数（可整体传递），**全小写**：`print` / `println` / `ok` / `fail` /
+  `parent` / `typeof` / `sizeof`
+- `X.名字(...)` —— **一律 PascalCase**，不问 `X` 是模块、类型还是变量：`io.ReadLine` /
+  `io.ReadFile` / `file.Open` / `file.Create` / `file.Append` / `json.Parse` / `json.Stringify` /
+  `math.Equals` / `math.Compare` / `db.Query` / `time.NowMs`、`s.Len()` / `f.ReadLine()` /
+  `decimal.Parse` / `x.ToString()`
+
+理由：一条判据即可决定任一名字的拼写，不需要"谁是模块"这份上下文；与 C# 同构（C# 没有模块函数，
+静态类成员本来就是 `Console.WriteLine` / `File.ReadAllText` / `Math.Sqrt`）。`print` 保持小写是因为
+它确实是值层函数，而 `io` 不是值（`var x = io` 编译错误）——命名如实反映已有的语义差异。
+
+- **新增点名式迁移提示**：小写旧写法报 `E3003` 并给出正确拼写——`pascal_member` 把 `read_line`
+  转成 `ReadLine` 再回签名表核对，命中才提示（`模块成员一律 PascalCase：io.read_line 请写 io.ReadLine`），
+  真拼错的名字仍报笼统的"没有符号"，不瞎猜
+- `Name-neg-1` 反转为断言小写旧写法；`Math-1` / `IO-2` / `Json-1` / `File-1` / `RUN-1..3` /
+  `samples/10_goods.ax` 同步改名
+- 文档：文稿 §2.3 三条规则重写 + ㊾ 条、规格书 `L-24` / §16 验收表、`docs/STDLIB.md` 重新生成
+
 ## [0.0.23] — 2026-11
 
 ### 命名规则按调用形状分：库函数全小写，方法 PascalCase

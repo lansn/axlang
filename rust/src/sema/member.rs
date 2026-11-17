@@ -797,7 +797,21 @@ impl<'a> Sema<'a> {
         self.check_call_args(args, None, None, e.id);
         let sig = match module_sig(m, &name) {
             None => {
-                self.err("E3003", &e.tok, "文稿 9.2", "模块 `{0}` 没有符号 `{1}`", &[&m, &name]);
+                // 模块成员一律 PascalCase（文稿 2.3）：小写写法给一条精确的迁移提示，
+                // 而不是笼统的「没有符号」——`io.readline` 与 `io.ReadLine` 差一个下划线
+                // 和一处大小写，提示里点名正确的拼写，比让用户去翻文档有用。
+                let pascal = crate::sema::expr::pascal_member(&name);
+                if pascal != name && module_sig(m, &pascal).is_some() {
+                    self.err(
+                        "E3003",
+                        &e.tok,
+                        "文稿 2.3",
+                        "模块成员一律 PascalCase：`{0}.{1}` 请写 `{0}.{2}`",
+                        &[&m, &name, &pascal],
+                    );
+                } else {
+                    self.err("E3003", &e.tok, "文稿 9.2", "模块 `{0}` 没有符号 `{1}`", &[&m, &name]);
+                }
                 return t_object();
             }
             Some(s) => s,

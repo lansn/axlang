@@ -1,6 +1,6 @@
 # axlang 语法设计文稿
 
-> 版本：v0.45（语法草案）
+> 版本：v0.46（语法草案）
 > 定位：系统级静态类型编译型语言
 > 本稿只讨论语法与语义规则，编译器实现为后续任务。
 ---
@@ -154,11 +154,11 @@ if price > 0
 
 - 标识符：`[A-Za-z_][A-Za-z0-9_]*`；**命名风格不参与词法与语义，编译器不作任何诊断**。命名仍按"谁写的"分档，但**只有标准库与内建名字的拼写是硬约束**，其余全是推荐值：
   - **内建类型名一律全小写**：`int` `float` `decimal` `string` `error` `result` `object`。
-  - **内建库函数一律全小写**（多词用 snake_case）：根模块的 `print` / `println` / `ok` / `fail` / `parent` / `typeof` / `sizeof`，模块函数 `io.read_line()` / `io.read_file(p)` / `file.open(p)` / `json.parse(s)` / `math.compare(a, b)` / `time.now_ms()` / `db.query(sql)`。
-  - **方法一律 PascalCase**（C# 官方约定）——实例方法、静态方法、接口方法都算：`s.Len()`、`nums.Push(v)`、`row.GetString("k")`、`f.ReadLine()`、`decimal.Parse(s)`、`x.ToString()`；内建接口 `Printable.ToString()`、`Comparable.Compare(other)`、`Hashable.Hash()`。
-  - 分界按**调用形状**判，不按"谁实现"判：`名字(...)` 是函数（小写），`值.名字(...)` / `类型.名字(...)` 是方法（PascalCase）。两种形状在源码里一眼可分，所以大小写跟着形状走——`io.read_line()` 一眼是"模块里的函数"，`f.ReadLine()` 一眼是"句柄上的方法"；C# 的 `Console.WriteLine`（方法）与自由函数同构。代价是"模块函数也 PascalCase"的老写法（`io.ReadLine` / `math.Equals`）全部作废，收益是不必再猜一个名字是函数还是方法。
+  - **裸调用的一等函数一律全小写**（多词用 snake_case）：`print` / `println` / `ok` / `fail` / `parent` / `typeof` / `sizeof`，以及将来的全局 `len(x)` / `max(a, b)` / `min(a, b)`。
+  - **凡带 `.` 的调用一律 PascalCase**（C# 官方约定）——模块成员、类型静态方法、实例方法、接口方法一视同仁：`io.ReadLine()` / `io.ReadFile(p)` / `file.Open(p)` / `json.Parse(s)` / `math.Compare(a, b)` / `time.NowMs()` / `db.Query(sql)`；`s.Len()` / `nums.Push(v)` / `f.ReadLine()` / `decimal.Parse(s)`；内建接口 `Printable.ToString()` / `Comparable.Compare(other)` / `Hashable.Hash()`。
+  - 分界只看**语法**，不问那个 `.` 左边是模块、类型还是值：`名字(...)` 是函数层（小写），`X.名字(...)` 一律 PascalCase。一条判据即可决定任一名字的拼写，读代码的人不必先查 `X` 是模块还是类型——这与 C# 同构：C# 里没有"模块函数"，只有静态类成员，本来就是 `Console.WriteLine` / `File.ReadAllText` / `Math.Sqrt`。`io` 是模块、`string` 既是类型又是模块，但两者的成员拼写一致（`string.FromCodepoint()` 从静态方法和模块两条路进入写法相同）。反例是 Rust 的 `std::fs::read_to_string()`——它敢用 snake_case，是因为 `::` 在视觉上就宣告"这是路径不是成员"；本文只有 `.` 一个访问符，区分职责只能落在命名上，把两种拼法混在一处只会逼读者猜。
   - **用户侧命名不做要求，只推荐 PascalCase**：用户定义类型、函数、方法、字段推荐 PascalCase（C# 风格）——`Session`、`Config`、`CheckEmail`、`DoubleIt`、`UserId`；局部变量与参数写 `snake_case` 或 `camelCase` 均可（`user_id` / `userId`）；常量推荐全大写蛇形（`MAX_RETRY`）。以上全部是**文档推荐与代码评审的依据，编译器不检查、不报错、不警告**。
-  - 上面三条是**语法级硬约束**：标准库与内建的拼写就是名字本身——`Len` 不是 `len` 的驼峰版，`len` 就是个不存在的名字（反过来 `s.len()` 也不存在）。分界依据是 1.2 第 3 判据：标准库名字可枚举（几百个），统一成本为零且必须统一，否则用户猜不出拼写；用户代码的名字几十万个、各有所好，编译器无从裁决，强制只会让 C/Python/Rust 程序员集体改肌肉记忆，而收益只是"好看一点"。推荐值取 PascalCase，是因为用户侧类型与方法同风格时整段代码观感连贯：**内建类型与内建函数都小写（`int` / `print`）、用户类型与方法都 PascalCase（`Session` / `CheckEmail`）**，"语言给的"与"你写的"一眼可辨。
+  - 上面三条是**语法级硬约束**：标准库与内建的拼写就是名字本身——`Len` 不是 `len` 的驼峰版，`len` 就是个不存在的名字（反过来 `s.len()` 也不存在）。分界依据是 1.2 第 3 判据：标准库名字可枚举（几百个），统一成本为零且必须统一，否则用户猜不出拼写；用户代码的名字几十万个、各有所好，编译器无从裁决，强制只会让 C/Python/Rust 程序员集体改肌肉记忆，而收益只是"好看一点"。推荐值取 PascalCase，是因为用户侧类型与方法同风格时整段代码观感连贯：**内建裸函数全小写（`print`）、凡带 `.` 的成员 PascalCase（`io.ReadLine`）、用户类型与方法也 PascalCase（`Session` / `CheckEmail`）**。
   - 单独的 `_` 不是标识符（保留给 `match` 通配模式）；`@` 不属于标识符字符，`@name(...)` 是编译期属性语法，只允许 `@os` / `@arch`（见 9.3）。
 - 保留关键字（全部，共 36 个）：
 
@@ -532,7 +532,7 @@ float g = 0.0 / 0.0                    // 终止进程：不产生 nan
 - **`decimal` 也有边界**：超出 128 位范围或有效位数上限（约 28~29 位）→ 终止进程（3.2）。不要指望它装下无限大的数；要更大就拆成分位整数或走库类型。
 - **移位量必须 `0 <= n < 位宽`**：编译期可判定的直接报错，运行期才知道的终止进程。C 的"移位量越界是 UB"这条坑不存在。
 - **`float` 永不产生 `inf` / `nan`**：任何会产生它们的运算直接终止进程。没有 `nan` 的传染性，浮点比较才是确定的——这是后面几条规则的前提。
-- **`float` 禁止 `==` / `!=`**（编译错误）：二进制浮点的相等比较几乎总是错。判约等用 `math.equals(a, b, eps)`，排序用 `math.compare(a, b)`（返回 -1/0/1）；`<` `<=` `>` `>=` 允许（`nan` 已不存在，结果确定）。
+- **`float` 禁止 `==` / `!=`**（编译错误）：二进制浮点的相等比较几乎总是错。判约等用 `math.Equals(a, b, eps)`，排序用 `math.Compare(a, b)`（返回 -1/0/1）；`<` `<=` `>` `>=` 允许（`nan` 已不存在，结果确定）。
 - **`float` 不实现 `Comparable` / `Hashable`**：不参与泛型的默认比较，不可作 `map` 键（要作键就用 `decimal` 或 `string`）。让"浮点当键、浮点直接比相等"这两类坑在类型层面就写不出来。
 - **`int` 与 `uint` 家族之间、不同宽度之间都没有任何隐式转换**，比较或运算前必须显式转换（`int32(x)`，见 3.1）。符号是代码里写明的，不是编译器猜的。
 
@@ -747,7 +747,7 @@ string name = match status {
 
 ```ax
 result<string> read_config(string path) {
-    var f = file.open(path) try   // 打不开就把 error.IO 交给调用方
+    var f = file.Open(path) try   // 打不开就把 error.IO 交给调用方
     defer f.Close()               // 离开当前作用域前必然执行，多个 defer 逆序执行
     return f.Read()
 }
@@ -932,7 +932,7 @@ a.energy         // 编译错误：protected 对类外不可见
 a.spend(5)       // 编译错误：同上
 ```
 - 方法默认可被覆写（虚方法语义，走 vtable）；覆写必须显式写 `override`。**`override` 的判定对象是"父类的同名方法"或"已 implement 的 interface 里声明的同名方法"**——两者都没有时写 `override` 才是编译错误（否则 6.3 里"实现 interface 方法也要写 `override`"就自相矛盾了）。**没有根类 `Object`**——不设"万物继承自某类"的隐性层级，`==` 与显示规则见下条。
-- **`==` 的语义按类型分派**：值是值、引用是引用，一句说清——内建值类型、`enum`、`struct`、元组、`string` 比较**内容**；`class` 比较**引用身份**（两个变量指向同一对象才相等）。`float` 是例外之一：`==`/`!=` 直接编译错误，判等必须用 `math.equals(a, b, eps)`（见 3.7）。`func(...)` 函数类型也是例外：函数值没有身份，`==` 编译错误（4.1）。想让 class 按内容比较，就 `implement Comparable` 写 `Compare`，调用处显式 `a.Compare(b) == 0`——`==` 自身的含义永不被用户改变。
+- **`==` 的语义按类型分派**：值是值、引用是引用，一句说清——内建值类型、`enum`、`struct`、元组、`string` 比较**内容**；`class` 比较**引用身份**（两个变量指向同一对象才相等）。`float` 是例外之一：`==`/`!=` 直接编译错误，判等必须用 `math.Equals(a, b, eps)`（见 3.7）。`func(...)` 函数类型也是例外：函数值没有身份，`==` 编译错误（4.1）。想让 class 按内容比较，就 `implement Comparable` 写 `Compare`，调用处显式 `a.Compare(b) == 0`——`==` 自身的含义永不被用户改变。
 - **显示**：标量（`int`/`uint` 系、`float`、`decimal`、`bool`）、`string`、`enum` 及其可空形式能直接进字符串插值，默认格式由编译器生成（见 11.2）。数组、`map`、元组、class、struct 的默认显示尚未实现——插值它们会报 `E5006`，而**不是**悄悄打印一个 `?`。不设"根类 ToString"。
 - 父类引用可以指向子类实例（引用多态）：`Animal a = new Dog("旺财", "柴犬");`，调用 `a.speak()` 走子类实现。
 
@@ -1157,7 +1157,7 @@ var host = cfg["db"]["host"]           // string
 type Json = map<string, object>
 
 result<Json> read_cfg(string path) {                 // 返回 result，才能用 try 传播
-    Json raw = json.parse(read_file(path)) try
+    Json raw = json.Parse(read_file(path)) try
     return ok(raw)
 }
 ```
@@ -1172,7 +1172,7 @@ struct Config {
 }
 
 result<Config> load(string path) {
-    Json raw = json.parse(read_file(path)) try                    // 失败即把 fail 交给调用方
+    Json raw = json.Parse(read_file(path)) try                    // 失败即把 fail 交给调用方
     return ok(Config(                                             // 逐字段取出，实参位置自动解箱（6.7）
         string(raw["name"]),
         int(raw["port"]),
@@ -1223,7 +1223,7 @@ T process<T: Comparable + Printable + Hashable>(T x) {
 
 `Self` 是**内建类型名，不是关键字**（与 `int`、`float` 同级），只在 class / struct / interface 体内有效，指代"当前这个类型"——这样 `Comparable` 不用写成 `Comparable<T>`，约束处也不必写 `<T: Comparable<T>>` 这种自我指涉。
 
-这三个是**唯一的预置 interface**，且不可被用户重命名或扩展——它们是语言与标准库的契约面。其余 interface 一律由标准库模块或用户自定义。**`float` 是唯一不实现这两个 interface 的内建类型**（`Comparable`、`Hashable`）：浮点的相等与哈希都不可靠，需要比较就用 `math.compare` / `math.equals`（见 3.7），需要当键就用 `decimal` 或 `string`。
+这三个是**唯一的预置 interface**，且不可被用户重命名或扩展——它们是语言与标准库的契约面。其余 interface 一律由标准库模块或用户自定义。**`float` 是唯一不实现这两个 interface 的内建类型**（`Comparable`、`Hashable`）：浮点的相等与哈希都不可靠，需要比较就用 `math.Compare` / `math.Equals`（见 3.7），需要当键就用 `decimal` 或 `string`。
 
 ---
 
@@ -1311,7 +1311,7 @@ b.next = a                                     // 因此图、双向链表这类
 ### 9.2 导入与模块命名
 
 ```ax
-import io                           // 导入标准库模块，之后 io.read_line(...)
+import io                           // 导入标准库模块，之后 io.ReadLine(...)
 import io.{ReadLine}                // 具名导入：只引入列出的符号，且只允许用这些
 import json as j                    // 重命名，解决名字冲突的官方手段
 import net.http.server              // 点号路径 → 目录结构
@@ -1436,7 +1436,7 @@ error = NotFound(string msg) | Invalid(string msg) | Money(string msg) | IO(stri
 
 ```ax
 result<decimal> load_price(int id) {
-    var row = db.query("select price from goods where id=?", id) try   // 失败即向上传播
+    var row = db.Query("select price from goods where id=?", id) try   // 失败即向上传播
     if row.Empty() {
         throw error.NotFound("goods not found")                        // 构造失败值并返回，不跳栈
     }
@@ -1445,7 +1445,7 @@ result<decimal> load_price(int id) {
 ```
 
 - `try` 后缀：把 `result<T>` 展开为 `T`，失败时把同一个 `fail` 原样返给调用方。唯一传播手段。
-- **`try` 写在被展开的表达式之后，绑定最紧**（优先级表第 1 级）：`db.query(...) try` 是一个值；因此 `f(x) try + 1` 解析为 `(f(x) try) + 1`，不会反过来。`try` 之后不能再接 `.` 取成员的写法（要先落一个变量），避免"展开后还有没有值"这类歧义。
+- **`try` 写在被展开的表达式之后，绑定最紧**（优先级表第 1 级）：`db.Query(...) try` 是一个值；因此 `f(x) try + 1` 解析为 `(f(x) try) + 1`，不会反过来。`try` 之后不能再接 `.` 取成员的写法（要先落一个变量），避免"展开后还有没有值"这类歧义。
 - **`try` / `throw` 只能出现在返回 `result<...>` 的函数体内，或位于 `try` 块内**（10.2）——前者的语义是「把失败交给调用方」，返回 `void`、`int`、`decimal` 的函数没有这条通道；后者有就地捕获目标，失败交给本块的 catch。
 - **唯一例外是 `main`**：它没有调用方，`try` 失败即打印 `e.msg` 并以退出码 1 结束，`throw` 同样（这是**正常退出**，不是崩溃，不占 10.2 的崩溃清单）。所以 12 节的 `Goods.load(1001) try` 在 `main` 里成立。
 - `throw`：**独立成句的语句**，构造 `fail(error)` 并直接作为当前函数的返回值——所以写 `throw error.X("...")`，而不是 `return throw ...`（`throw` 自身已完成返回）。不跳栈、无栈展开、无析构顺序问题。提前返回时 `defer` 照常逆序执行（5.4）。
@@ -1664,9 +1664,9 @@ println("v={args.At(0)}")          // 有值即显示值；At 返回 T?，不必
 
 | 打开 | 行为 | 失败 |
 |---|---|---|
-| `file.open(path)` | 只读；文件不存在即失败 | `error.IO` |
-| `file.create(path)` | 写入；新建或**清空**已存在的文件 | `error.IO` |
-| `file.append(path)` | 追加写；不存在则新建 | `error.IO` |
+| `file.Open(path)` | 只读；文件不存在即失败 | `error.IO` |
+| `file.Create(path)` | 写入；新建或**清空**已存在的文件 | `error.IO` |
+| `file.Append(path)` | 追加写；不存在则新建 | `error.IO` |
 
 三个都返回 `result<File>`，必须先 `try` 或 `match` 才能拿到句柄——不存在"打开失败、后面全崩"的可能。
 
@@ -1684,13 +1684,13 @@ println("v={args.At(0)}")          // 有值即显示值；At 返回 T?，不必
 import file
 
 result<string> copy_first_line(string from, string to) {
-    var src = file.open(from) try
+    var src = file.Open(from) try
     defer src.Close()
     string? line = src.ReadLine()
     if line == null {
         throw error.IO("源文件是空的")
     }
-    var dst = file.create(to) try
+    var dst = file.Create(to) try
     defer dst.Close()
     dst.WriteLine(line) try       // 写失败（磁盘满、只读）在这里被捕获
     return ok(line)
@@ -1702,7 +1702,7 @@ result<string> copy_first_line(string from, string to) {
 - **`Write` / `WriteLine` 返回 `result<int>` 而不是 `void`**：写文件是唯一会"部分成功"的操作（磁盘满、配额、只读挂载），必须可捕获；返回字节数顺带能识别短写。`result<void>` 在语言里不存在（`result<T>` 的 `T` 必须是真值），所以落地成字节数。
 - **`Close` 必须显式写**：语言没有析构函数（5.4），`File` 是内建句柄、不在所有权释放的范围内，所以惯例是"打开后立刻 `defer f.Close()`"——一行写一次，任何提前返回都不会漏。
 - **按二进制读写，`\n` 就是 `\n`**：不做 Windows 的 CRLF 转换，因此同一份代码在 Linux 与 Windows 上写出的字节完全相同；`ReadLine` 主动剥掉行尾 `\r`，读回来的行两边一致。
-- **只要整份内容、不要句柄时用 `io.read_file(path)`**：一步读全，省掉 open/close 两句，返回 `result<string>`。标准输入同理用 `io.read_line()`（`string?`，EOF 为 `null`）——它与 `f.ReadLine()` 同名但作用对象不同（标准输入 vs 某个文件），签名完全一致，读法不用换。
+- **只要整份内容、不要句柄时用 `io.ReadFile(path)`**：一步读全，省掉 open/close 两句，返回 `result<string>`。标准输入同理用 `io.ReadLine()`（`string?`，EOF 为 `null`）——它与 `f.ReadLine()` 同名但作用对象不同（标准输入 vs 某个文件），签名完全一致，读法不用换。
 
 ---
 
@@ -1730,7 +1730,7 @@ class Goods {
     }
 
     public static result<Goods?> load(int id) {
-        var row = db.query("select id, name, price, stock from goods where id = ?", id) try
+        var row = db.Query("select id, name, price, stock from goods where id = ?", id) try
         if row.Empty() {
             return ok(null)
         }
@@ -1915,7 +1915,7 @@ int main() {
 | 浮点 | `float`（唯一，64 位） | 只用于科学计算与图形，禁入金额；禁 `==`/`!=`；不产生 inf/nan |
 | 字符串 | `string`（UTF-8），`for c in s`、`s.Len()` | 无 `char`：一个字符 = 长度 1 的 `string`；不可按下标访问；len 是码点数、byte_len 是字节数 |
 | 输出 | `println("共 {n} 件")` 换行、`print("x")` 不换行 | 格式化只有插值，没有 `%d` 或 `{0}` 占位符；两个字面 `{` 写 `{{` |
-| 文件 | `file.open` / `Create` / `Append` → `f.Read()`、`f.ReadLine()`、`f.Write(s)`、`f.WriteLine(s)`、`f.Close()` | 内建句柄、二进制读写；打开返回 `result<File>`，写返回 `result<int>`（字节数） |
+| 文件 | `file.Open` / `Create` / `Append` → `f.Read()`、`f.ReadLine()`、`f.Write(s)`、`f.WriteLine(s)`、`f.Close()` | 内建句柄、二进制读写；打开返回 `result<File>`，写返回 `result<int>`（字节数） |
 | 全局状态 | 模块级只有 `const`，无静态字段 | 没有可变全局变量 |
 | 内存 | 栈默认；`new` 上堆，move 语义，`&` / `&const` 借用 | 无 free、无 GC，编译期保证 |
 | 模块 | 一个文件一模块，`import mod.{item};` | 无头文件、无宏、无 include |
@@ -2257,3 +2257,5 @@ int main() {
 *㊼**泛型单态化落地（v0.44）**：第一层差距里最后一块"已设计未实现"拼图。用户说"开工"，按 GX-01…09 把泛型从"签名层接受"推到"端到端可跑"。①**实例化模型**：`(函数, 类型实参)` 生成 FuncInfo 实例、`(类, 类型实参)` 生成实例 typedef——模板只是蓝图，codegen 只生成实例；同一份 AST 体按实例号隔离重查（槽表键变成 `(实例号 << 32) | 节点 id`，非泛型世界实例号恒 0，现有语义零成本）。②**推断**：实参先按无期望类型预查再统一——原实现的推断在实参还没查过时就取类型，恒失败；匿名函数实参推断期跳过（没有目标类型会误报 E4043）；`new Box(...)` 从构造实参推断，实参推断优先于期望类型——`Box<int> b = new Box(new Box(1))` 这类写错实参的代码要报错，不能被期望类型悄悄带过。③**自引用**：实例 typedef 骨架立即入表再填字段——`Node<Node<T>>` 这类构造期间的自引用靠注册表命中自己，不再撞 id；实例体内引用模板参数（`sink<T[]>`）通过实例环境落成具体类型。④**不变型**：实例 id 不同即不同类型，`Box<Dog>` → `Box<Animal>` 天然 `E4001`——协变伪装成继承是多门语言真踩过的坑，不变型让"容器可以放进狗再当动物容器取猫"在编译期就 impossible。⑤**深度上限**：函数链与类型链共 64 层，触顶报一次 `E4038`；超限实例照常物化（签名具体、调用点类型正确），只是不再查其函数体——致命错误之外零级联。⑥**顺带**：实现 `Comparable` 的类实例 `a > b` 按 `a.compare(b) > 0` 生成；泛型别名（`type Table<T> = map<string, T>`）引用期展开。验收：`GX-1`…`GX-3` + `GX-neg-1…4`，**150/150**，`-Werror` 零警告（规格书 v0.20，GAP 泛型 #1 关闭）。第一层"已设计未实现"至此全部落地，剩余里程碑只有 #37 所有权/借用 + arena。
 
 *㊽**命名按调用形状分：库函数全小写、方法 PascalCase（v0.45）**：用户拍板"内置库函数名称全部小写（print println len max min 等等），类方法名称使用 C# 风（ToString() ..）"。这条推翻了 ㉞（v0.31）把**模块函数也 PascalCase** 的决定——那轮的理由是"标准库一律 C# 风格"，代价是 `io.ReadLine()` 与 `s.Len()` 同形，读代码时看不出哪个是"对象上的方法"、哪个是"库里的一支自由函数"。新判据只看**调用形状**：`名字(...)` 是函数，全小写（多词 snake_case）；`值.名字(...)` / `类型.名字(...)` 是方法，PascalCase。于是 `Print`/`Println` 回到 `print`/`println`（㊱ 那次拆分本身保留：仍是无换行/换行两个入口），`io.ReadLine`/`io.ReadFile`→`io.read_line`/`io.read_file`，`file.Open/Create/Append`→`file.open/create/append`，`math.Equals`/`math.Compare`→`math.equals`/`math.compare`，`json.Parse`→`json.parse`，`db.Query`→`db.query`；方法侧不动（`s.Len()`、`f.ReadLine()`、`decimal.Parse`、`x.ToString()`），但把三个违反 PascalCase 的**内建接口方法**一并修正：`to_string`→`ToString`、`compare`→`Compare`、`hash`→`Hash`（`Printable` / `Comparable` / `Hashable` 的契约面，实现类要跟着改）。`string.FromCodepoint` 保持 PascalCase——`string` 是类型，`string.X(...)` 是静态方法（同一名字也经模块 `string` 可达，两种写法拼写一致）。**旧名不静默兼容**：`Print`/`Println` 报 `E3003` 并指名"内置库函数名一律小写：`Print` 请写 `print`"，`io.ReadLine()` 这类则报"模块没有该符号"。落地时顺带挖出两个**从未被用例覆盖的生成 bug**：`io.read_file` 按单实参生成 `ax_read_file(path)`、`io.read_line` 按无参生成 `ax_read_line()`，而运行时两者都是 `(…, ax_str* out)` 的 out 参数形态——写进 `IO-2` 才暴露，现按 `result<string>` / `string?` 结构体在生成期展开；`axrt.h` 补 `#include <math.h>`（`math.equals` 生成 `fabs`，此前隐式声明报警告）。验收：**166/166** 通过、Rust 零警告（新增 `Math-1`、`IO-2`、`Name-neg-1`；`Out-1` 改为断言 `Print` 的迁移提示），规格书 §15.1/§16 同步。*
+
+*㊾**模块成员回到 PascalCase：分界线是"有没有限定"，不是"函数还是方法"（v0.46）**：㊽ 按"库函数全小写"执行，把 `io.read_line` / `file.open` / `math.compare` 也压成了小写，代码里随即出现**同形不同拼法**——`string.FromCodepoint()`（PascalCase，理由是 `string` 是类型）与 `io.read_line()`（小写，理由是 `io` 是模块）在语法上完全一样，读者得先知道 `io` 是什么才能猜出拼写，编译器也得替每个名字各记一套；`string` 更麻烦，它既是类型又是模块，同一个函数两条入口拼写还得一致。改判：分界线从"函数 vs 方法"移到"**有没有那个点**"——`名字(...)` 是值层的一等函数（可以整体传递），全小写；`X.名字(...)` 一律 PascalCase，不问 `X` 是模块、类型还是变量。一条判据即可决定任一名字的拼写，不需要"谁是模块"这份上下文。这与 C# 同构：C# 里没有"模块函数"，只有静态类成员，本来就是 `Console.WriteLine` / `File.ReadAllText` / `Math.Sqrt`。`print` / `println` 保持小写——它们确实是值层函数（将来 `var f = print` 合法），而 `io` 本身不是值（`var x = io` 编译错误），命名如实反映这条已经存在的语义差异，不是风格分裂。Rust 的 `std::fs::read_to_string()` 能用 snake_case，是因为 `::` 在视觉上就宣告了"路径不是成员"；本文只有 `.` 一个访问符，区分职责只能落在命名上，两种拼法混在一处只会逼读者猜。落地：`io.ReadLine` / `io.ReadFile` / `file.Open` / `file.Create` / `file.Append` / `json.Parse` / `json.Stringify` / `math.Equals` / `math.Compare` / `db.Query` / `time.NowMs`（`string.FromCodepoint` 本已正确）；旧写法报 `E3003` 并**点名正确拼写**——由 `pascal_member` 把 `read_line` 转成 `ReadLine` 再去签名表核对，命中才提示，避免对真正拼错的名字瞎猜（"模块成员一律 PascalCase：`io.read_line` 请写 `io.ReadLine`"）。验收：**166/166** 通过、Rust 零警告；`Name-neg-1` 反转为断言小写旧写法，文稿 §2.3、规格书 `L-24`/§16、`docs/STDLIB.md` 同步。*

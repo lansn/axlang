@@ -2,17 +2,17 @@
 import file
 
 int main() {
-    var f = file.create("tests/.build/file-1.txt") try
+    var f = file.Create("tests/.build/file-1.txt") try
     f.WriteLine("alpha") try
     f.WriteLine("第二行") try
     f.Close()
 
-    var g = file.open("tests/.build/file-1.txt") try
+    var g = file.Open("tests/.build/file-1.txt") try
     string all = g.Read() try
     print("全文=[{all}]")
     g.Close()
 
-    var h = file.open("tests/.build/file-1.txt") try
+    var h = file.Open("tests/.build/file-1.txt") try
     string? l1 = h.ReadLine()
     if l1 != null {
         println("1={l1}")
@@ -27,11 +27,11 @@ int main() {
     }
     h.Close()
 
-    var a = file.append("tests/.build/file-1.txt") try
+    var a = file.Append("tests/.build/file-1.txt") try
     a.WriteLine("gamma") try
     a.Close()
 
-    var n = file.open("tests/.build/file-1.txt") try
+    var n = file.Open("tests/.build/file-1.txt") try
     string all2 = n.Read() try
     println("追加后=[{all2}]")
     n.Close()

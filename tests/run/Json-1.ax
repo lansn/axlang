@@ -1,4 +1,4 @@
-// json.parse / json.stringify / time.now_ms：内建模块从桩补为可用实现
+// json.Parse / json.Stringify / time.NowMs：内建模块从桩补为可用实现
 // 覆盖：object/array/string/int/float/bool 解析、各类型解箱、null 键缺席、
 //       语法错误 fail 分支、stringify 往返（嵌套 + 转义）、now_ms 单调可用
 import json
@@ -18,7 +18,7 @@ int show_ok(map<string, object> m) {
 
 int main() {
     string s = "{\"name\":\"tom\",\"age\":18,\"score\":91.5,\"vip\":true,\"nick\":null}"
-    result<map<string, object>> r = json.parse(s)
+    result<map<string, object>> r = json.Parse(s)
     match r {
         ok(m) => show_ok(m),
         fail(e) => println("fail: {e.msg}"),
@@ -26,7 +26,7 @@ int main() {
 
     // 语法错误：fail 分支 + 有意义的错误信息（不是空串）
     string bad = "{\"name\":}"
-    result<map<string, object>> b = json.parse(bad)
+    result<map<string, object>> b = json.Parse(bad)
     match b {
         ok(m) => println("bad-ok {m.Len()}"),
         fail(e) => println("parse-error={e.msg.Len() > 0}"),
@@ -34,13 +34,13 @@ int main() {
 
     // stringify 往返：嵌套对象 / 数组 / 转义
     string s2 = "{\"a\":1,\"b\":[1,2.5,true,\"x\"],\"c\":{\"d\":\"y\"},\"e\":\"he\\\"llo\\n\"}"
-    result<map<string, object>> r2 = json.parse(s2)
+    result<map<string, object>> r2 = json.Parse(s2)
     match r2 {
-        ok(m) => println(json.stringify(m)),
+        ok(m) => println(json.Stringify(m)),
         fail(e) => println("fail: {e.msg}"),
     }
 
-    int t1 = time.now_ms()
+    int t1 = time.NowMs()
     println("time-ok={t1 > 0}")
     return 0
 }
