@@ -309,6 +309,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             Stmt::If(_) => self.if_stmt_stmt(s),
             Stmt::Match(_) => self.match_stmt_stmt(s),
             Stmt::For { .. } => self.for_stmt(s),
+            Stmt::While { .. } => self.while_stmt(s),
             Stmt::Return { .. } => self.return_stmt(s),
             Stmt::Throw { .. } => self.throw_stmt(s),
             Stmt::TryCatch(_) => self.try_catch_stmt(s),
@@ -318,6 +319,10 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             Stmt::Break { .. } => self.break_stmt(s, true),
             Stmt::Continue { .. } => self.break_stmt(s, false),
             Stmt::Const { .. } => self.var_decl(s),
+            Stmt::FuncDecl { .. } => {
+                // 嵌套函数已在 backend::run() 中作为独立顶层 C 函数生成，
+                // 语句位置不再发代码。
+            }
         }
     }
 
@@ -1091,6 +1096,41 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 self.ind -= 1;
                 self.emit("}".to_string());
             }
+            ast::ForKind::Step {
+                var,
+                lo,
+                hi,
+                step,
+                inclusive,
+            } => {
+                let lo_c = self.gen(lo, Some(&t_int()), false, false);
+                let hi_c = self.gen(hi, Some(&t_int()), false, false);
+                let step_c = self.gen(step, Some(&t_int()), false, false);
+                self.emit("{".to_string());
+                self.ind += 1;
+                let liv = self.declare(&t_int(), &lo_c);
+                let hiv = self.declare(&t_int(), &hi_c);
+                let stepv = self.declare(&t_int(), &step_c);
+                let v = self.lv(var);
+                self.emit(format!("int64_t {} = {};", v, liv));
+                let lab = self.tmpn();
+                let op = if *inclusive { "<=" } else { "<" };
+                self.emit(format!(
+                    "for (; {} {} {}; {} += {}) {{",
+                    v, op, hiv, v, stepv
+                ));
+                self.loop_labels
+                    .push((label.clone(), self.defers.len(), lab.clone()));
+                self.ind += 1;
+                self.block(Some(body), None, None);
+                self.emit(format!("{}_cont: __attribute__((unused));", lab));
+                self.ind -= 1;
+                self.emit("}".to_string());
+                self.loop_labels.pop();
+                self.emit(format!("{}_brk: __attribute__((unused));", lab));
+                self.ind -= 1;
+                self.emit("}".to_string());
+            }
             ast::ForKind::Iter { var, iterable } => {
                 let it = iterable;
                 let ty = self.ty_or_int(it.id);
@@ -1223,6 +1263,29 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 self.emit("}".to_string());
             }
         }
+    }
+
+    /// while 循环：前测条件 `while (cond) { body }`。
+    /// continue 跳到 `_cont` 后落到 `}`，再重新判断条件；break 跳到 `_brk` 退出循环。
+    /// `while` 节点本身不携带标签，因此只承接 unlabeled break/continue。
+    fn while_stmt(&mut self, s: &'a ast::N<Stmt>) {
+        let (cond, body) = match &s.k {
+            Stmt::While { cond, body } => (cond, body),
+            _ => unreachable!(),
+        };
+        let cond_c = self.cond(cond);
+        self.emit(format!("while ({}) {{", cond_c));
+        let lab = self.tmpn();
+        self.loop_labels
+            .push((None, self.defers.len(), lab.clone()));
+        self.ind += 1;
+        self.block(Some(body), None, None);
+        // continue 跳到这里，随后执行 `}` 重新进入 while 条件判断
+        self.emit(format!("{}_cont: __attribute__((unused));", lab));
+        self.ind -= 1;
+        self.emit("}".to_string());
+        self.loop_labels.pop();
+        self.emit(format!("{}_brk: __attribute__((unused));", lab));
     }
 }
 

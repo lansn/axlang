@@ -1,0 +1,9 @@
+// EXPECT: E3003
+// 嵌套函数不捕获外部局部变量：get() 体内引用 main 的 x 应报未定义标识符。
+int main() {
+    int x = 1
+    int get() {
+        return x
+    }
+    return get()
+}

@@ -13,6 +13,12 @@ Thumbs.db
 # Other files and folders
 .tmp/
 
+# WorkBuddy 本地项目内存与工作日志，不应入库
+.workbuddy/
+
+# 测试临时目录（根目录）
+/.build/
+
 # Executables
 # 注意：`/dist/` 是刻意跟踪的——`dist/axc.exe` 是分发用的编译器本体，
 # 与源码版本号同步更新，不进忽略清单。

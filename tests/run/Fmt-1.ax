@@ -1,0 +1,18 @@
+// fmt 模块（文稿 11.2，0.0.27）：Printf 编译期核对占位符个数与类型，
+// 生成与插值完全相同的拼接（零运行时格式串解析）；Print/Println 等价于 print/println。
+import fmt
+
+int main() {
+    int n = 3
+    decimal total = 59.97d
+    float ratio = 0.5
+    string name = "阿蓝"
+    bool ok = true
+    int? maybe = null
+    fmt.Printf("%d 件，共 %.2f 元\n", n, total)
+    fmt.Printf("name=%s ok=%t ratio=%.1f 100%% done\n", name, ok, ratio)
+    fmt.Printf("%v %v %d\n", maybe, n, n)
+    fmt.Print("x", 1)
+    fmt.Println(" y", 2)
+    return 0
+}

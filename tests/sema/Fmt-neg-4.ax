@@ -1,0 +1,8 @@
+// EXPECT: E4032
+// 格式串必须是纯字符串字面量（不含插值），才能在编译期核对占位符
+import fmt
+int main() {
+    int x = 1
+    fmt.Printf("{x} %d", 2)
+    return 0
+}

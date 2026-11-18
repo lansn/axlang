@@ -1,0 +1,7 @@
+// EXPECT: E3003
+// time 实例上调用不存在的方法。
+int main() {
+    time t = time.Now()
+    int x = t.Foo()
+    return 0
+}

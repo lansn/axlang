@@ -36,6 +36,7 @@ mod backend;
 mod cli;
 mod diag;
 mod diag_msg;
+mod fmt_spec;
 mod frontend;
 mod sema;
 mod types;

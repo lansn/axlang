@@ -795,6 +795,11 @@ impl<'a> Sema<'a> {
             _ => unreachable!(),
         };
         self.check_call_args(args, None, None, e.id);
+        // 内建 fmt 模块（文稿 11.2，0.0.27）：Printf 编译期核对占位符，
+        // Print/Println 与 print/println 走同一套多实参实现
+        if m == "fmt" {
+            return self.check_fmt_call(e, args, &name);
+        }
         let sig = match module_sig(m, &name) {
             None => {
                 // 模块成员一律 PascalCase（文稿 2.3）：小写写法给一条精确的迁移提示，
@@ -817,6 +822,21 @@ impl<'a> Sema<'a> {
             Some(s) => s,
         };
         let (ptypes, ret) = sig;
+        // 实参个数校验：必选实参（签名中 Some(...) 的项）不足时报 E4031；
+        // 额外实参允许（如 db.Query(sql, param...) 等可变参数场景），与
+        // 原先“逐个 coerce、多余忽略”的行为保持一致，同时避免 codegen
+        // 按形参下标取实参时越界 panic。
+        let required = ptypes.iter().filter(|pt| pt.is_some()).count();
+        if args.len() < required {
+            self.err(
+                "E4031",
+                &e.tok,
+                "N-20",
+                "`{0}.{1}` 需要至少 {2} 个实参，得到 {3}",
+                &[&m, &name, &required, &args.len()],
+            );
+            return t_object();
+        }
         for (i, a) in args.iter().enumerate() {
             if let Some(Some(pt)) = ptypes.get(i).map(|x| x.clone()) {
                 self.coerce(&a.k.expr, &pt, "实参");
@@ -824,6 +844,147 @@ impl<'a> Sema<'a> {
         }
         self.sl(e.id).mkind = Some("module");
         ret
+    }
+
+    /// 内建 `fmt` 模块（文稿 11.2，0.0.27）。
+    ///
+    /// - `fmt.Print(args...)` / `fmt.Println(args...)`：与 `print` / `println` 完全同实现
+    ///   （多实参、空格分隔），只是给 C/Print 习惯留的入口，语义不二。
+    /// - `fmt.Printf(fmt, args...)`：格式串必须是纯字符串字面量，编译期解析占位符
+    ///   （`%%` `%d` `%f` `%.Nf` `%s` `%t` `%v`）并核对个数与类型——
+    ///   这是 C 风格 `printf` 在 axlang 里唯一被允许的形态：类型和个数都在编译期堵死，
+    ///   `%n`/`%x` 等危险或歧义占位符根本不开放（E4044）。
+    fn check_fmt_call(&mut self, e: &ast::EPtr, args: &[ast::N<ast::Arg>], name: &str) -> Ty {
+        const MEMBERS: [&str; 3] = ["Print", "Println", "Printf"];
+        if !MEMBERS.contains(&name) {
+            let pascal = crate::sema::expr::pascal_member(name);
+            if pascal != name && MEMBERS.contains(&pascal.as_str()) {
+                self.err(
+                    "E3003",
+                    &e.tok,
+                    "文稿 2.3",
+                    "模块成员一律 PascalCase：`fmt.{0}` 请写 `fmt.{1}`",
+                    &[&name, &pascal],
+                );
+            } else {
+                self.err(
+                    "E3003",
+                    &e.tok,
+                    "文稿 11.2",
+                    "模块 `fmt` 没有符号 `{0}`（可选 Print / Println / Printf）",
+                    &[&name],
+                );
+            }
+            return t_object();
+        }
+        if name == "Print" || name == "Println" {
+            // 走 print 同款实现；mkind 标 "module" 让 codegen 进 module_call 后再分派回来
+            self.sl(e.id).mkind = Some("module");
+            return self.call_print(e, args, &format!("fmt.{}", name));
+        }
+        // ---- fmt.Printf ----
+        self.sl(e.id).mkind = Some("module");
+        if args.is_empty() {
+            self.err(
+                "E4031",
+                &e.tok,
+                "文稿 11.2",
+                "`fmt.Printf` 至少需要 1 个实参（格式字符串）",
+                &[],
+            );
+            return t_void();
+        }
+        let fexpr = &args[0].k.expr;
+        let fmt_str: String = match &fexpr.k {
+            Expr::StrLit { parts } if parts.iter().all(|p| matches!(p, ast::SPart::Text(_))) => parts
+                .iter()
+                .map(|p| match p {
+                    ast::SPart::Text(t) => t.clone(),
+                    _ => String::new(),
+                })
+                .collect(),
+            _ => {
+                self.err(
+                    "E4032",
+                    &fexpr.tok,
+                    "文稿 11.2",
+                    "`fmt.Printf` 的格式串必须是纯字符串字面量（不含 `{...}` 插值），才能在编译期核对占位符；得到 {0}",
+                    &[&self.ts(&self.ty_of(fexpr.id).unwrap_or_else(t_object))],
+                );
+                // 格式串都不是字面量，后面的个数/类型核对没有意义——一处误用只报一条
+                return t_void();
+            }
+        };
+        let specs = match crate::fmt_spec::parse(&fmt_str) {
+            Ok(s) => s,
+            Err((pos, ch)) => {
+                self.err(
+                    "E4044",
+                    &fexpr.tok,
+                    "文稿 11.2",
+                    "不支持的格式占位符 `%{0}`（格式串中第 {1} 个字符处）；支持 `%%` `%d` `%f` `%.Nf` `%s` `%t` `%v`——`%n` / `%x` 等危险或歧义占位符一律不开放",
+                    &[&ch.to_string(), &(pos + 1).to_string()],
+                );
+                return t_void();
+            }
+        };
+        let need = specs
+            .iter()
+            .filter(|s| matches!(s, crate::fmt_spec::FmtPart::Arg { .. }))
+            .count();
+        let have = args.len() - 1;
+        if need != have {
+            self.err(
+                "E4032",
+                &e.tok,
+                "文稿 11.2",
+                "格式串里有 {0} 个占位符，但实参有 {1} 个（不含格式串本身）",
+                &[&need.to_string(), &have.to_string()],
+            );
+        }
+        let mut ai = 1;
+        for sp in &specs {
+            if let crate::fmt_spec::FmtPart::Arg { spec, prec } = sp {
+                if ai >= args.len() {
+                    break;
+                }
+                let a = &args[ai];
+                ai += 1;
+                let t = self.ty_of(a.k.expr.id).unwrap_or_else(t_object);
+                let ok = match spec {
+                    'd' => matches!(&*t, TyS::Int(..)),
+                    'f' => matches!(&*t, TyS::Float | TyS::Decimal),
+                    's' => matches!(&*t, TyS::Str),
+                    't' => matches!(&*t, TyS::Bool),
+                    // `%v` 与 print 实参白名单一致（含可空：null 显示为 null）
+                    'v' => {
+                        !matches!(&*t, TyS::Object | TyS::Void)
+                            && (crate::types::interp_supported(&t) || self.implements_printable(&t))
+                    }
+                    _ => true,
+                };
+                if !ok {
+                    self.err(
+                        "E4032",
+                        &a.tok,
+                        "文稿 11.2",
+                        "占位符 `%{0}` 与实参类型 `{1}` 不匹配（`%d`=整数, `%f`=小数, `%s`=字符串, `%t`=布尔, `%v`=任意可打印值；可空值请用 `%v` 或先判空）",
+                        &[&spec.to_string(), &self.ts(&t)],
+                    );
+                }
+                if prec.is_some() && *spec != 'f' {
+                    self.err(
+                        "E4032",
+                        &a.tok,
+                        "文稿 11.2",
+                        "`%.N` 精度只支持 `%f`，不支持 `%{0}`（与插值 `{x:.N}` 同规则）",
+                        &[&spec.to_string()],
+                    );
+                }
+                self.sl(a.k.expr.id).interp_arg = true;
+            }
+        }
+        t_void()
     }
 
     // ------------------------------------------------------ 用户模块（文稿 9.2）
@@ -956,6 +1117,18 @@ impl<'a> Sema<'a> {
                 ("Split", vec![t_string()], t_array(t_string(), None)),
                 ("ToString", vec![], t_string()),
                 ("Trim", vec![], t_string()),
+                // C# 风格字符串截取（按码点，安全处理越界）
+                ("Left", vec![t_int()], t_string()),
+                ("Right", vec![t_int()], t_string()),
+                ("Mid", vec![t_int(), t_int()], t_string()),
+                // 大小写转换、前后缀判断、连接/替换/重复
+                ("Upper", vec![], t_string()),
+                ("Lower", vec![], t_string()),
+                ("StartsWith", vec![t_string()], t_bool()),
+                ("EndsWith", vec![t_string()], t_bool()),
+                ("Join", vec![t_array(t_string(), None)], t_string()),
+                ("Replace", vec![t_string(), t_string()], t_string()),
+                ("Repeat", vec![t_int()], t_string()),
             ]),
             TyS::Array(elem, _) => {
                 let el = elem.clone();
@@ -1018,6 +1191,25 @@ impl<'a> Sema<'a> {
                 }
             }
             TyS::Named(DefId::Name("Rounding"), _) => None,
+            TyS::Range => Some(vec![
+                ("Step", vec![t_int()], t_range()),
+            ]),
+            TyS::Named(DefId::Name("time"), _) => Some(vec![
+                ("UnixMs", vec![], t_int()),
+                ("ToString", vec![], t_string()),
+                ("Format", vec![t_string()], t_string()),
+            ]),
+            TyS::Named(DefId::Name("thread"), _) => Some(vec![
+                ("Join", vec![], t_void()),
+            ]),
+            TyS::Named(DefId::Name("queue"), args) => {
+                let elem = args.first().cloned().unwrap_or_else(t_object);
+                Some(vec![
+                    ("Push", vec![elem.clone()], t_void()),
+                    ("Pop", vec![], t_nullable(elem.clone())),
+                    ("Close", vec![], t_void()),
+                ])
+            }
             _ => None,
         };
         let table = match table {

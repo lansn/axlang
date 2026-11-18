@@ -43,6 +43,8 @@ DESC = {
     ("module", "file.Append"):   ("file.Append(path: string) -> result<File>", "以追加打开文件"),
     ("module", "string.FromCodepoint"): ("string.FromCodepoint(cp: int) -> result<string>", "码点转字符（`string` 既是类型也是模块，与静态方法同名同拼写）"),
     ("module", "time.NowMs"):   ("time.NowMs() -> int", "当前 Unix 时间（毫秒）"),
+    ("module", "time.Now"):     ("time.Now() -> time", "当前本地时间（Unix 毫秒）"),
+    ("module", "time.FromUnixMs"): ("time.FromUnixMs(ms: int) -> time", "按 Unix 毫秒数构造时间"),
 
     # string 实例方法
     ("string", "Len"):        ("s.Len() -> int", "字符数（按码点）"),
@@ -54,6 +56,13 @@ DESC = {
     ("string", "Split"):      ("s.Split(sep: string) -> string[]", "按分隔符拆分"),
     ("string", "ToString"):   ("s.ToString() -> string", "自身"),
     ("string", "Trim"):       ("s.Trim() -> string", "去除两端空白"),
+    ("string", "Upper"):      ("s.Upper() -> string", "转大写（仅 ASCII，UTF-8 多字节原样保留）"),
+    ("string", "Lower"):      ("s.Lower() -> string", "转小写（仅 ASCII，UTF-8 多字节原样保留）"),
+    ("string", "StartsWith"): ("s.StartsWith(p: string) -> bool", "是否以 p 开头"),
+    ("string", "EndsWith"):   ("s.EndsWith(p: string) -> bool", "是否以 p 结尾"),
+    ("string", "Join"):       ("s.Join(parts: string[]) -> string", "用 s 作为分隔符连接数组"),
+    ("string", "Replace"):    ("s.Replace(old: string, new: string) -> string", "替换所有 old 子串为 new"),
+    ("string", "Repeat"):     ("s.Repeat(n: int) -> string", "重复 s n 次"),
     ("string", "Upper"):      ("s.Upper() -> string", "转大写"),
     ("string", "Lower"):      ("s.Lower() -> string", "转小写"),
     ("string", "StartsWith"): ("s.StartsWith(p: string) -> bool", "前缀判断"),
@@ -85,6 +94,10 @@ DESC = {
     ("decimal", "Round"):   ("d.Round(scale: int, mode: Rounding) -> decimal", "按位数与舍入模式取整"),
     ("decimal", "Divide"):  ("d.Divide(other: decimal, scale: int, mode: Rounding) -> decimal", "显式指定精度与舍入的除法"),
     ("decimal", "ToString"): ("d.ToString() -> string", "转为字符串"),
+
+    ("time", "ToString"): ("t.ToString() -> string", "按 \"YYYY-MM-DD HH:MM:SS\" 格式化"),
+    ("time", "Format"): ("t.Format(fmt: string) -> string", "按 strftime 风格格式串格式化"),
+    ("time", "UnixMs"): ("t.UnixMs() -> int", "Unix 毫秒数"),
 
     # int / float / bool
     ("int", "ToString"):    ("x.ToString() -> string", "转为字符串"),
@@ -120,8 +133,18 @@ def lit_tables(member_src):
     seg = member_src[start:end]
     # 块头位置
     heads = []
-    for m in re.finditer(r'TyS::(Str|Array|Map|Decimal)\b[^=]*=>', seg):
-        heads.append((m.start(), {"Str": "string", "Array": "array", "Map": "map", "Decimal": "decimal"}[m.group(1)]))
+    for m in re.finditer(r'TyS::(Str|Array|Map|Decimal|Named)\b[^=]*=>', seg):
+        nm = m.group(1)
+        if nm == "Named":
+            # 内建具名类型：仅当前只有 time 带实例方法；Rounding/Row/File 无此表条目或不在此块。
+            mm = re.search(r'DefId::Name\("([^"]+)"\)', seg[m.start():m.start() + 60])
+            key = mm.group(1) if mm else ""
+            if key != "time":
+                continue
+            owner = "time"
+        else:
+            owner = {"Str": "string", "Array": "array", "Map": "map", "Decimal": "decimal"}[nm]
+        heads.append((m.start(), owner))
     # Int/Float、Bool/Enum 走 if 分支而不是表，占位防止归属前一块
     for m in re.finditer(r'TyS::(?:Int\(\.\.\)|Float)\s*\|?\s*(?:TyS::Float)?\s*=>\s*\{', seg):
         heads.append((m.start(), None))
@@ -225,7 +248,8 @@ def main():
     order = [("string", intr.get("string", [])),
              ("array", intr.get("array", [])),
              ("map", intr.get("map", [])),
-             ("decimal", intr.get("decimal", []))]
+             ("decimal", intr.get("decimal", [])),
+             ("time", intr.get("time", []))]
     for owner, names in order:
         L.append("### %s" % owner)
         L.append("")

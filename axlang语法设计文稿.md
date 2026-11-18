@@ -26,7 +26,7 @@
 
 1. **一种声明方式**：没有原型声明，函数/类型先定义后使用，或由模块导入（替代头文件）。
 2. **一种错误处理**：`result<T>` 是「可能失败」的唯一载体。传播用 `try` 后缀，就地捕获用 `try/catch/finally` 块，分类处理用 `ok`/`fail` 模式——三者是同一套错误模型的不同用法，没有异常类层级、没有错误码约定、没有 `errno`。
-3. **一种循环**：只有 `for`（含区间遍历、集合遍历、无头循环三种形式），没有 `while`、`do-while`、`goto`。
+3. **两种循环**：`for` 负责区间遍历、集合遍历（已知容器或已知次数）；`while 条件 { }` 负责条件控制循环（前测条件，次数未知）。两者应用场景不同，不构成"两套写法"。没有 `do-while`、`goto`。
 4. **一种字符串**：只有 UTF-8 `string`，没有 `char*`/`wchar_t`/`char16_t` 之分；**连 `char` 类型也不存在**——一个字符就是长度为 1 的 `string`，"文本"从头到尾只有一个类型。
 5. **一种集合**：数组就一种写法 `T[]`（长度写进类型即定长 `T[N]`，见 3.3），键值就一种 `map<K, V>`。没有 `list`/`vector`/`ArrayList`/`slice`/`deque`/`set` 这些同义异构的名字——"一串同类型的东西"永远叫数组，"按键查值"永远叫 `map`。C 的简单正在于它没有"容器族"，axlang 保留这份简单。
 
@@ -599,7 +599,7 @@ each(nums, (int v) { println("{v}"); })
 
 ## 5. 控制流
 
-只有 `if` / `for` / `match` 三种，外加 `break` / `continue` 和三元运算符 `? :`。没有 `while`、`do-while`、`goto`。
+只有 `if` / `for` / `while` / `match` 四种，外加 `break` / `continue` 和三元运算符 `? :`。没有 `do-while`、`goto`。
 
 ### 5.1 if
 
@@ -662,7 +662,7 @@ match o {
 
 写成 `Dog(a)` 而不是另造一个运算符，理由很直白——"转成 Dog"本身就是这个操作的名字。`is`、`instanceof`、`typeid` 那一整套判断 API 随之省掉。
 
-### 5.2 for（唯一循环）
+### 5.2 for / while（两种循环）
 
 ```ax
 // 区间遍历
@@ -674,7 +674,14 @@ for item in nums { ... }
 for (k, v) in prices { ... }
 for c in s { ... }            // c 是长度 1 的 string
 
-// 条件循环：无头 for + break
+// 条件循环：while（前测条件，次数未知）
+int i = 0
+while i < 5 {
+    println("{i}")
+    i = i + 1
+}
+
+// 无头循环：for { }（无条件，配合 break 退出）
 for {
     string line = read_line()
     if line == "quit" { break; }
@@ -1612,7 +1619,7 @@ C 的 `5 / 2 == 2` 陷阱在 axlang 不存在，因为它靠**隐式转换**成�
 
 ### 11.2 字符串与格式化
 
-- 字符串插值即格式化唯一方式，内建于语法：
+- 字符串插值是语言内置的格式化能力，写在任意双引号/多行字符串里：
 
 ```ax
 decimal total = 59.97d
@@ -1621,7 +1628,7 @@ println("合计：{total}，件数：{count}")      // 插值表达式在任何�
 println("价格 {total:.2}")                  // 格式说明符只有一种：.N 小数位
 string s = "共 {count} 件"                  // 生成字符串，不打印
 print("进度 ")                               // 不换行
-println("100%")                              // 换行
+println("100%")                              // 换行；普通字符串里的 `%` 是字面字符，不是占位符
 ```
 
 - **格式化只有插值一种**，不存在"占位符 + 参数列表"的第二套：
@@ -1632,7 +1639,9 @@ println("{count} 件，共 {total}")            // 正确：表达式写在花�
 ```
 
   理由有三条，都是 C 系 `printf` / `string.Format` 的老账：①**参数与占位符按位置对齐**，改一处文案就要重排整个参数表，`{1}` 与第 2 个实参错位编译器也看不出来（C# 的 `string.Format` 正是被内插字符串取代的）；②**占位符里的类型不可检查**，`%d` 对 `decimal`、`%s` 对 `int` 只能运行期出错或静默输出垃圾；③**花括号里已经是表达式**，`"{count + 1} 件"` 直接可写，占位符方案还得为"能不能写表达式"再定一套规则。代价只有一处：文案里的字面 `{` `}` 需要写成 `{{` `}}`——文档里这种场景远少于参数重排。
+
 - 格式说明符仅 `.N`（保留 N 位小数，舍入方式固定 `Rounding.HalfUp`）；不提供宽度、对齐、进制等格式串——这些需要时由标准库函数显式转换。
+
 - **插值能显示什么**：`int`/`uint` 系、`decimal`、`float`、`bool`、`string`、`enum`（打印变体名），以及它们的**可空形式**。可空值有值就显示值、无值显示 `null`：
 
 ```ax
@@ -1644,8 +1653,51 @@ println("v={args.At(0)}")          // 有值即显示值；At 返回 T?，不必
 
   可空值**不能加格式说明符**：`{d:.2}`（`d: decimal?`）报 `E4030`，`:.N` 对 `null` 没有定义舍入行为，先判空取出。
   插值只做"显示"，不产生可空值逃逸，所以**不像赋值/传参那样触发 `E4001`**（`string s = args.At(0)` 仍要判空；`println(args.At(0))` 会按"显示"语义输出值或 `null`，与 `println("{args.At(0)}")` 完全一致，不会把一个可空值当非空用）。数组 / `map` / 元组 / `func` / class / struct 暂不参与插值，报 `E5006`：复合类型"怎么显示"是设计题（`[1, 2]` 还是逐行？class 打印类名还是字段？），在定下来之前宁可明确报错，也不做 C# 那样"悄悄打类型名"的隐式约定。
-- **输出只有两个入口，名字直接说明换行与否**：`println(x)` 换行、`print(x)` 不换行。两者都是根模块内建，任何文件直接可用、不需要 `import`（旧名 `Print` / `Println` 会得到"内置库函数名一律小写"的明确提示，不做静默兼容）。要"拿到字符串而不打印"，直接写字符串插值 `string s = "共 {count} 件"`——不设 `format` 这类并行函数（同一件事不留第二个入口）。
-- **实参允许直接是"能插值的值"**：`println(123)`、`println(ok)`、`println(total)` 都等于在两端补上花括号（`println("{123}")`），可接受的范围与插值完全一致——`int`/`uint` 系、`decimal`、`float`、`bool`、`string`、`enum`、实现了 `Printable` 的 class/struct，以及它们的可空形式。这**不是**第二套格式化能力，只是把"写花括号"这一步省掉；`int[]`、`map`、元组这类复合类型照样报 `E4001`（要打印先自己拼接）。多实参仍然报错：`println(a, b)` 不是"自动拼接"，是用法错误——拼接该怎么拼（空格？换行？）没有约定，就不猜。
+
+- **输出入口**：`print(x)` 不换行、`println(x)` 换行。两者都是根模块内建，任何文件直接可用、不需要 `import`（旧名 `Print` / `Println` 会得到"内置库函数名一律小写"的明确提示，不做静默兼容）。**0.0.27 起，`print` / `println` 都支持多个实参**，实参之间以一个空格拼接后输出：
+
+```ax
+print("axlang", 6, true)              // axlang 6 true
+println("总价", total, "元")           // 总价 59.97 元
+```
+
+  要"拿到字符串而不打印"，直接写字符串插值 `string s = "共 {count} 件"`——不设 `format` 这类并行函数（同一件事不留第二个入口）。
+
+- **实参允许直接是"能插值的值"**：`println(123)`、`println(ok)`、`println(total)` 都等于在两端补上花括号（`println("{123}")`），可接受的范围与插值完全一致——`int`/`uint` 系、`decimal`、`float`、`bool`、`string`、`enum`、实现了 `Printable` 的 class/struct，以及它们的可空形式。这**不是**第二套格式化能力，只是把"写花括号"这一步省掉；`int[]`、`map`、元组这类复合类型照样报 `E4001`（要打印先自己拼接）。
+
+- **`fmt` 模块（0.0.27 新增）**：根模块内建，无需 `import`，提供三个成员，成员名一律 PascalCase（见 2.3）：
+
+  - `fmt.Print(args...)` / `fmt.Println(args...)`：与 `print` / `println` 语义完全一致（多实参、空格分隔、末尾是否换行），只是给习惯 `Print`/`Println` 命名的用户留的入口。
+  - `fmt.Printf(fmt, args...)`：编译期安全的格式化输出。第一个实参必须是**纯字符串字面量**（不含 `{...}` 插值），编译期解析占位符并核对个数与类型：
+
+```ax
+int n = 5
+fmt.Printf("%d 件\n", n)              // 5 件
+fmt.Printf("价格 %.2f 元\n", 19.99d)   // 价格 19.99 元
+fmt.Printf("ok=%t\n", true)           // ok=true
+```
+
+  支持的占位符：
+
+| 占位符 | 含义 | 对应实参类型 |
+|---|---|---|
+| `%%` | 字面 `%` | —（不消耗实参） |
+| `%d` | 有符号整数 | `int`/`uint` 系 |
+| `%f` | 浮点/定点小数 | `float`、`decimal`；可选 `%.Nf` 保留 N 位小数 |
+| `%s` | 字符串 | `string` |
+| `%t` | 布尔 | `bool` |
+| `%v` | 任意可打印值 | 标量/enum/`Printable` 类及其可空形式（可空为 `null` 时显示 `null`） |
+
+  编译期核对规则（不通过则直接报错，不产生目标代码）：
+
+  - 格式串不是纯字符串字面量（含插值或非字面量表达式）→ **E4032**：必须写纯字面，才能在编译期核对占位符；想拼接变量，请用插值字符串。
+  - 占位符个数 ≠ 实参个数（不含格式串本身）→ **E4032**。
+  - 占位符与实参类型不匹配 → **E4032**（`%d` 对 `decimal`、`%s` 对 `int` 等都会在编译期被拦住；可空值请用 `%v` 或先判空再传）。
+  - `%.N` 只能作用于 `%f`，`%.Nd`/`%.Ns` 等 → **E4032**（与插值 `{x:.N}` 同规则）。
+  - 非法占位符（`%n` `%x` `%c` `%e` `%g` 等，以及串尾孤 `%`）→ **E4044**；`%n`/`%x` 这类危险或歧义占位符一律不开放，从根上堵死 C 那类"运行时才发现格式串错了 / `%n` 写内存"的坑。
+
+  运行时没有任何格式串解析：`fmt.Printf` 在 codegen 层展开为与字符串插值完全相同的 `ax_sb` 拼接，`%.Nf` 复用插值的 `:.N` 生成。因此 `fmt.Printf` 不比插值多任何运行时开销，且类型安全在编译期已完成。
+
 - **`typeof(表达式)` 是编译期常量**，返回实参**静态类型**的显示名——`typeof(a)`（`a: int`）在编译器手里直接变成 `"int"`：生成字符串字面量、零运行时开销，`println(typeof(a))`、插值 `{typeof(x)}`、`const string KNOWN = typeof(s)` 都可用。可空与复合形式照实显示（`int?`、`int[]`、`map<string, object>`）。它回答的是"**编译器认为它是什么**"；运行期"实际是什么"仍走 `match` 类型模式（5.3），两者不重叠——装箱值 `object o = ...` 的 `typeof(o)` 就是 `object`，不会往下看。它也不是 `typeid`：没有类型对象、没有比较运算、不能参与控制流，就是编译期算好的一个字符串，用在调试打印与日志标注。裸写 `typeof`（不带括号）报 `E3003` 并提示要写成 `typeof(表达式)`。
 - **`sizeof(表达式)` 是编译期大小**：返回实参类型在 C 侧的存储字节数（`int`）——`int` = 8、`uint8` = 1、`decimal` = 32、`string` = 16（指针 + 长度）、`int[]` = 24、class 按引用语义给**指针大小**（8），对象本身的大小（头 + 字段）不在此问——要问就问它管理的值，与赋值语义保持一致（`Dog` 变量就占 8 字节，拷贝引用不拷贝对象）。值由 C 编译器计算（生成 `sizeof(...)`），sema 不算，所以**不能用于 `const` 声明**（常量求值算不出它）。与 `typeof` 一样裸写报 `E3003` 带提示。
 
@@ -1655,6 +1707,18 @@ println("v={args.At(0)}")          // 有值即显示值；At 返回 T?，不必
   - `for c in s { ... }`——逐码点迭代，`c` 是长度 1 的 `string`；
   - `s.Chars()`——得到 `string[]`，每个元素一个码点；
   - `s.At(i)`——第 i 个码点，返回 `string?`（越界得 `null`，用 `??` 兜底）。语义与 `nums.At(i)` 完全一致，只是字符串连 `[]` 都不提供（UTF-8 上"第 i 个字节"不等于"第 i 个字符"，见上一条），所以只有方法调用一种形式。
+- **子串截取**（借鉴 C# / VB.NET 风格，按码点，越界安全截断）：
+  - `s.Left(n)`——从开头取 n 个字符；`n ≤ 0` 得空串，`n > Len()` 得整串。
+  - `s.Right(n)`——从末尾取 n 个字符；`n ≤ 0` 得空串，`n > Len()` 得整串。
+  - `s.Mid(start, n)`——从码点索引 `start` 开始取 n 个字符；`start ≥ Len()` 得空串，`start + n > Len()` 截断到末尾。
+  
+```ax
+string s = "axlang"
+s.Left(3)   // "axl"
+s.Right(4)  // "lang"
+s.Mid(2, 3) // "lan"
+s.Mid(4, 10)// "ng"（越界截断）
+```
 - **需要码点数值时才用底层入口**（编码、校验、协议等场景）：`s.CodepointAt(i)` 得 `int?`（越界 `null`，与 `At` 同语义），`string.FromCodepoint(n)` 得长度 1 的 `string`、非法码点返回 `result<string>`。两类失败分得很清：**查找没命中用 `?`，外部数据不合法用 `result`**（与 `decimal.Parse` 一致，不新增崩溃路径）。日常文本处理只用上面三个入口，不必碰数值。
 - **长度语义写死**：`s.Len()` 返回**码点数**（人能感知的字符数），`s.ByteLen()` 返回 UTF-8 字节数。两个名字就是两种含义，不存在"len 到底是字节还是字符"的猜谜（Java 的 `length()` 与 `codePointCount`、JS 的 `length` 与 `[...s].length` 都是这个坑）。
 - 判定"是不是单个字符"不用类型，直接 `s.Len() == 1`——少一个类型，就少一套 `char`/`string` 之间的来回转换与 `char[]`/`string` 之间的来回转换。
@@ -1819,7 +1883,7 @@ int main() {
 | `switch` 忘 `break` 穿透 | C / Java | `match` 无穿透，一支一结果（5.3） |
 | 漏 `default` | C | 穷尽检查，enum 少一支即编译错误（5.3） |
 | `goto` 面条代码 | C | 无 `goto`；只能 `break label` 跳出循环（5.2） |
-| `while(true)` 与 `for(;;)` 两套死循环 | C | 只有 `for { }` 一种（5.2） |
+| `while(true)` 与 `for(;;)` 两套死循环 | C | `for { }` 为无头无限循环，`while 条件 { }` 为前测条件循环（5.2），场景分明，不必两套 |
 
 ### 13.3 表达式与运算
 
@@ -1983,7 +2047,7 @@ int main() {
 
 *③废除 `where` 子句：泛型约束只在 `<T: A + B>` 里一个位置写，过长就换行，不提供第二个等价写法（第 7 章）。*
 
-*关键词 36 → 32 个：`var const class struct interface extend implement override parent this enum type if else for in match return try throw defer import public static new as break continue constructor true false null`。*
+*关键词 36 → 33 个：`var const class struct interface extend implement override parent this enum type if else for while in match return try throw defer import public static new as break continue constructor true false null`。*
 
 *v0.13 变更（回答「取消变量类型、全自动推导是否更省事」）：结论是不省——①声明标记不可省，否则 `a = 10;` 既声明又赋值，拼写错误会静默新建变量、未定义变量检查失效；②类型名本身即声明标记，与 `var` 占同一位置、字符数相同，全推断只擦掉类型信息、不减少语法成本；③字段（决定内存布局）、参数与返回值（模块契约，跨模块编译只读签名）、空容器、窄宽度整数四类推断不出或不可推断。3.3 节新增「什么时候写类型、什么时候用 var」判定表，并明确 `var` 仅限局部变量；配套 linter 仅一条提示（`var` 推出 `float` 且右值无后缀浮点字面量 → 提示金额用 `decimal`）。*
 

@@ -1,0 +1,11 @@
+// EXPECT: E3044
+// 同一函数体内重复定义嵌套函数。
+int main() {
+    int f() {
+        return 1
+    }
+    int f() {
+        return 2
+    }
+    return 0
+}

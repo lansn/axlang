@@ -7,6 +7,19 @@
 > **1.0 及以上永远保留给语法冻结**（语言设计不再做破坏性变更）之后。
 > 阶段进位条件见 `ARCHITECTURE.md` §8。
 
+## [0.0.27] — 2026-11
+
+### 新增：`fmt` 模块与 `print`/`println` 多实参（文稿 11.2，规格书 §6.5/§9.4/§13.7/§15）
+
+- **`fmt.Printf(fmt, args...)`**：第一个实参必须是纯字符串字面量，占位符 `%% %d %f %.Nf %s %t %v` 在**编译期**解析并核对个数与类型；个数/类型不符报 `E4032`，不支持的占位符（`%n` `%x` `%c` 等，或串尾孤 `%`）报 `E4044`。运行时不做任何格式串解析，展开为与字符串插值完全相同的 `ax_sb` 拼接，`%.Nf` 复用插值的 `:.N`，零额外开销
+- **`fmt.Print` / `fmt.Println`**：与 `print` / `println` 语义一致（多实参、空格分隔、末尾是否换行），给习惯 `Print`/`Println` 命名的用户留的入口，成员名一律 PascalCase
+- **`print` / `println` 支持 N 个实参**：实参之间以一个空格拼接后输出；单个非字符串但可插值的实参等价于补花括号（`println(123)` == `println("{123}")`）
+- 新增 `rust/src/fmt_spec.rs` 格式串解析器（sema 与 codegen 共用，保证"核对什么"和"生成什么"永远一致）；`sema/mod.rs` `BUILTIN_MODULES` 加入 `"fmt"`；`diag_msg.rs` 登记 `E4032` 多条模板与 `E4044` 中英文
+- 新增测试 `tests/run/Print-2`、`tests/run/Fmt-1`、`tests/sema/Print-neg-2`、`tests/sema/Fmt-neg-1..5`
+- **`string` 新增截取方法 `Left(n)` / `Right(n)` / `Mid(start, n)`**（文稿 11.2，规格书 §15.2）：C# / VB.NET 风格，按码点截取，越界安全（`n ≤ 0` 得空串，`n > Len()` 得整串，`start ≥ Len()` 得空串，`start + n > Len()` 截断到末尾）；底层复用 `ax_str_slice_cp`，零额外运行时开销
+- 新增测试 `tests/run/StrSlice-1`
+- 验收：**177/177** 通过、Rust 零警告；`tools/gen_errdoc.py` 重新生成 `docs/ERRORS.md`
+
 ## [0.0.26] — 2026-11
 
 ### 修复：`print(a++)` 刷屏 20+ 条同位置错误；诊断去重；print 多实参冗余强转

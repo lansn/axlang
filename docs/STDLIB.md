@@ -55,6 +55,11 @@
 ### time
 
 | `time.NowMs` | time.NowMs() -> int——当前 Unix 时间（毫秒） |
+| `time.Now` | time.Now() -> time——当前本地时间（Unix 毫秒） |
+| `time.FromUnixMs` | time.FromUnixMs(ms: int) -> time——按 Unix 毫秒数构造时间 |
+| `UnixMs` | t.UnixMs() -> int——Unix 毫秒数 |
+| `ToString` | t.ToString() -> string——按 "YYYY-MM-DD HH:MM:SS" 格式化 |
+| `Format` | t.Format(fmt: string) -> string——按 strftime 风格格式串格式化 |
 
 ## 内建类型实例方法
 
@@ -69,6 +74,16 @@
 | `Split` | s.Split(sep: string) -> string[]——按分隔符拆分 |
 | `ToString` | s.ToString() -> string——自身 |
 | `Trim` | s.Trim() -> string——去除两端空白 |
+| `Left` | *签名待补充*（在 tools/gen_stdlib_doc.py 的 DESC 里补） |
+| `Right` | *签名待补充*（在 tools/gen_stdlib_doc.py 的 DESC 里补） |
+| `Mid` | *签名待补充*（在 tools/gen_stdlib_doc.py 的 DESC 里补） |
+| `Upper` | s.Upper() -> string——转大写 |
+| `Lower` | s.Lower() -> string——转小写 |
+| `StartsWith` | s.StartsWith(p: string) -> bool——前缀判断 |
+| `EndsWith` | s.EndsWith(p: string) -> bool——后缀判断 |
+| `Join` | s.Join(parts: string[]) -> string——用 s 连接数组 |
+| `Replace` | s.Replace(old: string, new: string) -> string——替换全部子串 |
+| `Repeat` | s.Repeat(n: int) -> string——重复 n 次 |
 
 ### array
 
@@ -138,3 +153,11 @@
 | `ReadLine` | f.ReadLine() -> string?——读一行；EOF 返回 null |
 | `Write` | f.Write(s: string) -> result<int>——写入，返回字节数 |
 | `WriteLine` | f.WriteLine(s: string) -> result<int>——写入一行，返回字节数 |
+
+## 待补充
+
+以下条目已存在于编译器内建表，但 `DESC` 字典还没有描述：
+
+- string.Left
+- string.Right
+- string.Mid

@@ -1,0 +1,6 @@
+// EXPECT: E4031
+// time.FromUnixMs 缺少必需的 int 实参。
+int main() {
+    time t = time.FromUnixMs()
+    return 0
+}

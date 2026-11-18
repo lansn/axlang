@@ -3,11 +3,16 @@
 #include <stdarg.h>
 #include <math.h>
 #include <inttypes.h>
+#include <time.h>
+#include <stdlib.h>
+#include <string.h>
+#define _WIN32_WINNT 0x0600
 #ifdef _WIN32
 #include <windows.h>
 #include <io.h>
 #else
 #include <sys/time.h>
+#include <pthread.h>
 #endif
 
 /* ================================================================ 崩溃 */
@@ -303,6 +308,112 @@ ax_str ax_str_trim(ax_str s) {
     while (a < b && (s.p[a] == ' ' || s.p[a] == '\t' || s.p[a] == '\n' || s.p[a] == '\r')) a++;
     while (b > a && (s.p[b-1] == ' ' || s.p[b-1] == '\t' || s.p[b-1] == '\n' || s.p[b-1] == '\r')) b--;
     return ax_str_from_bytes(s.p + a, b - a);
+}
+
+/* ---------------- 大小写转换（仅 ASCII，UTF-8 多字节原样保留） ---------------- */
+
+static int u8_is_ascii_lower(uint8_t c) { return c >= 'a' && c <= 'z'; }
+static int u8_is_ascii_upper(uint8_t c) { return c >= 'A' && c <= 'Z'; }
+static uint8_t u8_to_ascii_upper(uint8_t c) { return u8_is_ascii_lower(c) ? (uint8_t)(c - 'a' + 'A') : c; }
+static uint8_t u8_to_ascii_lower(uint8_t c) { return u8_is_ascii_upper(c) ? (uint8_t)(c - 'A' + 'a') : c; }
+
+ax_str ax_str_to_upper(ax_str s) {
+    uint8_t* buf = (uint8_t*)ax_alloc(s.len <= 0 ? 1 : s.len);
+    for (int64_t i = 0; i < s.len; i++) buf[i] = u8_to_ascii_upper(s.p[i]);
+    return ax_str_from_bytes(buf, s.len);
+}
+
+ax_str ax_str_to_lower(ax_str s) {
+    uint8_t* buf = (uint8_t*)ax_alloc(s.len <= 0 ? 1 : s.len);
+    for (int64_t i = 0; i < s.len; i++) buf[i] = u8_to_ascii_lower(s.p[i]);
+    return ax_str_from_bytes(buf, s.len);
+}
+
+/* ---------------- 前缀/后缀判断 ---------------- */
+
+int ax_str_starts_with(ax_str s, ax_str prefix) {
+    if (prefix.len == 0) return 1;
+    if (prefix.len > s.len) return 0;
+    return memcmp(s.p, prefix.p, (size_t)prefix.len) == 0 ? 1 : 0;
+}
+
+int ax_str_ends_with(ax_str s, ax_str suffix) {
+    if (suffix.len == 0) return 1;
+    if (suffix.len > s.len) return 0;
+    return memcmp(s.p + s.len - suffix.len, suffix.p, (size_t)suffix.len) == 0 ? 1 : 0;
+}
+
+/* ---------------- 连接数组（sep 作为分隔符） ---------------- */
+
+ax_str ax_str_join(ax_str sep, ax_str* parts, int64_t n) {
+    if (n <= 0) return ax_str_empty();
+    int64_t total = 0;
+    for (int64_t i = 0; i < n; i++) {
+        total += parts[i].len;
+        if (i + 1 < n) total += sep.len;
+    }
+    uint8_t* buf = (uint8_t*)ax_alloc(total <= 0 ? 1 : total);
+    int64_t pos = 0;
+    for (int64_t i = 0; i < n; i++) {
+        if (parts[i].len > 0) {
+            memcpy(buf + pos, parts[i].p, (size_t)parts[i].len);
+            pos += parts[i].len;
+        }
+        if (i + 1 < n && sep.len > 0) {
+            memcpy(buf + pos, sep.p, (size_t)sep.len);
+            pos += sep.len;
+        }
+    }
+    return ax_str_from_bytes(buf, pos);
+}
+
+/* ---------------- 替换所有出现 ---------------- */
+
+ax_str ax_str_replace(ax_str s, ax_str old, ax_str new) {
+    if (old.len == 0) return ax_str_from_bytes(s.p, s.len); /* 空模式不替换 */
+    /* 第一遍：计算结果长度 */
+    int64_t count = 0, pos = 0;
+    while (pos + old.len <= s.len) {
+        if (memcmp(s.p + pos, old.p, (size_t)old.len) == 0) {
+            count++;
+            pos += old.len;
+        } else {
+            pos++;
+        }
+    }
+    int64_t total = s.len + count * (new.len - old.len);
+    if (total < 0) total = 0;
+    uint8_t* buf = (uint8_t*)ax_alloc(total <= 0 ? 1 : total);
+    int64_t out = 0;
+    pos = 0;
+    while (pos + old.len <= s.len) {
+        if (memcmp(s.p + pos, old.p, (size_t)old.len) == 0) {
+            if (new.len > 0) {
+                memcpy(buf + out, new.p, (size_t)new.len);
+                out += new.len;
+            }
+            pos += old.len;
+        } else {
+            buf[out++] = s.p[pos++];
+        }
+    }
+    /* 拷贝剩余尾部 */
+    while (pos < s.len) {
+        buf[out++] = s.p[pos++];
+    }
+    return ax_str_from_bytes(buf, out);
+}
+
+/* ---------------- 重复 n 次 ---------------- */
+
+ax_str ax_str_repeat(ax_str s, int64_t n) {
+    if (n <= 0 || s.len == 0) return ax_str_empty();
+    int64_t total = s.len * n;
+    uint8_t* buf = (uint8_t*)ax_alloc(total <= 0 ? 1 : total);
+    for (int64_t i = 0; i < n; i++) {
+        memcpy(buf + i * s.len, s.p, (size_t)s.len);
+    }
+    return ax_str_from_bytes(buf, total);
 }
 
 ax_str ax_str_slice_cp(ax_str s, int64_t from, int64_t to) {
@@ -1447,6 +1558,24 @@ int64_t ax_now_ms(void) {
     return (int64_t)tv.tv_sec * 1000 + tv.tv_usec / 1000;
 #endif
 }
+
+ax_str ax_time_to_str(int64_t ms) {
+    return ax_time_format(ms, "%Y-%m-%d %H:%M:%S");
+}
+
+ax_str ax_time_format(int64_t ms, const char* fmt) {
+    time_t sec = (time_t)(ms / 1000);
+    struct tm tm;
+#ifdef _WIN32
+    localtime_s(&tm, &sec);
+#else
+    localtime_r(&sec, &tm);
+#endif
+    const char* f = fmt && *fmt ? fmt : "%Y-%m-%d %H:%M:%S";
+    char buf[64];
+    size_t n = strftime(buf, sizeof buf, f, &tm);
+    return ax_str_from_bytes((const uint8_t*)buf, (int64_t)n);
+}
 int ax_read_line(ax_str* out) {
     size_t cap = 128, len = 0;
     char* buf = (char*)ax_alloc((int64_t)cap);
@@ -1641,4 +1770,193 @@ void ax_arena_free(ax_arena* ar) {
     }
     free(ar->items);
     free(ar);
+}
+
+/* ================================================================ 线程 */
+#ifdef _WIN32
+struct ax_thread {
+    HANDLE h;
+};
+
+static DWORD WINAPI ax_thread_proc(LPVOID arg) {
+    void (**func)(void*) = (void (**)(void*))arg;
+    void* user_arg = ((void**)arg)[1];
+    (*func)(user_arg);
+    free(arg);
+    return 0;
+}
+
+ax_thread* ax_thread_create(void (*func)(void*), void* arg) {
+    ax_thread* t = (ax_thread*)ax_alloc((int64_t)sizeof(ax_thread));
+    void** pack = (void**)ax_alloc(2 * sizeof(void*));
+    pack[0] = (void*)func;
+    pack[1] = arg;
+    t->h = CreateThread(NULL, 0, ax_thread_proc, pack, 0, NULL);
+    if (!t->h) ax_oom();
+    return t;
+}
+
+void ax_thread_join(ax_thread* t) {
+    if (!t) return;
+    WaitForSingleObject(t->h, INFINITE);
+    CloseHandle(t->h);
+    free(t);
+}
+#else
+struct ax_thread {
+    pthread_t t;
+};
+
+static void* ax_thread_proc(void* arg) {
+    void (**func)(void*) = (void (**)(void*))arg;
+    void* user_arg = ((void**)arg)[1];
+    (*func)(user_arg);
+    free(arg);
+    return NULL;
+}
+
+ax_thread* ax_thread_create(void (*func)(void*), void* arg) {
+    ax_thread* t = (ax_thread*)ax_alloc((int64_t)sizeof(ax_thread));
+    void** pack = (void**)ax_alloc(2 * sizeof(void*));
+    pack[0] = (void*)func;
+    pack[1] = arg;
+    if (pthread_create(&t->t, NULL, ax_thread_proc, pack) != 0) ax_oom();
+    return t;
+}
+
+void ax_thread_join(ax_thread* t) {
+    if (!t) return;
+    pthread_join(t->t, NULL);
+    free(t);
+}
+#endif
+
+/* ================================================================ 阻塞队列 */
+#define AX_QUEUE_CAP 256
+
+struct ax_queue {
+    void*    items[AX_QUEUE_CAP];  /* 元素副本指针 */
+    int64_t  head, tail, count;
+    int64_t  elem_size;
+    int      closed;
+#ifdef _WIN32
+    CRITICAL_SECTION lock;
+    CONDITION_VARIABLE not_empty;
+    CONDITION_VARIABLE not_full;
+#else
+    pthread_mutex_t lock;
+    pthread_cond_t  not_empty;
+    pthread_cond_t  not_full;
+#endif
+};
+
+ax_queue* ax_queue_create(int64_t elem_size) {
+    ax_queue* q = (ax_queue*)ax_alloc((int64_t)sizeof(ax_queue));
+    q->head = 0;
+    q->tail = 0;
+    q->count = 0;
+    q->elem_size = elem_size;
+    q->closed = 0;
+#ifdef _WIN32
+    InitializeCriticalSection(&q->lock);
+    InitializeConditionVariable(&q->not_empty);
+    InitializeConditionVariable(&q->not_full);
+#else
+    pthread_mutex_init(&q->lock, NULL);
+    pthread_cond_init(&q->not_empty, NULL);
+    pthread_cond_init(&q->not_full, NULL);
+#endif
+    return q;
+}
+
+void ax_queue_push(ax_queue* q, const void* data) {
+    if (!q) return;
+#ifdef _WIN32
+    EnterCriticalSection(&q->lock);
+    while (q->count >= AX_QUEUE_CAP && !q->closed) {
+        SleepConditionVariableCS(&q->not_full, &q->lock, INFINITE);
+    }
+    if (q->closed) {
+        LeaveCriticalSection(&q->lock);
+        return;
+    }
+    void* copy = ax_alloc(q->elem_size);
+    memcpy(copy, data, (size_t)q->elem_size);
+    q->items[q->tail] = copy;
+    q->tail = (q->tail + 1) % AX_QUEUE_CAP;
+    q->count++;
+    WakeConditionVariable(&q->not_empty);
+    LeaveCriticalSection(&q->lock);
+#else
+    pthread_mutex_lock(&q->lock);
+    while (q->count >= AX_QUEUE_CAP && !q->closed) {
+        pthread_cond_wait(&q->not_full, &q->lock);
+    }
+    if (q->closed) {
+        pthread_mutex_unlock(&q->lock);
+        return;
+    }
+    void* copy = ax_alloc(q->elem_size);
+    memcpy(copy, data, (size_t)q->elem_size);
+    q->items[q->tail] = copy;
+    q->tail = (q->tail + 1) % AX_QUEUE_CAP;
+    q->count++;
+    pthread_cond_signal(&q->not_empty);
+    pthread_mutex_unlock(&q->lock);
+#endif
+}
+
+int ax_queue_pop(ax_queue* q, void* out) {
+    if (!q) return 1;
+#ifdef _WIN32
+    EnterCriticalSection(&q->lock);
+    while (q->count == 0 && !q->closed) {
+        SleepConditionVariableCS(&q->not_empty, &q->lock, INFINITE);
+    }
+    if (q->count == 0) {
+        /* 已关闭且为空 */
+        LeaveCriticalSection(&q->lock);
+        return 1;
+    }
+    memcpy(out, q->items[q->head], (size_t)q->elem_size);
+    free(q->items[q->head]);
+    q->items[q->head] = NULL;
+    q->head = (q->head + 1) % AX_QUEUE_CAP;
+    q->count--;
+    WakeConditionVariable(&q->not_full);
+    LeaveCriticalSection(&q->lock);
+    return 0;
+#else
+    pthread_mutex_lock(&q->lock);
+    while (q->count == 0 && !q->closed) {
+        pthread_cond_wait(&q->not_empty, &q->lock);
+    }
+    if (q->count == 0) {
+        pthread_mutex_unlock(&q->lock);
+        return 1;
+    }
+    memcpy(out, q->items[q->head], (size_t)q->elem_size);
+    free(q->items[q->head]);
+    q->items[q->head] = NULL;
+    q->head = (q->head + 1) % AX_QUEUE_CAP;
+    q->count--;
+    pthread_cond_signal(&q->not_full);
+    pthread_mutex_unlock(&q->lock);
+    return 0;
+#endif
+}
+
+void ax_queue_close(ax_queue* q) {
+    if (!q) return;
+#ifdef _WIN32
+    EnterCriticalSection(&q->lock);
+    q->closed = 1;
+    WakeAllConditionVariable(&q->not_empty);
+    LeaveCriticalSection(&q->lock);
+#else
+    pthread_mutex_lock(&q->lock);
+    q->closed = 1;
+    pthread_cond_broadcast(&q->not_empty);
+    pthread_mutex_unlock(&q->lock);
+#endif
 }

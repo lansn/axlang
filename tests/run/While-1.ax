@@ -1,0 +1,6 @@
+// while 循环正例：前测条件，计数 0..4 并打印。
+int i = 0
+while i < 5 {
+    println("{i}")
+    i = i + 1
+}

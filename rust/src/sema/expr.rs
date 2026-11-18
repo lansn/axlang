@@ -4,9 +4,9 @@
 
 use crate::frontend::ast;
 use crate::frontend::ast::Expr;
-use crate::sema::{is_builtin_type_name, is_reserved, ConstVal, ExportSym, Res, Sema, StmtUse, UseKind, VarState};
+use crate::sema::{BUILTIN_MODULES, is_builtin_type_name, is_reserved, ConstVal, ExportSym, Res, Sema, StmtUse, UseKind, VarState};
 use crate::types::*;
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeMap, HashMap, HashSet};
 use std::rc::Rc;
 
 pub fn module_sig(mod_: &str, name: &str) -> Option<(Vec<Option<Ty>>, Ty)> {
@@ -42,6 +42,8 @@ pub fn module_sig(mod_: &str, name: &str) -> Option<(Vec<Option<Ty>>, Ty)> {
         ),
         ("string", "FromCodepoint") => (vec![Some(t_int())], t_result(t_string())),
         ("time", "NowMs") => (vec![], t_int()),
+        ("time", "Now") => (vec![], t_named(DefId::Name("time"), Vec::new())),
+        ("time", "FromUnixMs") => (vec![Some(t_int())], t_named(DefId::Name("time"), Vec::new())),
         _ => return None,
     })
 }
@@ -280,6 +282,8 @@ impl<'a> Sema<'a> {
                     implicit: false,
                 gdepth: 0,
                 mangle: None,
+                parent: None,
+                nested: BTreeMap::new(),
                     body: Some(leaked),
                 });
                 self.anon_funcs.push(f);
@@ -586,8 +590,8 @@ impl<'a> Sema<'a> {
                 if !cons.iter().any(|c| c == "Comparable") {
                     self.err("E4036", &lhs.tok, "T-32", "类型参数 `{0}` 缺少 `Comparable` 约束", &[&pn]);
                 }
-            } else if matches!(&*lt, TyS::Int(..) | TyS::Decimal | TyS::Str) {
-                // 内建可比类型直接放行
+            } else if matches!(&*lt, TyS::Int(..) | TyS::Decimal | TyS::Str | TyS::Named(DefId::Name("time"), _)) {
+                // 内建可比类型直接放行（time 按 Unix 毫秒数值比较）
             } else if let TyS::Named(DefId::Id(d), _) = &*lt {
                 // 实现 Comparable 的类：`a > b` 按 `a.Compare(b) > 0` 生成
                 let ok = self.types.contains_key("Comparable")
@@ -760,6 +764,25 @@ impl<'a> Sema<'a> {
             let fi = &self.funcs[f];
             return t_fn(fi.params.iter().map(|p| p.1.clone()).collect(), fi.ret.clone());
         }
+        // 嵌套函数：在当前函数及其祖先的嵌套函数表里按裸名查找（文稿 §4）。
+        // 不捕获外部变量：嵌套函数体内看不到父函数的局部变量，只能用参数、
+        // 全局 const/函数和自身定义的局部。
+        if let Some(f) = self.lookup_nested_func(name) {
+            let (vis, module, params_tys, ret) = {
+                let fi = &self.funcs[f];
+                (
+                    fi.vis.clone(),
+                    fi.module.clone(),
+                    fi.params.iter().map(|p| p.1.clone()).collect(),
+                    fi.ret.clone(),
+                )
+            };
+            if vis != "public" && module != self.cur_mod_path {
+                self.err("E3013", &e.tok, "N-8", "`{0}` 不是 public，不能跨模块使用", &[&name]);
+            }
+            self.sl(e.id).res = Some(Res::Func(f));
+            return t_fn(params_tys, ret);
+        }
         if let Some(d) = self.lookup_type_name(name, &e.tok) {
             self.sl(e.id).res = Some(Res::Type(d));
             return Rc::new(TyS::Meta(name.clone()));
@@ -839,6 +862,12 @@ impl<'a> Sema<'a> {
             self.sl(e.id).res = Some(Res::Module(name.clone()));
             return Rc::new(TyS::ModuleT(name.clone()));
         }
+        // 内建模块（db/file/io/json/math/string/time 等）无需 import 即可作为模块名使用，
+        // 如 `time.Now()` / `math.Compare(...)`；与裸类型名 `time` 的声明位置用法不冲突。
+        if BUILTIN_MODULES.contains(&name.as_str()) {
+            self.sl(e.id).res = Some(Res::Module(name.clone()));
+            return Rc::new(TyS::ModuleT(name.clone()));
+        }
         if name == "print" || name == "println" {
             self.sl(e.id).res = Some(Res::Builtin(name.clone()));
             return t_fn(vec![t_string()], t_void());
@@ -902,6 +931,18 @@ impl<'a> Sema<'a> {
         }
         if let Expr::Path { segs, args: targs } = &callee.k {
             let name = &segs[0];
+            // `queue<T>()`：创建元素类型为 T 的阻塞队列，返回 queue<T>（C 层 ax_queue*）。
+            if segs.len() == 1
+                && name == "queue"
+                && targs.len() == 1
+                && args.is_empty()
+            {
+                let elem_ty = self.resolve_type(&targs[0]);
+                let qty = t_named(DefId::Name("queue"), vec![elem_ty.clone()]);
+                self.sl(e.id).ty = Some(qty.clone());
+                self.sl(e.id).ckind = Some("queue_create");
+                return qty;
+            }
             // 本模块限定名兜底：用户模块体内裸名调用自身的类型构造 / 顶层函数
             let treg = self
                 .lookup_type_name(name, &callee.tok)
@@ -919,6 +960,10 @@ impl<'a> Sema<'a> {
                 if let Some(&f) = self.qual_lookup(&self.func_by_name, name) {
                     return self.call_func(e, f, args, targs);
                 }
+                // 嵌套函数：在当前函数及其祖先的嵌套函数表里按裸名查找（文稿 §4）。
+                if let Some(f) = self.lookup_nested_func(name) {
+                    return self.call_func(e, f, args, targs);
+                }
             }
             if segs.len() == 1 && (name == "ok" || name == "fail") {
                 return self.call_ok_fail(e, args, name);
@@ -934,6 +979,9 @@ impl<'a> Sema<'a> {
             }
             if segs.len() == 1 && name == "parent" {
                 return self.call_parent_ctor(e, args);
+            }
+            if segs.len() == 1 && name == "thread" {
+                return self.call_thread(e, args);
             }
             match self.res_of(callee.id) {
                 Some(Res::Type(d)) => return self.conversion_named(e, args, Some(d), expected),
@@ -1197,6 +1245,42 @@ impl<'a> Sema<'a> {
         t_int()
     }
 
+    /// `thread(func, arg)`：在新线程中并发执行 `func(arg)`，返回线程句柄。
+    /// `func` 必须是 `func(void*)` 类型（或可隐式转为该签名），`arg` 作为唯一实参传入。
+    fn call_thread(&mut self, e: &ast::EPtr, args: &[ast::N<ast::Arg>]) -> Ty {
+        if args.len() != 2 {
+            self.err(
+                "E4031",
+                &e.tok,
+                "文稿 14.1",
+                "`thread` 需要 2 个实参（函数, 上下文），得到 {1}",
+                &[&args.len()],
+            );
+            return t_named(DefId::Name("thread"), Vec::new());
+        }
+        let farg = &args[0].k.expr;
+        let errs_before = self.d.error_count;
+        let ft = self.check_expr(farg, None);
+        if self.d.error_count > errs_before {
+            return t_named(DefId::Name("thread"), Vec::new());
+        }
+        if !matches!(&*ft, TyS::Func(..)) {
+            self.err(
+                "E4001",
+                &farg.tok,
+                "文稿 14.1",
+                "`thread` 的第一个实参必须是函数类型，得到 {0}",
+                &[&self.ts(&ft)],
+            );
+            return t_named(DefId::Name("thread"), Vec::new());
+        }
+        // 上下文参数，类型不限，作为 void* 传递；仍需 check_expr 以便
+        // 为变量引用设置 res（否则 codegen 回落到源码名，而非 C 变量名 v_x）。
+        self.check_expr(&args[1].k.expr, None);
+        self.sl(e.id).ckind = Some("thread");
+        t_named(DefId::Name("thread"), Vec::new())
+    }
+
     /// `typeof(表达式)`（文稿 11.2）：**编译期常量**，返回实参静态类型的显示名
     /// （`int` / `int8` / `string` / `Dog` / `int[]` / `int?` / `map<string, object>`）。
     /// 不是运行期查询——codegen 直接生成字符串字面量，零运行时开销；
@@ -1230,63 +1314,65 @@ impl<'a> Sema<'a> {
     /// `print` / `println`（文稿 11.2）：签名是 `void print(string)`，但允许
     /// 「可直接插值的单个值」直接传——语义等价于 `print("{x}")`，只是省掉花括号。
     /// 仍然只有一种格式化能力（插值），占位符与多实参依旧不支持。
-    fn call_print(
+    /// `print` / `println`（以及等价入口 `fmt.Print` / `fmt.Println`）。
+    ///
+    /// 文稿 11.2（0.0.27 起）：**多实参合法**，实参之间以一个空格分隔输出
+    /// （FreeBASIC 风格的方便写法；分隔符固定为空格，写死在规则里就不再"没约定就不猜"）。
+    /// 每个实参独立走原先单实参的规则：string 直接输出、可插值的值按插值显示、
+    /// 复合类型（数组/map/元组等）仍报 E4001。0 个实参合法（`println()` 打印一个空行）。
+    pub(crate) fn call_print(
         &mut self,
         e: &ast::EPtr,
         args: &[ast::N<ast::Arg>],
         name: &str,
     ) -> Ty {
-        if args.len() != 1 {
-            // 多实参：只报一条 E4031，实参本身照常检查但不做 string 强转——
-            // 一处误用不该再追加一条 E4001 强转诊断
-            self.err(
-                "E4031",
-                &e.tok,
-                "文稿 11.2",
-                "`{0}` 只接受 1 个实参，得到 {1}（多个值请拼成一个插值字符串，如 `\"{a} {b}\"`）",
-                &[&name, &args.len()],
-            );
-            for a in args {
-                self.check_expr(&a.k.expr, None);
+        for a in args {
+            if a.k.borrow {
+                // `print(&x)` 沿用旧路径：按 string 强转
+                let t = self.check_expr(&a.k.expr, None);
+                if matches!(&*t, TyS::Str) {
+                    self.sl(a.k.expr.id).ty = Some(t);
+                } else {
+                    self.coerce(&a.k.expr, &t_string(), "实参");
+                }
+                continue;
             }
-            self.sl(e.id).ckind = Some("builtin");
-            self.sl(e.id).bname = Some(name.to_string());
-            return t_void();
-        }
-        if args.len() == 1 && !args[0].k.borrow {
             let errs_before = self.d.error_count;
-            let t = self.check_expr(&args[0].k.expr, None);
+            let t = self.check_expr(&a.k.expr, None);
             // 实参本身有错（E3003 等）时不再追问类型，避免一处误用两条诊断
             if self.d.error_count > errs_before {
-                return t_void();
+                continue;
             }
             if matches!(&*t, TyS::Str) {
                 // 常规形态：本来就是字符串，直接输出
-                self.sl(args[0].id).ty = Some(t);
-                self.sl(e.id).ckind = Some("builtin");
-                self.sl(e.id).bname = Some(name.to_string());
-                return t_void();
+                self.sl(a.k.expr.id).ty = Some(t);
+                continue;
             }
             let interpable = !matches!(&*t, TyS::Object | TyS::Void)
                 && (interp_supported(&t) || self.implements_printable(&t));
             if interpable {
-                let at = self.ty_of(args[0].k.expr.id);
-                self.sl(args[0].id).ty = at;
-                self.sl(e.id).interp_arg = true;
-                self.sl(e.id).ckind = Some("builtin");
-                self.sl(e.id).bname = Some(name.to_string());
-                return t_void();
+                // 非 string 但可插值：标在实参节点上，codegen 按 `"{x}"` 拼串输出
+                self.sl(a.k.expr.id).ty = Some(t);
+                self.sl(a.k.expr.id).interp_arg = true;
+                continue;
             }
             self.err(
                 "E4001",
-                &args[0].tok,
+                &a.tok,
                 "文稿 11.2",
                 "`{0}` 的实参必须是 string，或能直接插值的值（数字 / 布尔 / 字符串 / 枚举 / 实现了 Printable 的类），得到 {1}",
                 &[&name, &self.ts(&t)],
             );
-            return t_void();
         }
-        self.call_plain(e, args, name, vec![t_string()], t_void())
+        self.sl(e.id).ckind = Some("builtin");
+        // `fmt.Print` / `fmt.Println` 与 `print` / `println` 同实现，codegen 按小写基名分派
+        let base = match name {
+            "fmt.Print" => "print",
+            "fmt.Println" => "println",
+            other => other,
+        };
+        self.sl(e.id).bname = Some(base.to_string());
+        t_void()
     }
 
     fn call_plain(
@@ -1472,6 +1558,8 @@ impl<'a> Sema<'a> {
                         implicit: false,
                         gdepth: depth,
                         mangle: Some(mangle.clone()),
+                        parent: None,
+                        nested: BTreeMap::new(),
                     };
                     let inst = self.funcs.len();
                     self.funcs.push(inst_fi);
@@ -1848,6 +1936,8 @@ impl<'a> Sema<'a> {
                 implicit: false,
                 gdepth: depth,
                 mangle: None,
+                parent: None,
+                nested: BTreeMap::new(),
             });
             self.inst_slot_of.insert(nfid, iid);
             self.inst_env.insert(nfid, env.clone());
@@ -1883,6 +1973,8 @@ impl<'a> Sema<'a> {
                 implicit: false,
                 gdepth: depth,
                 mangle: None,
+                parent: None,
+                nested: BTreeMap::new(),
             });
             self.inst_slot_of.insert(nfid, iid);
             self.inst_env.insert(nfid, env.clone());

@@ -190,6 +190,7 @@ impl<'a> Sema<'a> {
         match &s.k {
             Stmt::Return { .. } | Stmt::Throw { .. } | Stmt::Break { .. } => true,
             Stmt::Continue { .. } => false,
+            Stmt::While { .. } => false,
             Stmt::Block(b) => self.block_leaves_loop(b),
             Stmt::If(n) => {
                 let then_ok = self.block_leaves_loop(&n.then_);
@@ -309,6 +310,7 @@ impl<'a> Sema<'a> {
                 self.check_match(s.id, &s.tok, n, None);
             }
             Stmt::For { .. } => self.check_for(s),
+            Stmt::While { .. } => self.check_while(s),
             Stmt::Return { .. } => self.check_return(s),
             Stmt::Throw { .. } => self.check_throw(s),
             Stmt::TryCatch(_) => self.check_try_catch(s),
@@ -336,6 +338,20 @@ impl<'a> Sema<'a> {
                 }
             }
             Stmt::Const { .. } => self.check_local_const(s),
+            Stmt::FuncDecl { .. } => {
+                // 名称已在 check_func 的 pre_register_nested_funcs 阶段注册到
+                // funcs/func_by_name 与父函数的 nested 表；这里只检查函数体。
+                // check_func 会替换 scope（parent: None），因此嵌套函数体内
+                // 看不到父函数的局部变量（不捕获外部变量）。
+                let name = match &s.k {
+                    Stmt::FuncDecl { name, .. } => name.clone(),
+                    _ => unreachable!(),
+                };
+                let cur = self.current_func.expect("嵌套函数只能在函数体内出现");
+                let reg = format!("{}${name}", self.funcs[cur].name);
+                let fid = self.func_by_name[&reg];
+                self.check_func(fid);
+            }
         }
         self.scan_stmt_uses();
     }
@@ -424,6 +440,19 @@ impl<'a> Sema<'a> {
         if let Some(r) = self.slot(&init.id).and_then(|sl| sl.arena_region) {
             v.borrow_mut().arena_region = Some(r);
         }
+    }
+
+    // ---------------------------------------------------------------- while
+
+    fn check_while(&mut self, s: &ast::SPtr) {
+        let (cond, body) = match &s.k {
+            Stmt::While { cond, body } => (cond, body),
+            _ => return,
+        };
+        self.check_cond(cond, "while");
+        self.loop_depth += 1;
+        self.check_loop_body(body, &[]);
+        self.loop_depth -= 1;
     }
 
     pub fn check_simple(&mut self, s: &ast::SPtr) {
@@ -821,6 +850,32 @@ impl<'a> Sema<'a> {
                 let hi_t = self.ty_of(hi.id).unwrap_or_else(t_object);
                 if !(is_int(&lo_t) && is_int(&hi_t)) {
                     self.err("E4009", &s.tok, "文稿 5.2", "range 两端必须是 int", &[]);
+                }
+                self.loop_depth += 1;
+                if let Some(l) = label {
+                    if self.loop_labels.contains(l) {
+                        self.err("E6008", &s.tok, "文稿 5.2", "循环标签 `{0}` 重复", &[&l]);
+                    }
+                    self.loop_labels.push(l.clone());
+                }
+                self.push_scope();
+                self.declare(var, t_int(), false, &s.tok);
+                self.check_loop_body(body, std::slice::from_ref(var));
+                self.pop_scope();
+                if label.is_some() {
+                    self.loop_labels.pop();
+                }
+                self.loop_depth -= 1;
+            }
+            ast::ForKind::Step { var, lo, hi, step, inclusive: _ } => {
+                self.check_expr(lo, Some(&t_int()));
+                self.check_expr(hi, Some(&t_int()));
+                self.check_expr(step, Some(&t_int()));
+                let lo_t = self.ty_of(lo.id).unwrap_or_else(t_object);
+                let hi_t = self.ty_of(hi.id).unwrap_or_else(t_object);
+                let step_t = self.ty_of(step.id).unwrap_or_else(t_object);
+                if !(is_int(&lo_t) && is_int(&hi_t) && is_int(&step_t)) {
+                    self.err("E4009", &s.tok, "文稿 5.2", "range.Step 的两端与步长必须是 int", &[]);
                 }
                 self.loop_depth += 1;
                 if let Some(l) = label {

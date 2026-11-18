@@ -1,0 +1,20 @@
+// 多实参输出（文稿 11.2，0.0.27）：实参之间以一个空格分隔；
+// print 不换行、println 换行、println() 打印一个空行。
+// 非 string 的可插值实参按插值显示（数字 / 布尔 / 枚举 / 可空 / Printable）。
+class User implement Printable {
+    public int Id
+    constructor(int id) { this.Id = id }
+    public override string ToString() { return "User({this.Id})" }
+}
+enum Color { Red, Green, Blue }
+
+int main() {
+    println("axlang", 6, true)
+    print("a", 1, "b")
+    println()
+    int n = 9
+    decimal total = 59.97d
+    int? maybe = null
+    println(n, total, "x", maybe, Color.Green, new User(7))
+    return 0
+}

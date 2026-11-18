@@ -1,0 +1,22 @@
+// time 内建具名类型：Now/FromUnixMs 构造，UnixMs/ToString/Format 实例方法，time 间比较。
+int main() {
+    time t0 = time.FromUnixMs(0)
+    time t1 = time.FromUnixMs(1000)
+    time t2 = time.FromUnixMs(500)
+    println(t0.UnixMs())
+    println(t1.UnixMs())
+    println(t2.UnixMs())
+    println(t0 < t1)
+    println(t1 > t0)
+    println(t0 <= t1)
+    println(t1 >= t0)
+    time t3 = time.FromUnixMs(1000)
+    println(t1 < t3)
+    println(t1 <= t3)
+    println(t1 >= t3)
+    println(t1 > t3)
+    println(t0.ToString())
+    println(t1.Format("%Y-%m-%d"))
+    println(time.FromUnixMs(1700000000000).Format("%Y-%m-%d %H:%M:%S"))
+    return 0
+}

@@ -1,0 +1,7 @@
+fact(5) = 120
+fib(6) = 8
+diff_ms = -1500
+t1 < t2 = true
+t1 >= t2 = false
+t2 > t1 = true
+t2 <= t1 = false

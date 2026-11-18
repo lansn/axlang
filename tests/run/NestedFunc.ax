@@ -1,0 +1,25 @@
+// 验证嵌套函数（文稿 §4）：函数体内定义、按名调用、不捕获外层局部。
+int main() {
+    int add(int a, int b) {
+        return a + b
+    }
+    println("add(2, 3) = {add(2, 3)}")
+
+    int mul(int x, int y) {
+        int double(int v) {
+            return v + v
+        }
+        return double(x) * y
+    }
+    println("mul(4, 5) = {mul(4, 5)}")
+
+    int fact(int n) {
+        if (n <= 1) {
+            return 1
+        }
+        return n * fact(n - 1)
+    }
+    println("fact(5) = {fact(5)}")
+
+    return 0
+}

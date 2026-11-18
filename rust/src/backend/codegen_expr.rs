@@ -1020,6 +1020,37 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 .unwrap_or_default();
             return format!("AX_S({})", cstr(&name));
         }
+        if ck == "thread" {
+            // thread(func, arg) -> ax_thread_create(func, arg)
+            // func 必须是 func 类型，arg 作为 void* 上下文传入
+            let args: &'a [ast::N<ast::Arg>] = match &e.k {
+                Expr::Call { args, .. } => args,
+                _ => return "0".to_string(),
+            };
+            let fv = if args.is_empty() {
+                "NULL".to_string()
+            } else {
+                self.gen(&args[0].k.expr, None, false, false)
+            };
+            let av = if args.len() < 2 {
+                "NULL".to_string()
+            } else {
+                self.gen(&args[1].k.expr, None, false, false)
+            };
+            return format!("ax_thread_create({}, {})", fv, av);
+        }
+        if ck == "queue_create" {
+            // queue<T>() -> ax_queue_create((int64_t)sizeof(T))
+            let ty = self.ty_or_int(e.id);
+            let elem_ty = match &*ty {
+                TyS::Named(DefId::Name("queue"), args) => {
+                    args.first().cloned().unwrap_or_else(t_object)
+                }
+                _ => t_object(),
+            };
+            let etc = self.cg.ct(&elem_ty);
+            return format!("ax_queue_create((int64_t)sizeof({}))", etc);
+        }
         if ck == "builtin" {
             let bname = self
                 .cg
@@ -1027,29 +1058,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 .and_then(|s| s.bname.clone())
                 .unwrap_or_default();
             if bname == "print" || bname == "println" {
-                let interp = self
-                    .cg
-                    .slot(&e.id)
-                    .map(|s| s.interp_arg)
-                    .unwrap_or(false);
-                let v = if interp {
-                    // `Print(x)`（x 非 string）：等价于 `Print("{x}")`，按插值拼串
-                    let arg = &args[0].k.expr;
-                    let aty = self.ty_or_int(arg.id);
-                    let sb = self.tmpn();
-                    self.emit(format!("ax_sb {}; ax_sb_init(&{});", sb, sb));
-                    let av = self.gen(arg, None, false, false);
-                    self.push_interp(&sb, &av, &aty, None, arg);
-                    let t = self.tmpn();
-                    self.emit(format!("ax_str {} = ax_sb_finish(&{});", t, sb));
-                    t
-                } else {
-                    self.gen(&args[0].k.expr, Some(&t_string()), false, false)
-                };
-                self.emit(format!("ax_write_stdout({});", v));
-                if bname == "println" {
-                    self.emit("ax_write_stdout(AX_S(\"\\n\"));".to_string());
-                }
+                self.emit_print(args, bname == "println");
                 return "0".to_string();
             }
             return "0".to_string();
@@ -1534,6 +1543,16 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             Expr::Path { segs, .. } => segs.first().cloned().unwrap_or_default(),
             _ => String::new(),
         };
+        // fmt.Printf 在 sema 已被解析并核对，这里直接展开成插值式拼接——
+        // 要赶在下面的通用实参 gen 循环之前，避免格式串字面量被多生成一份未使用的临时串
+        if module == "fmt" && name == "Printf" {
+            return self.fmt_printf(e);
+        }
+        // fmt.Print / fmt.Println：sema 走的是 print 同款（多实参、空格分隔）
+        if module == "fmt" && (name == "Print" || name == "Println") {
+            self.emit_print(args, name == "Println");
+            return "0".to_string();
+        }
         let mut a: Vec<String> = Vec::new();
         // 实参按模块签名声明的形参类型转换（map → object 要装箱，等等）——
         // 与用户函数调用走同一套 coerce 规则
@@ -1586,8 +1605,100 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             ("file", "Create") => format!("ax_file_open_result({}, 1)", a[0]),
             ("file", "Append") => format!("ax_file_open_result({}, 2)", a[0]),
             ("time", "NowMs") => "ax_now_ms()".to_string(),
+            ("time", "Now") => "ax_now_ms()".to_string(),
+            ("time", "FromUnixMs") => a[0].clone(),
             _ => "0".to_string(),
         }
+    }
+
+    /// `print` / `println` / `fmt.Print` / `fmt.Println` 的公共生成（0.0.27 起支持多实参）：
+    /// 统一走字符串缓冲，实参之间以一个空格分隔；可插值的实参（sema 标在实参节点上的
+    /// interp_arg）按 `"{x}"` 拼串，string 实参直接 push。0 个实参时输出空串（`println()` 打印空行）。
+    fn emit_print(&mut self, args: &'a [ast::N<ast::Arg>], newline: bool) {
+        let sb = self.tmpn();
+        self.emit(format!("ax_sb {}; ax_sb_init(&{});", sb, sb));
+        for (i, arg) in args.iter().enumerate() {
+            if i > 0 {
+                self.emit(format!("ax_sb_push(&{}, AX_S(\" \"));", sb));
+            }
+            let interp = self
+                .cg
+                .slot(&arg.k.expr.id)
+                .map(|s| s.interp_arg)
+                .unwrap_or(false);
+            if interp {
+                let aty = self.ty_or_int(arg.k.expr.id);
+                let av = self.gen(&arg.k.expr, None, false, false);
+                self.push_interp(&sb, &av, &aty, None, &arg.k.expr);
+            } else {
+                let av = self.gen(&arg.k.expr, Some(&t_string()), false, false);
+                self.emit(format!("ax_sb_push(&{}, {});", sb, av));
+            }
+        }
+        let t = self.tmpn();
+        self.emit(format!("ax_str {} = ax_sb_finish(&{});", t, sb));
+        self.emit(format!("ax_write_stdout({});", t));
+        if newline {
+            self.emit("ax_write_stdout(AX_S(\"\\n\"));".to_string());
+        }
+    }
+
+    /// `fmt.Printf("%d 件\n", n)`（文稿 11.2）：格式串在 sema 已被编译期解析并核对
+    /// （个数/类型/精度，非法占位符 E4044），这里把占位符展开成与字符串插值完全相同的
+    /// `ax_sb` 拼接——运行时没有任何格式串解析，`%.Nf` 复用插值的 `:.N` 生成。
+    fn fmt_printf(&mut self, e: &'a ast::EPtr) -> String {
+        let args: &'a [ast::N<ast::Arg>] = match &e.k {
+            Expr::MethodCall { args, .. } => args,
+            _ => return "0".to_string(),
+        };
+        if args.is_empty() {
+            return "0".to_string();
+        }
+        let parts: &'a [SPart] = match &args[0].k.expr.k {
+            Expr::StrLit { parts } => parts,
+            _ => return "0".to_string(),
+        };
+        let fmt_str: String = parts
+            .iter()
+            .filter_map(|p| match p {
+                SPart::Text(t) => Some(t.as_str()),
+                _ => None,
+            })
+            .collect();
+        let specs = crate::fmt_spec::parse(&fmt_str).unwrap_or_default();
+        let sb = self.tmpn();
+        self.emit(format!("ax_sb {}; ax_sb_init(&{});", sb, sb));
+        let mut ai = 1;
+        for sp in &specs {
+            match sp {
+                crate::fmt_spec::FmtPart::Text(t) => {
+                    if !t.is_empty() {
+                        let lit = format!("AX_S({})", cstr(t));
+                        self.emit(format!("ax_sb_push(&{}, {});", sb, lit));
+                    }
+                }
+                crate::fmt_spec::FmtPart::Pct => {
+                    self.emit(format!("ax_sb_push(&{}, AX_S(\"%\"));", sb));
+                }
+                crate::fmt_spec::FmtPart::Arg { spec, prec } => {
+                    if ai >= args.len() {
+                        break;
+                    }
+                    let arg = &args[ai];
+                    ai += 1;
+                    let aty = self.ty_or_int(arg.k.expr.id);
+                    let v = self.gen(&arg.k.expr, None, false, false);
+                    // `%.Nf` → 插值的 `:.N`；其余占位符无精度走默认显示。
+                    // sema 已核对类型与个数，push_interp 按类型分派即可。
+                    let f = if *spec == 'f' { *prec } else { None };
+                    self.push_interp(&sb, &v, &aty, f, &arg.k.expr);
+                }
+            }
+        }
+        let t = self.tmpn();
+        self.emit(format!("ax_str {} = ax_sb_finish(&{});", t, sb));
+        self.emit(format!("ax_write_stdout({});", t));
+        "0".to_string()
     }
 
     fn intrinsic(&mut self, e: &'a ast::EPtr) -> String {
@@ -1612,6 +1723,78 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                     "ToString" => tv,
                     "Trim" => format!("ax_str_trim({})", tv),
                     "Contains" => format!("ax_str_contains({}, {})", tv, a[0]),
+                    // C# 风格字符串截取（按码点，安全处理越界，复用 ax_str_slice_cp）
+                    "Left" => {
+                        let n = self.tmpn();
+                        self.emit(format!(
+                            "ax_str {} = ax_str_slice_cp({}, 0, {});",
+                            n, tv, a[0]
+                        ));
+                        n
+                    }
+                    "Right" => {
+                        let len = self.tmpn();
+                        let start = self.tmpn();
+                        let n = self.tmpn();
+                        self.emit(format!(
+                            "int64_t {} = ax_str_len_cp({});",
+                            len, tv
+                        ));
+                        self.emit(format!(
+                            "int64_t {} = {} - {};",
+                            start, len, a[0]
+                        ));
+                        self.emit(format!(
+                            "ax_str {} = ax_str_slice_cp({}, {}, {});",
+                            n, tv, start, len
+                        ));
+                        n
+                    }
+                    "Mid" => {
+                        let start = a[0].clone();
+                        let count = a[1].clone();
+                        let len = self.tmpn();
+                        let end = self.tmpn();
+                        let n = self.tmpn();
+                        self.emit(format!(
+                            "int64_t {} = ax_str_len_cp({});",
+                            len, tv
+                        ));
+                        self.emit(format!(
+                            "int64_t {} = {} + {};",
+                            end, start, count
+                        ));
+                        self.emit(format!(
+                            "if ({} > {}) {{ {} = {}; }}",
+                            end, len, end, len
+                        ));
+                        self.emit(format!(
+                            "ax_str {} = ax_str_slice_cp({}, {}, {});",
+                            n, tv, start, end
+                        ));
+                        n
+                    }
+                    // 大小写转换
+                    "Upper" => format!("ax_str_to_upper({})", tv),
+                    "Lower" => format!("ax_str_to_lower({})", tv),
+                    // 前缀/后缀判断
+                    "StartsWith" => format!("ax_str_starts_with({}, {})", tv, a[0]),
+                    "EndsWith" => format!("ax_str_ends_with({}, {})", tv, a[0]),
+                    // 用 s 作为分隔符连接字符串数组
+                    "Join" => {
+                        let arr_ty = t_array(t_string(), None);
+                        let arr = self.declare(&arr_ty, &a[0]);
+                        let result = self.tmpn();
+                        self.emit(format!(
+                            "ax_str {} = ax_str_join({}, (ax_str*){}.data, {}.len);",
+                            result, tv, arr, arr
+                        ));
+                        result
+                    }
+                    // 替换所有出现
+                    "Replace" => format!("ax_str_replace({}, {}, {})", tv, a[0], a[1]),
+                    // 重复 n 次
+                    "Repeat" => format!("ax_str_repeat({}, {})", tv, a[0]),
                     "At" => {
                         let n = self.tmpn();
                         let tmp = self.tmpn();
@@ -1646,15 +1829,15 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                     "Chars" => self.str_chars(&tv),
                     "Split" => {
                         let n = self.tmpn();
-                        let i = self.tmpn();
-                        self.emit(format!("int64_t {} = 0;", i));
+                        let cnt = self.tmpn();
+                        self.emit(format!("int64_t {} = 0;", cnt));
                         self.emit(format!(
-                            "ax_str* {0}_raw = ax_str_split({1}, {2}, &{0});",
-                            n, tv, a[0]
+                            "ax_str* {0}_raw = ax_str_split({1}, {2}, &{3});",
+                            n, tv, a[0], cnt
                         ));
                         self.emit(format!(
                             "ax_arr {0}; ax_arr_from(&{0}, {0}_raw, {1}, (int64_t)sizeof(ax_str));",
-                            n, i
+                            n, cnt
                         ));
                         n
                     }
@@ -1844,6 +2027,57 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 let tv = self.declare(&rt, &rv);
                 match name.as_str() {
                     "ToString" => self.enum_name_expr(recv, &tv),
+                    _ => "0".to_string(),
+                }
+            }
+            TyS::Named(DefId::Name("time"), _) => {
+                let tv = self.declare(&rt, &rv);
+                match name.as_str() {
+                    "UnixMs" => tv,
+                    "ToString" => format!("ax_time_to_str({})", tv),
+                    "Format" => {
+                        let fmt = self.declare(&t_string(), &a[0]);
+                        format!("ax_time_format({}, (const char*){}.p)", tv, fmt)
+                    }
+                    _ => "0".to_string(),
+                }
+            }
+            TyS::Named(DefId::Name("thread"), _) => {
+                let tv = self.declare(&rt, &rv);
+                match name.as_str() {
+                    "Join" => format!("ax_thread_join({})", tv),
+                    _ => "0".to_string(),
+                }
+            }
+            TyS::Named(DefId::Name("queue"), args) => {
+                let tv = self.declare(&rt, &rv);
+                let elem = args.first().cloned().unwrap_or_else(t_object);
+                match name.as_str() {
+                    "Push" => {
+                        let v = self.declare(&elem, &a[0]);
+                        format!("ax_queue_push({}, &{})", tv, v)
+                    }
+                    "Pop" => {
+                        let out = self.tmpn();
+                        let tmp = self.tmpn();
+                        let elem_ty = args.first().cloned().unwrap_or_else(t_object);
+                        let nullable_ty = t_nullable(elem_ty.clone());
+                        let etc = self.cg.ct(&nullable_ty);
+                        let etc_elem = self.cg.ct(&elem_ty);
+                        self.emit(format!("{} {}; memset(&{}, 0, sizeof({}));", etc, out, out, out));
+                        self.emit(format!("{} {};", etc_elem, tmp));
+                        let pop_ok = self.tmpn();
+                        self.emit(format!(
+                            "int {} = ax_queue_pop({}, &{});",
+                            pop_ok, tv, tmp
+                        ));
+                        self.emit(format!(
+                            "if ({} == 0) {{ {}.has = 1; {}.v = {}; }}",
+                            pop_ok, out, out, tmp
+                        ));
+                        out
+                    }
+                    "Close" => format!("ax_queue_close({})", tv),
                     _ => "0".to_string(),
                 }
             }

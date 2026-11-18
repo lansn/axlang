@@ -185,6 +185,10 @@ pub enum Stmt {
         kind: ForKind,
         body: Block,
     },
+    While {
+        cond: EPtr,
+        body: Block,
+    },
     Return {
         value: Option<EPtr>,
     },
@@ -204,6 +208,13 @@ pub enum Stmt {
     },
     Continue {
         label: Option<String>,
+    },
+    /// 嵌套函数声明（文稿 §4）：仅限函数体内，不捕获外部局部变量。
+    FuncDecl {
+        name: String,
+        ret: TPtr,
+        params: Vec<N<Param>>,
+        body: Block,
     },
 }
 
@@ -271,6 +282,14 @@ pub enum ForKind {
         var: String,
         var2: String,
         iterable: EPtr,
+    },
+    /// `for i in (0..100).Step(2)`：区间带步长（文稿 §5.2）
+    Step {
+        var: String,
+        lo: EPtr,
+        hi: EPtr,
+        inclusive: bool,
+        step: EPtr,
     },
 }
 
@@ -567,6 +586,10 @@ fn dump_stmt(s: &Stmt, tok: &Tok, ind: usize, out: &mut Vec<String>) {
             w(out, ind, format!("FOR {}", dump_for_kind(kind)));
             dump_block(body, ind + 1, out);
         }
+        Stmt::While { cond, body } => {
+            w(out, ind, format!("WHILE cond={}", ex(cond)));
+            dump_block(body, ind + 1, out);
+        }
         Stmt::Return { value } => w(
             out,
             ind,
@@ -602,6 +625,19 @@ fn dump_stmt(s: &Stmt, tok: &Tok, ind: usize, out: &mut Vec<String>) {
             ind,
             format!("CONTINUE {}", label.as_deref().unwrap_or("")),
         ),
+        Stmt::FuncDecl { name, ret, params, body } => {
+            w(
+                out,
+                ind,
+                format!(
+                    "FUNC {} ret={} params={}",
+                    name,
+                    ex_ty(ret),
+                    dump_params(params)
+                ),
+            );
+            dump_block(body, ind + 1, out);
+        }
     }
     let _ = tok;
 }
@@ -644,6 +680,14 @@ fn dump_for_kind(s: &ForKind) -> String {
             format!("({}, {}) in {}", var, var2, ex(iterable))
         }
         ForKind::Cond => "{ }".to_string(),
+        ForKind::Step { var, lo, hi, inclusive, step } => format!(
+            "{} in {}{}{}.Step({})",
+            var,
+            ex(lo),
+            if *inclusive { "..=" } else { ".." },
+            ex(hi),
+            ex(step)
+        ),
     }
 }
 

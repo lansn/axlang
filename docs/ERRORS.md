@@ -6,7 +6,7 @@
 `E4xxx` 类型与表达式 / `E5xxx` 转换与装箱 / `E6xxx` match 与错误传播 /
 `E7xxx` 所有权与借用。输出语言由 `--lang` / `AXC_LANG` / `axc.toml`（`lang = "zh"`）决定，默认英文。
 
-共 129 个码、329 条文案。
+共 131 个码、335 条文案。
 
 ## E1（词法）
 
@@ -368,6 +368,12 @@
 | `E4031` | `{0}(...)` 缺少实参（N-20） | `{0}(...)` is missing arguments |
 | `E4031` | `{0}` 的 constructor 需要 {1} 个实参，得到 {2}（N-20） | the constructor of `{0}` takes {1} arguments, found {2} |
 | `E4031` | `{0}` 需要 {1} 个实参，得到 {2}（N-20） | `{0}` takes {1} arguments, found {2} |
+| `E4031` | `fmt.Printf` 至少需要 1 个实参（格式字符串）（文稿 11.2） | `fmt.Printf` takes at least 1 argument (the format string) |
+
+| `E4032` | `fmt.Printf` 的格式串必须是纯字符串字面量（不含 `{...}` 插值），才能在编译期核对占位符；得到 {0}（文稿 11.2） | the format string of `fmt.Printf` must be a plain string literal (no `{...}` interpolation) so placeholders can be checked at compile time; found {0} |
+| `E4032` | 格式串里有 {0} 个占位符，但实参有 {1} 个（不含格式串本身）（文稿 11.2） | the format string has {0} placeholders but {1} arguments were given (excluding the format string itself) |
+| `E4032` | 占位符 `%{0}` 与实参类型 `{1}` 不匹配（`%d`=整数, `%f`=小数, `%s`=字符串, `%t`=布尔, `%v`=任意可打印值；可空值请用 `%v` 或先判空）（文稿 11.2） | placeholder `%{0}` does not match argument type `{1}` (`%d`=integer, `%f`=decimal, `%s`=string, `%t`=bool, `%v`=any printable value; use `%v` for nullables or unwrap first) |
+| `E4032` | `%.N` 精度只支持 `%f`，不支持 `%{0}`（与插值 `{x:.N}` 同规则）（文稿 11.2） | precision `%.N` is only supported on `%f`, not `%{0}` (same rule as interpolation `{x:.N}`) |
 
 | `E4033` | `{...}` 的键必须是字符串字面量（GAP-1） | keys of `{...}` must be string literals |
 | `E4033` | `{...}` 的键必须是字符串字面量（不能含插值）（GAP-1） | keys of `{...}` must be string literals (interpolation is not allowed) |
@@ -398,6 +404,8 @@
 | `E4042` | `{0}` 没有 constructor，不能 new<br>  = 它的静态方法请直接用类名调用：`{1}.xxx(...)`<br>  = 如果确实需要实例，请先为 `{2}` 添加 constructor（N-20） | `{0}` has no constructor and cannot be new'd<br>  = call its static methods directly on the class: `{1}.xxx(...)`<br>  = if an instance is really needed, add a constructor to `{2}` first |
 
 | `E4043` | 匿名函数需要目标类型：先声明 `func(参数) 返回` 类型的变量或参数，再把匿名函数赋给它<br>  = 例：`func(int) int f = (int x) { return x; }`（文稿 4.1） | an anonymous function needs a target type: declare a variable or parameter of type `func(params) ret` first, then assign the anonymous function to it<br>  = e.g. `func(int) int f = (int x) { return x; }` |
+
+| `E4044` | 不支持的格式占位符 `%{0}`（格式串中第 {1} 个字符处）；支持 `%%` `%d` `%f` `%.Nf` `%s` `%t` `%v`——`%n` / `%x` 等危险或歧义占位符一律不开放（文稿 11.2） | unsupported format placeholder `%{0}` (at character {1} of the format string); supported: `%%` `%d` `%f` `%.Nf` `%s` `%t` `%v` — dangerous or ambiguous ones like `%n` / `%x` are not allowed |
 
 ## E5（转换 / 装箱）
 

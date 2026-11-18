@@ -1,0 +1,7 @@
+// EXPECT: E4032
+// 占位符类型在编译期核对：%d 只接受整数，传 string 直接报错
+import fmt
+int main() {
+    fmt.Printf("%d", "s")
+    return 0
+}

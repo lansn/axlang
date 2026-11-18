@@ -261,6 +261,9 @@ impl<'s, 'a> CodeGen<'s, 'a> {
                     DefId::Name("File") => return "ax_file*".to_string(),
                     DefId::Name("Arena") => return "void*".to_string(),
                     DefId::Name("Rounding") => return "int32_t".to_string(),
+                    DefId::Name("time") => return "int64_t".to_string(),
+                    DefId::Name("thread") => return "ax_thread*".to_string(),
+                    DefId::Name("queue") => return "ax_queue*".to_string(),
                     _ => {}
                 }
                 match self.def_of(nm) {

@@ -137,7 +137,7 @@ impl<'a> Parser<'a> {
             return Ok(self.advance());
         }
         const KEYWORDS: &[&str] = &[
-            "var", "const", "class", "type", "if", "for", "match", "return", "try",
+            "var", "const", "class", "type", "if", "for", "while", "match", "return", "try",
             "throw", "defer", "import", "static", "public", "protected", "new", "as",
             "in", "else", "this", "parent", "true", "false", "null", "constructor",
             "interface", "struct", "enum", "extend", "implement", "override",
@@ -359,7 +359,7 @@ impl<'a> Parser<'a> {
         match self.parse_func(attrs, vis) {
             Ok(it) => Ok(vec![it]),
             Err(e) => {
-                if self.at("if") || self.at("for") || self.at("return") {
+                if self.at("if") || self.at("for") || self.at("while") || self.at("return") {
                     self.err("E2011", Some(&e.tok), "文稿 9.1", "模块级只能是声明或 import，不能出现语句", &[]);
                 }
                 Err(e)
@@ -372,7 +372,7 @@ impl<'a> Parser<'a> {
     /// 与 `int f(...)`、`map<string, int> m = {}` 区分开——先跳类型前缀，再看后面是什么。
     fn top_is_stmt(&self) -> bool {
         const KW: &[&str] = &[
-            "if", "for", "match", "return", "break", "continue", "defer", "throw", "try", "var",
+            "if", "for", "while", "match", "return", "break", "continue", "defer", "throw", "try", "var",
         ];
         if KW.iter().any(|k| self.at(k)) {
             return true;
@@ -1140,6 +1140,10 @@ impl<'a> Parser<'a> {
             let f = self.parse_for(None)?;
             return Ok(Some(self.nn(t, f.k)));
         }
+        if k == "while" {
+            let w = self.parse_while()?;
+            return Ok(Some(self.nn(t, w.k)));
+        }
         if k == "try" {
             let s = self.parse_try_catch(&t)?;
             return Ok(Some(self.nn(t, s)));
@@ -1233,6 +1237,13 @@ impl<'a> Parser<'a> {
             Ok(ty) => {
                 if self.at("IDENT") {
                     let name = self.advance();
+                    if self.at("<") {
+                        return self.fail("E3044", &self.tok(0), "G-1", "嵌套函数不支持泛型参数", &[]);
+                    }
+                    if self.at("(") {
+                        // 嵌套函数声明：文稿 §4（函数体内，不捕获外部变量）
+                        return self.parse_nested_func(name, ty).map(Some);
+                    }
                     if self.at("=") {
                         // 已提交为声明：此后任何解析错误都必须向上传播
                         self.advance();
@@ -1295,6 +1306,27 @@ impl<'a> Parser<'a> {
         Ok(Some(self.nn(t, Stmt::Simple { lhs, op: None, rhs: None, incdec: None })))
     }
 
+    /// 嵌套函数：`int add(int a, int b) { return a + b; }`（文稿 §4）。
+    /// 不支持泛型、可见性修饰符与属性；不捕获外部局部变量。
+    fn parse_nested_func(&mut self, name_tok: Tok, ret: TPtr) -> PResult<N<Stmt>> {
+        let name = name_tok.text().to_string();
+        if self.at("<") {
+                return self.fail("E3044", &self.tok(0), "G-1", "嵌套函数不支持泛型参数", &[]);
+        }
+        let params = self.parse_params()?;
+        self.nl();
+        let body = self.parse_block()?;
+        Ok(self.nn(
+            name_tok,
+            Stmt::FuncDecl {
+                name,
+                ret,
+                params,
+                body,
+            },
+        ))
+    }
+
     /// 语句级 `const`：与模块级 ConstDecl 同构（sema 走 check_local_const）。
     fn parse_const_stmt(&mut self) -> PResult<N<Stmt>> {
         let t = self.expect("const", None)?;
@@ -1355,6 +1387,18 @@ impl<'a> Parser<'a> {
         Ok(IfNode { cond, then_, els })
     }
 
+    fn parse_while(&mut self) -> PResult<N<Stmt>> {
+        let t = self.expect("while", None)?;
+        self.nl();
+        let cond = self.parse_expr()?;
+        self.nl();
+        let body = self.parse_branch("while 的分支体")?;
+        Ok(self.nn(
+            t,
+            Stmt::While { cond, body },
+        ))
+    }
+
     fn parse_for(&mut self, label: Option<String>) -> PResult<N<Stmt>> {
         let t = self.expect("for", None)?;
         self.nl();
@@ -1394,6 +1438,33 @@ impl<'a> Parser<'a> {
                 hi: hi.clone(),
                 inclusive: *inclusive,
             },
+            Expr::MethodCall { recv, name, args } if name == "Step" => {
+                if let Expr::Range { lo, hi, inclusive } = &recv.k {
+                    if args.len() != 1 {
+                        let tk = args.first().map_or_else(
+                            || recv.tok.clone(),
+                            |a| a.k.expr.tok.clone(),
+                        );
+                        return self.fail(
+                            "E4031",
+                            &tk,
+                            "文稿 5.2",
+                            "`Step` 需要 1 个实参，得到 {0}",
+                            &[&args.len().to_string()],
+                        );
+                    }
+                    let step = args[0].k.expr.clone();
+                    ForKind::Step {
+                        var: v,
+                        lo: lo.clone(),
+                        hi: hi.clone(),
+                        inclusive: *inclusive,
+                        step,
+                    }
+                } else {
+                    ForKind::Iter { var: v, iterable: it }
+                }
+            }
             _ => ForKind::Iter { var: v, iterable: it },
         };
         Ok(self.nn(t, Stmt::For { label, kind, body }))

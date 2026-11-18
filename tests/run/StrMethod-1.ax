@@ -1,0 +1,40 @@
+// 字符串方法测试：Upper/Lower/StartsWith/EndsWith/Join/Replace/Repeat（与既有 Contains/Split/Trim/Left/Right/Mid 并行验证）
+int main() {
+    string s = "Hello World"
+
+    // 大小写转换
+    println(s.Upper())
+    println(s.Lower())
+
+    // 前缀/后缀判断
+    println(s.StartsWith("He"))
+    println(s.StartsWith("he"))
+    println(s.EndsWith("ld"))
+    println(s.EndsWith("LD"))
+
+    // Join：用 s 作为分隔符连接数组
+    string[] parts = ["a", "b", "c"]
+    println(s.Join(parts))
+    string[] empty = []
+    println(s.Join(empty))
+
+    // Replace：替换所有出现
+    string r = "banana"
+    println(r.Replace("a", "o"))
+    println(r.Replace("z", "q"))   // 不存在则不变
+
+    // Repeat
+    println("ab".Repeat(3))
+    println("x".Repeat(0))
+    println("x".Repeat(1))
+
+    // 既有方法回归
+    println(s.Contains("World"))
+    println(s.Trim())
+    println(s.Left(5))
+    println(s.Right(5))
+    println(s.Mid(3, 4))
+    string[] sp = s.Split(" ")
+    println(sp.Len())
+    return 0
+}

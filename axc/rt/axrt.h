@@ -70,6 +70,23 @@ int     ax_str_from_codepoint(int32_t cp, ax_str* out);
 int     ax_str_contains(ax_str s, ax_str sub);
 ax_str* ax_str_split(ax_str s, ax_str sep, int64_t* n);
 ax_str  ax_str_trim(ax_str s);
+
+/* 大小写转换 */
+ax_str  ax_str_to_upper(ax_str s);
+ax_str  ax_str_to_lower(ax_str s);
+
+/* 前缀/后缀判断 */
+int     ax_str_starts_with(ax_str s, ax_str prefix);
+int     ax_str_ends_with(ax_str s, ax_str suffix);
+
+/* 连接数组（用 s 作为分隔符） */
+ax_str  ax_str_join(ax_str sep, ax_str* parts, int64_t n);
+
+/* 替换所有出现 */
+ax_str  ax_str_replace(ax_str s, ax_str old, ax_str new);
+
+/* 重复 n 次 */
+ax_str  ax_str_repeat(ax_str s, int64_t n);
 ax_str  ax_str_of_int(int64_t v);
 ax_str  ax_str_of_uint(uint64_t v);
 ax_str  ax_str_of_bool(int v);
@@ -203,6 +220,12 @@ ax_str  ax_json_stringify(ax_box* v);
 
 int64_t ax_now_ms(void);
 
+/* 时间（time 类型，Unix 毫秒）：
+ * ax_time_to_str 按 "YYYY-MM-DD HH:MM:SS" 格式化；
+ * ax_time_format 指定 strftime 风格格式串（%Y %m %d %H %M %S 等）。 */
+ax_str ax_time_to_str(int64_t ms);
+ax_str ax_time_format(int64_t ms, const char* fmt);
+
 /* json.Parse 的 result<map<string, object>> 形态（文稿 11.3）：
    ok 携带 ax_map（string → ax_box*），fail 携带解析错误（code=1 + 位置信息）。 */
 typedef struct { uint8_t tag; union { ax_map ok; ax_err err; } u; } ax_res_map;
@@ -241,6 +264,27 @@ typedef struct ax_arena ax_arena;
 ax_arena* ax_arena_create(void);
 void*     ax_arena_adopt(ax_arena* ar, void* p);
 void      ax_arena_free(ax_arena* ar);
+
+/* ---------------- 并发（线程 + 阻塞队列）----------------
+ * axlang 并发模型：显式线程 + 线程安全阻塞队列，线程间不共享可变对象，
+ * 仅通过 queue 传递消息。避免 async/await 状态机和手动锁。
+ */
+typedef struct ax_thread ax_thread;
+typedef struct ax_queue  ax_queue;
+
+/* 启动并发执行体：func 会在新线程中执行，arg 作为唯一实参。返回线程句柄。 */
+ax_thread* ax_thread_create(void (*func)(void*), void* arg);
+/* 等待线程结束（阻塞）。 */
+void       ax_thread_join(ax_thread* t);
+
+/* 创建元素大小为 elem_size 的有界阻塞队列（内部固定 256 槽）。 */
+ax_queue*  ax_queue_create(int64_t elem_size);
+/* 推入元素：队列满时阻塞，直到有空位。 */
+void       ax_queue_push(ax_queue* q, const void* data);
+/* 弹出元素：队列空且未关闭时阻塞；成功返回 0，队列已关闭且为空返回 1。 */
+int        ax_queue_pop(ax_queue* q, void* out);
+/* 关闭队列：后续 pop 在队列耗尽后返回 1，作为结束信号。 */
+void       ax_queue_close(ax_queue* q);
 
 #ifdef __cplusplus
 }

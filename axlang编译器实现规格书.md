@@ -414,7 +414,7 @@ type_args     = '<' type { ',' type } [ ',' ] '>' ;
 /* ============ 语句 ============ */
 block         = '{' { nl_ok stmt } '}' ;
 stmt          = labeled_stmt | var_decl | var_tuple | const_decl
-              | if_expr | for_stmt | match_expr
+              | if_expr | for_stmt | while_stmt | match_expr
               | return_stmt | throw_stmt | try_stmt | defer_stmt
               | break_stmt | continue_stmt
               | block | simple_stmt ;
@@ -423,6 +423,7 @@ labeled_stmt  = ident ':' for_stmt ;
 for_stmt      = 'for' [ for_header ] block ;
 for_header    = '(' ident ',' ident ')' 'in' expr
               | ident 'in' expr ;
+while_stmt    = 'while' expr block ;
 
 return_stmt   = 'return' [ expr ] ;
 throw_stmt    = 'throw' error_ctor ;
@@ -602,6 +603,7 @@ literal       = INT_LIT | FLOAT_LIT | DECIMAL_LIT | TEMPLATE_LIT
 | `IfStmt` | 复用 `IfExpr` |
 | `ForStmt` | `label: Option<Ident>`, `kind: ForKind`, `body: BlockId` |
 | `ForKind` | `Range{var, lo, hi, inclusive}` \| `Iter{var, iterable}` \| `KeyValue{k, v, iterable}` \| `Cond`（`for { }`） |
+| `WhileStmt` | `cond: ExprId`, `body: BlockId` | 前测条件循环，不携带标签（只承接 unlabeled break/continue） |
 | `MatchStmt` | 复用 `MatchExpr` |
 | `Return` | `value: Option<ExprId>` |
 | `Throw` | `variant: Ident`, `msg: ExprId` |
@@ -730,7 +732,8 @@ MODULE goods
 | 类别 | 符号 |
 |---|---|
 | 类型 | 见 §3.4 的保留类型名表（含 `result`/`error`/`func`/`map`/`Self`/`range`/`Rounding`/`Arena`/`ArenaRef`） |
-| 值 | `print` / `println`（`void print(string)`；非字符串的单个可插值实参按 `"{x}"` 处理）、`true`/`false`/`null`（关键字） |
+| 值 | `print` / `println`（`void print(string)`；非字符串的单个可插值实参按 `"{x}"` 处理；0.0.27 起支持多实参，空格拼接后输出）、`true`/`false`/`null`（关键字） |
+| 模块 | `fmt`（内建，无需 import）：`fmt.Print`/`fmt.Println` 与 `print`/`println` 语义一致；`fmt.Printf(fmt, args...)` 第一个实参必须是纯字符串字面量，占位符 `%% %d %f %.Nf %s %t %v` 在编译期核对个数与类型，不支持的占位符报 `E4044`、个数/类型不符报 `E4032` |
 | 类型静态命名空间 | `int.Parse` `float.Parse` `decimal.Parse` `int32.Truncate`（及 `int8/int16` 的 `.Truncate`）`string.FromCodepoint` |
 | 枚举成员 | `Rounding.HalfUp` `Rounding.HalfEven` `Rounding.Down` |
 | 错误变体 | `error.NotFound` `error.Invalid` `error.Money` `error.IO` |
@@ -844,7 +847,7 @@ assignable(src, dst, ctx) -> Yes | NeedsConv(ConvKind) | No(reason):
 | `P1` | 变量声明/赋值的左侧（`int n = o`） |
 | `P2` | 函数实参（对应形参类型已知） |
 | `P3` | `return`（函数返回类型已知） |
-| `P4` | `if` / `for`-条件（目标类型 `bool`） |
+| `P4` | `if` / `for` / `while`-条件（目标类型 `bool`） |
 | `P5` | 数组元素写入（`nums[i] = o`，元素类型 `T`） |
 | `P6` | map 值写入（`m[k] = o`，值类型 `V`） |
 | `P7` | struct/record 字段初始化（`Point(o, 2)` 的 `o` 对应 `int`） |
@@ -1098,8 +1101,10 @@ enum ConstVal {
 | `E4029` | 不可装箱类型 → `object` | `T-6` |
 | `E4030` | 格式说明符 `.N` 用于非数值类型 | 文稿 11.2 |
 | `E4031` | 构造/转换实参个数或类型不匹配 | `N-20` |
-| `E4042` | class 无 constructor 却被 `new`（消息两行指路：改用类名调静态，或补 constructor） | `N-20` |
 | `E4032` | `T(x)` 同时匹配构造与 record 转换 | `N-20` |
+| `E4032` | `fmt.Printf` 格式串不是纯字面量 / 占位符个数与实参个数不符 / 占位符与实参类型不匹配 / `%.N` 作用于非 `%f` | 文稿 11.2 |
+| `E4042` | class 无 constructor 却被 `new`（消息两行指路：改用类名调静态，或补 constructor） | `N-20` |
+| `E4044` | `fmt.Printf` 出现不支持的格式占位符（`%n` `%x` `%c` 等，或串尾孤 `%`） | 文稿 11.2 |
 | `E4033` | 字面量键不是字符串字面量 | `GAP-1` |
 | `E4034` | record → struct 字段不匹配；record 作参数/返回 | `C-15` `T-27` |
 | `E4035` | 类型实参个数不符 | `G-1` |
@@ -1597,8 +1602,9 @@ if (t1.has) { ax_sb_push(&b, t1.v); } else { ax_sb_push(&b, AX_S("null")); }
   插值只做显示、不产生可空值逃逸，因此**不触发 `E4001`**；赋值与传参处仍照常要求判空。
 - **当前实现边界**：已落地 `int`/`uint`、`float`、`decimal`、`bool`、`string`、`enum` 及其可空形式，以及**实现了 `Printable` 的 class/struct**（含 `Printable` 接口变量的虚派发）；数组 / `map` / 元组 / `func` 的默认显示**尚未实现**，插值它们报 `E5006`（`GAP-12` 剩余部分）。codegen 的兜底分支只留注释，不允许退化成静默输出 `?`。
 - `.N` 只允许数值类型（`E4030`），舍入固定 `Rounding.HalfUp`；可空数值不参与 `:.N`（先判空取出）。
-- `print(s)` 直接 `ax_write_stdout(s)`；`println(s)` 在同一句后追加 `ax_write_stdout(AX_S("\n"))`。两者都不经过 `printf`（格式串一律由插入式拼接生成，避免 `%` 转义问题）。
-- 实参不是 `string` 但可插值时（sema 打 `interp_arg` 标记），按 `str_lit` 的同一条路径生成：`ax_sb` 初始化 → `push_interp` 推入一个片段 → `ax_sb_finish` → 输出。语义等价于 `print("{x}")`，不新增任何格式化分支。
+- `print` / `println`（0.0.27 起支持多实参）：统一走字符串缓冲 `ax_sb`，实参之间以一个空格拼接；`println` 在末尾追加 `ax_write_stdout(AX_S("\n"))`。两者都不经过 C `printf`（格式串一律由插入式拼接生成，避免 `%` 转义问题）。
+- 单个实参不是 `string` 但可插值时（sema 打 `interp_arg` 标记），按 `str_lit` 的同一条路径生成：`ax_sb` 初始化 → `push_interp` 推入一个片段 → `ax_sb_finish` → 输出。语义等价于 `print("{x}")`，不新增任何格式化分支。
+- `fmt.Printf(fmt, args...)`（sema 已编译期核对占位符个数/类型/精度，非法占位符 `E4044`，个数/类型不符 `E4032`）：codegen 层直接把占位符展开成与字符串插值完全相同的 `ax_sb` 拼接——运行时不做任何格式串解析，`%.Nf` 复用插值的 `:.N` 生成。`fmt.Print`/`fmt.Println` 复用 `print`/`println` 的同一条生成路径。
 
 ### 13.8 装箱与解箱（B-14）
 
@@ -1781,8 +1787,8 @@ void    ax_file_close(ax_file* f);                   /* 幂等 */
 
 | 符号 | 签名 | transfer | 依据 |
 |---|---|---|---|
-| `print` | `void print(string)`（不换行）；实参也可直接是能插值的值，等价于 `print("{x}")` | borrow | 文稿 11.2 |
-| `println` | `void println(string)`（末尾补 `\n`）；同上 | borrow | 文稿 11.2 |
+| `print` | `void print(string, ...)`（不换行；0.0.27 起支持多实参，空格拼接；单个非字符串可插值实参等价于 `print("{x}")`） | borrow | 文稿 11.2 |
+| `println` | `void println(string, ...)`（末尾补 `\n`；同上） | borrow | 文稿 11.2 |
 | `int.Parse` | `result<int> parse(string)` | borrow | 文稿 3.1 |
 | `float.Parse` | `result<float> parse(string)` | borrow | 文稿 3.1 |
 | `decimal.Parse` | `result<decimal> parse(string)` | borrow | 文稿 3.1/3.2 |
@@ -1803,6 +1809,9 @@ void    ax_file_close(ax_file* f);                   /* 幂等 */
 | `CodepointAt(i)` | `int?` | borrow | 文稿 11.2 |
 | `Contains(sub)` | `bool` | borrow | 文稿 6.1 示例 |
 | `Split(sep)` | `string[]`（≥1 个元素） | borrow | 文稿 6.1 示例 |
+| `Left(n)` | `string`（前 n 个码点，n≤0 得空串，n>len 得整串） | borrow | 文稿 11.2 |
+| `Right(n)` | `string`（后 n 个码点，n≤0 得空串，n>len 得整串） | borrow | 文稿 11.2 |
+| `Mid(start, n)` | `string`（从码点索引 start 开始取 n 个，越界安全截断） | borrow | 文稿 11.2 |
 
 ### 15.3 数组 / `map` 方法
 
@@ -1832,6 +1841,9 @@ void    ax_file_close(ax_file* f);                   /* 幂等 */
 | `file` | `File.Write(s)` | `result<int>` 写入字节数 | 文稿 11.3 |
 | `file` | `File.WriteLine(s)` | `result<int>` 写入字节数（含 `\n`） | 文稿 11.3 |
 | `file` | `File.Close()` | `void`，幂等 | 文稿 11.3 |
+| `fmt` | `Print` | `void Print(string, ...)`（与 `print` 同实现，多实参空格拼接） | 文稿 11.2 |
+| `fmt` | `Println` | `void Println(string, ...)`（与 `println` 同实现） | 文稿 11.2 |
+| `fmt` | `Printf` | `void Printf(string, ...)`（第一个实参须为纯字符串字面量，占位符编译期核对） | 文稿 11.2 |
 | `math` | `Equals` | `bool equals(float, float, float eps)` | 文稿 3.7 |
 | `math` | `Compare` | `int Compare(float, float)` | 文稿 3.7 |
 | `json` | `Parse` | `result<Json> parse(string)`，`Json = map<string, object>` | 文稿 6.7 |
@@ -1939,7 +1951,13 @@ void    ax_file_close(ax_file* f);                   /* 幂等 */
 | `Print-1` | `println(123)` / `println(3.5)` / `println(true)` / `print(42)` 不换行 / `println(Printable 类实例)` / `println(enum)` | 通过（`Print-1.out`；等价于补花括号的插值） |
 | `Print-neg-1` | `println(xs)`（`xs` 为 `int[]`） | `E4001`（复合类型不参与插值） |
 | `Print-neg-2` | `print(a, b)` 多实参 | 恰好一条 `E4031`，不再追加 string 强转的 `E4001` |
-| `Print-neg-2` | `print(a, b)` 多实参 | 恰好一条 `E4031`，不再追加 string 强转的 `E4001` |
+| `Print-2` | `print("axlang", 6, true)` / `println("总价", total, "元")` | 通过（`Print-2.out`；多实参空格拼接） |
+| `Fmt-1` | `fmt.Printf("%d 件\n", n)` / `fmt.Printf("价格 %.2f 元\n", 19.99d)` / `fmt.Print("a", "b")` / `fmt.Println("ok")` | 通过（`Fmt-1.out`；占位符编译期核对） |
+| `Fmt-neg-1` | `fmt.Printf("%d %d", 1)` | `E4032`（占位符个数多于实参） |
+| `Fmt-neg-2` | `fmt.Printf("%d", "s")` | `E4032`（占位符与实参类型不匹配） |
+| `Fmt-neg-3` | `fmt.Printf("%n", 1)` | `E4044`（不支持的格式占位符 %n） |
+| `Fmt-neg-4` | `fmt.Printf("{x} %d", 2)` | `E4032`（格式串含插值，不是纯字符串字面量） |
+| `Fmt-neg-5` | `fmt.Printf("%.2d", 1)` | `E4032`（`%.N` 只支持 `%f`） |
 | `Math-1` | `math.Compare(1.0, 2.0)` / `math.Equals(0.1 + 0.2, 0.3, 1e-6)` | 通过（`Math-1.out`：`-1 0 1 true false`；模块成员 PascalCase） |
 | `IO-2` | `file.Create(...)` 写入一行后 `io.ReadFile(...)` 读回 | 通过（`IO-2.out`：`第一行`） |
 | `demo/OrderDemo` | 示例工程（`samples/demo/`）：`catalog.product` / `catalog.inventory` / `checkout.bill`（具名导入）/ `checkout.wholesale`（跨模块继承）；入口用**裸类型名**构造，另混用全路径写法作对照，含数组字段 `Push`、可空返回判空、`:.2` 金额 | 通过（`main.out` 逐字节比对） |
@@ -2166,7 +2184,7 @@ GAP-REPORT n
 |---|---|---|
 | 1 | 新增关键字、运算符、语句形式 | 文稿 1.2「一件事只有一种做法」 |
 | 2 | 加隐式数值转换（哪怕"只加宽化"） | 文稿 1.4 零隐式转换；`T-8` |
-| 3 | 加 `while` / `loop` / `switch` / `try-catch` / `goto` / `set` / `list` | 文稿 1.2、1.4 |
+| 3 | 加 `while`（已实施）/ `loop` / `switch` / `try-catch` / `goto` / `set` / `list` | 文稿 1.2、1.4 |
 | 4 | 给 `float` 开 `==` 例外，或让 `float` 实现 `Comparable` | 文稿 3.7、7.1 |
 | 5 | 给 `object` 加成员（`ToString`/`Equals`/`Get`） | 文稿 6.7「没有成员」 |
 | 6 | 让 `[]` 越界返回 `null` 或默认值 | 文稿 3.3：`[]` 崩、`At()` 可空，两条路不许混 |
