@@ -17,6 +17,7 @@ pub const KEYWORDS: &[&str] = &[
     "if", "else", "for", "while", "in", "match", "return",
     "try", "catch", "finally", "throw", "defer", "import", "public", "protected", "private",
     "static", "new", "as", "break", "continue", "constructor",
+    "extern", "unsafe",
     "true", "false", "null",
 ];
 

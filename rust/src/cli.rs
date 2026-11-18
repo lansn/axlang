@@ -273,7 +273,7 @@ impl Default for Opts {
             dump: None,
             emit_c: false,
             werror: false,
-            cc: std::env::var("AX_CC").unwrap_or_else(|_| "gcc".to_string()),
+            cc: default_cc(),
             keep: false,
             includes: Vec::new(),
             prog_args: Vec::new(),
@@ -282,6 +282,26 @@ impl Default for Opts {
             lang: None,
         }
     }
+}
+
+/// 默认 C 编译器：优先使用用户新安装的 GCC 16.2.0（路径固定，无警告）；
+/// 否则回退到系统 PATH 中的 `gcc`。用户可通过 `AX_CC` 环境变量或 `--cc=` 覆盖。
+fn default_cc() -> String {
+    if let Ok(v) = std::env::var("AX_CC") {
+        return v;
+    }
+    // 在 Windows 上，Rust 的 Path 需要使用 "D:/..." 或 "D:\\..." 格式的绝对路径，
+    // Git Bash 风格的 "/d/..." 相对路径不会被识别为存在的文件。
+    let new_gcc = "D:/Portable/mingw64/bin/gcc.exe";
+    if std::path::Path::new(new_gcc).exists() {
+        return new_gcc.to_string();
+    }
+    // 也尝试反斜杠形式（兼容手动输入）
+    let new_gcc_bs = "D:\\Portable\\mingw64\\bin\\gcc.exe";
+    if std::path::Path::new(new_gcc_bs).exists() {
+        return new_gcc_bs.to_string();
+    }
+    "gcc".to_string()
 }
 
 pub fn parse_args(argv: &[String]) -> Opts {

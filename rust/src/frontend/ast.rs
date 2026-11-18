@@ -81,6 +81,11 @@ pub enum Item {
         generics: Vec<TypeParam>,
         target: TPtr,
     },
+    /// `extern "C" { ... }`：模块级外部 C 函数声明块（FFI）。
+    /// 每个元素为 `Item::FuncDecl`（body 为空，implicit=false）。
+    ExternBlock {
+        funcs: Vec<N<Item>>,
+    },
 }
 
 #[derive(Clone, Debug)]
@@ -214,6 +219,10 @@ pub enum Stmt {
         name: String,
         ret: TPtr,
         params: Vec<N<Param>>,
+        body: Block,
+    },
+    /// `unsafe { ... }`：不安全块，包裹调用 extern 函数等操作。
+    Unsafe {
         body: Block,
     },
 }
@@ -474,6 +483,14 @@ fn dump_item(it: &Item, tok: &Tok, ind: usize, out: &mut Vec<String>) {
         Item::TypeAlias { name, target, .. } => {
             w(out, ind, format!("TYPE {} = {}", name, ex_ty(target)));
         }
+        Item::ExternBlock { funcs } => {
+            w(out, ind, format!("EXTERN_BLOCK n_funcs={}", funcs.len()));
+            for f in funcs {
+                if let Item::FuncDecl { name, ret, params, .. } = &f.k {
+                    w(out, ind + 1, format!("FUNC {} ret={} params={}", name, ex_ty(ret), dump_params(params)));
+                }
+            }
+        }
     }
     let _ = tok;
 }
@@ -625,6 +642,10 @@ fn dump_stmt(s: &Stmt, tok: &Tok, ind: usize, out: &mut Vec<String>) {
             ind,
             format!("CONTINUE {}", label.as_deref().unwrap_or("")),
         ),
+        Stmt::Unsafe { body } => {
+            w(out, ind, "UNSAFE".to_string());
+            dump_block(body, ind + 1, out);
+        }
         Stmt::FuncDecl { name, ret, params, body } => {
             w(
                 out,

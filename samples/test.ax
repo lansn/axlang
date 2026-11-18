@@ -12,4 +12,8 @@ print("{a+2}+++{a+5}")
 string b="deefgget"
 print(b.Len())
 
+string a2 = "12ddd"
+string b2 = "1220"
+print(a2+b2)
+
 //}

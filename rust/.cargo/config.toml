@@ -1,0 +1,15 @@
+# axc 跨平台构建配置
+# 在 Windows 宿主机上同时构建 Windows / Linux / macOS 三个平台的 axc 二进制。
+#
+# 链接器使用 Rust 自带的 rust-lld，避免依赖系统 Visual Studio link.exe
+# 或外部交叉工具链。这只影响 axc 编译器自身的构建，不影响它生成的
+# 目标代码（目标代码仍是纯 C11，由系统 gcc 编译）。
+
+[target.x86_64-pc-windows-msvc]
+linker = "rust-lld"
+
+[target.x86_64-unknown-linux-musl]
+linker = "rust-lld"
+
+[target.x86_64-apple-darwin]
+linker = "rust-lld"

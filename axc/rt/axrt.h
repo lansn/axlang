@@ -1,5 +1,5 @@
 /* axrt.h -- axlang 运行时（规格书 §14）
- * C11，除 __int128 外不使用 GNU 扩展。
+ * 纯标准 C11，不使用任何 GNU/Clang 扩展（无 __int128、无 __builtin_*）。
  */
 #ifndef AXRT_H
 #define AXRT_H
@@ -42,7 +42,9 @@ _Noreturn void ax_oom(void);
 void* ax_alloc(int64_t size);
 void* ax_calloc(int64_t n, int64_t size);
 
-typedef struct { __int128 coeff; int32_t scale; int32_t _pad; } ax_dec;
+typedef struct { int64_t hi; uint64_t lo; } ax_i128;
+
+typedef struct { ax_i128 coeff; int32_t scale; int32_t _pad; } ax_dec;
 
 #define ROUND_HALF_UP   0
 #define ROUND_HALF_EVEN 1
@@ -110,7 +112,7 @@ ax_str ax_sb_finish(ax_sb* b);
 
 /* ---------------- decimal（Rt-7） ---------------- */
 ax_dec ax_dec_from_i64(int64_t v);
-ax_dec ax_dec_from_parts(__int128 coeff, int32_t scale);
+ax_dec ax_dec_from_parts(ax_i128 coeff, int32_t scale);
 ax_dec ax_dec_lit(const char* digits, int32_t scale);
 ax_dec ax_dec_parse(ax_str s, int* ok);
 ax_str ax_dec_to_str(ax_dec v);
@@ -273,7 +275,8 @@ typedef struct ax_thread ax_thread;
 typedef struct ax_queue  ax_queue;
 
 /* 启动并发执行体：func 会在新线程中执行，arg 作为唯一实参。返回线程句柄。 */
-ax_thread* ax_thread_create(void (*func)(void*), void* arg);
+typedef void (*ax_thread_fn)(void*);
+ax_thread* ax_thread_create(ax_thread_fn func, void* arg);
 /* 等待线程结束（阻塞）。 */
 void       ax_thread_join(ax_thread* t);
 

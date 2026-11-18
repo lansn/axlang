@@ -21,7 +21,7 @@ mod stmt;
 pub use expr::module_sig;
 
 use crate::frontend::ast;
-use crate::frontend::ast::{Expr, Item, Stmt};
+use crate::frontend::ast::{Expr, Item, N, Stmt};
 use crate::diag::Diags;
 use crate::frontend::lexer::Tok;
 use crate::frontend::lexer::TokVal;
@@ -1250,6 +1250,15 @@ impl<'a> Sema<'a> {
                         self.decl_order.push(item);
                         self.decl_mod.push(prefix.clone());
                     }
+                    Item::ExternBlock { funcs } => {
+                        self.decl_order.push(item);
+                        self.decl_mod.push(prefix.clone());
+                        for f in funcs {
+                            if let Item::FuncDecl { name, ret, params, .. } = &f.k {
+                                self.register_extern_func(item, name, ret, params);
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -1382,6 +1391,44 @@ impl<'a> Sema<'a> {
                     .or_default()
                     .insert(name.clone(), ExportSym::Func(self.funcs.len() - 1));
             }
+        }
+    }
+
+    /// 注册 `extern "C"` 外部函数：无函数体，body=None，不检查 main 限制。
+    fn register_extern_func(&mut self, item: &'a ast::N<Item>, name: &str, _ret: &ast::TPtr, _params: &Vec<N<ast::Param>>) {
+        let reg = name.to_string();
+        if !self.declare_name(&reg, &item.tok, false) {
+            return;
+        }
+        let f = FuncInfo {
+            name: reg.clone(),
+            tok: item.tok.clone(),
+            module: self.cur_mod_path.clone(),
+            owner: None,
+            params: Vec::new(),
+            ret: t_void(),
+            generics: Vec::new(),
+            vis: "private".to_string(),
+            is_static: false,
+            is_override: false,
+            body: None,
+            implicit: false,
+            gdepth: 0,
+            mangle: None,
+            parent: None,
+            nested: BTreeMap::new(),
+        };
+        self.funcs.push(f);
+        self.func_by_name.insert(reg.clone(), self.funcs.len() - 1);
+        if let Some(canon) = self.cur_mod_prefix.clone() {
+            self.mod_syms
+                .entry(canon.clone())
+                .or_default()
+                .push((name.to_string(), ExportSym::Func(self.funcs.len() - 1)));
+            self.module_exports
+                .entry(canon)
+                .or_default()
+                .insert(name.to_string(), ExportSym::Func(self.funcs.len() - 1));
         }
     }
 
@@ -1721,6 +1768,16 @@ impl<'a> Sema<'a> {
                 }
                 Item::ConstDecl { .. } => self.resolve_const_decl(item),
                 Item::Import { .. } => {}
+                    Item::ExternBlock { funcs } => {
+                        for fn_item in funcs {
+                            if let Item::FuncDecl { name, .. } = &fn_item.k {
+                                let reg = self.reg_name(name);
+                                if let Some(&fid) = self.func_by_name.get(&reg) {
+                                    self.resolve_func_sig(Some(fid), fn_item);
+                                }
+                            }
+                        }
+                    }
             }
         }
         self.set_active_module(&None);

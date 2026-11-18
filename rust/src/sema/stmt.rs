@@ -311,6 +311,7 @@ impl<'a> Sema<'a> {
             }
             Stmt::For { .. } => self.check_for(s),
             Stmt::While { .. } => self.check_while(s),
+            Stmt::Unsafe { body } => self.check_block(body, true),
             Stmt::Return { .. } => self.check_return(s),
             Stmt::Throw { .. } => self.check_throw(s),
             Stmt::TryCatch(_) => self.check_try_catch(s),

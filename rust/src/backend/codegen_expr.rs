@@ -1037,7 +1037,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             } else {
                 self.gen(&args[1].k.expr, None, false, false)
             };
-            return format!("ax_thread_create({}, {})", fv, av);
+            return format!("ax_thread_create((ax_thread_fn){}, {})", fv, av);
         }
         if ck == "queue_create" {
             // queue<T>() -> ax_queue_create((int64_t)sizeof(T))
