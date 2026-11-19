@@ -353,8 +353,7 @@ pub struct TypeDef {
     pub generics: Vec<(String, Vec<String>)>,
     pub fields: Vec<(String, Ty, String, u32)>,
     pub methods: BTreeMap<String, usize>,
-    pub ctor: Option<usize>,
-    pub ctor_count: u32,
+    pub ctors: HashMap<String, usize>,
     pub parent: Option<u32>,
     pub impls: Vec<u32>,
     pub extends: Vec<u32>,
@@ -693,8 +692,7 @@ impl<'a> Sema<'a> {
                 generics: Vec::new(),
                 fields: Vec::new(),
                 methods: BTreeMap::new(),
-                ctor: None,
-                ctor_count: 0,
+                ctors: HashMap::new(),
                 parent: None,
                 impls: Vec::new(),
                 extends: Vec::new(),
@@ -1117,8 +1115,7 @@ impl<'a> Sema<'a> {
             generics: Vec::new(),
             fields: Vec::new(),
             methods: BTreeMap::new(),
-            ctor: None,
-            ctor_count: 0,
+            ctors: HashMap::new(),
             parent: None,
             impls: Vec::new(),
             extends: Vec::new(),
@@ -2056,10 +2053,12 @@ impl<'a> Sema<'a> {
                             }
                             self.typedefs[d as usize].methods.insert(name.clone(), fid);
                         }
-                        ast::Member::Ctor { params, body } => {
-                            self.typedefs[d as usize].ctor_count += 1;
+                        ast::Member::Ctor { name, params, body } => {
+                            if self.typedefs[d as usize].ctors.contains_key(name.as_str()) {
+                                self.err("E3010", &m.tok, "文稿 6.1", "构造函数名 `{0}` 重复", &[&name]);
+                            }
                             let f = FuncInfo {
-                                name: "constructor".to_string(),
+                                name: name.clone(),
                                 tok: m.tok.clone(),
                                 module: self.path.clone(),
                                 owner: Some(d),
@@ -2070,10 +2069,10 @@ impl<'a> Sema<'a> {
                                 is_static: false,
                                 is_override: false,
                                 implicit: false,
-                gdepth: 0,
-                mangle: None,
-                parent: Some(d as usize),
-                nested: BTreeMap::new(),
+                                gdepth: 0,
+                                mangle: None,
+                                parent: Some(d as usize),
+                                nested: BTreeMap::new(),
                                 body: Some(body),
                             };
                             self.funcs.push(f);
@@ -2084,7 +2083,7 @@ impl<'a> Sema<'a> {
                                 ps.push((p.k.name.clone(), ty, p.k.borrow.clone()));
                             }
                             self.funcs[fid].params = ps;
-                            self.typedefs[d as usize].ctor = Some(fid);
+                            self.typedefs[d as usize].ctors.insert(name.clone(), fid);
                         }
                         ast::Member::Item(_) => {}
                     }
@@ -2459,15 +2458,17 @@ impl<'a> Sema<'a> {
         };
         if kind == "class" {
             let has_fields = !self.typedefs[d as usize].fields.is_empty();
-            let ctor = self.typedefs[d as usize].ctor;
-            if has_fields && ctor.is_none() {
+            // E3008: 类有字段但没有 constructor
+            if has_fields && self.typedefs[d as usize].ctors.is_empty() {
                 let disp = self.disp_tyname(d);
                 self.err("E3008", &tok, "文稿 6.1", "类 `{0}` 有字段但没有 constructor", &[&disp]);
             }
-            if let Some(cf) = ctor {
-                if self.typedefs[d as usize].ctor_count > 1 {
-                    self.err("E3010", &tok, "文稿 6.1", "一个类只能有一个 constructor", &[]);
-                }
+            // 先把 ctor 条目拷出来，避免在循环体中 self.err 与 ctors 的不可变借用冲突
+            let ctor_entries: Vec<(String, usize)> = {
+                let ctors = &self.typedefs[d as usize].ctors;
+                ctors.iter().map(|(k, v)| (k.clone(), *v)).collect()
+            };
+            for (ctor_name, cf) in ctor_entries {
                 let mut assigned = HashSet::new();
                 if let Some(b) = self.funcs[cf].body {
                     self.collect_this_assign(b, &mut assigned);
@@ -2484,7 +2485,7 @@ impl<'a> Sema<'a> {
                     if matches!(&**fty, TyS::ArenaRef(_)) {
                         continue;
                     }
-                    self.err("E3009", &ctor_tok, "文稿 6.1", "constructor 没有给字段 `{0}` 赋值", &[&fn_]);
+                    self.err("E3009", &ctor_tok, "文稿 6.1", "constructor `{0}` 没有给字段 `{1}` 赋值", &[&ctor_name, &fn_]);
                 }
             }
             // override 检查（父类方法优先，其次 interface 声明）
@@ -2626,8 +2627,8 @@ impl<'a> Sema<'a> {
                 .values()
                 .copied()
                 .collect();
-            if let Some(c) = self.typedefs[d as usize].ctor {
-                holders.push(c);
+            for &cf in self.typedefs[d as usize].ctors.values() {
+                holders.push(cf);
             }
             if kind == "interface" {
                 for (_, sig) in self.all_iface_methods(d) {

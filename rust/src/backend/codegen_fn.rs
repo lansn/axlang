@@ -221,12 +221,12 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
         self.lines.join("\n")
     }
 
-    pub fn ctor_body(&mut self, d: &crate::sema::TypeDef, _nm: &str) -> String {
+    pub fn ctor_body(&mut self, d: &crate::sema::TypeDef, _nm: &str, body: Option<&'a ast::Block>) -> String {
         self.lines = vec![self.signature()];
         self.ind = 1;
         let cn = san(&d.name);
         self.emit(format!("{0}* self = ({0}*)self_; (void)self;", cn));
-        if let Some(b) = d.ctor.and_then(|c| self.cg.s.funcs[c].body) {
+        if let Some(b) = body {
             self.block(Some(b), None, None);
         } else {
             self.block(None, None, None);

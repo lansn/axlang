@@ -785,11 +785,19 @@ class User {
     protected int level         // protected：本类与子类可见
     string email                // 不写即本类私有（默认最窄）
 
-    // 构造函数：关键词 constructor，一个类只允许一个（无重载原则）
+    // 构造函数：关键词 constructor，支持多个命名构造入口（constructor.Name）
     constructor(int id, string name) {
         this.id = id
         this.name = name
         this.email = ""
+        this.level = 0
+    }
+
+    // 命名构造：new User.from_email("a@b.com")
+    constructor.from_email(string email) {
+        this.id = gen_id()
+        this.name = email.Split("@")[0]
+        this.email = email
         this.level = 0
     }
 
@@ -810,21 +818,11 @@ u.rename("anna")
 
 规则：
 
-- **一个类只有一个构造函数**（无重载）。需要多种构造途径时，提供静态工厂函数：
-
-```ax
-class User {
-    public static User from_email(string email) {
-        return new User(gen_id(), email.Split("@")[0])   // 取首个元素：split 至少给一个元素
-    }
-}
-var u = User.from_email("a@b.com")
-```
+- **构造函数：可多个命名入口**。`constructor(params)` 是默认构造，调用 `new ClassName(args)`；`constructor.Name(params)` 是命名构造，调用 `new ClassName.Name(args)`。这弥补了无函数重载的不足，提供语义自明的多构造入口。同一个类内 constructor 名不能重复（`E3010`）。静态工厂函数仍可作为替代，但命名构造让构造途径在类型系统中直接体现。
 
 - **修饰符顺序固定**：可见性（`public` / `private` / `protected`）→ `static` / `override` → 返回类型 → 名字。例：`public static User from_email(...)`、`public override string describe()`、`protected void audit()`。顺序写错即编译错误——不给你两种排列的自由。
 - **`protected` 的边界**：只可修饰类成员（字段、方法、嵌套类型），语义是"本类 + 所有子类可见，其他代码不可见"。子类通过 `this.x` 直接读写父类的 protected 成员，不需要 `parent.` 前缀。模块级声明、`struct` 成员写 `protected` 都是编译错误（前者无子类概念，后者不能继承）。
-- **构造函数默认 public**：它是 `new` 的唯一入口，写 `constructor(...)` 即对外可构造。这是全语言唯一"不写 `public` 也可见"的成员——否则每个类都无法被实例化。**不要再给它写 `public`**（写了是编译错误，不是冗余）：既然默认就是 public，多写一遍就是同一个东西的两种写法。想让类不可从外部直接构造，只能不导出这个类、由同模块的 `static` 工厂创建（6.1 static）。
-- **constructor 是实例化的唯一通行证**：没有声明 `constructor` 的类不能 `new`（诊断码 `E4042`，报错两行指路：改用类名调静态方法，或补 constructor）。纯行为类（只有方法、零字段）不需要实例，也就不需要写空构造；**只要有字段，就必须写一个 constructor 并全量赋值**（`E3008`：有字段没构造在声明处拦）——两条合起来，"半初始化对象"和"无意义实例"都彻底堵死。静态工厂模式不受影响（工厂在类内调用本类 constructor）。
+- **constructor 是实例化的通行证**：没有声明 `constructor` 的类不能 `new`（诊断码 `E4042`，零字段类在 new 处报错；有字段类在声明处报 `E3008`）。**命名 constructor** 扩展了入口：`new User()` 用默认构造，`new User.from_email(...)` 用命名构造。**只要有字段，就必须写一个 constructor 并全量赋值**（`E3009`：写了 constructor 却漏了某字段，每个漏掉的字段报一条）。"有 constructor"不等于"交代完"——`constructor() { }` 空体同样过不了关。字段的值还不打算在构造时给？把字段类型写成 `T?`，constructor 里交代 `this.f = null`——"现在还没有"本身也是一种明确交代，而且读它的人会被编译器逼着处理 `??` / `match`（3.4）。
 - **字段不能在声明处写初值**（`E3007`：`public int id = 0` 是编译错误）。axlang 的立场不是"声明处初始化好不好"，而是"**出生在哪，交代就在哪**"，学习者可以记成一句话：
     - **局部变量出生在声明那一行**——它的生命周期就是当前作用域，声明与初始化是同一件事，所以规则是**必须当场初始化**（`int a = 10`、`var b = 20`，不初始化编译不过）。
     - **对象出生在 `new ...` 那一刻**——字段声明只是描述"每个对象都有这个格子"，表格还没印出来，谈不上填值；所以出生值的交代集中在 constructor 一处：**书写顺序即执行顺序**，看一个函数就知道对象的全部初始状态。

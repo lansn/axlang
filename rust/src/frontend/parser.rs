@@ -697,10 +697,17 @@ impl<'a> Parser<'a> {
             if stat || is_override {
                 self.err("E3011", Some(&t), "N-11", "`constructor` 不能是 `static` 或 `override`", &[]);
             }
+            // 可选的命名构造：constructor Name(params)。无名时 name = "constructor"。
+            let name = if self.at(".") && self.tok(1).is("IDENT") {
+                self.advance(); // 吃掉 "."
+                self.advance().text().to_string() // 吃掉构造函数名
+            } else {
+                "constructor".to_string()
+            };
             let params = self.parse_params()?;
             self.nl();
             let body = self.parse_block()?;
-            return Ok(Some(self.nn(t, Member::Ctor { params, body })));
+            return Ok(Some(self.nn(t, Member::Ctor { name, params, body })));
         }
         if self.at("class")
             || self.at("struct")
@@ -812,10 +819,17 @@ impl<'a> Parser<'a> {
         }
         if self.at("constructor") {
             let ct = self.advance();
+            // 可选的命名构造：constructor Name(params)。无名时 name = "constructor"。
+            let name = if self.at(".") && self.tok(1).is("IDENT") {
+                self.advance(); // 吃掉 "."
+                self.advance().text().to_string() // 吃掉构造函数名
+            } else {
+                "constructor".to_string()
+            };
             let params = self.parse_params()?;
             self.nl();
             let body = self.parse_block()?;
-            return Ok(Some(self.nn(ct, Member::Ctor { params, body })));
+            return Ok(Some(self.nn(ct, Member::Ctor { name, params, body })));
         }
         if self.at("class")
             || self.at("struct")

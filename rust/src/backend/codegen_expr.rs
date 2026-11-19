@@ -1030,8 +1030,18 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             if td.kind == "struct" {
                 return self.struct_literal(&ty, &td, args);
             }
-            let nm = format!("{}__{}__new", self.cg.mod_name, self.cg.class_name(&td));
-            let params: Vec<(String, Ty, Option<String>)> = match td.ctor {
+            // 优先使用名为 "constructor" 的构造函数；否则取第一个
+            let ctor_fid = td.ctors.get("constructor")
+                .copied()
+                .or_else(|| td.ctors.values().next().copied());
+            let nm = match ctor_fid {
+                Some(fid) => {
+                    let fname = &self.cg.s.funcs[fid].name;
+                    format!("{}__{}__new_{}", self.cg.mod_name, self.cg.class_name(&td), fname)
+                }
+                None => format!("{}__{}__new", self.cg.mod_name, self.cg.class_name(&td)),
+            };
+            let params: Vec<(String, Ty, Option<String>)> = match ctor_fid {
                 Some(c) => self.cg.s.funcs[c].params.clone(),
                 None => Vec::new(),
             };
@@ -1084,10 +1094,18 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 .and_then(|s| s.parent_def)
                 .unwrap_or(0);
             let ptd = self.cg.s.typedefs[pd as usize].clone();
+            // 父类的 init 函数名带 constructor 名后缀（如 Animal__init_constructor）
+            let ctor_name = ptd
+                .ctors
+                .get("constructor")
+                .map(|_| "constructor".to_string())
+                .or_else(|| ptd.ctors.keys().next().cloned())
+                .unwrap_or_else(|| "constructor".to_string());
             return format!(
-                "{}__{}__init({})",
+                "{}__{}__init_{}({})",
                 self.cg.mod_name,
                 self.cg.class_name(&ptd),
+                ctor_name,
                 parts.join(", ")
             );
         }
@@ -1608,15 +1626,17 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 if td.kind == "struct" {
                     return self.struct_literal(&ty, &td, args);
                 }
-                let params: Vec<(String, Ty, Option<String>)> = match td.ctor {
+                let params: Vec<(String, Ty, Option<String>)> = match td.ctors.get("constructor").copied().or_else(|| td.ctors.values().next().copied()) {
                     Some(c) => self.cg.s.funcs[c].params.clone(),
                     None => Vec::new(),
                 };
-                let nm = format!(
-                    "{}__{}__new",
-                    self.cg.mod_name,
-                    self.cg.class_name(&td)
-                );
+                let nm = match td.ctors.get("constructor").copied().or_else(|| td.ctors.values().next().copied()) {
+                    Some(fid) => {
+                        let fname = &self.cg.s.funcs[fid].name;
+                        format!("{}__{}__new_{}", self.cg.mod_name, self.cg.class_name(&td), fname)
+                    }
+                    None => format!("{}__{}__new", self.cg.mod_name, self.cg.class_name(&td)),
+                };
                 let mut a: Vec<String> = Vec::new();
                 for (i, x) in args.iter().enumerate() {
                     let v = match params.get(i) {
@@ -2420,9 +2440,10 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
         format!("(({}){{ {} }})", cty, parts.join(", "))
     }
 
-    fn new_expr(&mut self, e: &'a ast::EPtr) -> String {        let args: &'a [ast::N<ast::Arg>] = match &e.k {
-            Expr::New { args, .. } => args,
-            _ => &[],
+    fn new_expr(&mut self, e: &'a ast::EPtr) -> String {
+        let (args, path): (&'a [ast::N<ast::Arg>], &[String]) = match &e.k {
+            Expr::New { path, args, .. } => (args, path.as_slice()),
+            _ => (&[], &[]),
         };
         let ck = self
             .cg
@@ -2441,7 +2462,21 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             _ => 0,
         };
         let td = self.cg.s.typedefs[d as usize].clone();
-        let nm = format!("{}__{}__new", self.cg.mod_name, self.cg.class_name(&td));
+        // 确定 constructor 名：path 最后一段若在 td.ctors 中，则为命名 constructor；
+        // 否则默认 "constructor"（兼容 new ClassName() 与 new mod.Type()）。
+        let ctor_name = if path.len() >= 2 && td.ctors.contains_key(&path[path.len() - 1]) {
+            path[path.len() - 1].clone()
+        } else {
+            "constructor".to_string()
+        };
+        let ctor_fid = td.ctors.get(&ctor_name).copied();
+        let nm = match ctor_fid {
+            Some(fid) => {
+                let fname = &self.cg.s.funcs[fid].name;
+                format!("{}__{}__new_{}", self.cg.mod_name, self.cg.class_name(&td), fname)
+            }
+            None => format!("{}__{}__new", self.cg.mod_name, self.cg.class_name(&td)),
+        };
         let mut out = Vec::new();
         for a in args {
             let v = self.gen(&a.k.expr, None, false, false);

@@ -96,6 +96,7 @@ pub enum Member {
         name: String,
     },
     Ctor {
+        name: String,
         params: Vec<N<Param>>,
         body: Block,
     },
@@ -495,8 +496,8 @@ fn dump_member(m: &Member, ind: usize, out: &mut Vec<String>) {
             ind,
             format!("FIELD {} vis={} ty={}", name, vis_s(vis), ex_ty(ty)),
         ),
-        Member::Ctor { params, body } => {
-            w(out, ind, format!("CTOR params={}", dump_params(params)));
+        Member::Ctor { name, params, body } => {
+            w(out, ind, format!("CTOR {} params={}", name, dump_params(params)));
             dump_block(body, ind + 1, out);
         }
         Member::Method {

@@ -583,7 +583,7 @@ impl<'s, 'a> CodeGen<'s, 'a> {
                 for (_, ft, _, _) in &d.fields {
                     self.need(ft);
                 }
-                if let Some(c) = d.ctor {
+                if let Some(c) = d.ctors.values().next().copied() {
                     for (_, pt, _b) in self.s.funcs[c].params.clone() {
                         self.need(&pt);
                     }
@@ -799,8 +799,9 @@ impl<'s, 'a> CodeGen<'s, 'a> {
 
     pub fn gen_type_methods(&mut self, d: &TypeDef) -> Vec<String> {
         let mut out = Vec::new();
-        if d.ctor.is_some() {
-            out.push(self.gen_ctor(d));
+        // 为每个命名 constructor 生成 init + new 函数
+        for (ctor_name, &ctor_fid) in &d.ctors {
+            out.push(self.gen_ctor(d, ctor_name, ctor_fid));
         }
         let method_ids: Vec<usize> = d.methods.values().copied().collect();
         for fid in method_ids {
@@ -815,31 +816,24 @@ impl<'s, 'a> CodeGen<'s, 'a> {
         out
     }
 
-    pub fn gen_ctor(&mut self, d: &TypeDef) -> String {
+    pub fn gen_ctor(&mut self, d: &TypeDef, ctor_name: &str, ctor_fid: usize) -> String {
         let mut out = Vec::new();
-        let nm = format!("{}__{}__init", self.mod_name, self.class_name(d));
-        let ctor_fid = d.ctor;
+        let nm = format!("{}__{}__init_{}", self.mod_name, self.class_name(d), ctor_name);
         // 槽键：实例类的 ctor 是实例函数，用它的实例号；普通类回 0
-        self.cur_inst = ctor_fid
-            .and_then(|c| self.s.inst_slot_of.get(&c).copied())
-            .unwrap_or(0);
-        let ctor_params: Vec<(String, Ty, Option<String>)> = match ctor_fid {
-            Some(c) => self.s.funcs[c].params.clone(),
-            None => Vec::new(),
-        };
+        self.cur_inst = self.s.inst_slot_of.get(&ctor_fid).copied().unwrap_or(0);
+        let ctor_params: Vec<(String, Ty, Option<String>)> = self.s.funcs[ctor_fid].params.clone();
         let mut ps = vec!["void* self_".to_string()];
         for (n, t, _b) in &ctor_params {
             ps.push(format!("{} {}", self.ct(t), self.pv(n)));
         }
         self.fn_decls
             .push(format!("static void {}({});", nm, ps.join(", ")));
-        if let Some(c) = ctor_fid {
-            let f: &'s crate::sema::FuncInfo<'a> = &self.s.funcs[c];
-            let mut fg = crate::backend::codegen_fn::FnGen::new(self, f, nm.clone(), Some(d.id), true);
-            out.push(fg.ctor_body(d, &nm));
-        }
+        let f: &'s crate::sema::FuncInfo<'a> = &self.s.funcs[ctor_fid];
+        let ctor_body_opt = f.body;
+        let mut fg = crate::backend::codegen_fn::FnGen::new(self, f, nm.clone(), Some(d.id), true);
+        out.push(fg.ctor_body(d, &nm, ctor_body_opt));
         // new
-        let nm2 = format!("{}__{}__new", self.mod_name, self.class_name(d));
+        let nm2 = format!("{}__{}__new_{}", self.mod_name, self.class_name(d), ctor_name);
         let mut ps2 = Vec::new();
         for (n, t, _b) in &ctor_params {
             ps2.push(format!("{} {}", self.ct(t), self.pv(n)));

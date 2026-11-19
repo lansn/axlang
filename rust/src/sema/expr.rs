@@ -1890,8 +1890,7 @@ impl<'a> Sema<'a> {
             generics: Vec::new(),
             fields: Vec::new(),
             methods: std::collections::BTreeMap::new(),
-            ctor: None,
-            ctor_count: tmpl.ctor_count,
+            ctors: HashMap::new(),
             parent: None,
             impls: Vec::new(),
             extends: Vec::new(),
@@ -1959,8 +1958,8 @@ impl<'a> Sema<'a> {
             }
             methods.insert(mn.clone(), nfid);
         }
-        let mut ctor = None;
-        if let Some(cf) = tmpl.ctor {
+        let mut ctors = HashMap::new();
+        for (cname, &cf) in &tmpl.ctors {
             let (fname, ftok, fmod, fparams, fret, fvis, fstatic, foverride, fbody) = {
                 let fi = &self.funcs[cf];
                 (fi.name.clone(), fi.tok.clone(), fi.module.clone(), fi.params.clone(), fi.ret.clone(), fi.vis.clone(), fi.is_static, fi.is_override, fi.body)
@@ -1994,7 +1993,7 @@ impl<'a> Sema<'a> {
             if check_body {
                 self.pending_insts.push(nfid);
             }
-            ctor = Some(nfid);
+            ctors.insert(cname.clone(), nfid);
         }
         // 父类：泛型父类按同一组实参实例化（`Box<T> extend Container<T>`）
         let parent = match tmpl.parent {
@@ -2015,19 +2014,20 @@ impl<'a> Sema<'a> {
         for nfid in &method_fids {
             self.funcs[*nfid].owner = Some(inst);
         }
+        // 为所有单态化后的 constructor 设置 owner
+        for (_cname, &nfid) in &ctors {
+            self.funcs[nfid].owner = Some(inst);
+        }
         {
             let d = &mut self.typedefs[inst as usize];
             d.fields = fields;
             d.methods = methods;
-            d.ctor = ctor;
+            d.ctors = ctors;
             d.parent = parent;
             d.impls = tmpl.impls.clone();
             d.extends = tmpl.extends.clone();
         }
         self.mat_of.insert(inst, (tmpl_id, targs.to_vec()));
-        if let Some(cf) = ctor {
-            self.funcs[cf].owner = Some(inst);
-        }
         self.cur_mat_depth = saved_depth;
         inst
     }
@@ -2069,7 +2069,7 @@ impl<'a> Sema<'a> {
             }
             Some(p) => p,
         };
-        let params: Vec<(String, Ty, Option<String>)> = match self.typedefs[pd as usize].ctor {
+        let params: Vec<(String, Ty, Option<String>)> = match self.typedefs[pd as usize].ctors.get("constructor").copied() {
             Some(c) => self.funcs[c].params.clone(),
             None => Vec::new(),
         };
@@ -2234,7 +2234,7 @@ impl<'a> Sema<'a> {
                 }
                 }
             }
-            return self.construct(e, args, d);
+            return self.construct(e, args, d, "constructor");
         }
         if kind == "struct" {
             if args.len() == 1 {
@@ -2281,7 +2281,7 @@ impl<'a> Sema<'a> {
             }
             // 泛型 struct：从实参按位对应字段推断类型实参（GX-04）
             let d = self.infer_struct_targs(e, d, args);
-            return self.construct(e, args, d);
+            return self.construct(e, args, d, "constructor");
         }
         if kind == "enum" {
             self.err("E4019", &e.tok, "C-17", "enum 不能从整数/其他类型转换", &[]);
@@ -2304,7 +2304,7 @@ impl<'a> Sema<'a> {
         t_object()
     }
 
-    fn construct(&mut self, e: &ast::EPtr, args: &[ast::N<ast::Arg>], d: u32) -> Ty {
+    fn construct(&mut self, e: &ast::EPtr, args: &[ast::N<ast::Arg>], d: u32, ctor_name: &str) -> Ty {
         let (dname, dkind, dgenerics) = {
             let td = &self.typedefs[d as usize];
             (td.name.clone(), td.kind, td.generics.clone())
@@ -2316,23 +2316,43 @@ impl<'a> Sema<'a> {
         // 只对 class 生效——struct/enum 没有 constructor 概念，维持原判定。
         let td = &self.typedefs[d as usize];
         let is_class = td.kind == "class";
-        let has_ctor = td.ctor.is_some();
+        let has_ctor = !td.ctors.is_empty();
         let has_fields = !td.fields.is_empty();
         if is_class && !has_ctor && !has_fields {
             self.err("E4042", &e.tok, "N-20", "`{0}` 没有 constructor，不能 new\n  = 它的静态方法请直接用类名调用：`{1}.xxx(...)`\n  = 如果确实需要实例，请先为 `{2}` 添加 constructor", &[&dname, &dname, &dname]);
+            return t_object();
         }
-        let params: Vec<(String, Ty, Option<String>)> = match self.typedefs[d as usize].ctor {
-            Some(c) => self.funcs[c].params.clone(),
-            None => Vec::new(),
-        };
-        if has_ctor && args.len() != params.len() {
-            self.err("E4031", &e.tok, "N-20", "`{0}` 的 constructor 需要 {1} 个实参，得到 {2}", &[&dname, &params.len(), &args.len()]);
-        }
-        for (i, a) in args.iter().enumerate() {
-            let exp = params.get(i).map(|p| p.1.clone());
-            self.check_expr(&a.k.expr, exp.as_ref());
-            if let Some(ex) = &exp {
-                self.coerce(&a.k.expr, ex, "构造实参");
+        if is_class {
+            // 只有 class 才需要查找/检查 constructor
+            // self.err 会产生可变借用，td 的不可变借用在此点结束；下面重新获取
+            let td = &self.typedefs[d as usize];
+            let ctor_fid = match td.ctors.get(ctor_name) {
+                Some(&fid) => fid,
+                None => {
+                    // 没有任何 constructor：E3008（有字段）或 E4042（零字段）已在别处报告
+                    if !has_ctor {
+                        return t_object();
+                    }
+                    // 有 constructor 但名字不匹配：报 E4043
+                    self.err("E4043", &e.tok, "N-20", "类 `{0}` 没有名为 `{1}` 的 constructor", &[&dname, &ctor_name]);
+                    return t_object();
+                }
+            };
+            let params: Vec<(String, Ty, Option<String>)> = self.funcs[ctor_fid].params.clone();
+            if args.len() != params.len() {
+                self.err("E4031", &e.tok, "N-20", "`{0}` 的 constructor `{1}` 需要 {2} 个实参，得到 {3}", &[&dname, &ctor_name, &params.len(), &args.len()]);
+            }
+            for (i, a) in args.iter().enumerate() {
+                let exp = params.get(i).map(|p| p.1.clone());
+                self.check_expr(&a.k.expr, exp.as_ref());
+                if let Some(ex) = &exp {
+                    self.coerce(&a.k.expr, ex, "构造实参");
+                }
+            }
+        } else {
+            // struct/enum：只需给每个实参做类型检查，以便后续 struct_literal 能正确生成嵌套初始化
+            for a in args {
+                self.check_expr(&a.k.expr, None);
             }
         }
         let s = self.sl(e.id);
@@ -2354,19 +2374,34 @@ impl<'a> Sema<'a> {
             Expr::New { path, args } => (path, args),
             _ => unreachable!(),
         };
-        let name = path.last().unwrap();
+        // 从 path 中提取类型名和 constructor 名：
+        //   new ClassName()          → type="ClassName", ctor="constructor"
+        //   new ClassName.from_json() → type="ClassName", ctor="from_json"
+        //   new mod.Type()           → type="Type" (module qualified), ctor="constructor"
+        //   new mod.Type.from_json()  → type="Type", ctor="from_json"
+        let mut ctor_name = "constructor".to_string();
+        let type_name = if path.len() == 1 {
+            path[0].clone()
+        } else {
+            // 多段路径：默认最后一段为类型名（兼容 mod.Type / Outer.Inner）。
+            // 若后续类型查找失败，再回退：把最后一段当 constructor 名，
+            // path[..len-1] 当类型路径。
+            path.last().unwrap().clone()
+        };
+        let mut type_path = path.clone();
+
         // 1) 模块限定：`new mod.Type(...)`（文稿 9.2）
         // 模块路径可多段（`new shop.model.Product(...)`），末段才是类型名
         let mut d: Option<u32> = None;
         let mut module_qualified = false;
-        if path.len() >= 2 {
-            if let Some((k, canon)) = self.view_of(path) {
+        if type_path.len() >= 2 {
+            if let Some((k, canon)) = self.view_of(&type_path) {
                 if canon != "*builtin*" {
-                    if k + 1 == path.len() {
+                    if k + 1 == type_path.len() {
                         // `new mod.Type(...)`：最后一段是类型名
                         module_qualified = true;
-                        let view = path[..k].join(".");
-                        let export = &path[k];
+                        let view = type_path[..k].join(".");
+                        let export = &type_path[k];
                         if !self.export_allowed(&view, export) {
                             let src = self.view_display(&view);
                             self.err("E3030", &e.tok, "文稿 9.2", "`{0}` 不在 `import {1}.{{...}}` 的具名导入清单里", &[&export, &src]);
@@ -2384,10 +2419,12 @@ impl<'a> Sema<'a> {
                             self.err("E3030", &e.tok, "文稿 9.1", "模块 `{0}` 没有公开类型 `{1}`", &[&view, &export]);
                             return t_object();
                         }
-                    } else if k + 1 < path.len() {
+                    } else if k + 1 < type_path.len() {
                         // `new mod.Outer.Inner(...)`：模块类型 + 嵌套类型
-                        let view = path[..k].join(".");
-                        let export = &path[k];
+                        // 或者 `new mod.ClassName.ctorName(...)`：模块类型 + 命名 constructor
+                        // 先按嵌套类型处理；若失败，再按命名 constructor 处理
+                        let view = type_path[..k].join(".");
+                        let export = &type_path[k];
                         if !self.export_allowed(&view, export) {
                             let src = self.view_display(&view);
                             self.err("E3030", &e.tok, "文稿 9.2", "`{0}` 不在 `import {1}.{{...}}` 的具名导入清单里", &[&export, &src]);
@@ -2402,17 +2439,54 @@ impl<'a> Sema<'a> {
                                 module_qualified = true;
                                 // 沿 nested 表逐段查找嵌套类型
                                 let mut cur = *d0;
-                                for i in (k + 1)..path.len() {
-                                    let inner = self.typedefs[cur as usize].nested.get(&path[i]).copied();
+                                let mut found = true;
+                                for i in (k + 1)..type_path.len() {
+                                    let inner = self.typedefs[cur as usize].nested.get(&type_path[i]).copied();
                                     match inner {
                                         Some(iid) => cur = iid,
                                         None => {
-                                            self.err("E3003", &e.tok, "N-7", "`{0}` 里没有类型 `{1}`", &[&path.join("."), &path[i]]);
-                                            return t_object();
+                                            found = false;
+                                            break;
                                         }
                                     }
                                 }
-                                d = Some(cur);
+                                if found {
+                                    d = Some(cur);
+                                } else {
+                                    // 回退：把最后一段当 constructor 名
+                                    if type_path.len() >= 3 {
+                                        ctor_name = type_path[type_path.len() - 1].clone();
+                                        type_path = type_path[..type_path.len() - 1].to_vec();
+                                        // 重新用 type_path 做模块限定查找
+                                        if let Some((k2, canon2)) = self.view_of(&type_path) {
+                                            if canon2 != "*builtin*" {
+                                                let view2 = type_path[..k2].join(".");
+                                                let export2 = &type_path[k2];
+                                                if self.export_allowed(&view2, export2) {
+                                                    if let Some(sym2) = self.module_exports.get(&canon2).and_then(|m| m.get(export2)) {
+                                                        match sym2 {
+                                                            ExportSym::Type(d0) => {
+                                                                let mut cur = *d0;
+                                                                let mut found2 = true;
+                                                                for i in (k2 + 1)..type_path.len() {
+                                                                    let inner = self.typedefs[cur as usize].nested.get(&type_path[i]).copied();
+                                                                    match inner {
+                                                                        Some(iid) => cur = iid,
+                                                                        None => { found2 = false; break; }
+                                                                    }
+                                                                }
+                                                                if found2 {
+                                                                    d = Some(cur);
+                                                                }
+                                                            }
+                                                            _ => {}
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                             }
                             _ => {
                                 self.err("E3030", &e.tok, "文稿 9.1", "模块 `{0}` 没有公开类型 `{1}`", &[&view, &export]);
@@ -2425,15 +2499,29 @@ impl<'a> Sema<'a> {
         }
         // 2) 裸名 / 本模块限定名
         if d.is_none() {
-            d = self.lookup_type_name(&path[0], &e.tok);
+            d = self.lookup_type_name(&type_name, &e.tok);
         }
-        if path.len() > 1 && !module_qualified {
+        if type_path.len() > 1 && !module_qualified && d.is_none() {
+            // 尝试嵌套类型：Outer.Inner
             d = self
                 .types
-                .get(&path[0])
-                .and_then(|o| self.typedefs[*o as usize].nested.get(&path[1]).copied());
+                .get(&type_path[0])
+                .and_then(|o| self.typedefs[*o as usize].nested.get(&type_path[1]).copied());
         }
-        if name == "Arena" {
+        // 3) 若仍未找到类型，且 path 有 2+ 段，回退：最后一段为 constructor 名
+        if d.is_none() && path.len() >= 2 {
+            ctor_name = path[path.len() - 1].clone();
+            let type_path_trimmed = &path[..path.len() - 1];
+            if type_path_trimmed.len() == 1 {
+                d = self.lookup_type_name(&type_path_trimmed[0], &e.tok);
+            } else {
+                d = self
+                    .types
+                    .get(&type_path_trimmed[0])
+                    .and_then(|o| self.typedefs[*o as usize].nested.get(&type_path_trimmed[1]).copied());
+            }
+        }
+        if type_name == "Arena" {
             for a in args {
                 self.check_expr(&a.k.expr, None);
             }
@@ -2450,10 +2538,10 @@ impl<'a> Sema<'a> {
         }
         let d = match d {
             None => {
-                if is_reserved(name) {
-                    self.err("E2012", &e.tok, "G-9", "`new` 不能用于内建类型 `{0}`", &[&name]);
+                if is_reserved(&type_name) {
+                    self.err("E2012", &e.tok, "G-9", "`new` 不能用于内建类型 `{0}`", &[&type_name]);
                 } else {
-                    self.err("E3003", &e.tok, "N-7", "未定义的类型 `{0}`", &[&name]);
+                    self.err("E3003", &e.tok, "N-7", "未定义的类型 `{0}`", &[&type_name]);
                 }
                 return t_object();
             }
@@ -2465,7 +2553,7 @@ impl<'a> Sema<'a> {
         }
         // 泛型类：`new` 语法带不了类型实参，从期望类型或 ctor 实参推断（GX-04）
         let d = self.infer_new_targs(e, d, args, expected);
-        self.construct(e, args, d)
+        self.construct(e, args, d, &ctor_name)
     }
 
     /// 泛型 struct 的构造推断：实参按位对应模板字段，统一出 `T` → 实例。
@@ -2538,7 +2626,7 @@ impl<'a> Sema<'a> {
         //    实参推断优先于期望类型：`Box<int> b = new Box(new Box(1))` 这类
         //    写错实参的代码要报"实参与 T 不符"，而不是被期望类型悄悄带过。
         // 2) 推不出再看期望类型是否已是本模板的实例（零参构造等场景）。
-        let ctor_params: Vec<(String, Ty, Option<String>)> = match self.typedefs[d as usize].ctor {
+        let ctor_params: Vec<(String, Ty, Option<String>)> = match self.typedefs[d as usize].ctors.get("constructor").copied() {
             Some(c) => self.funcs[c].params.clone(),
             None => Vec::new(),
         };
