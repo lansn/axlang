@@ -1,0 +1,15 @@
+int outer(int x) {
+    int add(int a, int b) {
+        return a + b;
+    }
+    int mul(int a, int b) {
+        return a * b;
+    }
+    return add(x, mul(2, 3));
+}
+
+int main() {
+    int r = outer(5);
+    println(r);
+    return 0;
+}

@@ -20,6 +20,14 @@
 - 新增测试 `tests/run/StrSlice-1`
 - 验收：**177/177** 通过、Rust 零警告；`tools/gen_errdoc.py` 重新生成 `docs/ERRORS.md`
 
+### 新增：§15 FFI / unsafe 特性（extern 块 + unsafe 块）
+
+- **`extern "C" { ... }`**：声明外部 C 函数，仅签名、无函数体；`ret` 与 `params` 按 axlang 类型系统解析（`parser.rs` `parse_extern_block`、`sema/mod.rs` `register_extern_func` + `resolve_func_sig`）。
+- **`unsafe { ... }`**：在 C 后端直接展开块内容，无额外运行时开销（`codegen_fn.rs` `unsafe_stmt`）。
+- 词法器新增关键字 `extern`、`unsafe`（`lexer.rs` `KEYWORDS`，36→39 个）。
+- 新增测试 `tests/run/FFI-1.ax` + `FFI-1.out`（`extern "C" { int puts(string s); }` + `unsafe` 块调用）。
+- 验收：**192/192** 通过（含 FFI-1）。
+
 ## [0.0.26] — 2026-11
 
 ### 修复：`print(a++)` 刷屏 20+ 条同位置错误；诊断去重；print 多实参冗余强转

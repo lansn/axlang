@@ -21,7 +21,7 @@ mod stmt;
 pub use expr::module_sig;
 
 use crate::frontend::ast;
-use crate::frontend::ast::{Expr, Item, Stmt};
+use crate::frontend::ast::{Expr, Item, N, Stmt};
 use crate::diag::Diags;
 use crate::frontend::lexer::Tok;
 use crate::frontend::lexer::TokVal;
@@ -1250,6 +1250,15 @@ impl<'a> Sema<'a> {
                         self.decl_order.push(item);
                         self.decl_mod.push(prefix.clone());
                     }
+                    Item::ExternBlock { funcs } => {
+                        self.decl_order.push(item);
+                        self.decl_mod.push(prefix.clone());
+                        for f in funcs {
+                            if let Item::FuncDecl { name, ret, params, .. } = &f.k {
+                                self.register_extern_func(item, name, ret, params);
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -1382,6 +1391,44 @@ impl<'a> Sema<'a> {
                     .or_default()
                     .insert(name.clone(), ExportSym::Func(self.funcs.len() - 1));
             }
+        }
+    }
+
+    /// 注册 `extern "C"` 外部函数：无函数体，body=None，不检查 main 限制。
+    fn register_extern_func(&mut self, item: &'a ast::N<Item>, name: &str, _ret: &ast::TPtr, _params: &Vec<N<ast::Param>>) {
+        let reg = name.to_string();
+        if !self.declare_name(&reg, &item.tok, false) {
+            return;
+        }
+        let f = FuncInfo {
+            name: reg.clone(),
+            tok: item.tok.clone(),
+            module: self.cur_mod_path.clone(),
+            owner: None,
+            params: Vec::new(),
+            ret: t_void(),
+            generics: Vec::new(),
+            vis: "private".to_string(),
+            is_static: false,
+            is_override: false,
+            body: None,
+            implicit: false,
+            gdepth: 0,
+            mangle: None,
+            parent: None,
+            nested: BTreeMap::new(),
+        };
+        self.funcs.push(f);
+        self.func_by_name.insert(reg.clone(), self.funcs.len() - 1);
+        if let Some(canon) = self.cur_mod_prefix.clone() {
+            self.mod_syms
+                .entry(canon.clone())
+                .or_default()
+                .push((name.to_string(), ExportSym::Func(self.funcs.len() - 1)));
+            self.module_exports
+                .entry(canon)
+                .or_default()
+                .insert(name.to_string(), ExportSym::Func(self.funcs.len() - 1));
         }
     }
 
@@ -1721,6 +1768,16 @@ impl<'a> Sema<'a> {
                 }
                 Item::ConstDecl { .. } => self.resolve_const_decl(item),
                 Item::Import { .. } => {}
+                    Item::ExternBlock { funcs } => {
+                        for fn_item in funcs {
+                            if let Item::FuncDecl { name, .. } = &fn_item.k {
+                                let reg = self.reg_name(name);
+                                if let Some(&fid) = self.func_by_name.get(&reg) {
+                                    self.resolve_func_sig(Some(fid), fn_item);
+                                }
+                            }
+                        }
+                    }
             }
         }
         self.set_active_module(&None);
@@ -2771,6 +2828,128 @@ impl<'a> Sema<'a> {
             }
         }
         false
+    }
+
+    // ---------------------------------------------------------------- HIR dump（§1.2 --dump=hir）
+
+    /// 输出语义检查后的高级中间表示（HIR）：模块、导入、类型定义、
+    /// 函数签名、常量表。供 `--dump=hir` 打印用。
+    pub fn dump_hir(&self) -> String {
+        let mut out: Vec<String> = Vec::new();
+        out.push(format!("// HIR dump — module: {}", self.path));
+        out.push(String::new());
+
+        // 导入
+        out.push("// ===== imports =====".to_string());
+        let mut imports: Vec<&String> = self.imports.iter().collect();
+        imports.sort();
+        for imp in &imports {
+            out.push(format!("import {imp};"));
+        }
+        out.push(String::new());
+
+        // 类型定义
+        out.push("// ===== type definitions =====".to_string());
+        for td in &self.typedefs {
+            out.push(format!(
+                "type {} {} {}",
+                td.vis, td.kind, td.name
+            ));
+            if !td.generics.is_empty() {
+                let gs: Vec<String> = td
+                    .generics
+                    .iter()
+                    .map(|(n, cons)| format!("{n}({})", cons.join(" + ")))
+                    .collect();
+                out.push(format!("  generics: {}", gs.join(", ")));
+            }
+            if let Some(p) = td.parent {
+                if let Some(pd) = self.typedefs.get(p as usize) {
+                    out.push(format!("  extends: {}", pd.name));
+                }
+            }
+            if !td.impls.is_empty() {
+                let ifs: Vec<String> = td
+                    .impls
+                    .iter()
+                    .filter_map(|&i| self.typedefs.get(i as usize).map(|d| d.name.clone()))
+                    .collect();
+                out.push(format!("  implements: {}", ifs.join(", ")));
+            }
+            for (fname, fty, _, _) in &td.fields {
+                out.push(format!("  field {}: {}", fname, self.ts(fty)));
+            }
+            out.push(String::new());
+        }
+
+        // 函数
+        out.push("// ===== functions =====".to_string());
+        let mut func_ids: Vec<usize> = (0..self.funcs.len()).collect();
+        func_ids.sort_by_key(|&f| self.funcs[f].name.clone());
+        for f in &func_ids {
+            let fi = &self.funcs[*f];
+            out.push(format!(
+                "func {}{}({}) -> {}",
+                fi.vis,
+                fi.name,
+                fi.params
+                    .iter()
+                    .map(|(n, t, _)| format!("{n}: {}", self.ts(t)))
+                    .collect::<Vec<_>>()
+                    .join(", "),
+                self.ts(&fi.ret)
+            ));
+            if !fi.generics.is_empty() {
+                let gs: Vec<String> = fi
+                    .generics
+                    .iter()
+                    .map(|(n, cons)| format!("{n}({})", cons.join(" + ")))
+                    .collect();
+                out.push(format!("  generics: {}", gs.join(", ")));
+            }
+            if fi.is_static {
+                out.push("  static".to_string());
+            }
+            if fi.is_override {
+                out.push("  override".to_string());
+            }
+            if let Some(owner) = fi.owner {
+                if let Some(od) = self.typedefs.get(owner as usize) {
+                    out.push(format!("  owner: {}", od.name));
+                }
+            }
+            out.push(String::new());
+        }
+
+        // 常量
+        out.push("// ===== constants =====".to_string());
+        let mut const_names: Vec<&String> = self.consts.keys().collect();
+        const_names.sort();
+        for name in &const_names {
+            let cc = self.consts.get(*name).unwrap();
+            let ty = cc.ty.borrow();
+            let val = cc.value.borrow();
+            out.push(format!(
+                "const {}: {} = {};",
+                name,
+                self.ts(&*ty),
+                val.as_ref()
+                    .map(|v| match v {
+                        ConstVal::Int(i) => i.to_string(),
+                        ConstVal::Float(f) => f.to_string(),
+                        ConstVal::Bool(b) => b.to_string(),
+                        ConstVal::Str(s) => format!("\"{}\"", s),
+                        ConstVal::Dec(c, sc) => format!("{}d@{}", c, sc),
+                        ConstVal::Rounding(n) => format!("rounding({n})"),
+                        ConstVal::Enum(id, n) => format!("enum({id}, {n})"),
+                        ConstVal::Null => "null".to_string(),
+                    })
+                    .unwrap_or_else(|| "<?unresolved>".to_string())
+            ));
+        }
+        out.push(String::new());
+        out.push("// ===== end HIR =====".to_string());
+        out.join("\n")
     }
 }
 

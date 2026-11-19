@@ -6,14 +6,211 @@
 #include <time.h>
 #include <stdlib.h>
 #include <string.h>
-#define _WIN32_WINNT 0x0600
+
 #ifdef _WIN32
+#ifndef _WIN32_WINNT
+#define _WIN32_WINNT 0x0600
+#endif
 #include <windows.h>
 #include <io.h>
 #else
 #include <sys/time.h>
 #include <pthread.h>
 #endif
+
+/* ================================================================
+ * 标准 C 128 位有符号整数 ax_i128（替代 GCC ax_i128，便于跨平台）
+ * 布局：值 = hi * 2^64 + lo，hi 为 int64_t（带符号），lo 为 uint64_t。
+ * 所有运算均在标准 C11 中实现，无任何编译器扩展。
+ * ================================================================ */
+
+#define AX_I64_HIGH_BIT ((uint64_t)1 << 63)
+
+static ax_i128 i128_make(int64_t hi, uint64_t lo) {
+    ax_i128 r; r.hi = hi; r.lo = lo; return r;
+}
+
+static ax_i128 i128_from_i64(int64_t v) {
+    if (v >= 0) return i128_make(0, (uint64_t)v);
+    return i128_make(-1, (uint64_t)v);
+}
+
+static int i128_to_i64(ax_i128 v, int64_t* out) {
+    if (v.hi == 0) {
+        if (v.lo <= (uint64_t)INT64_MAX) { *out = (int64_t)v.lo; return 1; }
+        return 0;
+    }
+    if (v.hi == -1 && v.lo >= AX_I64_HIGH_BIT) {
+        *out = (int64_t)(v.lo | AX_I64_HIGH_BIT);
+        return 1;
+    }
+    return 0;
+}
+
+static int i128_cmp(ax_i128 a, ax_i128 b) {
+    if (a.hi != b.hi) return a.hi < b.hi ? -1 : 1;
+    if (a.lo < b.lo) return -1;
+    if (a.lo > b.lo) return 1;
+    return 0;
+}
+
+static ax_i128 i128_neg(ax_i128 v) {
+    uint64_t lo_inv = ~v.lo;
+    int64_t  hi_inv = ~v.hi;
+    uint64_t lo_new = lo_inv + 1;
+    int64_t  hi_new = hi_inv + (lo_new == 0 ? 1 : 0);
+    return i128_make(hi_new, lo_new);
+}
+
+static ax_i128 i128_abs(ax_i128 v) {
+    if (v.hi < 0) return i128_neg(v);
+    return v;
+}
+
+static int i128_add(ax_i128 a, ax_i128 b, ax_i128* out) {
+    uint64_t alo = a.lo, blo = b.lo;
+    uint64_t lores = alo + blo;
+    int carry = lores < alo ? 1 : 0;
+
+    uint64_t ahi = (uint64_t)a.hi, bhi = (uint64_t)b.hi;
+    uint64_t hires = ahi + bhi + (uint64_t)carry;
+
+    int a_neg = a.hi < 0;
+    int b_neg = b.hi < 0;
+    int res_neg = (int64_t)hires < 0;
+    int ovf = (a_neg == b_neg) && (res_neg != a_neg);
+
+    *out = i128_make((int64_t)hires, lores);
+    return ovf;
+}
+
+static int i128_sub(ax_i128 a, ax_i128 b, ax_i128* out) {
+    uint64_t alo = a.lo, blo = b.lo;
+    uint64_t lores = alo - blo;
+    int borrow = lores > alo ? 1 : 0;
+
+    uint64_t ahi = (uint64_t)a.hi, bhi = (uint64_t)b.hi;
+    uint64_t hires = ahi - bhi - (uint64_t)borrow;
+
+    int a_neg = a.hi < 0;
+    int b_neg = b.hi < 0;
+    int res_neg = (int64_t)hires < 0;
+    int ovf = (a_neg != b_neg) && (res_neg == b_neg);
+
+    *out = i128_make((int64_t)hires, lores);
+    return ovf;
+}
+
+static void u128_mul64(uint64_t a, uint64_t b, uint64_t* hi, uint64_t* lo) {
+    uint64_t a0 = a & 0xFFFFFFFFu, a1 = a >> 32;
+    uint64_t b0 = b & 0xFFFFFFFFu, b1 = b >> 32;
+    uint64_t p0 = a0 * b0;
+    uint64_t p1 = a1 * b0;
+    uint64_t p2 = a0 * b1;
+    uint64_t p3 = a1 * b1;
+    uint64_t mid = (p0 >> 32) + (p1 & 0xFFFFFFFFu) + (p2 & 0xFFFFFFFFu);
+    *lo = p0 + (mid << 32);
+    uint64_t c = (mid >> 32) + (p1 >> 32) + (p2 >> 32) + p3;
+    if (*lo < p0) c++;
+    *hi = c;
+}
+
+static int i128_mul(ax_i128 a, ax_i128 b, ax_i128* out) {
+    int a_neg = a.hi < 0;
+    int b_neg = b.hi < 0;
+    ax_i128 aa = a_neg ? i128_neg(a) : a;
+    ax_i128 bb = b_neg ? i128_neg(b) : b;
+
+    uint64_t a_hi = (uint64_t)aa.hi, a_lo = aa.lo;
+    uint64_t b_hi = (uint64_t)bb.hi, b_lo = bb.lo;
+
+    uint64_t p0_hi, p0_lo, p1_hi, p1_lo, p2_hi, p2_lo, p3_hi, p3_lo;
+    u128_mul64(a_lo, b_lo, &p0_hi, &p0_lo);
+    u128_mul64(a_hi, b_lo, &p1_hi, &p1_lo);
+    u128_mul64(a_lo, b_hi, &p2_hi, &p2_lo);
+    u128_mul64(a_hi, b_hi, &p3_hi, &p3_lo);
+
+    uint64_t r_lo = p0_lo;
+    uint64_t r_m1 = p0_hi + p1_lo + p2_lo;
+    int c1 = (r_m1 < p0_hi) || ((r_m1 == p0_hi) && ((p1_lo < p0_hi) || (p2_lo < p0_hi)));
+    uint64_t r_m2 = p1_hi + p2_hi + p3_lo + (uint64_t)c1;
+    int c2 = (r_m2 < p1_hi) || ((r_m2 == p1_hi) && ((p2_hi < p1_hi) || (p3_lo < p1_hi)));
+    uint64_t r_hi = p3_hi + (uint64_t)c2;
+
+    int res_neg = a_neg != b_neg;
+    int ovf = 0;
+    if (res_neg) {
+        if (r_hi != 0xFFFFFFFFFFFFFFFFu) ovf = 1;
+    } else {
+        if (r_hi != 0) ovf = 1;
+    }
+
+    ax_i128 res = i128_make((int64_t)r_hi, r_lo);
+    if (res_neg) res = i128_neg(res);
+    *out = res;
+    return ovf;
+}
+
+static ax_i128 i128_pow10(int n) {
+    ax_i128 r = i128_from_i64(1);
+    for (int i = 0; i < n; i++) {
+        ax_i128 t;
+        if (i128_mul(r, i128_from_i64(10), &t)) break;
+        r = t;
+    }
+    return r;
+}
+
+/* 128 位有符号除法：num / den -> 商、余数（den != 0，商向零截断） */
+static void i128_divmod(ax_i128 num, ax_i128 den, ax_i128* q, ax_i128* r) {
+    int neg = (num.hi < 0) != (den.hi < 0);
+    ax_i128 n = i128_abs(num);
+    ax_i128 d = i128_abs(den);
+    ax_i128 quotient = i128_from_i64(0);
+    ax_i128 remainder = i128_from_i64(0);
+    for (int i = 127; i >= 0; i--) {
+        /* 恢复除法：商先左移一位（乘 2），余数也先左移一位并加入当前位 */
+        ax_i128 q2;
+        if (i128_add(quotient, quotient, &q2)) q2 = quotient;
+        quotient = q2;
+
+        ax_i128 doubled;
+        if (i128_add(remainder, remainder, &doubled)) doubled = remainder;
+        int bit;
+        if (i < 64) bit = (int)((n.lo >> i) & 1u);
+        else        bit = (int)((n.hi >> (i - 64)) & 1);
+        if (bit) {
+            ax_i128 tmp;
+            if (i128_add(doubled, i128_from_i64(1), &tmp)) tmp = doubled;
+            doubled = tmp;
+        }
+        if (i128_cmp(doubled, d) >= 0) {
+            ax_i128 subed;
+            if (i128_sub(doubled, d, &subed)) subed = doubled;
+            remainder = subed;
+            ax_i128 one = i128_from_i64(1);
+            if (i128_add(quotient, one, &q2)) q2 = quotient;
+            quotient = q2;
+        } else {
+            remainder = doubled;
+        }
+    }
+    if (neg) quotient = i128_neg(quotient);
+    if (num.hi < 0) remainder = i128_neg(remainder);
+    *q = quotient;
+    *r = remainder;
+}
+
+static ax_i128 i128_gcd(ax_i128 a, ax_i128 b) {
+    a = i128_abs(a); b = i128_abs(b);
+    while (i128_cmp(b, i128_from_i64(0)) != 0) {
+        ax_i128 q, r;
+        i128_divmod(a, b, &q, &r);
+        a = b;
+        b = r;
+    }
+    return a;
+}
 
 /* ================================================================ 崩溃 */
 static const char* trap_name(int code) {
@@ -534,22 +731,9 @@ ax_str ax_sb_finish(ax_sb* b) {
 }
 
 /* ================================================================ decimal */
-static __int128 pow10_128(int n) {
-    __int128 r = 1;
-    for (int i = 0; i < n; i++) r *= 10;
-    return r;
-}
-
-static int mul_ovf(__int128 a, __int128 b, __int128* out) {
-    return __builtin_mul_overflow(a, b, out);
-}
-
-static int add_ovf(__int128 a, __int128 b, __int128* out) {
-    return __builtin_add_overflow(a, b, out);
-}
 
 ax_dec ax_dec_from_i64(int64_t v) {
-    ax_dec d; d.coeff = (__int128)v; d.scale = 0; d._pad = 0;
+    ax_dec d; d.coeff = i128_from_i64(v); d.scale = 0; d._pad = 0;
     return d;
 }
 
@@ -557,176 +741,263 @@ ax_dec ax_dec_lit(const char* digits, int32_t scale) {
     int neg = 0;
     const char* p = digits;
     if (*p == '-') { neg = 1; p++; }
-    __int128 c = 0;
+    ax_i128 c = i128_from_i64(0);
+    ax_i128 ten = i128_from_i64(10);
     while (*p) {
-        if (*p >= '0' && *p <= '9') c = c * 10 + (*p - '0');
+        if (*p >= '0' && *p <= '9') {
+            ax_i128 t;
+            i128_mul(c, ten, &t);
+            ax_i128 d;
+            i128_add(t, i128_from_i64(*p - '0'), &d);
+            c = d;
+        }
         p++;
     }
-    ax_dec d; d.coeff = neg ? -c : c; d.scale = scale; d._pad = 0;
+    ax_dec d; d.coeff = neg ? i128_neg(c) : c; d.scale = scale; d._pad = 0;
     return d;
 }
 
-ax_dec ax_dec_from_parts(__int128 coeff, int32_t scale) {
+ax_dec ax_dec_from_parts(ax_i128 coeff, int32_t scale) {
     ax_dec d; d.coeff = coeff; d.scale = scale; d._pad = 0;
     return d;
 }
 
+static int i128_is_zero(ax_i128 v) { return v.hi == 0 && v.lo == 0; }
+
+/* 将 ax_i128 除以 uint64_t（除数 > 0），返回商和余数。 */
+static void i128_div_u64(ax_i128 v, uint64_t d, ax_i128* q, uint64_t* r) {
+    ax_i128 quotient = i128_from_i64(0);
+    uint64_t rem = 0;
+    if (v.hi < 0) {
+        ax_i128 av = i128_neg(v);
+        i128_div_u64(av, d, q, r);
+        *q = i128_neg(*q);
+        if (*r != 0) { *r = d - *r; ax_i128 one = i128_from_i64(1); ax_i128 q2; i128_add(*q, one, &q2); *q = q2; }
+        return;
+    }
+    uint64_t hi = (uint64_t)v.hi;
+    uint64_t lo = v.lo;
+    for (int i = 63; i >= 0; i--) {
+        rem = (rem << 1) | ((hi >> i) & 1u);
+        if (rem >= d) { rem -= d; quotient.lo |= (1uLL << i); }
+    }
+    for (int i = 63; i >= 0; i--) {
+        rem = (rem << 1) | ((lo >> i) & 1u);
+        if (rem >= d) { rem -= d; quotient.lo |= (1uLL << i); }
+    }
+    quotient.hi = 0;
+    *q = quotient;
+    *r = rem;
+}
+
 static ax_dec dec_norm(ax_dec v) {
-    while (v.scale > 0 && v.coeff != 0 && v.coeff % 10 == 0) {
-        v.coeff /= 10;
+    while (v.scale > 0 && !i128_is_zero(v.coeff)) {
+        ax_i128 qr_q; uint64_t qr_r;
+        i128_div_u64(v.coeff, 10, &qr_q, &qr_r);
+        if (qr_r != 0) break;
+        v.coeff = qr_q;
         v.scale--;
     }
-    if (v.coeff == 0) v.scale = 0;
+    if (i128_is_zero(v.coeff)) v.scale = 0;
     return v;
 }
 
-static void dec_align(ax_dec a, ax_dec b, __int128* ac, __int128* bc, int32_t* sc,
+static void dec_align(ax_dec a, ax_dec b, ax_i128* ac, ax_i128* bc, int32_t* sc,
                       const char* f, int l, int c) {
     int32_t s = a.scale > b.scale ? a.scale : b.scale;
-    __int128 x, y;
-    if (mul_ovf(a.coeff, pow10_128(s - a.scale), &x)) ax_trap(R_OVERFLOW, f, l, c, "decimal add overflow");
-    if (mul_ovf(b.coeff, pow10_128(s - b.scale), &y)) ax_trap(R_OVERFLOW, f, l, c, "decimal add overflow");
+    ax_i128 x, y;
+    ax_i128 pa = i128_pow10(s - a.scale);
+    ax_i128 pb = i128_pow10(s - b.scale);
+    if (i128_mul(a.coeff, pa, &x)) ax_trap(R_OVERFLOW, f, l, c, "decimal add overflow");
+    if (i128_mul(b.coeff, pb, &y)) ax_trap(R_OVERFLOW, f, l, c, "decimal add overflow");
     *ac = x; *bc = y; *sc = s;
 }
 
 ax_dec ax_dec_add(ax_dec a, ax_dec b) {
-    __int128 x, y, r;
+    ax_i128 x, y, r;
     int32_t s;
     dec_align(a, b, &x, &y, &s, "<runtime>", 0, 0);
-    if (add_ovf(x, y, &r)) ax_trap(R_OVERFLOW, "<runtime>", 0, 0, "decimal overflow");
+    if (i128_add(x, y, &r)) ax_trap(R_OVERFLOW, "<runtime>", 0, 0, "decimal overflow");
     return dec_norm(ax_dec_from_parts(r, s));
 }
 
 ax_dec ax_dec_sub(ax_dec a, ax_dec b) {
-    __int128 x, y, r;
+    ax_i128 x, y, r;
     int32_t s;
     dec_align(a, b, &x, &y, &s, "<runtime>", 0, 0);
-    if (__builtin_sub_overflow(x, y, &r)) ax_trap(R_OVERFLOW, "<runtime>", 0, 0, "decimal overflow");
+    if (i128_sub(x, y, &r)) ax_trap(R_OVERFLOW, "<runtime>", 0, 0, "decimal overflow");
     return dec_norm(ax_dec_from_parts(r, s));
 }
 
 ax_dec ax_dec_mul(ax_dec a, ax_dec b) {
-    __int128 r;
-    if (mul_ovf(a.coeff, b.coeff, &r)) ax_trap(R_OVERFLOW, "<runtime>", 0, 0, "decimal overflow");
+    ax_i128 r;
+    if (i128_mul(a.coeff, b.coeff, &r)) ax_trap(R_OVERFLOW, "<runtime>", 0, 0, "decimal overflow");
     return dec_norm(ax_dec_from_parts(r, a.scale + b.scale));
 }
 
-static __int128 i128_abs(__int128 v) { return v < 0 ? -v : v; }
-
-static __int128 i128_gcd(__int128 a, __int128 b) {
-    a = i128_abs(a); b = i128_abs(b);
-    while (b != 0) { __int128 t = a % b; a = b; b = t; }
-    return a;
-}
-
 ax_dec ax_dec_div_exact(ax_dec a, ax_dec b, const char* f, int l, int c) {
-    if (b.coeff == 0) ax_trap(R_DIVZERO, f, l, c, "decimal division by zero");
-    __int128 g = i128_gcd(a.coeff, b.coeff);
-    if (g == 0) g = 1;
-    __int128 num = a.coeff / g, den0 = b.coeff / g;
-    if (den0 < 0) { den0 = -den0; num = -num; }
+    if (i128_is_zero(b.coeff)) ax_trap(R_DIVZERO, f, l, c, "decimal division by zero");
+    ax_i128 g = i128_gcd(a.coeff, b.coeff);
+    if (i128_is_zero(g)) g = i128_from_i64(1);
+    ax_i128 num, den0;
+    i128_divmod(a.coeff, g, &num, &(ax_i128){0});
+    i128_divmod(b.coeff, g, &den0, &(ax_i128){0});
+    ax_i128 zero = i128_from_i64(0);
+    if (i128_cmp(den0, zero) < 0) { den0 = i128_neg(den0); num = i128_neg(num); }
     int p = 0, q = 0;
-    __int128 d = den0;
-    while (d % 2 == 0) { d /= 2; p++; }
-    while (d % 5 == 0) { d /= 5; q++; }
-    if (d != 1) {
+    ax_i128 d = den0;
+    ax_i128 one = i128_from_i64(1);
+    while (1) {
+        ax_i128 qr_q; uint64_t qr_r;
+        i128_div_u64(d, 2, &qr_q, &qr_r);
+        if (qr_r != 0) break;
+        d = qr_q; p++;
+    }
+    while (1) {
+        ax_i128 qr_q; uint64_t qr_r;
+        i128_div_u64(d, 5, &qr_q, &qr_r);
+        if (qr_r != 0) break;
+        d = qr_q; q++;
+    }
+    if (i128_cmp(d, one) != 0) {
         ax_trap(R_INEXACT, f, l, c,
                 "除不尽（建议用 divide(a, b, digits, Rounding.HalfUp)）");
     }
     int m = p > q ? p : q;
-    __int128 coeff = num * pow10_128(m) / den0;
+    ax_i128 pm = i128_pow10(m);
+    ax_i128 coeff;
+    i128_mul(num, pm, &coeff);
+    ax_i128 dq, dr;
+    i128_divmod(coeff, den0, &dq, &dr);
+    coeff = dq;
     int32_t scale = (int32_t)(m - (b.scale - a.scale));
     if (scale < 0) {
-        __int128 t;
-        if (mul_ovf(coeff, pow10_128(-scale), &t)) ax_trap(R_OVERFLOW, f, l, c, "decimal overflow");
+        ax_i128 pn = i128_pow10(-scale);
+        ax_i128 t;
+        if (i128_mul(coeff, pn, &t)) ax_trap(R_OVERFLOW, f, l, c, "decimal overflow");
         coeff = t;
         scale = 0;
     }
     return dec_norm(ax_dec_from_parts(coeff, scale));
 }
 
-static __int128 div_round_i128(__int128 num, __int128 den, int mode) {
-    if (den == 0) return 0;
-    int neg = (num < 0) != (den < 0);
-    __int128 n = i128_abs(num), d = i128_abs(den);
-    __int128 q = n / d, r = n % d;
-    if (r != 0) {
+static ax_i128 div_round_i128(ax_i128 num, ax_i128 den, int mode) {
+    if (i128_is_zero(den)) return i128_from_i64(0);
+    ax_i128 zero = i128_from_i64(0);
+    int neg = (i128_cmp(num, zero) < 0) != (i128_cmp(den, zero) < 0);
+    ax_i128 n = i128_abs(num), d = i128_abs(den);
+    ax_i128 q, r;
+    i128_divmod(n, d, &q, &r);
+    if (!i128_is_zero(r)) {
         if (mode == ROUND_DOWN) {
             /* 向零截断 */
         } else if (mode == ROUND_HALF_EVEN) {
-            __int128 twice = r * 2;
-            if (twice > d || (twice == d && (q % 2 != 0))) q += 1;
+            ax_i128 twice;
+            i128_add(r, r, &twice);
+            ax_i128 qr_q; uint64_t qr_r;
+            i128_div_u64(q, 2, &qr_q, &qr_r);
+            int q_odd = (qr_r != 0);
+            if (i128_cmp(twice, d) > 0 || (i128_cmp(twice, d) == 0 && q_odd)) {
+                ax_i128 one = i128_from_i64(1);
+                i128_add(q, one, &q);
+            }
         } else {
-            __int128 twice = r * 2;
-            if (twice >= d) q += 1;
+            ax_i128 twice;
+            i128_add(r, r, &twice);
+            if (i128_cmp(twice, d) >= 0) {
+                ax_i128 one = i128_from_i64(1);
+                i128_add(q, one, &q);
+            }
         }
     }
-    return neg ? -q : q;
+    return neg ? i128_neg(q) : q;
 }
 
 ax_dec ax_dec_div_round(ax_dec a, ax_dec b, int32_t digits, int mode) {
-    if (b.coeff == 0) ax_trap(R_DIVZERO, "<runtime>", 0, 0, "decimal division by zero");
+    if (i128_is_zero(b.coeff)) ax_trap(R_DIVZERO, "<runtime>", 0, 0, "decimal division by zero");
     int k = digits + b.scale - a.scale;
-    __int128 num = a.coeff, den = b.coeff;
-    __int128 t;
+    ax_i128 num = a.coeff, den = b.coeff;
+    ax_i128 t;
     if (k > 0) {
-        if (mul_ovf(num, pow10_128(k), &t)) ax_trap(R_OVERFLOW, "<runtime>", 0, 0, "decimal overflow");
+        ax_i128 pk = i128_pow10(k);
+        if (i128_mul(num, pk, &t)) ax_trap(R_OVERFLOW, "<runtime>", 0, 0, "decimal overflow");
         num = t;
     } else if (k < 0) {
-        if (mul_ovf(den, pow10_128(-k), &t)) ax_trap(R_OVERFLOW, "<runtime>", 0, 0, "decimal overflow");
+        ax_i128 pk = i128_pow10(-k);
+        if (i128_mul(den, pk, &t)) ax_trap(R_OVERFLOW, "<runtime>", 0, 0, "decimal overflow");
         den = t;
     }
-    __int128 q = div_round_i128(num, den, mode);
+    ax_i128 q = div_round_i128(num, den, mode);
     return dec_norm(ax_dec_from_parts(q, digits));
 }
 
 ax_dec ax_dec_rem(ax_dec a, ax_dec b) {
-    if (b.coeff == 0) ax_trap(R_DIVZERO, "<runtime>", 0, 0, "decimal remainder by zero");
-    __int128 x, y, r;
+    if (i128_is_zero(b.coeff)) ax_trap(R_DIVZERO, "<runtime>", 0, 0, "decimal remainder by zero");
+    ax_i128 x, y, r;
     int32_t s;
     dec_align(a, b, &x, &y, &s, "<runtime>", 0, 0);
-    r = x % y;
+    ax_i128 dq;
+    i128_divmod(x, y, &dq, &r);
     return dec_norm(ax_dec_from_parts(r, s));
 }
 
 ax_dec ax_dec_round(ax_dec a, int32_t digits, int mode) {
     if (a.scale <= digits) return a;
     int drop = a.scale - digits;
-    __int128 den = pow10_128(drop);
-    __int128 q = div_round_i128(a.coeff, den, mode);
+    ax_i128 den = i128_pow10(drop);
+    ax_i128 q = div_round_i128(a.coeff, den, mode);
     return dec_norm(ax_dec_from_parts(q, digits));
 }
 
 int ax_dec_cmp(ax_dec a, ax_dec b) {
-    __int128 x, y;
+    ax_i128 x, y;
     int32_t s;
     dec_align(a, b, &x, &y, &s, "<runtime>", 0, 0);
-    if (x < y) return -1;
-    if (x > y) return 1;
+    if (i128_cmp(x, y) < 0) return -1;
+    if (i128_cmp(x, y) > 0) return 1;
     return 0;
 }
 
 int64_t ax_dec_to_i64(ax_dec a, const char* f, int l, int c) {
-    __int128 v = a.coeff / pow10_128(a.scale);
-    if (v > (__int128)INT64_MAX || v < (__int128)INT64_MIN)
+    ax_i128 den = i128_pow10(a.scale);
+    ax_i128 v;
+    i128_divmod(a.coeff, den, &v, &(ax_i128){0});
+    ax_i128 max_i64 = i128_from_i64(INT64_MAX);
+    ax_i128 min_i64 = i128_from_i64(INT64_MIN);
+    if (i128_cmp(v, max_i64) > 0 || i128_cmp(v, min_i64) < 0)
         ax_trap(R_CONVERT, f, l, c, "decimal %s 超出 int 范围", "value");
-    return (int64_t)v;
+    int64_t out;
+    if (!i128_to_i64(v, &out)) ax_trap(R_CONVERT, f, l, c, "decimal %s 超出 int 范围", "value");
+    return out;
 }
 
+static double i128_to_double(ax_i128 v);
+
 double ax_dec_to_f64(ax_dec v) {
-    return (double)v.coeff / pow((double)10, (double)v.scale);
+    return i128_to_double(v.coeff) / pow(10.0, (double)v.scale);
+}
+
+static double i128_to_double(ax_i128 v) {
+    /* value = hi * 2^64 + lo；2^64 为 2 的幂，乘法在 double 中精确 */
+    return (double)v.hi * 18446744073709551616.0 + (double)v.lo;
 }
 
 double ax_dec_as_double(ax_dec v) { return ax_dec_to_f64(v); }
 
 ax_str ax_dec_to_str(ax_dec v) {
     ax_dec d = dec_norm(v);
-    int neg = d.coeff < 0;
-    __int128 a = neg ? -d.coeff : d.coeff;
+    ax_i128 zero = i128_from_i64(0);
+    int neg = i128_cmp(d.coeff, zero) < 0;
+    ax_i128 a = neg ? i128_neg(d.coeff) : d.coeff;
     char digits[64];
     int n = 0;
-    if (a == 0) digits[n++] = '0';
-    while (a > 0 && n < 60) { digits[n++] = (char)('0' + (int)(a % 10)); a /= 10; }
+    if (i128_is_zero(a)) digits[n++] = '0';
+    while (i128_cmp(a, zero) > 0 && n < 60) {
+        ax_i128 qr_q; uint64_t qr_r;
+        i128_div_u64(a, 10, &qr_q, &qr_r);
+        digits[n++] = (char)('0' + (int)qr_r);
+        a = qr_q;
+    }
     char out[80];
     int k = 0;
     if (neg) out[k++] = '-';
@@ -753,17 +1024,24 @@ ax_dec ax_dec_parse(ax_str s, int* ok) {
     int64_t i = 0;
     int neg = 0;
     if (i < s.len && (s.p[i] == '+' || s.p[i] == '-')) { neg = s.p[i] == '-'; i++; }
-    __int128 coeff = 0;
+    ax_i128 coeff = i128_from_i64(0);
+    ax_i128 ten = i128_from_i64(10);
     int digits = 0, scale = 0, seen = 0;
     while (i < s.len && s.p[i] >= '0' && s.p[i] <= '9') {
-        coeff = coeff * 10 + (s.p[i] - '0');
+        ax_i128 t1, t2;
+        i128_mul(coeff, ten, &t1);
+        i128_add(t1, i128_from_i64(s.p[i] - '0'), &t2);
+        coeff = t2;
         digits++; i++; seen = 1;
         if (digits > 30) return ax_dec_from_i64(0);
     }
     if (i < s.len && s.p[i] == '.') {
         i++;
         while (i < s.len && s.p[i] >= '0' && s.p[i] <= '9') {
-            coeff = coeff * 10 + (s.p[i] - '0');
+            ax_i128 t1, t2;
+            i128_mul(coeff, ten, &t1);
+            i128_add(t1, i128_from_i64(s.p[i] - '0'), &t2);
+            coeff = t2;
             scale++; i++; seen = 1;
             if (digits + scale > 30) return ax_dec_from_i64(0);
         }
@@ -780,11 +1058,15 @@ ax_dec ax_dec_parse(ax_str s, int* ok) {
     if (i != s.len) return ax_dec_from_i64(0);
     scale -= exp;
     if (scale < 0) {
-        coeff *= pow10_128(-scale);
+        ax_i128 pn = i128_pow10(-scale);
+        ax_i128 t;
+        i128_mul(coeff, pn, &t);
+        coeff = t;
         scale = 0;
     }
     *ok = 1;
-    return dec_norm(ax_dec_from_parts(neg ? -coeff : coeff, scale));
+    ax_i128 final_coeff = neg ? i128_neg(coeff) : coeff;
+    return dec_norm(ax_dec_from_parts(final_coeff, scale));
 }
 
 ax_dec ax_dec_parse_or(ax_str s, ax_dec fallback) {
@@ -867,7 +1149,7 @@ static uint64_t key_hash(const void* k, int kind) {
     case 0: { int64_t v; memcpy(&v, k, 8); uint64_t x = (uint64_t)v; x ^= x >> 33; x *= 0xff51afd7ed558ccdULL; x ^= x >> 33; return x ? x : 1; }
     case 1: { ax_str s; memcpy(&s, k, sizeof s); return hash_bytes(s.p, s.len); }
     case 2: { uint8_t v; memcpy(&v, k, 1); return (uint64_t)v + 1; }
-    case 3: { ax_dec d; memcpy(&d, k, sizeof d); uint64_t x = (uint64_t)d.coeff ^ ((uint64_t)d.scale << 32); x ^= x >> 33; return x ? x : 1; }
+    case 3: { ax_dec d; memcpy(&d, k, sizeof d); uint64_t x = d.coeff.lo ^ ((uint64_t)d.scale << 32); x ^= x >> 33; return x ? x : 1; }
     case 4: { uint32_t v; memcpy(&v, k, 4); return (uint64_t)v + 1; }
     default: {
         uint64_t v; memcpy(&v, k, 8);
@@ -1048,23 +1330,47 @@ int ax_unbox_bool(ax_box* b, const char* f, int l, int c) {
 }
 
 /* ================================================================ 整数 */
+static int i64_add_ovf(int64_t a, int64_t b, int64_t* out) {
+    if (b > 0 && a > INT64_MAX - b) return 1;
+    if (b < 0 && a < INT64_MIN - b) return 1;
+    *out = a + b;
+    return 0;
+}
+
+static int i64_sub_ovf(int64_t a, int64_t b, int64_t* out) {
+    if (b < 0 && a > INT64_MAX + b) return 1;
+    if (b > 0 && a < INT64_MIN + b) return 1;
+    *out = a - b;
+    return 0;
+}
+
+static int i64_mul_ovf(int64_t a, int64_t b, int64_t* out) {
+    if (a == 0 || b == 0) { *out = 0; return 0; }
+    if (a == INT64_MIN || b == INT64_MIN) return 1;
+    int64_t abs_a = a < 0 ? -a : a;
+    int64_t abs_b = b < 0 ? -b : b;
+    if (abs_a > INT64_MAX / abs_b) return 1;
+    *out = a * b;
+    return 0;
+}
+
 int64_t ax_add_i64(int64_t a, int64_t b, const char* f, int l, int c) {
     int64_t r;
-    if (__builtin_add_overflow(a, b, &r))
+    if (i64_add_ovf(a, b, &r))
         ax_trap(R_OVERFLOW, f, l, c, "%" PRId64 " + %" PRId64, a, b);
     return r;
 }
 
 int64_t ax_sub_i64(int64_t a, int64_t b, const char* f, int l, int c) {
     int64_t r;
-    if (__builtin_sub_overflow(a, b, &r))
+    if (i64_sub_ovf(a, b, &r))
         ax_trap(R_OVERFLOW, f, l, c, "%" PRId64 " - %" PRId64, a, b);
     return r;
 }
 
 int64_t ax_mul_i64(int64_t a, int64_t b, const char* f, int l, int c) {
     int64_t r;
-    if (__builtin_mul_overflow(a, b, &r))
+    if (i64_mul_ovf(a, b, &r))
         ax_trap(R_OVERFLOW, f, l, c, "%" PRId64 " * %" PRId64, a, b);
     return r;
 }

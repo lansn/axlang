@@ -131,6 +131,25 @@ impl<'a> Parser<'a> {
         self.fail("E2001", &t, "G-1", "期望 {0}，得到 {1}", &[&want, &got])
     }
 
+    fn expect_string_lit(&mut self, want_val: &str, what: Option<&str>) -> PResult<Tok> {
+        let t = self.tok(0).clone();
+        if t.is("STR") {
+            if let TokVal::Str(parts) = &t.val {
+                // 简单字符串：单个 Text 片段
+                if parts.len() == 1 {
+                    if let StrPart::Text(s) = &parts[0] {
+                        if s == want_val {
+                            return Ok(self.advance());
+                        }
+                    }
+                }
+            }
+        }
+        let what = what.unwrap_or(&format!("字符串 `{}`", want_val)).to_string();
+        let got = display_tok(&t);
+        self.fail("E2001", &t, "G-1", "期望 {0}，得到 {1}", &[&what, &got])
+    }
+
     fn expect_ident(&mut self, what: &str) -> PResult<Tok> {
         let t = self.tok(0).clone();
         if t.is("IDENT") {
@@ -335,6 +354,9 @@ impl<'a> Parser<'a> {
         if self.at("type") {
             return Ok(vec![self.parse_type_alias(vis)?]);
         }
+        if self.at("extern") {
+            return Ok(vec![self.parse_extern_block(vis)?]);
+        }
         // 顶层语句：入口文件里合法（包成隐式 `main`），被 import 的模块里由 sema 报 E3024。
         // 放在 parse_func 之前，避免先把 `Println("x")` 当函数声明去解析再报一条莫名其妙的错。
         if self.top_is_stmt() {
@@ -372,7 +394,7 @@ impl<'a> Parser<'a> {
     /// 与 `int f(...)`、`map<string, int> m = {}` 区分开——先跳类型前缀，再看后面是什么。
     fn top_is_stmt(&self) -> bool {
         const KW: &[&str] = &[
-            "if", "for", "while", "match", "return", "break", "continue", "defer", "throw", "try", "var",
+            "if", "for", "while", "unsafe", "match", "return", "break", "continue", "defer", "throw", "try", "var",
         ];
         if KW.iter().any(|k| self.at(k)) {
             return true;
@@ -963,6 +985,56 @@ impl<'a> Parser<'a> {
         ))
     }
 
+    /// `extern "C" { int puts(string s); ... }`：外部 C 函数声明块。
+    fn parse_extern_block(&mut self, _vis: Option<String>) -> PResult<N<Item>> {
+        let t = self.expect("extern", None)?;
+        self.expect_string_lit("C", None)?;
+        self.nl();
+        self.expect("{", None)?;
+        self.nl();
+        let mut funcs: Vec<N<Item>> = Vec::new();
+        while !self.at("}") && !self.at("EOF") {
+            let ret = self.parse_type()?;
+            let name = self.expect_ident("函数名")?;
+            let generics = self.parse_generics()?;
+            if !generics.is_empty() {
+                self.err("E3045", Some(&name), "文稿 15.1", "`extern` 函数不支持泛型", &[]);
+            }
+            let params = self.parse_params()?;
+            self.nl();
+            if self.at("{") {
+                let tk = self.tok(0).clone();
+                self.err("E3046", Some(&tk), "文稿 15.1", "`extern` 函数不能有函数体，只能声明", &[]);
+                // 跳过函数体以便同步
+                let _ = self.parse_block();
+            }
+            funcs.push(self.nn(
+                name.clone(),
+                Item::FuncDecl {
+                    implicit: false,
+                    vis: None,
+                    ret,
+                    name: name.text().to_string(),
+                    generics,
+                    params,
+                    body: Block { tok: name.clone(), stmts: Vec::new() },
+                    attrs: Vec::new(),
+                },
+            ));
+            self.nl();
+            if self.accept(";").is_none() {
+                let tk = self.tok(0).clone();
+                self.err("E3047", Some(&tk), "文稿 15.1", "`extern` 函数声明后缺少 `;`", &[]);
+            }
+            self.nl();
+        }
+        self.expect("}", None)?;
+        Ok(self.nn(
+            t,
+            Item::ExternBlock { funcs },
+        ))
+    }
+
     // ---------------- 类型 ----------------
 
     fn parse_type(&mut self) -> PResult<TPtr> {
@@ -1143,6 +1215,12 @@ impl<'a> Parser<'a> {
         if k == "while" {
             let w = self.parse_while()?;
             return Ok(Some(self.nn(t, w.k)));
+        }
+        if k == "unsafe" {
+            self.advance();
+            self.nl();
+            let body = self.parse_block()?;
+            return Ok(Some(self.nn(t, Stmt::Unsafe { body })));
         }
         if k == "try" {
             let s = self.parse_try_catch(&t)?;

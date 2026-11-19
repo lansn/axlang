@@ -310,6 +310,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             Stmt::Match(_) => self.match_stmt_stmt(s),
             Stmt::For { .. } => self.for_stmt(s),
             Stmt::While { .. } => self.while_stmt(s),
+            Stmt::Unsafe { .. } => self.unsafe_stmt(s),
             Stmt::Return { .. } => self.return_stmt(s),
             Stmt::Throw { .. } => self.throw_stmt(s),
             Stmt::TryCatch(_) => self.try_catch_stmt(s),
@@ -1061,11 +1062,13 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 self.ind += 1;
                 self.block(Some(body), None, None);
                 // continue 跳到这里：等价于 C 的 continue（自增/条件判断在 for 头）
-                self.emit(format!("{}_cont: __attribute__((unused));", lab));
+                self.emit(format!("if (0) {{ goto {}_cont; }}", lab));
+                self.emit(format!("{}_cont: ;", lab));
                 self.ind -= 1;
                 self.emit("}".to_string());
                 self.loop_labels.pop();
-                self.emit(format!("{}_brk: __attribute__((unused));", lab));
+                self.emit(format!("if (0) {{ goto {}_brk; }}", lab));
+                self.emit(format!("{}_brk: ;", lab));
             }
             ast::ForKind::Range {
                 var,
@@ -1088,11 +1091,13 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                     .push((label.clone(), self.defers.len(), lab.clone()));
                 self.ind += 1;
                 self.block(Some(body), None, None);
-                self.emit(format!("{}_cont: __attribute__((unused));", lab));
+                self.emit(format!("if (0) {{ goto {}_cont; }}", lab));
+                self.emit(format!("{}_cont: ;", lab));
                 self.ind -= 1;
                 self.emit("}".to_string());
                 self.loop_labels.pop();
-                self.emit(format!("{}_brk: __attribute__((unused));", lab));
+                self.emit(format!("if (0) {{ goto {}_brk; }}", lab));
+                self.emit(format!("{}_brk: ;", lab));
                 self.ind -= 1;
                 self.emit("}".to_string());
             }
@@ -1123,11 +1128,13 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                     .push((label.clone(), self.defers.len(), lab.clone()));
                 self.ind += 1;
                 self.block(Some(body), None, None);
-                self.emit(format!("{}_cont: __attribute__((unused));", lab));
+                self.emit(format!("if (0) {{ goto {}_cont; }}", lab));
+                self.emit(format!("{}_cont: ;", lab));
                 self.ind -= 1;
                 self.emit("}".to_string());
                 self.loop_labels.pop();
-                self.emit(format!("{}_brk: __attribute__((unused));", lab));
+                self.emit(format!("if (0) {{ goto {}_brk; }}", lab));
+                self.emit(format!("{}_brk: ;", lab));
                 self.ind -= 1;
                 self.emit("}".to_string());
             }
@@ -1153,11 +1160,13 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                     self.loop_labels
                         .push((label.clone(), self.defers.len(), lab.clone()));
                     self.block(Some(body), None, None);
-                    self.emit(format!("{}_cont: __attribute__((unused));", lab));
+                    self.emit(format!("if (0) {{ goto {}_cont; }}", lab));
+                self.emit(format!("{}_cont: ;", lab));
                     self.loop_labels.pop();
                     self.ind -= 1;
                     self.emit("}".to_string());
-                    self.emit(format!("{}_brk: __attribute__((unused));", lab));
+                    self.emit(format!("if (0) {{ goto {}_brk; }}", lab));
+                self.emit(format!("{}_brk: ;", lab));
                     self.ind -= 1;
                     self.emit("}".to_string());
                     return;
@@ -1181,11 +1190,13 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                     self.loop_labels
                         .push((label.clone(), self.defers.len(), lab.clone()));
                     self.block(Some(body), None, None);
-                    self.emit(format!("{}_cont: __attribute__((unused));", lab));
+                    self.emit(format!("if (0) {{ goto {}_cont; }}", lab));
+                self.emit(format!("{}_cont: ;", lab));
                     self.loop_labels.pop();
                     self.ind -= 1;
                     self.emit("}".to_string());
-                    self.emit(format!("{}_brk: __attribute__((unused));", lab));
+                    self.emit(format!("if (0) {{ goto {}_brk; }}", lab));
+                self.emit(format!("{}_brk: ;", lab));
                     self.ind -= 1;
                     self.emit("}".to_string());
                     return;
@@ -1218,11 +1229,13 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 self.loop_labels
                     .push((label.clone(), self.defers.len(), lab.clone()));
                 self.block(Some(body), None, None);
-                self.emit(format!("{}_cont: __attribute__((unused));", lab));
+                self.emit(format!("if (0) {{ goto {}_cont; }}", lab));
+                self.emit(format!("{}_cont: ;", lab));
                 self.loop_labels.pop();
                 self.ind -= 1;
                 self.emit("}".to_string());
-                self.emit(format!("{}_brk: __attribute__((unused));", lab));
+                self.emit(format!("if (0) {{ goto {}_brk; }}", lab));
+                self.emit(format!("{}_brk: ;", lab));
                 self.ind -= 1;
                 self.emit("}".to_string());
             }
@@ -1254,11 +1267,13 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 self.loop_labels
                     .push((label.clone(), self.defers.len(), lab.clone()));
                 self.block(Some(body), None, None);
-                self.emit(format!("{}_cont: __attribute__((unused));", lab));
+                self.emit(format!("if (0) {{ goto {}_cont; }}", lab));
+                self.emit(format!("{}_cont: ;", lab));
                 self.loop_labels.pop();
                 self.ind -= 1;
                 self.emit("}".to_string());
-                self.emit(format!("{}_brk: __attribute__((unused));", lab));
+                self.emit(format!("if (0) {{ goto {}_brk; }}", lab));
+                self.emit(format!("{}_brk: ;", lab));
                 self.ind -= 1;
                 self.emit("}".to_string());
             }
@@ -1281,11 +1296,22 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
         self.ind += 1;
         self.block(Some(body), None, None);
         // continue 跳到这里，随后执行 `}` 重新进入 while 条件判断
-        self.emit(format!("{}_cont: __attribute__((unused));", lab));
+        self.emit(format!("if (0) {{ goto {}_cont; }}", lab));
+                self.emit(format!("{}_cont: ;", lab));
         self.ind -= 1;
         self.emit("}".to_string());
         self.loop_labels.pop();
-        self.emit(format!("{}_brk: __attribute__((unused));", lab));
+        self.emit(format!("if (0) {{ goto {}_brk; }}", lab));
+                self.emit(format!("{}_brk: ;", lab));
+    }
+
+    /// `unsafe { ... }`：不安全块，在 C 层直接展开块内容（C 本身即不安全）。
+    fn unsafe_stmt(&mut self, s: &'a ast::N<Stmt>) {
+        let body = match &s.k {
+            Stmt::Unsafe { body } => body,
+            _ => unreachable!(),
+        };
+        self.block(Some(body), None, None);
     }
 }
 

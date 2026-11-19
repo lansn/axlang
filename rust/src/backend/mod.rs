@@ -744,7 +744,7 @@ impl<'s, 'a> CodeGen<'s, 'a> {
             // __attribute__((unused))：只被编译期常量折叠用到的 const，
             // 在生成代码里可能一次都没出现，避免 -Werror 报 unused-const-variable
             out.push(format!(
-                "static const {} {} __attribute__((unused)) = {};",
+                "static const {} {} = {};",
                 self.ct(&ty),
                 self.const_name(n),
                 self.const_c(&value, &ty)
@@ -965,7 +965,7 @@ impl<'s, 'a> CodeGen<'s, 'a> {
                 let iname = format!("Iface_{}", san(&id.name));
                 let vt_name = format!("{}__{}__VT_", san(&d.name), san(&id.name));
                 let mut lines = vec![format!(
-                    "__attribute__((unused)) static {}_VT {} = {{",
+                    "static {}_VT {} = {{",
                     iname, vt_name
                 )];
                 for (k, (mname, _, _, sig_fid)) in entries.iter().enumerate() {

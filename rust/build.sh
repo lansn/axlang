@@ -1,9 +1,17 @@
 #!/usr/bin/env bash
-# 构建 Rust 版 axc —— 不依赖当前 shell 的 PATH 是否已刷新。
+# 构建 Rust 版 axc —— 同时输出 Windows / Linux / macOS 三个平台的二进制。
 #
-# 背景：Windows 的环境变量在进程启动时就固定了。如果 rustup 安装完之后
-# 没有重启 IDE / 终端，老进程里 `cargo` 是不可见的，但注册表里的 PATH
-# 已经是新的。这里自己找 cargo，找不到再报错。
+# 不依赖当前 shell 的 PATH 是否已刷新。Windows 的环境变量在进程启动时
+# 就固定了，rustup 装完后已开着的终端里 cargo 可能不可见，这里自己找 cargo。
+#
+# 产物：
+#   dist/axc.exe         Windows 版（宿主平台，MSVC/GNU）
+#   dist/axc-linux       Linux 版（x86_64-unknown-linux-musl，静态链接，可在大多数 Linux 发行版运行）
+#   dist/axc-macos       macOS 版（x86_64-apple-darwin，需 macOS SDK，在 Windows 上构建会跳过）
+#
+# macOS 版在 Windows 宿主机上无法直接构建（缺 macOS SDK/链接器），脚本会尝试构建，
+# 失败时自动跳过并给出提示。如需 macOS 版，请在 macOS 机器上运行本脚本，
+# 或使用 GitHub Actions / CI 交叉编译。
 set -euo pipefail
 
 cd "$(dirname "$0")"
@@ -38,4 +46,49 @@ if [ -z "$found" ]; then
 fi
 
 echo "cargo: $found"
-exec "$found" build --release "$@"
+
+# 确保交叉编译目标已安装
+echo "检查并安装编译目标..."
+rustup target add x86_64-pc-windows-msvc    >/dev/null 2>&1 || true
+rustup target add x86_64-unknown-linux-musl >/dev/null 2>&1 || true
+rustup target add x86_64-apple-darwin       >/dev/null 2>&1 || true
+
+# 确保 dist 目录存在
+DIST_DIR="$(cd "$(dirname "$0")/.." && pwd)/dist"
+mkdir -p "$DIST_DIR"
+
+# ===== 1. Windows 版（宿主平台） =====
+echo ""
+echo "=== 构建 Windows 版 axc ==="
+"$found" build --release "$@"
+if [ $? -ne 0 ]; then
+    echo "Windows 版构建失败" >&2
+    exit 1
+fi
+cp "target/release/axc.exe" "$DIST_DIR/axc.exe"
+echo "已输出: $DIST_DIR/axc.exe"
+
+# ===== 2. Linux 版（musl 静态链接） =====
+echo ""
+echo "=== 构建 Linux 版 axc (x86_64-unknown-linux-musl) ==="
+"$found" build --release --target x86_64-unknown-linux-musl "$@"
+if [ $? -ne 0 ]; then
+    echo "Linux 版构建失败" >&2
+    exit 1
+fi
+cp "target/x86_64-unknown-linux-musl/release/axc" "$DIST_DIR/axc-linux"
+echo "已输出: $DIST_DIR/axc-linux"
+
+# ===== 3. macOS 版（可选，需 macOS SDK） =====
+echo ""
+echo "=== 尝试构建 macOS 版 axc (x86_64-apple-darwin) ==="
+if "$found" build --release --target x86_64-apple-darwin "$@" 2>/dev/null; then
+    cp "target/x86_64-apple-darwin/release/axc" "$DIST_DIR/axc-macos"
+    echo "已输出: $DIST_DIR/axc-macos"
+else
+    echo "macOS 版构建跳过（缺 macOS SDK/链接器，请在 macOS 机器上构建：cd rust && cargo build --release --target x86_64-apple-darwin）"
+fi
+
+echo ""
+echo "全部完成。产物目录: $DIST_DIR"
+ls -la "$DIST_DIR"

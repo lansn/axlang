@@ -1,0 +1,12 @@
+// FFI 原语正例：extern "C" 声明外部 C 函数，unsafe 块调用。
+// 调用 C 标准库 puts 输出字符串。
+extern "C" {
+    int puts(string s);
+}
+
+int main() {
+    unsafe {
+        puts("hello from axlang FFI")
+    }
+    return 0
+}

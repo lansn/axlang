@@ -273,7 +273,7 @@ impl Default for Opts {
             dump: None,
             emit_c: false,
             werror: false,
-            cc: std::env::var("AX_CC").unwrap_or_else(|_| "gcc".to_string()),
+            cc: default_cc(),
             keep: false,
             includes: Vec::new(),
             prog_args: Vec::new(),
@@ -282,6 +282,26 @@ impl Default for Opts {
             lang: None,
         }
     }
+}
+
+/// 默认 C 编译器：优先使用用户新安装的 GCC 16.2.0（路径固定，无警告）；
+/// 否则回退到系统 PATH 中的 `gcc`。用户可通过 `AX_CC` 环境变量或 `--cc=` 覆盖。
+fn default_cc() -> String {
+    if let Ok(v) = std::env::var("AX_CC") {
+        return v;
+    }
+    // 在 Windows 上，Rust 的 Path 需要使用 "D:/..." 或 "D:\\..." 格式的绝对路径，
+    // Git Bash 风格的 "/d/..." 相对路径不会被识别为存在的文件。
+    let new_gcc = "D:/Portable/mingw64/bin/gcc.exe";
+    if std::path::Path::new(new_gcc).exists() {
+        return new_gcc.to_string();
+    }
+    // 也尝试反斜杠形式（兼容手动输入）
+    let new_gcc_bs = "D:\\Portable\\mingw64\\bin\\gcc.exe";
+    if std::path::Path::new(new_gcc_bs).exists() {
+        return new_gcc_bs.to_string();
+    }
+    "gcc".to_string()
 }
 
 pub fn parse_args(argv: &[String]) -> Opts {
@@ -351,7 +371,7 @@ pub fn print_help() {
     println!("  -I <dir>            追加模块搜索根（可多次；入口文件目录优先）");
     println!("  -o <path>           输出文件名");
     println!("  --emit=c            只输出 C 源码到 stdout");
-    println!("  --dump=ast|types|c  打印中间产物");
+    println!("  --dump=ast|hir|types|c  打印中间产物");
     println!("  --diag=text|json    诊断格式，json 为 JSONL");
     println!("  -Werror             警告视为错误");
     println!("  --cc=<path>         指定 C 编译器");
@@ -463,6 +483,12 @@ pub fn run(argv: &[String]) -> i32 {
     }
 
     let s = sema::analyze_multi(&mod_, &mut d, &path, need_main, extras, path_canon);
+
+    // --dump=hir：语义检查完成后输出高级中间表示
+    if opts.dump.as_deref() == Some("hir") {
+        println!("{}", s.dump_hir());
+        return 0;
+    }
 
     // 借用说明：Sema 持有 &mut Diags，此后诊断统一从 s.d 读
     if (*s.d).has_error() {
