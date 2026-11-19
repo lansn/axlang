@@ -1,4 +1,7 @@
 public class Product {
     public string Name
     constructor(string name) { this.Name = name }
+    public string Tag() {
+        return "b"
+    }
 }

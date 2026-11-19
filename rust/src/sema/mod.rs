@@ -816,8 +816,9 @@ impl<'a> Sema<'a> {
     }
 
     /// 在已导入模块的公开导出里找同名类型。唯一命中直接用；
-    /// 两个模块都导出同名类型时报 `E3042`——裸名此时没有唯一答案，猜一个必错。
-    fn imported_type_bare(&mut self, name: &str, tok: &Tok) -> Option<u32> {
+    /// 两个模块都导出同名类型时不再报歧义，按导入视图名字典序取第一个，
+    /// 行为确定、不随 HashMap 顺序漂移（文稿 9.2，#11 具名导入歧义）。
+    fn imported_type_bare(&mut self, name: &str, _tok: &Tok) -> Option<u32> {
         let views: Vec<(String, String)> = {
             let mut v: Vec<(String, String)> = self
                 .active_views
@@ -845,34 +846,7 @@ impl<'a> Sema<'a> {
         if hits.is_empty() {
             return None;
         }
-        if hits.len() > 1 {
-            let mut srcs: Vec<String> = Vec::new();
-            for (v, _) in &hits {
-                let s = self.view_display(v);
-                if !srcs.contains(&s) {
-                    srcs.push(s);
-                }
-            }
-            // 同一行常常「类型标注 + new」各解析一次，只报一条
-            let key = format!("{}:{}:{}", self.cur_mod_path, tok.line, name);
-            if self.bare_type_ambig.insert(key) {
-                self.err(
-                    "E3042",
-                    tok,
-                    "文稿 9.2",
-                    "`{0}` 有歧义：{1} 都导出了同名类型；请写全路径 `{2}.{3}` 或改用 `import {4}.{{{5}}}`",
-                    &[
-                        &name,
-                        &srcs.join(" 与 "),
-                        &srcs[0],
-                        &name,
-                        &srcs[0],
-                        &name,
-                    ],
-                );
-            }
-            return Some(hits[0].1);
-        }
+        // 多个模块导出同名类型时，不报歧义，按导入视图名字典序取第一个
         Some(hits[0].1)
     }
 
