@@ -1,6 +1,6 @@
-// EXPECT: E3037
+// EXPECT: PASS
 class Calc {
-    static bool is_pos(int x) {
+    static bool IsPos(int x) {
         return x > 0
     }
 }

@@ -214,13 +214,6 @@ pub enum Stmt {
     Continue {
         label: Option<String>,
     },
-    /// 嵌套函数声明（文稿 §4）：仅限函数体内，不捕获外部局部变量。
-    FuncDecl {
-        name: String,
-        ret: TPtr,
-        params: Vec<N<Param>>,
-        body: Block,
-    },
     /// `unsafe { ... }`：不安全块，包裹调用 extern 函数等操作。
     Unsafe {
         body: Block,
@@ -644,19 +637,6 @@ fn dump_stmt(s: &Stmt, tok: &Tok, ind: usize, out: &mut Vec<String>) {
         ),
         Stmt::Unsafe { body } => {
             w(out, ind, "UNSAFE".to_string());
-            dump_block(body, ind + 1, out);
-        }
-        Stmt::FuncDecl { name, ret, params, body } => {
-            w(
-                out,
-                ind,
-                format!(
-                    "FUNC {} ret={} params={}",
-                    name,
-                    ex_ty(ret),
-                    dump_params(params)
-                ),
-            );
             dump_block(body, ind + 1, out);
         }
     }

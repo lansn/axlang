@@ -1,4 +1,4 @@
-// EXPECT: E3037
+// EXPECT: PASS
 class Outer {
     class Inner {
     }

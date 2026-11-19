@@ -2289,102 +2289,6 @@ impl<'a> Sema<'a> {
         self.set_active_module(&None);
     }
 
-    // 预注册函数体内直接出现的嵌套函数声明（不检查函数体），使同体内的
-    // 前向/相互递归调用能在名称解析阶段找到目标；真正的语义检查在
-    // check_stmt 中逐个 check_func 进行。
-    fn pre_register_nested_funcs(&mut self, b: &'a ast::Block) {
-        for s in &b.stmts {
-            if let Stmt::FuncDecl {
-                name, ret, params, body, ..
-            } = &s.k
-            {
-                let ret_ty = self.resolve_type(ret);
-                let mut ptys = Vec::with_capacity(params.len());
-                for p in params {
-                    ptys.push((
-                        p.k.name.clone(),
-                        self.resolve_type(&p.k.ty),
-                        p.k.borrow.clone(),
-                    ));
-                }
-                self.register_nested_func(&s.tok, name, ret_ty, ptys, body);
-            }
-        }
-    }
-
-    /// 把一个嵌套函数注册到全局 `funcs` 表，并挂到父函数的 `nested` 表里。
-    /// 名称带上父函数注册名作为前缀（`父$子`），避免不同函数体内的同名嵌套函数冲突。
-    fn register_nested_func(
-        &mut self,
-        tok: &Tok,
-        name: &str,
-        ret: Ty,
-        params: Vec<(String, Ty, Option<String>)>,
-        body: &'a ast::Block,
-    ) -> usize {
-        let cur = match self.current_func {
-            Some(f) => f,
-            None => {
-                self.err(
-                    "E3044",
-                    tok,
-                    "N-40",
-                    "嵌套函数只能在函数体内声明",
-                    &[],
-                );
-                return 0;
-            }
-        };
-        let reg = format!("{}${name}", self.funcs[cur].name);
-        if self.func_by_name.contains_key(&reg) {
-            self.err(
-                "E3044",
-                tok,
-                "N-40",
-                "嵌套函数 `{0}` 在本函数体内重复定义",
-                &[&name],
-            );
-        }
-        let f = FuncInfo {
-            name: reg.clone(),
-            tok: tok.clone(),
-            module: self.cur_mod_path.clone(),
-            owner: None,
-            params,
-            ret,
-            generics: Vec::new(),
-            vis: "private".to_string(),
-            is_static: false,
-            is_override: false,
-            body: Some(body),
-            implicit: false,
-            gdepth: 0,
-            mangle: None,
-            parent: Some(cur),
-            nested: BTreeMap::new(),
-        };
-        self.funcs.push(f);
-        let fid = self.funcs.len() - 1;
-        self.func_by_name.insert(reg, fid);
-        self.funcs[cur].nested.insert(name.to_string(), fid);
-        fid
-    }
-
-    /// 沿当前函数及其祖先的 `nested` 表查找嵌套函数（裸名调用）。
-    fn lookup_nested_func(&self, name: &str) -> Option<usize> {
-        let mut cur = self.current_func?;
-        loop {
-            if let Some(&fid) = self.funcs[cur].nested.get(name) {
-                return Some(fid);
-            }
-            let p = match self.funcs[cur].parent {
-                Some(p) => p,
-                None => return None,
-            };
-            cur = p;
-        }
-    }
-
     // ---------------------------------------------------------------- 函数体
 
     fn check_func(&mut self, f: usize) {
@@ -2489,7 +2393,6 @@ impl<'a> Sema<'a> {
             }
         }
         if let Some(b) = body {
-            self.pre_register_nested_funcs(b);
             self.check_block(b, false);
         }
         let is_void = matches!(&*ret, TyS::Void);

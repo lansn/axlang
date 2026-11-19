@@ -709,18 +709,17 @@ impl<'a> Parser<'a> {
             || self.at("type")
         {
             // 外层已读取的可见性（public/protected/private）归嵌套类型使用，
-            // 避免重复消耗导致 sub_vis 为 None 而误报 E3037。
-            let sub_vis = vis.take().or_else(|| {
-                if self.at("public") || self.at("protected") || self.at("private") {
-                    Some(self.advance().kind.clone())
-                } else {
-                    None
+            // 避免重复消耗导致 sub_vis 为 None。不写可见性时默认 private。
+            let sub_vis = match vis.take() {
+                Some(v) => Some(v),
+                None => {
+                    if self.at("public") || self.at("protected") || self.at("private") {
+                        Some(self.advance().kind.clone())
+                    } else {
+                        Some("private".to_string())
+                    }
                 }
-            });
-            // 嵌套类型同为类成员，可见性同样必须显式
-            if sub_vis.is_none() {
-                self.err("E3037", Some(&self.tok(0).clone()), "文稿 6.1", "嵌套类型缺少可见性修饰符：必须显式写 `public`、`private` 或 `protected`", &[]);
-            }
+            };
             let it = if self.at("class") {
                 self.parse_class(sub_vis)?
             } else if self.at("struct") {
@@ -736,11 +735,8 @@ impl<'a> Parser<'a> {
         }
         let ty = self.parse_type()?;
         let name = self.expect_ident("成员名")?;
-        // 类成员可见性必须显式（文稿 6.1）："谁能调"要一眼可见，
-        // 不留"不写就是私有"这类需要预先学习的默认规则。
-        // 恢复值取 private（= 旧默认），只报诊断不级联。
+        // 类成员不写可见性修饰词时默认 private，如需对外暴露必须显式写 public
         if vis.is_none() {
-            self.err("E3037", Some(&name), "文稿 6.1", "类成员缺少可见性修饰符：必须显式写 `public`、`private` 或 `protected`", &[]);
             vis = Some("private".to_string());
         }
         if self.at("(") {
@@ -1319,13 +1315,6 @@ impl<'a> Parser<'a> {
             Ok(ty) => {
                 if self.at("IDENT") {
                     let name = self.advance();
-                    if self.at("<") {
-                        return self.fail("E3044", &self.tok(0), "G-1", "嵌套函数不支持泛型参数", &[]);
-                    }
-                    if self.at("(") {
-                        // 嵌套函数声明：文稿 §4（函数体内，不捕获外部变量）
-                        return self.parse_nested_func(name, ty).map(Some);
-                    }
                     if self.at("=") {
                         // 已提交为声明：此后任何解析错误都必须向上传播
                         self.advance();
@@ -1386,27 +1375,6 @@ impl<'a> Parser<'a> {
             )));
         }
         Ok(Some(self.nn(t, Stmt::Simple { lhs, op: None, rhs: None, incdec: None })))
-    }
-
-    /// 嵌套函数：`int add(int a, int b) { return a + b; }`（文稿 §4）。
-    /// 不支持泛型、可见性修饰符与属性；不捕获外部局部变量。
-    fn parse_nested_func(&mut self, name_tok: Tok, ret: TPtr) -> PResult<N<Stmt>> {
-        let name = name_tok.text().to_string();
-        if self.at("<") {
-                return self.fail("E3044", &self.tok(0), "G-1", "嵌套函数不支持泛型参数", &[]);
-        }
-        let params = self.parse_params()?;
-        self.nl();
-        let body = self.parse_block()?;
-        Ok(self.nn(
-            name_tok,
-            Stmt::FuncDecl {
-                name,
-                ret,
-                params,
-                body,
-            },
-        ))
     }
 
     /// 语句级 `const`：与模块级 ConstDecl 同构（sema 走 check_local_const）。

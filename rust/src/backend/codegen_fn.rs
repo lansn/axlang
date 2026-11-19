@@ -320,10 +320,6 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             Stmt::Break { .. } => self.break_stmt(s, true),
             Stmt::Continue { .. } => self.break_stmt(s, false),
             Stmt::Const { .. } => self.var_decl(s),
-            Stmt::FuncDecl { .. } => {
-                // 嵌套函数已在 backend::run() 中作为独立顶层 C 函数生成，
-                // 语句位置不再发代码。
-            }
         }
     }
 

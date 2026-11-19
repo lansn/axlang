@@ -1,6 +1,6 @@
-// EXPECT: E3037
+// EXPECT: PASS
 class Bag {
-    int n
+    int N
     constructor(int n) {
         this.N = n
     }

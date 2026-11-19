@@ -788,25 +788,6 @@ impl<'a> Sema<'a> {
                 return t_fn(fi.params.iter().map(|p| p.1.clone()).collect(), fi.ret.clone());
             }
         }
-        // 嵌套函数：在当前函数及其祖先的嵌套函数表里按裸名查找（文稿 §4）。
-        // 不捕获外部变量：嵌套函数体内看不到父函数的局部变量，只能用参数、
-        // 全局 const/函数和自身定义的局部。
-        if let Some(f) = self.lookup_nested_func(name) {
-            let (vis, module, params_tys, ret) = {
-                let fi = &self.funcs[f];
-                (
-                    fi.vis.clone(),
-                    fi.module.clone(),
-                    fi.params.iter().map(|p| p.1.clone()).collect(),
-                    fi.ret.clone(),
-                )
-            };
-            if vis != "public" && module != self.cur_mod_path {
-                self.err("E3013", &e.tok, "N-8", "`{0}` 不是 public，不能跨模块使用", &[&name]);
-            }
-            self.sl(e.id).res = Some(Res::Func(f));
-            return t_fn(params_tys, ret);
-        }
         if let Some(d) = self.lookup_type_name(name, &e.tok) {
             self.sl(e.id).res = Some(Res::Type(d));
             return Rc::new(TyS::Meta(name.clone()));
@@ -989,10 +970,6 @@ impl<'a> Sema<'a> {
                     if let Some(&f) = self.func_by_name.get(&format!("{}__{}", canon, name)) {
                         return self.call_func(e, f, args, targs);
                     }
-                }
-                // 嵌套函数：在当前函数及其祖先的嵌套函数表里按裸名查找（文稿 §4）。
-                if let Some(f) = self.lookup_nested_func(name) {
-                    return self.call_func(e, f, args, targs);
                 }
             }
             if segs.len() == 1 && (name == "ok" || name == "fail") {

@@ -339,20 +339,6 @@ impl<'a> Sema<'a> {
                 }
             }
             Stmt::Const { .. } => self.check_local_const(s),
-            Stmt::FuncDecl { .. } => {
-                // 名称已在 check_func 的 pre_register_nested_funcs 阶段注册到
-                // funcs/func_by_name 与父函数的 nested 表；这里只检查函数体。
-                // check_func 会替换 scope（parent: None），因此嵌套函数体内
-                // 看不到父函数的局部变量（不捕获外部变量）。
-                let name = match &s.k {
-                    Stmt::FuncDecl { name, .. } => name.clone(),
-                    _ => unreachable!(),
-                };
-                let cur = self.current_func.expect("嵌套函数只能在函数体内出现");
-                let reg = format!("{}${name}", self.funcs[cur].name);
-                let fid = self.func_by_name[&reg];
-                self.check_func(fid);
-            }
         }
         self.scan_stmt_uses();
     }

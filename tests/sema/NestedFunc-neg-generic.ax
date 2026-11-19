@@ -1,8 +1,0 @@
-// EXPECT: E3044
-// 嵌套函数不支持泛型。
-int main() {
-    return 0
-    int g<T>(T a) {
-        return a
-    }
-}
