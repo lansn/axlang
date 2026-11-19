@@ -2829,6 +2829,128 @@ impl<'a> Sema<'a> {
         }
         false
     }
+
+    // ---------------------------------------------------------------- HIR dump（§1.2 --dump=hir）
+
+    /// 输出语义检查后的高级中间表示（HIR）：模块、导入、类型定义、
+    /// 函数签名、常量表。供 `--dump=hir` 打印用。
+    pub fn dump_hir(&self) -> String {
+        let mut out: Vec<String> = Vec::new();
+        out.push(format!("// HIR dump — module: {}", self.path));
+        out.push(String::new());
+
+        // 导入
+        out.push("// ===== imports =====".to_string());
+        let mut imports: Vec<&String> = self.imports.iter().collect();
+        imports.sort();
+        for imp in &imports {
+            out.push(format!("import {imp};"));
+        }
+        out.push(String::new());
+
+        // 类型定义
+        out.push("// ===== type definitions =====".to_string());
+        for td in &self.typedefs {
+            out.push(format!(
+                "type {} {} {}",
+                td.vis, td.kind, td.name
+            ));
+            if !td.generics.is_empty() {
+                let gs: Vec<String> = td
+                    .generics
+                    .iter()
+                    .map(|(n, cons)| format!("{n}({})", cons.join(" + ")))
+                    .collect();
+                out.push(format!("  generics: {}", gs.join(", ")));
+            }
+            if let Some(p) = td.parent {
+                if let Some(pd) = self.typedefs.get(p as usize) {
+                    out.push(format!("  extends: {}", pd.name));
+                }
+            }
+            if !td.impls.is_empty() {
+                let ifs: Vec<String> = td
+                    .impls
+                    .iter()
+                    .filter_map(|&i| self.typedefs.get(i as usize).map(|d| d.name.clone()))
+                    .collect();
+                out.push(format!("  implements: {}", ifs.join(", ")));
+            }
+            for (fname, fty, _, _) in &td.fields {
+                out.push(format!("  field {}: {}", fname, self.ts(fty)));
+            }
+            out.push(String::new());
+        }
+
+        // 函数
+        out.push("// ===== functions =====".to_string());
+        let mut func_ids: Vec<usize> = (0..self.funcs.len()).collect();
+        func_ids.sort_by_key(|&f| self.funcs[f].name.clone());
+        for f in &func_ids {
+            let fi = &self.funcs[*f];
+            out.push(format!(
+                "func {}{}({}) -> {}",
+                fi.vis,
+                fi.name,
+                fi.params
+                    .iter()
+                    .map(|(n, t, _)| format!("{n}: {}", self.ts(t)))
+                    .collect::<Vec<_>>()
+                    .join(", "),
+                self.ts(&fi.ret)
+            ));
+            if !fi.generics.is_empty() {
+                let gs: Vec<String> = fi
+                    .generics
+                    .iter()
+                    .map(|(n, cons)| format!("{n}({})", cons.join(" + ")))
+                    .collect();
+                out.push(format!("  generics: {}", gs.join(", ")));
+            }
+            if fi.is_static {
+                out.push("  static".to_string());
+            }
+            if fi.is_override {
+                out.push("  override".to_string());
+            }
+            if let Some(owner) = fi.owner {
+                if let Some(od) = self.typedefs.get(owner as usize) {
+                    out.push(format!("  owner: {}", od.name));
+                }
+            }
+            out.push(String::new());
+        }
+
+        // 常量
+        out.push("// ===== constants =====".to_string());
+        let mut const_names: Vec<&String> = self.consts.keys().collect();
+        const_names.sort();
+        for name in &const_names {
+            let cc = self.consts.get(*name).unwrap();
+            let ty = cc.ty.borrow();
+            let val = cc.value.borrow();
+            out.push(format!(
+                "const {}: {} = {};",
+                name,
+                self.ts(&*ty),
+                val.as_ref()
+                    .map(|v| match v {
+                        ConstVal::Int(i) => i.to_string(),
+                        ConstVal::Float(f) => f.to_string(),
+                        ConstVal::Bool(b) => b.to_string(),
+                        ConstVal::Str(s) => format!("\"{}\"", s),
+                        ConstVal::Dec(c, sc) => format!("{}d@{}", c, sc),
+                        ConstVal::Rounding(n) => format!("rounding({n})"),
+                        ConstVal::Enum(id, n) => format!("enum({id}, {n})"),
+                        ConstVal::Null => "null".to_string(),
+                    })
+                    .unwrap_or_else(|| "<?unresolved>".to_string())
+            ));
+        }
+        out.push(String::new());
+        out.push("// ===== end HIR =====".to_string());
+        out.join("\n")
+    }
 }
 
 // ---------------------------------------------------------------- 可赋值上下文

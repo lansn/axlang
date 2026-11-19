@@ -2260,13 +2260,20 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 let kv = self.declare(&kt, &k);
                 let pa = self.pos_args(&e.tok);
                 let vtc = self.cg.ct(&vt);
+                // keydesc：string 键传实际键值，使 R101 崩溃消息里显示真实键
+                //（如 `key not found: b`）；其余类型保留类型描述，避免 %s 读
+                // 非字符串内存。
+                let keydesc = match &*kt {
+                    TyS::Str => format!("(const char*){}.p", kv),
+                    _ => cstr("key"),
+                };
                 format!(
                     "*({}*)ax_map_get_chk(&{}, &{}, {}, {})",
                     vtc,
                     m,
                     kv,
                     pa,
-                    cstr("key")
+                    keydesc
                 )
             }
             TyS::Array(et, len) => {
