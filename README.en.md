@@ -1,4 +1,4 @@
-# axc — axlang Compiler (v0.0.27, taking shape)
+# axc — axlang Compiler
 
 axlang is a statically-typed compiled language generated entirely by AI, including compiler/library/docs.
 
