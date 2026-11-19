@@ -1115,6 +1115,9 @@ impl<'a> Sema<'a> {
                 ("CodepointAt", vec![t_int()], t_nullable(t_int())),
                 ("Contains", vec![t_string()], t_bool()),
                 ("Split", vec![t_string()], t_array(t_string(), None)),
+                // 子串查找：按 UTF-8 码点索引返回，未找到返回 -1
+                ("IndexOf", vec![t_string()], t_int()),
+                ("LastIndexOf", vec![t_string()], t_int()),
                 ("ToString", vec![], t_string()),
                 ("Trim", vec![], t_string()),
                 // C# 风格字符串截取（按码点，安全处理越界）

@@ -70,6 +70,9 @@ int     ax_str_at(ax_str s, int64_t i, ax_str* out);
 int     ax_str_codepoint_at(ax_str s, int64_t i, int32_t* out);
 int     ax_str_from_codepoint(int32_t cp, ax_str* out);
 int     ax_str_contains(ax_str s, ax_str sub);
+/* 子串查找：按 UTF-8 码点索引返回，未找到返回 -1；空子串匹配索引 0 */
+int64_t ax_str_index_of(ax_str s, ax_str sub);
+int64_t ax_str_last_index_of(ax_str s, ax_str sub);
 ax_str* ax_str_split(ax_str s, ax_str sep, int64_t* n);
 ax_str  ax_str_trim(ax_str s);
 

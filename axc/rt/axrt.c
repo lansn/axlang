@@ -466,6 +466,43 @@ int ax_str_contains(ax_str s, ax_str sub) {
     return 0;
 }
 
+/* ---------------- 子串查找（按 UTF-8 码点索引，未找到返回 -1） ---------------- */
+
+/* 返回 sub 在 s 中首次出现的码点索引；空子串匹配索引 0。 */
+int64_t ax_str_index_of(ax_str s, ax_str sub) {
+    if (sub.len == 0) return 0;
+    if (sub.len > s.len) return -1;
+    int64_t cp_idx = 0;
+    int64_t i = 0;
+    while (i + sub.len <= s.len) {
+        if (memcmp(s.p + i, sub.p, (size_t)sub.len) == 0) return cp_idx;
+        int32_t cp;
+        int k = u8_decode(s.p + i, s.len - i, &cp);
+        if (k <= 0) k = 1;
+        i += k;
+        cp_idx++;
+    }
+    return -1;
+}
+
+/* 返回 sub 在 s 中最后出现的码点索引；空子串匹配尾部索引。 */
+int64_t ax_str_last_index_of(ax_str s, ax_str sub) {
+    if (sub.len == 0) return ax_str_len_cp(s);
+    if (sub.len > s.len) return -1;
+    int64_t cp_idx = 0;
+    int64_t i = 0;
+    int64_t last = -1;
+    while (i + sub.len <= s.len) {
+        if (memcmp(s.p + i, sub.p, (size_t)sub.len) == 0) last = cp_idx;
+        int32_t cp;
+        int k = u8_decode(s.p + i, s.len - i, &cp);
+        if (k <= 0) k = 1;
+        i += k;
+        cp_idx++;
+    }
+    return last;
+}
+
 ax_str* ax_str_split(ax_str s, ax_str sep, int64_t* n) {
     int64_t cap = 8, cnt = 0;
     ax_str* out = (ax_str*)ax_alloc((int64_t)sizeof(ax_str) * cap);
