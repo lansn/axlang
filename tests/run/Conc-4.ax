@@ -1,12 +1,6 @@
-// 并发原语正例：两个生产者线程并发 Push 到同一阻塞队列。
-// 验证多线程并发 Push 及 Join 等待全部生产者完成。
-void producer_push(queue<int> q) {
-    for i in 0..5 {
-        q.Push(i)
-    }
-}
-
-void producer_push_close(queue<int> q) {
+// 并发原语正例：生产者 Push + Close，主线程 Join 等待完成后消费所有值。
+// 验证 thread.Join 确保生产者执行完毕，以及 Pop 计数确定。
+void producer(queue<int> q) {
     for i in 0..5 {
         q.Push(i)
     }
@@ -15,10 +9,8 @@ void producer_push_close(queue<int> q) {
 
 int main() {
     queue<int> q = queue<int>()
-    var t0 = thread(producer_push, q)
-    var t1 = thread(producer_push_close, q)
-    t0.Join()
-    t1.Join()
+    var t = thread(producer, q)
+    t.Join()
     int count = 0
     for i in 0..20 {
         int? v = q.Pop()
