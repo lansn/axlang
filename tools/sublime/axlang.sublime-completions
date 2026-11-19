@@ -1,0 +1,148 @@
+{
+	// axlang 语法提示（Sublime Text 自动补全）
+	// 依据 rust/src/frontend/lexer.rs 与 docs/STDLIB.md 生成
+	// 安装：与 axlang.sublime-syntax 一同放入 Packages/User/ 或 Packages/axlang/
+	"scope": "source.ax",
+
+	"completions": [
+		// ===== 关键字 =====
+		{"trigger": "var", "contents": "var ${1:name} = ${2:value}"},
+		{"trigger": "const", "contents": "const ${1:NAME} = ${2:value}"},
+		{"trigger": "class", "contents": "class ${1:Name} {\n\tpublic ${2:int} ${3:field}\n\n\tpublic constructor(${4:args}) {\n\t\tthis.${3:field} = ${4:args}\n\t}\n}"},
+		{"trigger": "struct", "contents": "struct ${1:Name} {\n\t${2:int} ${3:field}\n}"},
+		{"trigger": "interface", "contents": "interface ${1:Name} {\n\tpublic ${2:string} ${3:Method}()\n}"},
+		{"trigger": "enum", "contents": "enum ${1:Name} {\n\t${2:MemberA}\n\t${3:MemberB}\n}"},
+		{"trigger": "extend", "contents": "extend ${1:Parent}"},
+		{"trigger": "implement", "contents": "implement ${1:Interface}"},
+		{"trigger": "if", "contents": "if ${1:cond} {\n\t${2}\n}"},
+		{"trigger": "ifelse", "contents": "if ${1:cond} {\n\t${2}\n} else {\n\t${3}\n}"},
+		{"trigger": "else", "contents": "else {\n\t${1}\n}"},
+		{"trigger": "for", "contents": "for ${1:x} in ${2:0..10} {\n\t${3}\n}"},
+		{"trigger": "forin", "contents": "for ${1:x} in ${2:items} {\n\t${3}\n}"},
+		{"trigger": "while", "contents": "while ${1:cond} {\n\t${2}\n}"},
+		{"trigger": "match", "contents": "match ${1:value} {\n\t${2:pattern} => ${3}\n\t_ => ${4}\n}"},
+		{"trigger": "return", "contents": "return ${1:value}"},
+		{"trigger": "try", "contents": "try ${1:expr}"},
+		{"trigger": "trycatch", "contents": "try {\n\t${1}\n} catch ${2:e} {\n\t${3}\n} finally {\n\t${4}\n}"},
+		{"trigger": "catch", "contents": "catch ${1:e} {\n\t${2}\n}"},
+		{"trigger": "finally", "contents": "finally {\n\t${1}\n}"},
+		{"trigger": "throw", "contents": "throw ${1:e}"},
+		{"trigger": "defer", "contents": "defer ${1:cleanup()}"},
+		{"trigger": "import", "contents": "import ${1:json}"},
+		{"trigger": "importas", "contents": "import ${1:json} as ${2:j}"},
+		{"trigger": "new", "contents": "new ${1:Name}(${2})"},
+		{"trigger": "constructor", "contents": "public constructor(${1:args}) {\n\t${2}\n}"},
+
+		// ===== 内建类型 =====
+		{"trigger": "int", "contents": "int"},
+		{"trigger": "int8", "contents": "int8"},
+		{"trigger": "int16", "contents": "int16"},
+		{"trigger": "int32", "contents": "int32"},
+		{"trigger": "uint", "contents": "uint"},
+		{"trigger": "uint8", "contents": "uint8"},
+		{"trigger": "uint16", "contents": "uint16"},
+		{"trigger": "uint32", "contents": "uint32"},
+		{"trigger": "float", "contents": "float"},
+		{"trigger": "decimal", "contents": "decimal"},
+		{"trigger": "string", "contents": "string"},
+		{"trigger": "bool", "contents": "bool"},
+		{"trigger": "object", "contents": "object"},
+		{"trigger": "void", "contents": "void"},
+		{"trigger": "result", "contents": "result<${1:T}>"},
+		{"trigger": "error", "contents": "error"},
+		{"trigger": "map", "contents": "map<${1:string}, ${2:object}>"},
+		{"trigger": "func", "contents": "func(${1:T}) ${2:T}"},
+		{"trigger": "range", "contents": "range"},
+		{"trigger": "Rounding", "contents": "Rounding"},
+
+		// ===== 全局函数 =====
+		{"trigger": "print", "contents": "print(${1:s})"},
+		{"trigger": "println", "contents": "println(${1:s})"},
+		{"trigger": "ok", "contents": "ok(${1:v})"},
+		{"trigger": "fail", "contents": "fail(${1:e})"},
+		{"trigger": "typeof", "contents": "typeof(${1:expr})"},
+		{"trigger": "sizeof", "contents": "sizeof(${1:expr})"},
+		{"trigger": "parent", "contents": "parent(${1:args})"},
+		{"trigger": "len", "contents": "len(${1:x})"},
+		{"trigger": "max", "contents": "max(${1:a}, ${2:b})"},
+		{"trigger": "min", "contents": "min(${1:a}, ${2:b})"},
+
+		// ===== 内建模块成员 =====
+		{"trigger": "db.Query", "contents": "db.Query(${1:sql})"},
+		{"trigger": "file.Open", "contents": "file.Open(${1:path})"},
+		{"trigger": "file.Create", "contents": "file.Create(${1:path})"},
+		{"trigger": "file.Append", "contents": "file.Append(${1:path})"},
+		{"trigger": "io.ReadLine", "contents": "io.ReadLine()"},
+		{"trigger": "io.ReadFile", "contents": "io.ReadFile(${1:path})"},
+		{"trigger": "json.Parse", "contents": "json.Parse(${1:s})"},
+		{"trigger": "json.Stringify", "contents": "json.Stringify(${1:v})"},
+		{"trigger": "math.Equals", "contents": "math.Equals(${1:a}, ${2:b}, ${3:eps})"},
+		{"trigger": "math.Compare", "contents": "math.Compare(${1:a}, ${2:b})"},
+		{"trigger": "string.FromCodepoint", "contents": "string.FromCodepoint(${1:cp})"},
+		{"trigger": "time.Now", "contents": "time.Now()"},
+		{"trigger": "time.NowMs", "contents": "time.NowMs()"},
+		{"trigger": "time.FromUnixMs", "contents": "time.FromUnixMs(${1:ms})"},
+
+		// ===== string 实例方法 =====
+		{"trigger": ".Len", "contents": ".Len()"},
+		{"trigger": ".ByteLen", "contents": ".ByteLen()"},
+		{"trigger": ".At", "contents": ".At(${1:i})"},
+		{"trigger": ".Chars", "contents": ".Chars()"},
+		{"trigger": ".CodepointAt", "contents": ".CodepointAt(${1:i})"},
+		{"trigger": ".Contains", "contents": ".Contains(${1:sub})"},
+		{"trigger": ".IndexOf", "contents": ".IndexOf(${1:sub})"},
+		{"trigger": ".LastIndexOf", "contents": ".LastIndexOf(${1:sub})"},
+		{"trigger": ".Split", "contents": ".Split(${1:sep})"},
+		{"trigger": ".Trim", "contents": ".Trim()"},
+		{"trigger": ".Left", "contents": ".Left(${1:n})"},
+		{"trigger": ".Right", "contents": ".Right(${1:n})"},
+		{"trigger": ".Mid", "contents": ".Mid(${1:start}, ${2:n})"},
+		{"trigger": ".Upper", "contents": ".Upper()"},
+		{"trigger": ".Lower", "contents": ".Lower()"},
+		{"trigger": ".StartsWith", "contents": ".StartsWith(${1:p})"},
+		{"trigger": ".EndsWith", "contents": ".EndsWith(${1:p})"},
+		{"trigger": ".Join", "contents": ".Join(${1:parts})"},
+		{"trigger": ".Replace", "contents": ".Replace(${1:old}, ${2:new})"},
+		{"trigger": ".Repeat", "contents": ".Repeat(${1:n})"},
+		{"trigger": ".ToString", "contents": ".ToString()"},
+
+		// ===== 数组实例方法 =====
+		{"trigger": ".Push", "contents": ".Push(${1:v})"},
+		{"trigger": ".Pop", "contents": ".Pop()"},
+		{"trigger": ".Remove", "contents": ".Remove(${1:i})"},
+		{"trigger": ".Clear", "contents": ".Clear()"},
+		{"trigger": ".Sort", "contents": ".Sort(${1:cmp})"},
+
+		// ===== map 实例方法 =====
+		{"trigger": ".Get", "contents": ".Get(${1:key})"},
+		{"trigger": ".Keys", "contents": ".Keys()"},
+		{"trigger": ".Has", "contents": ".Has(${1:key})"},
+
+		// ===== decimal / int / Rounding =====
+		{"trigger": ".Round", "contents": ".Round(${1:scale}, Rounding.${2:HalfUp})"},
+		{"trigger": ".Divide", "contents": ".Divide(${1:other}, ${2:scale}, Rounding.${3:HalfUp})"},
+		{"trigger": ".WrappingAdd", "contents": ".WrappingAdd(${1:y})"},
+		{"trigger": ".Truncate", "contents": "Truncate(${1:x})"},
+		{"trigger": "Rounding.HalfUp", "contents": "Rounding.HalfUp"},
+		{"trigger": "Rounding.HalfEven", "contents": "Rounding.HalfEven"},
+		{"trigger": "Rounding.Down", "contents": "Rounding.Down"},
+
+		// ===== File / Row 实例方法 =====
+		{"trigger": ".Close", "contents": ".Close()"},
+		{"trigger": ".Read", "contents": ".Read()"},
+		{"trigger": ".ReadLine", "contents": ".ReadLine()"},
+		{"trigger": ".Write", "contents": ".Write(${1:s})"},
+		{"trigger": ".WriteLine", "contents": ".WriteLine(${1:s})"},
+		{"trigger": ".Empty", "contents": ".Empty()"},
+		{"trigger": ".GetString", "contents": ".GetString(${1:col})"},
+		{"trigger": ".GetInt", "contents": ".GetInt(${1:col})"},
+		{"trigger": ".GetDecimal", "contents": ".GetDecimal(${1:col})"},
+
+		// ===== time 实例方法 =====
+		{"trigger": ".UnixMs", "contents": ".UnixMs()"},
+		{"trigger": ".Format", "contents": ".Format(${1:fmt})"},
+
+		// ===== 静态解析 =====
+		{"trigger": ".Parse", "contents": ".Parse(${1:s})"}
+	]
+}

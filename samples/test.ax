@@ -1,19 +1,22 @@
-//int main(){
-print("hello")
-//print(123)
-int a = 10
+int main()
+{
+	println("hello")
+	println(123)
+	int a = 10
 
-//print(typeof(a),a)
-print(a+10)
-print(a+2)
-print(a+2, ",",a+5)
-print("{a+2}+++{a+5}")
+	println(typeof(a),a)
+	println(a+10)
+	println(a+2)
+	println(a+2, ",",a+5)
+	println("{a+2}+++{a+5}")
 
-string b="deefgget"
-print(b.Len())
+	string b="deefgget"
+	println("b=",b, "长度是：", b.Len())
 
-string a2 = "12ddd"
-string b2 = "1220"
-print(a2+b2)
+	string a2 = "12ddd"
+	string b2 = "1220"
+	println(a2+b2)
 
-//}
+	println(a2==b2)
+
+}

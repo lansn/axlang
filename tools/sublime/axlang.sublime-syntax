@@ -1,0 +1,193 @@
+%YAML 1.2
+---
+# axlang Sublime Text 语法定义（v0.47，依据 rust/src/frontend/lexer.rs 的
+# KEYWORDS / RESERVED_TYPES / OPS 与 docs/STDLIB.md 生成）
+# 安装：将本文件放入 Packages/User/（或新建 Packages/axlang/ 目录），
+# .ax 文件会通过 file_extensions 自动关联本语法。
+name: axlang
+file_extensions:
+  - ax
+scope: source.ax
+
+variables:
+  identifier: '[A-Za-z_][A-Za-z0-9_]*'
+  builtin_type: 'bool|int8|int16|int32|int|uint8|uint16|uint32|uint|float|decimal|string|object|void|result|error|func|map|Self|range|Rounding|Arena|ArenaRef'
+  module_name: 'db|file|io|json|math|string|time'
+
+contexts:
+  main:
+    - include: comments
+    - include: strings
+    - include: numbers
+    - include: attributes
+    - include: constants
+    - include: keywords
+    - include: modifiers
+    - include: types
+    - include: declarations
+    - include: stdlib_classes
+    - include: modules
+    - include: builtin_functions
+    - include: function_calls
+    - include: operators
+
+  comments:
+    # 单行注释
+    - match: '//.*$'
+      scope: comment.line.double-slash.ax
+    # 多行注释，支持嵌套
+    - match: '/\*'
+      scope: punctuation.definition.comment.begin.ax
+      push: block_comment
+
+  block_comment:
+    - meta_scope: comment.block.ax
+    - match: '/\*'
+      push: block_comment
+    - match: '\*/'
+      scope: punctuation.definition.comment.end.ax
+      pop: true
+
+  strings:
+    - match: '"'
+      scope: punctuation.definition.string.begin.ax
+      push: double_quoted_string
+
+  double_quoted_string:
+    - meta_scope: string.quoted.double.ax
+    - match: '\\.'
+      scope: constant.character.escape.ax
+    # 字符串插值 "{name}" / "{user.UserId}"
+    - match: '\{'
+      scope: punctuation.definition.interpolation.begin.ax
+      push: interpolation
+    - match: '"'
+      scope: punctuation.definition.string.end.ax
+      pop: true
+
+  interpolation:
+    - meta_scope: meta.interpolation.ax
+    - match: '\}'
+      scope: punctuation.definition.interpolation.end.ax
+      pop: true
+    - include: numbers
+    - include: constants
+    - include: keywords
+    - include: types
+    - include: operators
+    - match: '\.'
+      scope: punctuation.accessor.ax
+    - match: '{{identifier}}'
+      scope: variable.other.readwrite.ax
+
+  numbers:
+    # decimal 字面量（d 后缀）：19.99d / 3d
+    - match: '\b\d[\d_]*\.\d[\d_]*d\b'
+      scope: constant.numeric.decimal.ax
+    - match: '\b\d[\d_]*d\b'
+      scope: constant.numeric.decimal.ax
+    # 浮点字面量（推断为 float）
+    - match: '\b\d[\d_]*\.\d[\d_]*([eE][+-]?\d+)?\b'
+      scope: constant.numeric.float.ax
+    # 整数字面量（推断为 int）
+    - match: '\b\d[\d_]*\b'
+      scope: constant.numeric.integer.ax
+
+  attributes:
+    # 编译期属性，仅 @os / @arch
+    - match: '@(os|arch)\b'
+      scope: storage.modifier.attribute.ax
+
+  constants:
+    - match: '\b(true|false|null)\b'
+      scope: constant.language.ax
+
+  keywords:
+    # 声明与定义
+    - match: '\b(var|const|class|struct|interface|enum|type|extend|implement|new)\b'
+      scope: keyword.declaration.ax
+    # 控制流
+    - match: '\b(if|else|for|while|in|match|return|break|continue|try|catch|finally|throw|defer)\b'
+      scope: keyword.control.ax
+    - match: '\bimport\b'
+      scope: keyword.control.import.ax
+    - match: '\bas\b'
+      scope: keyword.operator.alias.ax
+    - match: '\b(this|parent|constructor)\b'
+      scope: keyword.other.special.ax
+
+  modifiers:
+    - match: '\b(public|protected|private|static|override|extern|unsafe)\b'
+      scope: storage.modifier.ax
+
+  types:
+    # 保留类型名：int / decimal / result<T> / map<K, V> 等
+    - match: '\b{{builtin_type}}\b'
+      scope: storage.type.builtin.ax
+
+  declarations:
+    # 声明位置的具名类型：Product p = ... / Dog? d = ... / Product[] ps = ...
+    # PascalCase 类型名 + 后跟小写变量名（axlang 声明必须带初值）
+    # 作用域与 new Product() 的类名保持一致（variable.function.call.ax），
+    # 保证两处 Product 在任何主题下颜色相同
+    - match: '([A-Z][A-Za-z0-9_]*)(?=\s*\[\s*\]\??\s+[a-z_][A-Za-z0-9_]*\s*(=|;|\[|$))'
+      scope: variable.function.call.ax
+    - match: '([A-Z][A-Za-z0-9_]*)(\?)?\s+(?=[a-z_][A-Za-z0-9_]*\s*(=|;|\[|$))'
+      scope: variable.function.call.ax
+
+  stdlib_classes:
+    # 标准库返回的具名类型（非保留字）
+    - match: '\b(time|File|Row)\b'
+      scope: support.class.stdlib.ax
+
+  modules:
+    # 内建模块名（E3039：与用户模块同名会被拒绝）
+    - match: '\b{{module_name}}\b(?=\s*\.)'
+      scope: support.module.builtin.ax
+
+  builtin_functions:
+    # 裸调用的一等函数（全小写，snake_case）
+    - match: '\b(print|println|ok|fail|typeof|sizeof|len|max|min)\b(?=\s*\()'
+      scope: support.function.builtin.ax
+
+  function_calls:
+    # 一般调用（含方法调用 X.f() 的 f）
+    - match: '{{identifier}}(?=\s*\()'
+      scope: variable.function.call.ax
+
+  operators:
+    # 长运算符在前（最大匹配，与 lexer.rs 的 OPS 顺序一致）
+    - match: '\.\.='
+      scope: keyword.operator.assignment.range.ax
+    - match: '\.\.'
+      scope: keyword.operator.range.ax
+    - match: '\?\.'
+      scope: keyword.operator.optional.ax
+    - match: '\?\?'
+      scope: keyword.operator.null-coalescing.ax
+    - match: '<<|>>'
+      scope: keyword.operator.bitwise.shift.ax
+    - match: '&&|\|\||!'
+      scope: keyword.operator.logical.ax
+    - match: '==|!=|<=|>=|<|>'
+      scope: keyword.operator.comparison.ax
+    - match: '\+=|-=|\*=|/=|%='
+      scope: keyword.operator.assignment.compound.ax
+    - match: '=>'
+      scope: keyword.operator.arrow.ax
+    - match: '->'
+      scope: keyword.operator.return-type.ax
+    - match: '\+\+|--'
+      scope: keyword.operator.increment.ax
+    - match: '[-+*/%]'
+      scope: keyword.operator.arithmetic.ax
+    - match: '[&|^~]'
+      scope: keyword.operator.bitwise.ax
+    - match: '='
+      scope: keyword.operator.assignment.ax
+    - match: '\?'
+      scope: keyword.operator.ternary.ax
+    - match: ':'
+      scope: keyword.operator.map-colon.ax
+    - match: '\.'
+      scope: punctuation.accessor.ax
