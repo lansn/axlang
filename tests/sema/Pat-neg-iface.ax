@@ -1,0 +1,18 @@
+// EXPECT: E4001
+// 类型模式不能是 interface，必须用具体类（文稿 5.3，#13）
+interface Drawable {
+    string Draw()
+}
+class Circle implement Drawable {
+    public int R
+    constructor(int r) { this.R = r }
+    public override string Draw() { return "圆" }
+}
+int main() {
+    object o = new Circle(2)
+    match o {
+        Drawable d => println("{d.Draw()}"),
+        _ => println("其他")
+    }
+    return 0
+}
