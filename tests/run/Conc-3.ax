@@ -1,0 +1,13 @@
+// 并发原语正例：Pop 在队列已关闭且为空时返回 null。
+// 验证 Close 后的 end-of-stream 信号机制。
+int main() {
+    queue<int> q = queue<int>()
+    q.Push(42)
+    q.Close()
+    int? v1 = q.Pop()
+    bool is_null = (q.Pop() == null)
+    println("{v1}")
+    println("{is_null}")
+    println("done")
+    return 0
+}

@@ -1,0 +1,8 @@
+// EXPECT: E4001
+// 并发原语负测：Push 实参类型必须与 queue 元素类型匹配。
+// queue<int> 的 Push 期望 int，传入 string 应报类型不匹配。
+int main() {
+    queue<int> q = queue<int>()
+    q.Push("hello")
+    return 0
+}
