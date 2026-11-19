@@ -2354,26 +2354,64 @@ impl<'a> Sema<'a> {
         let mut module_qualified = false;
         if path.len() >= 2 {
             if let Some((k, canon)) = self.view_of(path) {
-                if canon != "*builtin*" && k + 1 == path.len() {
-                    module_qualified = true;
-                    let view = path[..k].join(".");
-                    let export = &path[k];
-                    if !self.export_allowed(&view, export) {
-                        let src = self.view_display(&view);
-                        self.err("E3030", &e.tok, "文稿 9.2", "`{0}` 不在 `import {1}.{{...}}` 的具名导入清单里", &[&export, &src]);
-                        return t_object();
-                    }
-                    d = self
-                        .module_exports
-                        .get(&canon)
-                        .and_then(|m| m.get(export))
-                        .and_then(|s| match s {
-                            ExportSym::Type(d) => Some(*d),
-                            _ => None,
-                        });
-                    if d.is_none() {
-                        self.err("E3030", &e.tok, "文稿 9.1", "模块 `{0}` 没有公开类型 `{1}`", &[&view, &export]);
-                        return t_object();
+                if canon != "*builtin*" {
+                    if k + 1 == path.len() {
+                        // `new mod.Type(...)`：最后一段是类型名
+                        module_qualified = true;
+                        let view = path[..k].join(".");
+                        let export = &path[k];
+                        if !self.export_allowed(&view, export) {
+                            let src = self.view_display(&view);
+                            self.err("E3030", &e.tok, "文稿 9.2", "`{0}` 不在 `import {1}.{{...}}` 的具名导入清单里", &[&export, &src]);
+                            return t_object();
+                        }
+                        d = self
+                            .module_exports
+                            .get(&canon)
+                            .and_then(|m| m.get(export))
+                            .and_then(|s| match s {
+                                ExportSym::Type(d) => Some(*d),
+                                _ => None,
+                            });
+                        if d.is_none() {
+                            self.err("E3030", &e.tok, "文稿 9.1", "模块 `{0}` 没有公开类型 `{1}`", &[&view, &export]);
+                            return t_object();
+                        }
+                    } else if k + 1 < path.len() {
+                        // `new mod.Outer.Inner(...)`：模块类型 + 嵌套类型
+                        let view = path[..k].join(".");
+                        let export = &path[k];
+                        if !self.export_allowed(&view, export) {
+                            let src = self.view_display(&view);
+                            self.err("E3030", &e.tok, "文稿 9.2", "`{0}` 不在 `import {1}.{{...}}` 的具名导入清单里", &[&export, &src]);
+                            return t_object();
+                        }
+                        let sym = self
+                            .module_exports
+                            .get(&canon)
+                            .and_then(|m| m.get(export));
+                        match sym {
+                            Some(ExportSym::Type(d0)) => {
+                                module_qualified = true;
+                                // 沿 nested 表逐段查找嵌套类型
+                                let mut cur = *d0;
+                                for i in (k + 1)..path.len() {
+                                    let inner = self.typedefs[cur as usize].nested.get(&path[i]).copied();
+                                    match inner {
+                                        Some(iid) => cur = iid,
+                                        None => {
+                                            self.err("E3003", &e.tok, "N-7", "`{0}` 里没有类型 `{1}`", &[&path.join("."), &path[i]]);
+                                            return t_object();
+                                        }
+                                    }
+                                }
+                                d = Some(cur);
+                            }
+                            _ => {
+                                self.err("E3030", &e.tok, "文稿 9.1", "模块 `{0}` 没有公开类型 `{1}`", &[&view, &export]);
+                                return t_object();
+                            }
+                        }
                     }
                 }
             }

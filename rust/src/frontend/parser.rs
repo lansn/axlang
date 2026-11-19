@@ -708,14 +708,18 @@ impl<'a> Parser<'a> {
             || self.at("enum")
             || self.at("type")
         {
-            let mut sub_vis: Option<String> = None;
-            if self.at("public") || self.at("protected") || self.at("private") {
-                sub_vis = Some(self.advance().kind.clone());
-            }
+            // 外层已读取的可见性（public/protected/private）归嵌套类型使用，
+            // 避免重复消耗导致 sub_vis 为 None 而误报 E3037。
+            let sub_vis = vis.take().or_else(|| {
+                if self.at("public") || self.at("protected") || self.at("private") {
+                    Some(self.advance().kind.clone())
+                } else {
+                    None
+                }
+            });
             // 嵌套类型同为类成员，可见性同样必须显式
             if sub_vis.is_none() {
                 self.err("E3037", Some(&self.tok(0).clone()), "文稿 6.1", "嵌套类型缺少可见性修饰符：必须显式写 `public`、`private` 或 `protected`", &[]);
-                sub_vis = Some("private".to_string());
             }
             let it = if self.at("class") {
                 self.parse_class(sub_vis)?

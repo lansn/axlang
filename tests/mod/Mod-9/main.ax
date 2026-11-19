@@ -1,0 +1,51 @@
+import model
+
+class MyDoc implement model.Describable {
+    public string Title
+    constructor(string title) {
+        this.Title = title
+    }
+    public string Describe() {
+        return "文档：{this.Title}"
+    }
+}
+
+class Child extend model.Base {
+    constructor(int x) {
+        parent(x)
+    }
+    public override string GetName() {
+        return "Child"
+    }
+}
+
+class Box<T: Describable> {
+    public T Item
+    constructor(T item) {
+        this.Item = item
+    }
+    public string Label() {
+        return this.Item.Describe()
+    }
+}
+
+int main() {
+    // 1. 嵌套类型跨模块访问：model.Outer.Inner
+    model.Outer.Inner x = new model.Outer.Inner("hello")
+    println(x.Value)
+
+    // 2. 跨模块 class 继承 + override
+    Child c = new Child(42)
+    println(c.GetName())
+
+    // 3. 跨模块泛型约束：T: Describable，MyDoc 满足约束
+    MyDoc d = new MyDoc("测试")
+    Box<MyDoc> b = new Box(d)
+    println(b.Label())
+
+    // 3b. 接口上转：model.Describable 接收 MyDoc 实例
+    model.Describable iface = d
+    println(iface.Describe())
+
+    return 0
+}

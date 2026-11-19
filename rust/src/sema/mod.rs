@@ -1566,45 +1566,89 @@ impl<'a> Sema<'a> {
                 // 模块路径可以多段（`shop.model.Product`），所以用最长视图匹配，
                 // 剩下最后一段才是类型名——不能只看 `path.len() == 2`
                 if path.len() >= 2 {
-                    // 用户模块导出类型：`mod.Type`（文稿 9.2）
+                    // 用户模块导出类型：`mod.Type` 或 `mod.Outer.Inner`（嵌套类型跨模块访问）
                     if let Some((k, canon)) = self.view_of(&path) {
-                        if canon != "*builtin*" && k + 1 == path.len() {
-                            let view = path[..k].join(".");
-                            let export = &path[k];
-                            if !self.export_allowed(&view, export) {
-                                let src = self.view_display(&view);
-                                self.err("E3030", &ast.tok, "文稿 9.2", "`{0}` 不在 `import {1}.{{...}}` 的具名导入清单里", &[&export, &src]);
-                                return t_object();
+                        if canon != "*builtin*" {
+                            if k + 1 == path.len() {
+                                // `mod.Type`：最后一段是类型名
+                                let view = path[..k].join(".");
+                                let export = &path[k];
+                                if !self.export_allowed(&view, export) {
+                                    let src = self.view_display(&view);
+                                    self.err("E3030", &ast.tok, "文稿 9.2", "`{0}` 不在 `import {1}.{{...}}` 的具名导入清单里", &[&export, &src]);
+                                    return t_object();
+                                }
+                                let sym = self
+                                    .module_exports
+                                    .get(&canon)
+                                    .and_then(|m| m.get(export))
+                                    .cloned();
+                                return match sym {
+                                    Some(ExportSym::Type(d)) => {
+                                        let rargs: Vec<Ty> =
+                                            args.iter().map(|a| self.resolve_type_g(a, env)).collect();
+                                        let (ngen, dname, dkind) = {
+                                            let d = &self.typedefs[d as usize];
+                                            (d.generics.len(), d.name.clone(), d.kind)
+                                        };
+                                        if rargs.len() != ngen {
+                                            self.err("E4035", &ast.tok, "G-1", "`{0}` 需要 {1} 个类型实参", &[&dname, &ngen]);
+                                        }
+                                        if dkind == "alias" {
+                                            return self.expand_alias(d, rargs);
+                                        }
+                                        if dkind == "enum" {
+                                            return Rc::new(TyS::Enum(d));
+                                        }
+                                        self.named_of(d, rargs)
+                                    }
+                                    _ => {
+                                        self.err("E3030", &ast.tok, "文稿 9.1", "模块 `{0}` 没有公开类型 `{1}`（文件内符号默认私有，导出需写 `public`）", &[&view, &export]);
+                                        t_object()
+                                    }
+                                };
+                            } else if k + 1 < path.len() {
+                                // `mod.Outer.Inner`：模块类型 + 嵌套类型
+                                let view = path[..k].join(".");
+                                let export = &path[k];
+                                if !self.export_allowed(&view, export) {
+                                    let src = self.view_display(&view);
+                                    self.err("E3030", &ast.tok, "文稿 9.2", "`{0}` 不在 `import {1}.{{...}}` 的具名导入清单里", &[&export, &src]);
+                                    return t_object();
+                                }
+                                let sym = self
+                                    .module_exports
+                                    .get(&canon)
+                                    .and_then(|m| m.get(export))
+                                    .cloned();
+                                let d = match sym {
+                                    Some(ExportSym::Type(d)) => d,
+                                    _ => {
+                                        self.err("E3030", &ast.tok, "文稿 9.1", "模块 `{0}` 没有公开类型 `{1}`（文件内符号默认私有，导出需写 `public`）", &[&view, &export]);
+                                        return t_object();
+                                    }
+                                };
+                                // 沿 nested 表逐段查找嵌套类型
+                                let mut cur = d;
+                                for i in (k + 1)..path.len() {
+                                    let inner = self.typedefs[cur as usize].nested.get(&path[i]).copied();
+                                    match inner {
+                                        Some(iid) => cur = iid,
+                                        None => {
+                                            self.err("E3003", &ast.tok, "N-7", "`{0}` 里没有类型 `{1}`", &[&path.join("."), &path[i]]);
+                                            return t_object();
+                                        }
+                                    }
+                                }
+                                let rargs: Vec<Ty> =
+                                    args.iter().map(|a| self.resolve_type_g(a, env)).collect();
+                                let ngen = self.typedefs[cur as usize].generics.len();
+                                let dname = self.typedefs[cur as usize].name.clone();
+                                if rargs.len() != ngen {
+                                    self.err("E4035", &ast.tok, "G-1", "`{0}` 需要 {1} 个类型实参", &[&dname, &ngen]);
+                                }
+                                return self.named_of(cur, rargs);
                             }
-                            let sym = self
-                                .module_exports
-                                .get(&canon)
-                                .and_then(|m| m.get(export))
-                                .cloned();
-                            return match sym {
-                                Some(ExportSym::Type(d)) => {
-                                    let rargs: Vec<Ty> =
-                                        args.iter().map(|a| self.resolve_type_g(a, env)).collect();
-                                    let (ngen, dname, dkind) = {
-                                        let d = &self.typedefs[d as usize];
-                                        (d.generics.len(), d.name.clone(), d.kind)
-                                    };
-                                    if rargs.len() != ngen {
-                                        self.err("E4035", &ast.tok, "G-1", "`{0}` 需要 {1} 个类型实参", &[&dname, &ngen]);
-                                    }
-                                    if dkind == "alias" {
-                                        return self.expand_alias(d, rargs);
-                                    }
-                                    if dkind == "enum" {
-                                        return Rc::new(TyS::Enum(d));
-                                    }
-                                    self.named_of(d, rargs)
-                                }
-                                _ => {
-                                    self.err("E3030", &ast.tok, "文稿 9.1", "模块 `{0}` 没有公开类型 `{1}`（文件内符号默认私有，导出需写 `public`）", &[&view, &export]);
-                                    t_object()
-                                }
-                            };
                         }
                     }
                     if let Some(oid) = self.lookup_type_name(&path[0], &ast.tok) {
@@ -1805,12 +1849,22 @@ impl<'a> Sema<'a> {
         self.funcs[f].params = ps;
         self.funcs[f].ret = self.resolve_type(ret);
         // 声明期校验：约束必须是 interface 名（GX-07）
+        // 裸名约束需经 lookup_type_name 解析，才能识别跨模块导入的接口（#9）
         for gp in generics {
             for c in &gp.constraints {
-                if !matches!(c.as_str(), "Comparable" | "Hashable" | "Printable")
-                    && !self.types.contains_key(c)
-                {
-                    self.err("E4036", &item.tok, "T-31", "约束 `{0}` 必须是 interface", &[&c]);
+                if matches!(c.as_str(), "Comparable" | "Hashable" | "Printable") {
+                    continue;
+                }
+                let d = self.lookup_type_name(c, &item.tok);
+                match d {
+                    None => {
+                        self.err("E4036", &item.tok, "T-31", "约束 `{0}` 必须是 interface", &[&c]);
+                    }
+                    Some(did) => {
+                        if self.typedefs[did as usize].kind != "interface" {
+                            self.err("E4036", &item.tok, "T-31", "约束 `{0}` 必须是 interface", &[&c]);
+                        }
+                    }
                 }
             }
         }
@@ -1841,6 +1895,25 @@ impl<'a> Sema<'a> {
             .iter()
             .map(|g| (g.name.clone(), Rc::new(TyS::Param(g.name.clone())) as Ty))
             .collect();
+        // 类型参数约束校验：约束必须是 interface（#9 跨模块泛型约束）
+        for gp in &generics {
+            for c in &gp.constraints {
+                if matches!(c.as_str(), "Comparable" | "Hashable" | "Printable") {
+                    continue;
+                }
+                let did = self.lookup_type_name(c, &item.tok);
+                match did {
+                    None => {
+                        self.err("E4036", &item.tok, "T-31", "约束 `{0}` 必须是 interface", &[&c]);
+                    }
+                    Some(did) => {
+                        if self.typedefs[did as usize].kind != "interface" {
+                            self.err("E4036", &item.tok, "T-31", "约束 `{0}` 必须是 interface", &[&c]);
+                        }
+                    }
+                }
+            }
+        }
         self.cur_class = Some(d);
         if kind == "class" {
             if let Item::ClassDecl { parent, impls, .. } = &item.k {
@@ -2076,6 +2149,14 @@ impl<'a> Sema<'a> {
                         }
                     }
                     self.typedefs[d as usize].nested.insert(name.clone(), nid);
+                    // 递归处理嵌套类型的成员（字段、方法、ctor、更深层嵌套类型等），
+                    // 否则嵌套类型的 constructor/字段不会被注册，导致 new 时报 E4042。
+                    let saved_cur_class = self.cur_class;
+                    let saved_generic_env = self.generic_env.clone();
+                    self.cur_class = Some(nid);
+                    self.resolve_typedef(nid, inner);
+                    self.cur_class = saved_cur_class;
+                    self.generic_env = saved_generic_env;
                 }
             }
         }
