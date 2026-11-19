@@ -1,0 +1,13 @@
+// GX-04：泛型函数值实例化——func(T) T 赋给 func(int) int、作为高阶函数实参
+int id<T>(T x) {
+    return x
+}
+int apply<T>(T x, func(T) int g) {
+    return g(x)
+}
+int main() {
+    func(int) int f = id
+    println(f(42))
+    println(apply(100, id))
+    return 0
+}

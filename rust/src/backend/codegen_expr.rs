@@ -329,6 +329,10 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 };
             }
             Some(crate::sema::Res::Func(fid)) => {
+                // 单态化实例：slot.func 指向实例，使用实例名（GX-04 泛型函数值实例化）
+                if let Some(inst_fid) = self.cg.slot(&e.id).and_then(|sl| sl.func) {
+                    return self.cg.fn_name_idx(inst_fid);
+                }
                 return self.cg.fn_name_idx(fid);
             }
             Some(crate::sema::Res::EnumVariant(d, var)) => {
@@ -2186,6 +2190,10 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             }
             // 函数引用（文稿 4.1）：`Type.static_method` / `mod.func` 不加括号
             Some(crate::sema::Res::Func(fid)) => {
+                // 单态化实例：slot.func 指向实例，使用实例名（GX-04 泛型函数值实例化）
+                if let Some(inst_fid) = self.cg.slot(&e.id).and_then(|sl| sl.func) {
+                    return self.cg.fn_name_idx(inst_fid);
+                }
                 return self.cg.fn_name_idx(fid);
             }
             Some(crate::sema::Res::Rounding(n)) => {

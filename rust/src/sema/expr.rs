@@ -1617,7 +1617,7 @@ impl<'a> Sema<'a> {
 
     /// 实例 mangle 名：`函数名$类型mangle…`。稳定（同名同实参必同串）、
     /// 去 C 标识符以外字符，用于实例注册表去重与 C 函数名。
-    fn mangle_inst(&self, fname: &str, args: &[Ty]) -> String {
+    pub(crate) fn mangle_inst(&self, fname: &str, args: &[Ty]) -> String {
         let parts: Vec<String> = args.iter().map(|t| self.mangle_ty(t)).collect();
         format!("{}${}", fname, parts.join("_"))
     }
@@ -1748,7 +1748,7 @@ impl<'a> Sema<'a> {
         Some(names.iter().map(|n| subst[n].clone()).collect())
     }
 
-    fn unify(&self, p: &Ty, a: &Ty, names: &[String], subst: &mut HashMap<String, Ty>) {
+    pub(crate) fn unify(&self, p: &Ty, a: &Ty, names: &[String], subst: &mut HashMap<String, Ty>) {
         if let TyS::Param(pn) = &**p {
             if names.contains(pn) {
                 subst.entry(pn.clone()).or_insert_with(|| a.clone());
@@ -1785,6 +1785,12 @@ impl<'a> Sema<'a> {
             }
             (TyS::Nullable(p1), TyS::Nullable(a1)) => self.unify(p1, a1, names, subst),
             (TyS::Result(p1), TyS::Result(a1)) => self.unify(p1, a1, names, subst),
+            (TyS::Func(ps, r), TyS::Func(ps2, r2)) => {
+                for (p, a) in ps.iter().zip(ps2.iter()) {
+                    self.unify(p, a, names, subst);
+                }
+                self.unify(r, r2, names, subst);
+            }
             _ => {}
         }
     }
