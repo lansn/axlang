@@ -109,7 +109,7 @@ Current: **192/192 passing** (including try/catch, visibility, constructor pass,
 
 - `gcc` is required (specifiable via `--cc` or `$AX_CC`). `dist\axc.exe` is a standalone Rust-compiled program and does not depend on Python.
 - Running `tests/runtests.py` / `samples/run_all.py` requires Python 3 (driver scripts only, not the compiler implementation).
-- `decimal` uses 32-byte `__int128` (`CONFLICT-5`收口), semantics are 128-bit decimal fixed-point.
+- `decimal` uses standard C11 struct `ax_dec` (`ax_i128 { int64_t hi; uint64_t lo }` coefficient + `int32_t scale`, 24 bytes actual / 32 bytes aligned; `CONFLICT-5`收口), semantics are 128-bit decimal fixed-point, no GCC/Clang extensions.
 - Unimplemented list (generic monomorphization, complete borrow lifetime, arena, anonymous function backend, json/file/time modules) see `GAP-REPORT.md` §3.2.
 
 ## Windows Chinese Display

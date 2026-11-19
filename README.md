@@ -110,7 +110,7 @@ python tests/runtests.py --axc=xxx  # 指定编译器（默认 rust/target/relea
 
 - 需要 `gcc`（可用 `--cc` 或 `$AX_CC` 指定）。`dist\axc.exe` 是 Rust 编译的独立程序，不依赖 Python。
 - 跑 `tests/runtests.py` / `samples/run_all.py` 需要 Python 3（只是驱动脚本，不是编译器实现）。
-- `decimal` 用 32 字节 `__int128`（`CONFLICT-5` 收口），语义是 128 位十进制定点。
+- `decimal` 用标准 C11 struct `ax_dec`（`ax_i128 { int64_t hi; uint64_t lo }` 系数 + `int32_t scale`，24 字节实际/32 字节对齐；`CONFLICT-5` 收口），语义是 128 位十进制定点，无任何 GCC/Clang 扩展。
 - 未实现清单（泛型单态化、完整借用生命周期、arena、匿名函数后端、json/file/time 模块）见 `GAP-REPORT.md` §3.2。
 
 ## Windows 中文显示
