@@ -751,6 +751,14 @@ impl<'a> Sema<'a> {
             self.sl(e.id).res = Some(Res::Const(c.clone()));
             return c.ty.borrow().clone();
         }
+        // 具名导入兜底：`import m.{c}` 之后裸 `c` 也要能解析；多模块同名时报 E3045（文稿 9.2，#15）。
+        else if let Some(canon) = self.named_import_canon(name, &e.tok) {
+            if let Some(c) = self.consts.get(&format!("{}__{}", canon, name)) {
+                let c = c.clone();
+                self.sl(e.id).res = Some(Res::Const(c.clone()));
+                return c.ty.borrow().clone();
+            }
+        }
         if let Some(&f) = self.qual_lookup(&self.func_by_name, name) {
             let f: usize = f;
             let (vis, module) = {
@@ -763,6 +771,22 @@ impl<'a> Sema<'a> {
             self.sl(e.id).res = Some(Res::Func(f));
             let fi = &self.funcs[f];
             return t_fn(fi.params.iter().map(|p| p.1.clone()).collect(), fi.ret.clone());
+        }
+        // 具名导入兜底：`import m.{f}` 之后裸 `f` 也要能解析；多模块同名时报 E3045（文稿 9.2，#15）。
+        else if let Some(canon) = self.named_import_canon(name, &e.tok) {
+            if let Some(&f) = self.func_by_name.get(&format!("{}__{}", canon, name)) {
+                let f: usize = f;
+                let (vis, module) = {
+                    let fi = &self.funcs[f];
+                    (fi.vis.clone(), fi.module.clone())
+                };
+                if vis != "public" && module != self.cur_mod_path {
+                    self.err("E3013", &e.tok, "N-8", "`{0}` 不是 public，不能跨模块使用", &[&name]);
+                }
+                self.sl(e.id).res = Some(Res::Func(f));
+                let fi = &self.funcs[f];
+                return t_fn(fi.params.iter().map(|p| p.1.clone()).collect(), fi.ret.clone());
+            }
         }
         // 嵌套函数：在当前函数及其祖先的嵌套函数表里按裸名查找（文稿 §4）。
         // 不捕获外部变量：嵌套函数体内看不到父函数的局部变量，只能用参数、
@@ -959,6 +983,12 @@ impl<'a> Sema<'a> {
             if segs.len() == 1 {
                 if let Some(&f) = self.qual_lookup(&self.func_by_name, name) {
                     return self.call_func(e, f, args, targs);
+                }
+                // 具名导入兜底：`import m.{f}` 之后裸 `f` 也要能解析；多模块同名时报 E3045（文稿 9.2，#15）。
+                if let Some(canon) = self.named_import_canon(name, &callee.tok) {
+                    if let Some(&f) = self.func_by_name.get(&format!("{}__{}", canon, name)) {
+                        return self.call_func(e, f, args, targs);
+                    }
                 }
                 // 嵌套函数：在当前函数及其祖先的嵌套函数表里按裸名查找（文稿 §4）。
                 if let Some(f) = self.lookup_nested_func(name) {

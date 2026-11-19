@@ -768,6 +768,8 @@ impl<'a> Sema<'a> {
     }
 
     /// 裸名解析的兜底限定：先查裸名（入口符号 / 局部名），再查当前模块的限定名。
+    /// 注意本函数只持有 `&self`，因此不在此处调用 `named_import_canon`（需 `&mut self` 并携带 `tok`
+    /// 以报 `E3045`）；具名导入的兜底由各 `&mut self` 调用方在 `qual_lookup` 为 `None` 后补充（文稿 9.2，#15）。
     fn qual_lookup<'m, V>(&'m self, map: &'m HashMap<String, V>, name: &str) -> Option<&'m V> {
         if let Some(v) = map.get(name) {
             return Some(v);
@@ -777,14 +779,15 @@ impl<'a> Sema<'a> {
                 return Some(v);
             }
         }
-        // 具名导入把名字引入了当前作用域（文稿 9.2）：`import m.{a}` 之后裸 `a` 也要能解析。
-        let c = self.named_import_canon(name)?;
-        map.get(&format!("{}__{}", c, name))
+        None
     }
 
     /// 具名导入引入的名字 → 所属模块的 canon。
-    /// 多个模块引入同名符号时按视图名字典序取第一个，行为确定、不随 HashMap 顺序漂移。
-    fn named_import_canon(&self, name: &str) -> Option<String> {
+    /// 多个模块具名导入同名符号时报 `E3045` 歧义；若不报错（调用方选择忽略），
+    /// 则按视图名字典序取第一个，行为确定、不随 HashMap 顺序漂移（#15）。
+    /// 只有来自不同源模块（canon 不同）的具名导入才算真正歧义；同一模块的多个
+    /// 视图（全路径/短名/as）不构成歧义，静默取字典序第一个。
+    fn named_import_canon(&mut self, name: &str, tok: &Tok) -> Option<String> {
         let mut hits: Vec<(&String, &String)> = self
             .active_view_names
             .iter()
@@ -792,7 +795,37 @@ impl<'a> Sema<'a> {
             .filter_map(|(view, _)| self.active_views.get(view).map(|c| (view, c)))
             .collect();
         hits.sort_by(|a, b| a.0.cmp(b.0));
-        hits.first().map(|(_, c)| (*c).clone())
+        // 先把兜底 canon 克隆为自有 String，以便在释放 hits（对 self 的不可变借用）后再报错。
+        let canon = hits.first().map(|(_, c)| (*c).clone());
+        // 统计涉及的不同源模块数（canon 去重）：同一模块的多个视图不构成歧义。
+        let mut distinct_canons: Vec<&String> = Vec::new();
+        for (_, c) in &hits {
+            if !distinct_canons.contains(c) {
+                distinct_canons.push(c);
+            }
+        }
+        if distinct_canons.len() > 1 {
+            let mut srcs: Vec<String> = Vec::new();
+            for (v, _) in &hits {
+                let s = self.view_display(v);
+                if !srcs.contains(&s) {
+                    srcs.push(s);
+                }
+            }
+            // hits 仅持有 self 的不可变借用，必须在 self.err(&mut self) 前释放。
+            drop(hits);
+            let name_owned = name.to_string();
+            let srcs_join = srcs.join(" 与 ");
+            let first = srcs[0].clone();
+            self.err(
+                "E3045",
+                tok,
+                "文稿 9.2",
+                "`{0}` 有歧义：{1} 都通过具名导入引入了同名符号；请写全路径或使用 `import {2} as 别名` 加以区分",
+                &[&name_owned, &srcs_join, &first],
+            );
+        }
+        canon
     }
 
     /// 裸类型名解析（文稿 9.2）：入口/本模块符号 → 具名导入 → 已导入模块的公开同名类型。
@@ -807,7 +840,7 @@ impl<'a> Sema<'a> {
                 return Some(d);
             }
         }
-        if let Some(c) = self.named_import_canon(name) {
+        if let Some(c) = self.named_import_canon(name, tok) {
             if let Some(&d) = self.types.get(&format!("{}__{}", c, name)) {
                 return Some(d);
             }
