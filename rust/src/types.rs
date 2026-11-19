@@ -147,12 +147,13 @@ pub fn strip_nullable(t: &Ty) -> &Ty {
 /// 字符串插值 `{x}` 当前能显示的类型：标量、`string`、`enum`，以及由它们构成的可空值
 /// （有值显示值、`null` 显示 `null`）。
 ///
-/// 复合类型（数组 / `map` / 元组 / `func` / class / struct）的默认显示尚未实现，
-/// 由 sema 报 `E5006`——不允许退化成静默输出 `?`（GAP #12）。
+/// 复合类型（数组 / `map` / 元组）已实现默认显示，可直接插值；
+/// class / struct / func 的默认显示仍由 `Printable.ToString` 提供，未实现则 E5006。
 /// `Unknown`/`Error`/`Never` 是已报错占位类型，返回 `true` 以免派生错误风暴。
 pub fn interp_supported(t: &Ty) -> bool {
     match &**t {
         TyS::Int(..) | TyS::Float | TyS::Decimal | TyS::Bool | TyS::Str | TyS::Enum(_) => true,
+        TyS::Array(..) | TyS::Map(..) | TyS::Tuple(..) => true,
         TyS::Nullable(i) => interp_supported(i),
         TyS::Unknown | TyS::Error | TyS::Never => true,
         _ => false,

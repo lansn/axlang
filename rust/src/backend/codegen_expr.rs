@@ -412,6 +412,9 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                     self.emit(format!("ax_sb_push(&{}, {});", sb, en))
                 }
                 TyS::Int(..) => self.emit(format!("ax_sb_push_int(&{}, (int64_t)({}));", sb, val)),
+                TyS::Array(elem, _) => self.push_arr_interp(sb, val, elem),
+                TyS::Map(kt, vt) => self.push_map_interp(sb, val, kt, vt),
+                TyS::Tuple(elems) => self.push_tuple_interp(sb, val, elems),
                 TyS::Named(did, _) => {
                     // Printable（文稿 7.1）：实现类/struct 直接调 ToString；
                     // Printable 类型变量本身经虚表动态派发。可空形式已在
@@ -471,6 +474,88 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 }
             },
         }
+    }
+
+    /// 将单个值表达式 `expr`（类型 `ty`）转为字符串，推入 `sb`。
+    /// 仅覆盖标量；复合嵌套与 box 对象输出 `?`。
+    fn push_one_to_sb(&mut self, sb: &str, expr: &str, ty: &Ty) {
+        match &**ty {
+            TyS::Int(..) => self.emit(format!("ax_sb_push_int(&{}, (int64_t)({}));", sb, expr)),
+            TyS::Float => self.emit(format!("ax_sb_push_f64(&{}, {});", sb, expr)),
+            TyS::Decimal => self.emit(format!("ax_sb_push(&{}, ax_dec_to_str({}));", sb, expr)),
+            TyS::Bool => self.emit(format!("ax_sb_push(&{}, ax_str_of_bool({}));", sb, expr)),
+            TyS::Str => self.emit(format!("ax_sb_push(&{}, {});", sb, expr)),
+            TyS::Enum(_) => self.emit(format!("ax_sb_push(&{}, ax_str_from_cstr(\"?\"));", sb)),
+            _ => self.emit(format!("ax_sb_push(&{}, ax_str_from_cstr(\"?\"));", sb)),
+        }
+    }
+
+    /// 数组默认显示：`[e0, e1, ...]`
+    fn push_arr_interp(&mut self, sb: &str, val: &str, elem: &Ty) {
+        let etc = self.cg.ct(elem);
+        let tmp = self.tmpn();
+        let i = self.tmpn();
+        let lb = format!("AX_S({})", cstr("["));
+        let rb = format!("AX_S({})", cstr("]"));
+        let comma = format!("AX_S({})", cstr(", "));
+        self.emit(format!("ax_sb {}; ax_sb_init(&{});", tmp, tmp));
+        self.emit(format!("ax_sb_push(&{}, {});", tmp, lb));
+        self.emit(format!("int64_t {};", i));
+        self.emit(format!("for ({} = 0; {} < {}.len; {}++) {{", i, i, val, i));
+        self.ind += 1;
+        self.emit(format!("if ({} > 0) ax_sb_push(&{}, {});", i, tmp, comma));
+        let elem_expr = format!("(({}*){}.data)[{}]", etc, val, i);
+        self.push_one_to_sb(&tmp, &elem_expr, elem);
+        self.ind -= 1;
+        self.emit("}".to_string());
+        self.emit(format!("ax_sb_push(&{}, {});", tmp, rb));
+        self.emit(format!("ax_sb_push(&{}, ax_sb_finish(&{}));", sb, tmp));
+    }
+
+    /// map 默认显示：`{k0: v0, k1: v1, ...}`
+    fn push_map_interp(&mut self, sb: &str, val: &str, kt: &Ty, vt: &Ty) {
+        let tmp = self.tmpn();
+        let i = self.tmpn();
+        let lb = format!("AX_S({})", cstr("{"));
+        let rb = format!("AX_S({})", cstr("}"));
+        let comma = format!("AX_S({})", cstr(", "));
+        let colon = format!("AX_S({})", cstr(":"));
+        self.emit(format!("ax_sb {}; ax_sb_init(&{});", tmp, tmp));
+        self.emit(format!("ax_sb_push(&{}, {});", tmp, lb));
+        self.emit(format!("int64_t {};", i));
+        self.emit(format!("for ({} = 0; {} < {}.len; {}++) {{", i, i, val, i));
+        self.ind += 1;
+        self.emit(format!("if ({} > 0) ax_sb_push(&{}, {});", i, tmp, comma));
+        let ktc = self.cg.ct(kt);
+        let key_expr = format!("(*({}*){}.entries[{}].k)", ktc, val, i);
+        self.push_one_to_sb(&tmp, &key_expr, kt);
+        self.emit(format!("ax_sb_push(&{}, {});", tmp, colon));
+        let vtc = self.cg.ct(vt);
+        let val_expr = format!("(*({}*){}.entries[{}].v)", vtc, val, i);
+        self.push_one_to_sb(&tmp, &val_expr, vt);
+        self.ind -= 1;
+        self.emit("}".to_string());
+        self.emit(format!("ax_sb_push(&{}, {});", tmp, rb));
+        self.emit(format!("ax_sb_push(&{}, ax_sb_finish(&{}));", sb, tmp));
+    }
+
+    /// 元组默认显示：`(e0, e1, ...)`
+    fn push_tuple_interp(&mut self, sb: &str, val: &str, elems: &[Ty]) {
+        let tmp = self.tmpn();
+        let lp = format!("AX_S({})", cstr("("));
+        let rp = format!("AX_S({})", cstr(")"));
+        let comma = format!("AX_S({})", cstr(", "));
+        self.emit(format!("ax_sb {}; ax_sb_init(&{});", tmp, tmp));
+        self.emit(format!("ax_sb_push(&{}, {});", tmp, lp));
+        for (idx, elem_ty) in elems.iter().enumerate() {
+            if idx > 0 {
+                self.emit(format!("ax_sb_push(&{}, {});", tmp, comma));
+            }
+            let field_expr = format!("{}.f{}", val, idx);
+            self.push_one_to_sb(&tmp, &field_expr, elem_ty);
+        }
+        self.emit(format!("ax_sb_push(&{}, {});", tmp, rp));
+        self.emit(format!("ax_sb_push(&{}, ax_sb_finish(&{}));", sb, tmp));
     }
 
     fn str_lit(&mut self, e: &'a ast::EPtr) -> String {

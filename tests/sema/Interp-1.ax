@@ -1,7 +1,0 @@
-// EXPECT: E5006
-// 复合类型暂无默认显示：报错而不是静默输出 `?`（GAP #12）
-int main() {
-    string[] xs = ["aa", "bb"]
-    println("arr={xs}")
-    return 0
-}

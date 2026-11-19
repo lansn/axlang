@@ -1,7 +1,0 @@
-// EXPECT: E4001
-// print 只接受 string 或能直接插值的值；数组/映射等复合类型要先自己拼接
-int main() {
-    int[] xs = [1, 2]
-    println(xs)
-    return 0
-}

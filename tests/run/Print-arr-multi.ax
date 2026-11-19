@@ -1,0 +1,6 @@
+int main() {
+    int a = 1
+    int[] xs = [1, 2]
+    println(a, xs)
+    return 0
+}
