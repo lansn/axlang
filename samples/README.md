@@ -30,6 +30,7 @@ dist\axc.exe check samples\01_hello.ax
 | `demo/OrderDemo/` | 多模块工程 | 4 个模块 + 入口：`catalog.product`、`catalog.inventory`、`checkout.bill`（具名导入）、`checkout.wholesale`（跨模块继承）；`import` 之后裸类名直接 `new Product(...)` |
 | `demo/Package/` | 多文件模块（文件即是模块） | `main.ax` 显式 `import shop.inventory` / `import shop.stock`；`shop/inventory.ax` 与 `shop/stock.ax` 各自为独立模块，通过 `shop.inventory.VALUE` / `shop.stock.greet()` 等多段路径访问跨模块 `public` 符号 |
 | `demo/MultiLayer/` | 至少 3 层文件夹的跨层多模块引用 | `layer1`→`layer1.layer2`→`layer1.layer2.layer3` 三层嵌套；常量/函数/链式调用跨层访问，验证多层文件夹多模块引用不出现引用地狱 |
+| `12_purenothrow.ax` | `@pure` / `@nothrow` 属性 + const 编译期断言 | 零新增关键词：`@pure`/`@nothrow` 复用 `@` 属性机制；`const bool _check = 条件;` 在编译期求值，为 false 时 E6016 停止编译，零运行期开销 |
 
 ## demo：多模块 + 类的引入与调用
 
