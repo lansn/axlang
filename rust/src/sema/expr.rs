@@ -74,7 +74,7 @@ impl<'a> Sema<'a> {
     fn check_expr_inner(&mut self, e: &ast::EPtr, expected: Option<&Ty>) -> Ty {
         match &e.k {
             Expr::IntLit { .. } => self.check_int_lit(e, expected),
-            Expr::FloatLit { .. } => {
+            Expr::FloatLit { is_f32, .. } => {
                 if let Some(exp) = expected {
                     // 目标写 `decimal?` 时按内层 `decimal` 判：能不能落地与"可不可空"无关
                     let base = strip_nullable(exp);
@@ -82,14 +82,16 @@ impl<'a> Sema<'a> {
                         self.err("E4003", &e.tok, "T-9", "float 字面量不能直接赋给 decimal（C-6）；金额请写 `19.99d`", &[]);
                         return exp.clone();
                     }
-                    if !matches!(&**base, TyS::Float) {
+                    let lit_ty = if *is_f32 { t_float32() } else { t_float() };
+                    if !matches!(&**base, TyS::Float | TyS::Float32) {
                         if is_int(base) {
-                            self.err("E4001", &e.tok, "T-5", "类型不匹配：期望 {0}，得到 float", &[&self.ts(exp)]);
+                            self.err("E4001", &e.tok, "T-5", "类型不匹配：期望 {0}，得到 {1}", &[&self.ts(exp), &self.ts(&lit_ty)]);
                             return exp.clone();
                         }
                     }
+                    return lit_ty;
                 }
-                t_float()
+                if *is_f32 { t_float32() } else { t_float() }
             }
             Expr::DecLit { .. } => {
                 if let Some(exp) = expected {
@@ -278,10 +280,12 @@ impl<'a> Sema<'a> {
                     generics: Vec::new(),
                     vis: "private".to_string(),
                     is_static: false,
+                    is_abstract: false,
                     is_override: false,
                     implicit: false,
                 gdepth: 0,
                 mangle: None,
+                is_extern: false,
                 parent: None,
                 nested: BTreeMap::new(),
                     body: Some(leaked),
@@ -490,7 +494,7 @@ impl<'a> Sema<'a> {
                 let _ = bits;
                 return t;
             }
-            if matches!(&*t, TyS::Float | TyS::Decimal) {
+            if matches!(&*t, TyS::Float | TyS::Float32 | TyS::Decimal) {
                 return t;
             }
             self.err("E4009", &e.tok, "文稿 11.1", "`-` 只能用于数值，得到 {0}", &[&self.ts(&t)]);
@@ -559,7 +563,7 @@ impl<'a> Sema<'a> {
                 }
                 return t_bool();
             }
-            if matches!(&*lt, TyS::Float) || matches!(&*rt, TyS::Float) {
+            if matches!(&*lt, TyS::Float | TyS::Float32) || matches!(&*rt, TyS::Float | TyS::Float32) {
                 self.err("E4011", &lhs.tok, "文稿 3.7", "`float` 不能用 `{0}`（浮点比较请用 math.Equals）", &[&op]);
                 return t_bool();
             }
@@ -583,7 +587,7 @@ impl<'a> Sema<'a> {
                 self.err("E4001", &lhs.tok, "T-5", "比较两边类型不一致：{0} vs {1}", &[&self.ts(&lt), &self.ts(&rt)]);
                 return t_bool();
             }
-            if matches!(&*lt, TyS::Float) {
+            if matches!(&*lt, TyS::Float | TyS::Float32) {
                 self.err("E4017", &lhs.tok, "文稿 7.1", "`float` 不实现 Comparable（浮点比较请用 math.Compare）", &[]);
             } else if let TyS::Param(pn) = &*lt {
                 let cons = self.generic_cons.get(pn).cloned().unwrap_or_default();
@@ -632,6 +636,31 @@ impl<'a> Sema<'a> {
                     self.err("E4009", &lhs.tok, "文稿 11.1", "`%` 只能用于整数", &[]);
                 }
                 return t_float();
+            }
+            // float32 + float32 → float32
+            if matches!(&*lt, TyS::Float32) && matches!(&*rt, TyS::Float32) {
+                if op == "%" {
+                    self.err("E4009", &lhs.tok, "文稿 11.1", "`%` 只能用于整数", &[]);
+                }
+                return t_float32();
+            }
+            // float32 与 float 混算：float32 隐式扩大为 float（无损）
+            if (matches!(&*lt, TyS::Float32) && matches!(&*rt, TyS::Float))
+                || (matches!(&*lt, TyS::Float) && matches!(&*rt, TyS::Float32))
+            {
+                if op == "%" {
+                    self.err("E4009", &lhs.tok, "文稿 11.1", "`%` 只能用于整数", &[]);
+                }
+                return t_float();
+            }
+            // float32 与 int 混算：int 隐式转为 float32（无损）
+            if (matches!(&*lt, TyS::Float32) && is_int(&rt))
+                || (is_int(&lt) && matches!(&*rt, TyS::Float32))
+            {
+                if op == "%" {
+                    self.err("E4009", &lhs.tok, "文稿 11.1", "`%` 只能用于整数", &[]);
+                }
+                return t_float32();
             }
             if matches!(&*lt, TyS::Decimal) && matches!(&*rt, TyS::Decimal) {
                 if op == "%" {
@@ -1561,10 +1590,12 @@ impl<'a> Sema<'a> {
                         vis: fi.vis.clone(),
                         is_static: fi.is_static,
                         is_override: fi.is_override,
+                        is_abstract: fi.is_abstract,
                         body: fi.body,
                         implicit: false,
                         gdepth: depth,
                         mangle: Some(mangle.clone()),
+                        is_extern: fi.is_extern,
                         parent: None,
                         nested: BTreeMap::new(),
                     };
@@ -1693,7 +1724,7 @@ impl<'a> Sema<'a> {
 
     /// 校验类型实参是否满足约束；返回 false 表示有 `E4036`（调用方据此
     /// 跳过实例化——类型不合法的实例不该生成，也不该再查它的体）。
-    fn check_generic_constraints(
+    pub(crate) fn check_generic_constraints(
         &mut self,
         generics: &[(String, Vec<String>)],
         subst: &HashMap<String, Ty>,
@@ -1707,9 +1738,14 @@ impl<'a> Sema<'a> {
                 .map(|(_, c)| c.clone())
                 .unwrap_or_default();
             for c in &cons {
-                if !matches!(c.as_str(), "Comparable" | "Hashable" | "Printable")
-                    && !self.types.contains_key(c)
-                {
+                let is_builtin = matches!(c.as_str(), "Comparable" | "Hashable" | "Printable");
+                // 约束必须是 interface 名：内置约束或可解析的类型（含跨模块导入）
+                let constraint_def = if !is_builtin {
+                    self.lookup_type_name(c, tok)
+                } else {
+                    None
+                };
+                if !is_builtin && constraint_def.is_none() {
                     self.err("E4036", tok, "T-31", "约束 `{0}` 必须是 interface", &[&c]);
                     ok = false;
                     continue;
@@ -1721,10 +1757,10 @@ impl<'a> Sema<'a> {
                 if matches!(&**ty, TyS::Param(_)) {
                     continue;
                 }
-                if self.types.contains_key(c) {
+                if let Some(ctid) = constraint_def {
                     if let TyS::Named(DefId::Id(id), _) = &**ty {
                         let impl_ok = match self.typedefs.get(*id as usize) {
-                            Some(d) => self.implements(d.id, self.types[c]),
+                            Some(d) => self.implements(d.id, ctid),
                             None => false,
                         };
                         if !impl_ok {
@@ -1888,6 +1924,8 @@ impl<'a> Sema<'a> {
             tok: tmpl.tok.clone(),
             vis: tmpl.vis.clone(),
             generics: Vec::new(),
+            is_abstract: false,
+            is_final: false,
             fields: Vec::new(),
             methods: std::collections::BTreeMap::new(),
             ctors: HashMap::new(),
@@ -1944,10 +1982,12 @@ impl<'a> Sema<'a> {
                 vis: fvis,
                 is_static: fstatic,
                 is_override: foverride,
+                is_abstract: false,
                 body: fbody,
                 implicit: false,
                 gdepth: depth,
                 mangle: None,
+                is_extern: false,
                 parent: None,
                 nested: BTreeMap::new(),
             });
@@ -1981,10 +2021,12 @@ impl<'a> Sema<'a> {
                 vis: fvis,
                 is_static: fstatic,
                 is_override: foverride,
+                is_abstract: false,
                 body: fbody,
                 implicit: false,
                 gdepth: depth,
                 mangle: None,
+                is_extern: false,
                 parent: None,
                 nested: BTreeMap::new(),
             });
@@ -2549,6 +2591,11 @@ impl<'a> Sema<'a> {
         };
         if self.typedefs[d as usize].kind != "class" {
             self.err("E2012", &e.tok, "G-9", "`new` 只能用于 class（struct/enum/interface 不需要 new）", &[]);
+            return t_object();
+        }
+        if self.typedefs[d as usize].is_abstract {
+            let cls_name = self.typedefs[d as usize].name.clone();
+            self.err("E4001", &e.tok, "T-5", "抽象类 `{0}` 不能直接 `new` 实例化，只能作为基类被继承", &[&cls_name]);
             return t_object();
         }
         // 泛型类：`new` 语法带不了类型实参，从期望类型或 ctor 实参推断（GX-04）

@@ -1,0 +1,46 @@
+// GTS 基线 —— 三个独立非泛型类 BoxA/BoxB/BoxC，各自生成独立的 struct/vtable/方法
+// 用于与 GTS-Bloat-1.ax 对比，量化泛型擦除带来的代码体积节省。
+
+class NodeA {
+    constructor() {}
+}
+
+class NodeB {
+    constructor() {}
+}
+
+class NodeC {
+    constructor() {}
+}
+
+class BoxA {
+    public NodeA Value
+    constructor(NodeA v) { this.Value = v }
+    public NodeA Get() {
+        return this.Value
+    }
+}
+
+class BoxB {
+    public NodeB Value
+    constructor(NodeB v) { this.Value = v }
+    public NodeB Get() {
+        return this.Value
+    }
+}
+
+class BoxC {
+    public NodeC Value
+    constructor(NodeC v) { this.Value = v }
+    public NodeC Get() {
+        return this.Value
+    }
+}
+
+int main() {
+    BoxA a = new BoxA(new NodeA())
+    BoxB b = new BoxB(new NodeB())
+    BoxC c = new BoxC(new NodeC())
+    println("ok")
+    return 0
+}

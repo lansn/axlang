@@ -1,0 +1,18 @@
+// GX-CrossMod 的 model 模块：定义 public interface Drawable 及其实现类 Circle。
+// 接口在模块内定义，供其他模块导入并作为泛型约束使用（GAP #9 验证）。
+
+public interface Drawable {
+    string Draw()
+}
+
+public class Circle implement Drawable {
+    public int R
+
+    constructor(int r) {
+        this.R = r
+    }
+
+    public string Draw() {
+        return "圆"
+    }
+}

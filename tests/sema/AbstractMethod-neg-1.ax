@@ -1,0 +1,5 @@
+// EXPECT: E3048
+class Bad {
+    public abstract void Foo();
+}
+int main() { return 0 }

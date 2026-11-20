@@ -1,0 +1,6 @@
+sum_arr      =499999500000
+sum_arr_plain=499999500000
+10kx move BigData(1000) mv_sum=10000000
+build_string(10000) len=10000
+1Mx identity(int) id_sum=499999500000
+Perf-2 done

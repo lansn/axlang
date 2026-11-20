@@ -201,7 +201,16 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 }
                 format!("INT64_C({})", value)
             }
-            Expr::FloatLit { value, .. } => super::float_repr(*value),
+            Expr::FloatLit { value, is_f32, .. } => {
+                let mut s = super::float_repr(*value);
+                if *is_f32 {
+                    // C 的 float 字面量需加 f 后缀，否则默认为 double
+                    if !s.ends_with('f') && !s.ends_with('F') {
+                        s.push('f');
+                    }
+                }
+                s
+            }
             Expr::DecLit { coeff, scale, .. } => {
                 format!("ax_dec_lit(\"{}\", {})", coeff, scale)
             }
@@ -397,7 +406,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
         match fmt {
             Some(f) => match &**ty {
                 TyS::Decimal => self.emit(format!("ax_sb_push_dec_n(&{}, {}, {});", sb, val, f)),
-                TyS::Float => self.emit(format!("ax_sb_push_f64_n(&{}, {}, {});", sb, val, f)),
+                TyS::Float | TyS::Float32 => self.emit(format!("ax_sb_push_f64_n(&{}, {}, {});", sb, val, f)),
                 _ => self.emit(format!("ax_sb_push_int(&{}, {});", sb, val)),
             },
             None => match &**ty {
@@ -405,7 +414,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 TyS::Decimal => {
                     self.emit(format!("ax_sb_push(&{}, ax_dec_to_str({}));", sb, val))
                 }
-                TyS::Float => self.emit(format!("ax_sb_push_f64(&{}, {});", sb, val)),
+                TyS::Float | TyS::Float32 => self.emit(format!("ax_sb_push_f64(&{}, {});", sb, val)),
                 TyS::Bool => self.emit(format!("ax_sb_push(&{}, ax_str_of_bool({}));", sb, val)),
                 TyS::Enum(_) => {
                     let en = self.enum_name_expr(expr, val);
@@ -1176,17 +1185,35 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 .slot(&e.id)
                 .and_then(|s| s.func)
                 .unwrap_or(0);
+            let f = &self.cg.s.funcs[fid];
             let nm = self.cg.fn_name_idx(fid);
-            let params = self.cg.s.funcs[fid].params.clone();
+            // extern "C" 与 C 库交互：axlang `string`（ax_str）在边界上按 C 约定
+            // 视作 `const char*`：传参时取 `.p` 指针，返回值时用 ax_str_from_cstr 包装。
+            let is_extern = f.is_extern;
+            let ret_is_str = matches!(&*f.ret, TyS::Str);
+            let params = f.params.clone();
             let mut out = Vec::new();
             for (i, arg) in args.iter().enumerate() {
                 let v = match params.get(i) {
-                    Some(p) => self.gen(&arg.k.expr, Some(&p.1), false, false),
+                    Some(p) => {
+                        let mut val =
+                            self.gen(&arg.k.expr, Some(&p.1), false, false);
+                        if is_extern && matches!(&*p.1, TyS::Str) {
+                            // ax_str -> const char*：取底层指针（AX_S 等字面量已空终止）
+                            val = format!("(const char*)({}).p", val);
+                        }
+                        val
+                    }
                     None => self.gen(&arg.k.expr, None, false, false),
                 };
                 out.push(v);
             }
-            return format!("{}({})", nm, out.join(", "));
+            let mut call = format!("{}({})", nm, out.join(", "));
+            if is_extern && ret_is_str {
+                // const char* -> ax_str
+                call = format!("ax_str_from_cstr({})", call);
+            }
+            return call;
         }
         // 转换 / 构造外的情况
         self.convert_call(e)
@@ -1475,7 +1502,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                     // 类接收者：直接取该类的 shim 地址（override 已按类静态落定）
                     let cd = self.cg.s.typedefs[c as usize].clone();
                     let iname = format!("Iface_{}", san(&od.name));
-                    let vt = format!("{}__{}__VT_", san(&cd.name), san(&od.name));
+                    let vt = format!("{}__{}__VT_", self.cg.class_name(&cd), san(&od.name));
                     return format!(
                         "(({}_VT*)&{})->{}({})",
                         iname,
@@ -1502,7 +1529,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 _ => return "0".to_string(),
             }
         }
-        let vt_ty = format!("{}_VT", san(&od.name));
+        let vt_ty = format!("{}_VT", self.cg.class_name(&od));
         format!(
             "((({}*){}->vt)->{})({})",
             vt_ty,
@@ -2186,6 +2213,26 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                         self.emit(format!(
                             "if ({} == 0) {{ {}.has = 1; {}.v = {}; }}",
                             pop_ok, out, out, tmp
+                        ));
+                        out
+                    }
+                    "TryPop" => {
+                        let out = self.tmpn();
+                        let tmp = self.tmpn();
+                        let elem_ty = args.first().cloned().unwrap_or_else(t_object);
+                        let nullable_ty = t_nullable(elem_ty.clone());
+                        let etc = self.cg.ct(&nullable_ty);
+                        let etc_elem = self.cg.ct(&elem_ty);
+                        self.emit(format!("{} {}; memset(&{}, 0, sizeof({}));", etc, out, out, out));
+                        self.emit(format!("{} {};", etc_elem, tmp));
+                        let try_ok = self.tmpn();
+                        self.emit(format!(
+                            "int {} = ax_queue_try_pop({}, &{});",
+                            try_ok, tv, tmp
+                        ));
+                        self.emit(format!(
+                            "if ({} == 0) {{ {}.has = 1; {}.v = {}; }}",
+                            try_ok, out, out, tmp
                         ));
                         out
                     }

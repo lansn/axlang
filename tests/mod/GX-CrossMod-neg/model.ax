@@ -1,0 +1,5 @@
+// GX-CrossMod-neg 的 model 模块：仅定义 public interface Drawable，无实现类。
+
+public interface Drawable {
+    string Draw()
+}

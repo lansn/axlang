@@ -1,0 +1,1050 @@
+// ============================================================================
+// axlang 多线程并发性能测试 —— Conc-Perf (128独立队列)
+// 验证：128个生产者并发 Push（独立队列）+ 汇总消费，超高并发吞吐量
+// ============================================================================
+
+void producer(queue<int> q) {
+    for i in 0..5000 {
+        q.Push(i)
+    }
+    q.Close()
+}
+
+int main() {
+    queue<int> q1  = queue<int>()
+    queue<int> q2  = queue<int>()
+    queue<int> q3  = queue<int>()
+    queue<int> q4  = queue<int>()
+    queue<int> q5  = queue<int>()
+    queue<int> q6  = queue<int>()
+    queue<int> q7  = queue<int>()
+    queue<int> q8  = queue<int>()
+    queue<int> q9  = queue<int>()
+    queue<int> q10  = queue<int>()
+    queue<int> q11  = queue<int>()
+    queue<int> q12  = queue<int>()
+    queue<int> q13  = queue<int>()
+    queue<int> q14  = queue<int>()
+    queue<int> q15  = queue<int>()
+    queue<int> q16  = queue<int>()
+    queue<int> q17  = queue<int>()
+    queue<int> q18  = queue<int>()
+    queue<int> q19  = queue<int>()
+    queue<int> q20  = queue<int>()
+    queue<int> q21  = queue<int>()
+    queue<int> q22  = queue<int>()
+    queue<int> q23  = queue<int>()
+    queue<int> q24  = queue<int>()
+    queue<int> q25  = queue<int>()
+    queue<int> q26  = queue<int>()
+    queue<int> q27  = queue<int>()
+    queue<int> q28  = queue<int>()
+    queue<int> q29  = queue<int>()
+    queue<int> q30  = queue<int>()
+    queue<int> q31  = queue<int>()
+    queue<int> q32  = queue<int>()
+    queue<int> q33  = queue<int>()
+    queue<int> q34  = queue<int>()
+    queue<int> q35  = queue<int>()
+    queue<int> q36  = queue<int>()
+    queue<int> q37  = queue<int>()
+    queue<int> q38  = queue<int>()
+    queue<int> q39  = queue<int>()
+    queue<int> q40  = queue<int>()
+    queue<int> q41  = queue<int>()
+    queue<int> q42  = queue<int>()
+    queue<int> q43  = queue<int>()
+    queue<int> q44  = queue<int>()
+    queue<int> q45  = queue<int>()
+    queue<int> q46  = queue<int>()
+    queue<int> q47  = queue<int>()
+    queue<int> q48  = queue<int>()
+    queue<int> q49  = queue<int>()
+    queue<int> q50  = queue<int>()
+    queue<int> q51  = queue<int>()
+    queue<int> q52  = queue<int>()
+    queue<int> q53  = queue<int>()
+    queue<int> q54  = queue<int>()
+    queue<int> q55  = queue<int>()
+    queue<int> q56  = queue<int>()
+    queue<int> q57  = queue<int>()
+    queue<int> q58  = queue<int>()
+    queue<int> q59  = queue<int>()
+    queue<int> q60  = queue<int>()
+    queue<int> q61  = queue<int>()
+    queue<int> q62  = queue<int>()
+    queue<int> q63  = queue<int>()
+    queue<int> q64  = queue<int>()
+    queue<int> q65  = queue<int>()
+    queue<int> q66  = queue<int>()
+    queue<int> q67  = queue<int>()
+    queue<int> q68  = queue<int>()
+    queue<int> q69  = queue<int>()
+    queue<int> q70  = queue<int>()
+    queue<int> q71  = queue<int>()
+    queue<int> q72  = queue<int>()
+    queue<int> q73  = queue<int>()
+    queue<int> q74  = queue<int>()
+    queue<int> q75  = queue<int>()
+    queue<int> q76  = queue<int>()
+    queue<int> q77  = queue<int>()
+    queue<int> q78  = queue<int>()
+    queue<int> q79  = queue<int>()
+    queue<int> q80  = queue<int>()
+    queue<int> q81  = queue<int>()
+    queue<int> q82  = queue<int>()
+    queue<int> q83  = queue<int>()
+    queue<int> q84  = queue<int>()
+    queue<int> q85  = queue<int>()
+    queue<int> q86  = queue<int>()
+    queue<int> q87  = queue<int>()
+    queue<int> q88  = queue<int>()
+    queue<int> q89  = queue<int>()
+    queue<int> q90  = queue<int>()
+    queue<int> q91  = queue<int>()
+    queue<int> q92  = queue<int>()
+    queue<int> q93  = queue<int>()
+    queue<int> q94  = queue<int>()
+    queue<int> q95  = queue<int>()
+    queue<int> q96  = queue<int>()
+    queue<int> q97  = queue<int>()
+    queue<int> q98  = queue<int>()
+    queue<int> q99  = queue<int>()
+    queue<int> q100  = queue<int>()
+    queue<int> q101  = queue<int>()
+    queue<int> q102  = queue<int>()
+    queue<int> q103  = queue<int>()
+    queue<int> q104  = queue<int>()
+    queue<int> q105  = queue<int>()
+    queue<int> q106  = queue<int>()
+    queue<int> q107  = queue<int>()
+    queue<int> q108  = queue<int>()
+    queue<int> q109  = queue<int>()
+    queue<int> q110  = queue<int>()
+    queue<int> q111  = queue<int>()
+    queue<int> q112  = queue<int>()
+    queue<int> q113  = queue<int>()
+    queue<int> q114  = queue<int>()
+    queue<int> q115  = queue<int>()
+    queue<int> q116  = queue<int>()
+    queue<int> q117  = queue<int>()
+    queue<int> q118  = queue<int>()
+    queue<int> q119  = queue<int>()
+    queue<int> q120  = queue<int>()
+    queue<int> q121  = queue<int>()
+    queue<int> q122  = queue<int>()
+    queue<int> q123  = queue<int>()
+    queue<int> q124  = queue<int>()
+    queue<int> q125  = queue<int>()
+    queue<int> q126  = queue<int>()
+    queue<int> q127  = queue<int>()
+    queue<int> q128  = queue<int>()
+
+    var t1 = thread(producer, q1)
+    var t2 = thread(producer, q2)
+    var t3 = thread(producer, q3)
+    var t4 = thread(producer, q4)
+    var t5 = thread(producer, q5)
+    var t6 = thread(producer, q6)
+    var t7 = thread(producer, q7)
+    var t8 = thread(producer, q8)
+    var t9 = thread(producer, q9)
+    var t10 = thread(producer, q10)
+    var t11 = thread(producer, q11)
+    var t12 = thread(producer, q12)
+    var t13 = thread(producer, q13)
+    var t14 = thread(producer, q14)
+    var t15 = thread(producer, q15)
+    var t16 = thread(producer, q16)
+    var t17 = thread(producer, q17)
+    var t18 = thread(producer, q18)
+    var t19 = thread(producer, q19)
+    var t20 = thread(producer, q20)
+    var t21 = thread(producer, q21)
+    var t22 = thread(producer, q22)
+    var t23 = thread(producer, q23)
+    var t24 = thread(producer, q24)
+    var t25 = thread(producer, q25)
+    var t26 = thread(producer, q26)
+    var t27 = thread(producer, q27)
+    var t28 = thread(producer, q28)
+    var t29 = thread(producer, q29)
+    var t30 = thread(producer, q30)
+    var t31 = thread(producer, q31)
+    var t32 = thread(producer, q32)
+    var t33 = thread(producer, q33)
+    var t34 = thread(producer, q34)
+    var t35 = thread(producer, q35)
+    var t36 = thread(producer, q36)
+    var t37 = thread(producer, q37)
+    var t38 = thread(producer, q38)
+    var t39 = thread(producer, q39)
+    var t40 = thread(producer, q40)
+    var t41 = thread(producer, q41)
+    var t42 = thread(producer, q42)
+    var t43 = thread(producer, q43)
+    var t44 = thread(producer, q44)
+    var t45 = thread(producer, q45)
+    var t46 = thread(producer, q46)
+    var t47 = thread(producer, q47)
+    var t48 = thread(producer, q48)
+    var t49 = thread(producer, q49)
+    var t50 = thread(producer, q50)
+    var t51 = thread(producer, q51)
+    var t52 = thread(producer, q52)
+    var t53 = thread(producer, q53)
+    var t54 = thread(producer, q54)
+    var t55 = thread(producer, q55)
+    var t56 = thread(producer, q56)
+    var t57 = thread(producer, q57)
+    var t58 = thread(producer, q58)
+    var t59 = thread(producer, q59)
+    var t60 = thread(producer, q60)
+    var t61 = thread(producer, q61)
+    var t62 = thread(producer, q62)
+    var t63 = thread(producer, q63)
+    var t64 = thread(producer, q64)
+    var t65 = thread(producer, q65)
+    var t66 = thread(producer, q66)
+    var t67 = thread(producer, q67)
+    var t68 = thread(producer, q68)
+    var t69 = thread(producer, q69)
+    var t70 = thread(producer, q70)
+    var t71 = thread(producer, q71)
+    var t72 = thread(producer, q72)
+    var t73 = thread(producer, q73)
+    var t74 = thread(producer, q74)
+    var t75 = thread(producer, q75)
+    var t76 = thread(producer, q76)
+    var t77 = thread(producer, q77)
+    var t78 = thread(producer, q78)
+    var t79 = thread(producer, q79)
+    var t80 = thread(producer, q80)
+    var t81 = thread(producer, q81)
+    var t82 = thread(producer, q82)
+    var t83 = thread(producer, q83)
+    var t84 = thread(producer, q84)
+    var t85 = thread(producer, q85)
+    var t86 = thread(producer, q86)
+    var t87 = thread(producer, q87)
+    var t88 = thread(producer, q88)
+    var t89 = thread(producer, q89)
+    var t90 = thread(producer, q90)
+    var t91 = thread(producer, q91)
+    var t92 = thread(producer, q92)
+    var t93 = thread(producer, q93)
+    var t94 = thread(producer, q94)
+    var t95 = thread(producer, q95)
+    var t96 = thread(producer, q96)
+    var t97 = thread(producer, q97)
+    var t98 = thread(producer, q98)
+    var t99 = thread(producer, q99)
+    var t100 = thread(producer, q100)
+    var t101 = thread(producer, q101)
+    var t102 = thread(producer, q102)
+    var t103 = thread(producer, q103)
+    var t104 = thread(producer, q104)
+    var t105 = thread(producer, q105)
+    var t106 = thread(producer, q106)
+    var t107 = thread(producer, q107)
+    var t108 = thread(producer, q108)
+    var t109 = thread(producer, q109)
+    var t110 = thread(producer, q110)
+    var t111 = thread(producer, q111)
+    var t112 = thread(producer, q112)
+    var t113 = thread(producer, q113)
+    var t114 = thread(producer, q114)
+    var t115 = thread(producer, q115)
+    var t116 = thread(producer, q116)
+    var t117 = thread(producer, q117)
+    var t118 = thread(producer, q118)
+    var t119 = thread(producer, q119)
+    var t120 = thread(producer, q120)
+    var t121 = thread(producer, q121)
+    var t122 = thread(producer, q122)
+    var t123 = thread(producer, q123)
+    var t124 = thread(producer, q124)
+    var t125 = thread(producer, q125)
+    var t126 = thread(producer, q126)
+    var t127 = thread(producer, q127)
+    var t128 = thread(producer, q128)
+
+    int count = 0
+
+    int? v = null
+
+    v = q1.Pop()
+    while v != null {
+        count = count + 1
+        v = q1.Pop()
+    }
+    v = q2.Pop()
+    while v != null {
+        count = count + 1
+        v = q2.Pop()
+    }
+    v = q3.Pop()
+    while v != null {
+        count = count + 1
+        v = q3.Pop()
+    }
+    v = q4.Pop()
+    while v != null {
+        count = count + 1
+        v = q4.Pop()
+    }
+    v = q5.Pop()
+    while v != null {
+        count = count + 1
+        v = q5.Pop()
+    }
+    v = q6.Pop()
+    while v != null {
+        count = count + 1
+        v = q6.Pop()
+    }
+    v = q7.Pop()
+    while v != null {
+        count = count + 1
+        v = q7.Pop()
+    }
+    v = q8.Pop()
+    while v != null {
+        count = count + 1
+        v = q8.Pop()
+    }
+    v = q9.Pop()
+    while v != null {
+        count = count + 1
+        v = q9.Pop()
+    }
+    v = q10.Pop()
+    while v != null {
+        count = count + 1
+        v = q10.Pop()
+    }
+    v = q11.Pop()
+    while v != null {
+        count = count + 1
+        v = q11.Pop()
+    }
+    v = q12.Pop()
+    while v != null {
+        count = count + 1
+        v = q12.Pop()
+    }
+    v = q13.Pop()
+    while v != null {
+        count = count + 1
+        v = q13.Pop()
+    }
+    v = q14.Pop()
+    while v != null {
+        count = count + 1
+        v = q14.Pop()
+    }
+    v = q15.Pop()
+    while v != null {
+        count = count + 1
+        v = q15.Pop()
+    }
+    v = q16.Pop()
+    while v != null {
+        count = count + 1
+        v = q16.Pop()
+    }
+    v = q17.Pop()
+    while v != null {
+        count = count + 1
+        v = q17.Pop()
+    }
+    v = q18.Pop()
+    while v != null {
+        count = count + 1
+        v = q18.Pop()
+    }
+    v = q19.Pop()
+    while v != null {
+        count = count + 1
+        v = q19.Pop()
+    }
+    v = q20.Pop()
+    while v != null {
+        count = count + 1
+        v = q20.Pop()
+    }
+    v = q21.Pop()
+    while v != null {
+        count = count + 1
+        v = q21.Pop()
+    }
+    v = q22.Pop()
+    while v != null {
+        count = count + 1
+        v = q22.Pop()
+    }
+    v = q23.Pop()
+    while v != null {
+        count = count + 1
+        v = q23.Pop()
+    }
+    v = q24.Pop()
+    while v != null {
+        count = count + 1
+        v = q24.Pop()
+    }
+    v = q25.Pop()
+    while v != null {
+        count = count + 1
+        v = q25.Pop()
+    }
+    v = q26.Pop()
+    while v != null {
+        count = count + 1
+        v = q26.Pop()
+    }
+    v = q27.Pop()
+    while v != null {
+        count = count + 1
+        v = q27.Pop()
+    }
+    v = q28.Pop()
+    while v != null {
+        count = count + 1
+        v = q28.Pop()
+    }
+    v = q29.Pop()
+    while v != null {
+        count = count + 1
+        v = q29.Pop()
+    }
+    v = q30.Pop()
+    while v != null {
+        count = count + 1
+        v = q30.Pop()
+    }
+    v = q31.Pop()
+    while v != null {
+        count = count + 1
+        v = q31.Pop()
+    }
+    v = q32.Pop()
+    while v != null {
+        count = count + 1
+        v = q32.Pop()
+    }
+    v = q33.Pop()
+    while v != null {
+        count = count + 1
+        v = q33.Pop()
+    }
+    v = q34.Pop()
+    while v != null {
+        count = count + 1
+        v = q34.Pop()
+    }
+    v = q35.Pop()
+    while v != null {
+        count = count + 1
+        v = q35.Pop()
+    }
+    v = q36.Pop()
+    while v != null {
+        count = count + 1
+        v = q36.Pop()
+    }
+    v = q37.Pop()
+    while v != null {
+        count = count + 1
+        v = q37.Pop()
+    }
+    v = q38.Pop()
+    while v != null {
+        count = count + 1
+        v = q38.Pop()
+    }
+    v = q39.Pop()
+    while v != null {
+        count = count + 1
+        v = q39.Pop()
+    }
+    v = q40.Pop()
+    while v != null {
+        count = count + 1
+        v = q40.Pop()
+    }
+    v = q41.Pop()
+    while v != null {
+        count = count + 1
+        v = q41.Pop()
+    }
+    v = q42.Pop()
+    while v != null {
+        count = count + 1
+        v = q42.Pop()
+    }
+    v = q43.Pop()
+    while v != null {
+        count = count + 1
+        v = q43.Pop()
+    }
+    v = q44.Pop()
+    while v != null {
+        count = count + 1
+        v = q44.Pop()
+    }
+    v = q45.Pop()
+    while v != null {
+        count = count + 1
+        v = q45.Pop()
+    }
+    v = q46.Pop()
+    while v != null {
+        count = count + 1
+        v = q46.Pop()
+    }
+    v = q47.Pop()
+    while v != null {
+        count = count + 1
+        v = q47.Pop()
+    }
+    v = q48.Pop()
+    while v != null {
+        count = count + 1
+        v = q48.Pop()
+    }
+    v = q49.Pop()
+    while v != null {
+        count = count + 1
+        v = q49.Pop()
+    }
+    v = q50.Pop()
+    while v != null {
+        count = count + 1
+        v = q50.Pop()
+    }
+    v = q51.Pop()
+    while v != null {
+        count = count + 1
+        v = q51.Pop()
+    }
+    v = q52.Pop()
+    while v != null {
+        count = count + 1
+        v = q52.Pop()
+    }
+    v = q53.Pop()
+    while v != null {
+        count = count + 1
+        v = q53.Pop()
+    }
+    v = q54.Pop()
+    while v != null {
+        count = count + 1
+        v = q54.Pop()
+    }
+    v = q55.Pop()
+    while v != null {
+        count = count + 1
+        v = q55.Pop()
+    }
+    v = q56.Pop()
+    while v != null {
+        count = count + 1
+        v = q56.Pop()
+    }
+    v = q57.Pop()
+    while v != null {
+        count = count + 1
+        v = q57.Pop()
+    }
+    v = q58.Pop()
+    while v != null {
+        count = count + 1
+        v = q58.Pop()
+    }
+    v = q59.Pop()
+    while v != null {
+        count = count + 1
+        v = q59.Pop()
+    }
+    v = q60.Pop()
+    while v != null {
+        count = count + 1
+        v = q60.Pop()
+    }
+    v = q61.Pop()
+    while v != null {
+        count = count + 1
+        v = q61.Pop()
+    }
+    v = q62.Pop()
+    while v != null {
+        count = count + 1
+        v = q62.Pop()
+    }
+    v = q63.Pop()
+    while v != null {
+        count = count + 1
+        v = q63.Pop()
+    }
+    v = q64.Pop()
+    while v != null {
+        count = count + 1
+        v = q64.Pop()
+    }
+    v = q65.Pop()
+    while v != null {
+        count = count + 1
+        v = q65.Pop()
+    }
+    v = q66.Pop()
+    while v != null {
+        count = count + 1
+        v = q66.Pop()
+    }
+    v = q67.Pop()
+    while v != null {
+        count = count + 1
+        v = q67.Pop()
+    }
+    v = q68.Pop()
+    while v != null {
+        count = count + 1
+        v = q68.Pop()
+    }
+    v = q69.Pop()
+    while v != null {
+        count = count + 1
+        v = q69.Pop()
+    }
+    v = q70.Pop()
+    while v != null {
+        count = count + 1
+        v = q70.Pop()
+    }
+    v = q71.Pop()
+    while v != null {
+        count = count + 1
+        v = q71.Pop()
+    }
+    v = q72.Pop()
+    while v != null {
+        count = count + 1
+        v = q72.Pop()
+    }
+    v = q73.Pop()
+    while v != null {
+        count = count + 1
+        v = q73.Pop()
+    }
+    v = q74.Pop()
+    while v != null {
+        count = count + 1
+        v = q74.Pop()
+    }
+    v = q75.Pop()
+    while v != null {
+        count = count + 1
+        v = q75.Pop()
+    }
+    v = q76.Pop()
+    while v != null {
+        count = count + 1
+        v = q76.Pop()
+    }
+    v = q77.Pop()
+    while v != null {
+        count = count + 1
+        v = q77.Pop()
+    }
+    v = q78.Pop()
+    while v != null {
+        count = count + 1
+        v = q78.Pop()
+    }
+    v = q79.Pop()
+    while v != null {
+        count = count + 1
+        v = q79.Pop()
+    }
+    v = q80.Pop()
+    while v != null {
+        count = count + 1
+        v = q80.Pop()
+    }
+    v = q81.Pop()
+    while v != null {
+        count = count + 1
+        v = q81.Pop()
+    }
+    v = q82.Pop()
+    while v != null {
+        count = count + 1
+        v = q82.Pop()
+    }
+    v = q83.Pop()
+    while v != null {
+        count = count + 1
+        v = q83.Pop()
+    }
+    v = q84.Pop()
+    while v != null {
+        count = count + 1
+        v = q84.Pop()
+    }
+    v = q85.Pop()
+    while v != null {
+        count = count + 1
+        v = q85.Pop()
+    }
+    v = q86.Pop()
+    while v != null {
+        count = count + 1
+        v = q86.Pop()
+    }
+    v = q87.Pop()
+    while v != null {
+        count = count + 1
+        v = q87.Pop()
+    }
+    v = q88.Pop()
+    while v != null {
+        count = count + 1
+        v = q88.Pop()
+    }
+    v = q89.Pop()
+    while v != null {
+        count = count + 1
+        v = q89.Pop()
+    }
+    v = q90.Pop()
+    while v != null {
+        count = count + 1
+        v = q90.Pop()
+    }
+    v = q91.Pop()
+    while v != null {
+        count = count + 1
+        v = q91.Pop()
+    }
+    v = q92.Pop()
+    while v != null {
+        count = count + 1
+        v = q92.Pop()
+    }
+    v = q93.Pop()
+    while v != null {
+        count = count + 1
+        v = q93.Pop()
+    }
+    v = q94.Pop()
+    while v != null {
+        count = count + 1
+        v = q94.Pop()
+    }
+    v = q95.Pop()
+    while v != null {
+        count = count + 1
+        v = q95.Pop()
+    }
+    v = q96.Pop()
+    while v != null {
+        count = count + 1
+        v = q96.Pop()
+    }
+    v = q97.Pop()
+    while v != null {
+        count = count + 1
+        v = q97.Pop()
+    }
+    v = q98.Pop()
+    while v != null {
+        count = count + 1
+        v = q98.Pop()
+    }
+    v = q99.Pop()
+    while v != null {
+        count = count + 1
+        v = q99.Pop()
+    }
+    v = q100.Pop()
+    while v != null {
+        count = count + 1
+        v = q100.Pop()
+    }
+    v = q101.Pop()
+    while v != null {
+        count = count + 1
+        v = q101.Pop()
+    }
+    v = q102.Pop()
+    while v != null {
+        count = count + 1
+        v = q102.Pop()
+    }
+    v = q103.Pop()
+    while v != null {
+        count = count + 1
+        v = q103.Pop()
+    }
+    v = q104.Pop()
+    while v != null {
+        count = count + 1
+        v = q104.Pop()
+    }
+    v = q105.Pop()
+    while v != null {
+        count = count + 1
+        v = q105.Pop()
+    }
+    v = q106.Pop()
+    while v != null {
+        count = count + 1
+        v = q106.Pop()
+    }
+    v = q107.Pop()
+    while v != null {
+        count = count + 1
+        v = q107.Pop()
+    }
+    v = q108.Pop()
+    while v != null {
+        count = count + 1
+        v = q108.Pop()
+    }
+    v = q109.Pop()
+    while v != null {
+        count = count + 1
+        v = q109.Pop()
+    }
+    v = q110.Pop()
+    while v != null {
+        count = count + 1
+        v = q110.Pop()
+    }
+    v = q111.Pop()
+    while v != null {
+        count = count + 1
+        v = q111.Pop()
+    }
+    v = q112.Pop()
+    while v != null {
+        count = count + 1
+        v = q112.Pop()
+    }
+    v = q113.Pop()
+    while v != null {
+        count = count + 1
+        v = q113.Pop()
+    }
+    v = q114.Pop()
+    while v != null {
+        count = count + 1
+        v = q114.Pop()
+    }
+    v = q115.Pop()
+    while v != null {
+        count = count + 1
+        v = q115.Pop()
+    }
+    v = q116.Pop()
+    while v != null {
+        count = count + 1
+        v = q116.Pop()
+    }
+    v = q117.Pop()
+    while v != null {
+        count = count + 1
+        v = q117.Pop()
+    }
+    v = q118.Pop()
+    while v != null {
+        count = count + 1
+        v = q118.Pop()
+    }
+    v = q119.Pop()
+    while v != null {
+        count = count + 1
+        v = q119.Pop()
+    }
+    v = q120.Pop()
+    while v != null {
+        count = count + 1
+        v = q120.Pop()
+    }
+    v = q121.Pop()
+    while v != null {
+        count = count + 1
+        v = q121.Pop()
+    }
+    v = q122.Pop()
+    while v != null {
+        count = count + 1
+        v = q122.Pop()
+    }
+    v = q123.Pop()
+    while v != null {
+        count = count + 1
+        v = q123.Pop()
+    }
+    v = q124.Pop()
+    while v != null {
+        count = count + 1
+        v = q124.Pop()
+    }
+    v = q125.Pop()
+    while v != null {
+        count = count + 1
+        v = q125.Pop()
+    }
+    v = q126.Pop()
+    while v != null {
+        count = count + 1
+        v = q126.Pop()
+    }
+    v = q127.Pop()
+    while v != null {
+        count = count + 1
+        v = q127.Pop()
+    }
+    v = q128.Pop()
+    while v != null {
+        count = count + 1
+        v = q128.Pop()
+    }
+
+    t1.Join()
+    t2.Join()
+    t3.Join()
+    t4.Join()
+    t5.Join()
+    t6.Join()
+    t7.Join()
+    t8.Join()
+    t9.Join()
+    t10.Join()
+    t11.Join()
+    t12.Join()
+    t13.Join()
+    t14.Join()
+    t15.Join()
+    t16.Join()
+    t17.Join()
+    t18.Join()
+    t19.Join()
+    t20.Join()
+    t21.Join()
+    t22.Join()
+    t23.Join()
+    t24.Join()
+    t25.Join()
+    t26.Join()
+    t27.Join()
+    t28.Join()
+    t29.Join()
+    t30.Join()
+    t31.Join()
+    t32.Join()
+    t33.Join()
+    t34.Join()
+    t35.Join()
+    t36.Join()
+    t37.Join()
+    t38.Join()
+    t39.Join()
+    t40.Join()
+    t41.Join()
+    t42.Join()
+    t43.Join()
+    t44.Join()
+    t45.Join()
+    t46.Join()
+    t47.Join()
+    t48.Join()
+    t49.Join()
+    t50.Join()
+    t51.Join()
+    t52.Join()
+    t53.Join()
+    t54.Join()
+    t55.Join()
+    t56.Join()
+    t57.Join()
+    t58.Join()
+    t59.Join()
+    t60.Join()
+    t61.Join()
+    t62.Join()
+    t63.Join()
+    t64.Join()
+    t65.Join()
+    t66.Join()
+    t67.Join()
+    t68.Join()
+    t69.Join()
+    t70.Join()
+    t71.Join()
+    t72.Join()
+    t73.Join()
+    t74.Join()
+    t75.Join()
+    t76.Join()
+    t77.Join()
+    t78.Join()
+    t79.Join()
+    t80.Join()
+    t81.Join()
+    t82.Join()
+    t83.Join()
+    t84.Join()
+    t85.Join()
+    t86.Join()
+    t87.Join()
+    t88.Join()
+    t89.Join()
+    t90.Join()
+    t91.Join()
+    t92.Join()
+    t93.Join()
+    t94.Join()
+    t95.Join()
+    t96.Join()
+    t97.Join()
+    t98.Join()
+    t99.Join()
+    t100.Join()
+    t101.Join()
+    t102.Join()
+    t103.Join()
+    t104.Join()
+    t105.Join()
+    t106.Join()
+    t107.Join()
+    t108.Join()
+    t109.Join()
+    t110.Join()
+    t111.Join()
+    t112.Join()
+    t113.Join()
+    t114.Join()
+    t115.Join()
+    t116.Join()
+    t117.Join()
+    t118.Join()
+    t119.Join()
+    t120.Join()
+    t121.Join()
+    t122.Join()
+    t123.Join()
+    t124.Join()
+    t125.Join()
+    t126.Join()
+    t127.Join()
+    t128.Join()
+
+    // 期望 128 * 5000 = 640000
+    println("{count}")
+    println("done")
+    return 0
+}

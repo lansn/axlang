@@ -1,0 +1,155 @@
+// ============================================================================
+// axlang 多线程并发性能测试 —— Conc-Perf-2 (16独立队列)
+// 验证：16个生产者并发 Push（独立队列）+ 汇总消费，高并发吞吐量
+// ============================================================================
+
+void producer(queue<int> q) {
+    for i in 0..10000 {
+        q.Push(i)
+    }
+    q.Close()
+}
+
+int main() {
+    queue<int> q1 = queue<int>()
+    queue<int> q2 = queue<int>()
+    queue<int> q3 = queue<int>()
+    queue<int> q4 = queue<int>()
+    queue<int> q5 = queue<int>()
+    queue<int> q6 = queue<int>()
+    queue<int> q7 = queue<int>()
+    queue<int> q8 = queue<int>()
+    queue<int> q9 = queue<int>()
+    queue<int> q10 = queue<int>()
+    queue<int> q11 = queue<int>()
+    queue<int> q12 = queue<int>()
+    queue<int> q13 = queue<int>()
+    queue<int> q14 = queue<int>()
+    queue<int> q15 = queue<int>()
+    queue<int> q16 = queue<int>()
+
+    var t1 = thread(producer, q1)
+    var t2 = thread(producer, q2)
+    var t3 = thread(producer, q3)
+    var t4 = thread(producer, q4)
+    var t5 = thread(producer, q5)
+    var t6 = thread(producer, q6)
+    var t7 = thread(producer, q7)
+    var t8 = thread(producer, q8)
+    var t9 = thread(producer, q9)
+    var t10 = thread(producer, q10)
+    var t11 = thread(producer, q11)
+    var t12 = thread(producer, q12)
+    var t13 = thread(producer, q13)
+    var t14 = thread(producer, q14)
+    var t15 = thread(producer, q15)
+    var t16 = thread(producer, q16)
+
+    int count = 0
+
+    // 汇总每个队列的值
+    int? v = null
+
+    v = q1.Pop()
+    while v != null {
+        count = count + 1
+        v = q1.Pop()
+    }
+    v = q2.Pop()
+    while v != null {
+        count = count + 1
+        v = q2.Pop()
+    }
+    v = q3.Pop()
+    while v != null {
+        count = count + 1
+        v = q3.Pop()
+    }
+    v = q4.Pop()
+    while v != null {
+        count = count + 1
+        v = q4.Pop()
+    }
+    v = q5.Pop()
+    while v != null {
+        count = count + 1
+        v = q5.Pop()
+    }
+    v = q6.Pop()
+    while v != null {
+        count = count + 1
+        v = q6.Pop()
+    }
+    v = q7.Pop()
+    while v != null {
+        count = count + 1
+        v = q7.Pop()
+    }
+    v = q8.Pop()
+    while v != null {
+        count = count + 1
+        v = q8.Pop()
+    }
+    v = q9.Pop()
+    while v != null {
+        count = count + 1
+        v = q9.Pop()
+    }
+    v = q10.Pop()
+    while v != null {
+        count = count + 1
+        v = q10.Pop()
+    }
+    v = q11.Pop()
+    while v != null {
+        count = count + 1
+        v = q11.Pop()
+    }
+    v = q12.Pop()
+    while v != null {
+        count = count + 1
+        v = q12.Pop()
+    }
+    v = q13.Pop()
+    while v != null {
+        count = count + 1
+        v = q13.Pop()
+    }
+    v = q14.Pop()
+    while v != null {
+        count = count + 1
+        v = q14.Pop()
+    }
+    v = q15.Pop()
+    while v != null {
+        count = count + 1
+        v = q15.Pop()
+    }
+    v = q16.Pop()
+    while v != null {
+        count = count + 1
+        v = q16.Pop()
+    }
+
+    t1.Join()
+    t2.Join()
+    t3.Join()
+    t4.Join()
+    t5.Join()
+    t6.Join()
+    t7.Join()
+    t8.Join()
+    t9.Join()
+    t10.Join()
+    t11.Join()
+    t12.Join()
+    t13.Join()
+    t14.Join()
+    t15.Join()
+    t16.Join()
+
+    // 期望 16 * 10000 = 160000
+    println("{count}")
+    println("done")
+    return 0
+}

@@ -1,0 +1,4 @@
+sum=250000000000
+expected=250000000000
+ok=true
+FFI-Bench-2 done

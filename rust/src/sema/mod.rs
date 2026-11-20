@@ -330,6 +330,7 @@ pub struct FuncInfo<'a> {
     pub vis: String,
     pub is_static: bool,
     pub is_override: bool,
+    pub is_abstract: bool,
     pub body: Option<&'a ast::Block>,
     /// 隐式 `main`：入口文件的顶层语句包出来的（文稿 9.4）
     pub implicit: bool,
@@ -337,6 +338,8 @@ pub struct FuncInfo<'a> {
     pub gdepth: u32,
     /// 单态化实例的 mangle 后缀（如 `Some("int")` → C 名 `max$int`）；模板 None
     pub mangle: Option<String>,
+    /// 是否为 `extern "C"` 外部函数：不生成函数定义，调用点直接使用 C 函数名。
+    pub is_extern: bool,
     /// 所属父函数（嵌套函数）；模块级函数为 None。
     pub parent: Option<usize>,
     /// 该函数体内直接声明的嵌套函数：源码名 → fid（供裸名调用解析）。
@@ -351,6 +354,10 @@ pub struct TypeDef {
     pub tok: Tok,
     pub vis: String,
     pub generics: Vec<(String, Vec<String>)>,
+    /// 抽象类：禁止直接 `new` 实例化，只能作为基类被继承
+    pub is_abstract: bool,
+    /// final 类：禁止被其他类 `extend` 继承
+    pub is_final: bool,
     pub fields: Vec<(String, Ty, String, u32)>,
     pub methods: BTreeMap<String, usize>,
     pub ctors: HashMap<String, usize>,
@@ -690,6 +697,8 @@ impl<'a> Sema<'a> {
                 tok: dummy_tok(),
                 vis: "public".to_string(),
                 generics: Vec::new(),
+                is_abstract: false,
+                is_final: false,
                 fields: Vec::new(),
                 methods: BTreeMap::new(),
                 ctors: HashMap::new(),
@@ -739,10 +748,12 @@ impl<'a> Sema<'a> {
                 vis: "public".to_string(),
                 is_static: false,
                 is_override: false,
+                is_abstract: false,
                 body: None,
                 implicit: false,
                 gdepth: 0,
                 mangle: None,
+                is_extern: false,
                 parent: None,
                 nested: BTreeMap::new(),
             };
@@ -1103,7 +1114,7 @@ impl<'a> Sema<'a> {
         ty_str(ty, Some(&|d| self.namer_name(d)))
     }
 
-    fn new_typedef(&mut self, name: &str, kind: &'static str, tok: &Tok) -> u32 {
+    fn new_typedef(&mut self, name: &str, kind: &'static str, tok: &Tok, is_abstract: bool, is_final: bool) -> u32 {
         let id = self.typedefs.len() as u32;
         self.typedef_mod.push(self.cur_mod_prefix.clone());
         self.typedefs.push(TypeDef {
@@ -1113,6 +1124,8 @@ impl<'a> Sema<'a> {
             tok: tok.clone(),
             vis: "private".to_string(),
             generics: Vec::new(),
+            is_abstract,
+            is_final,
             fields: Vec::new(),
             methods: BTreeMap::new(),
             ctors: HashMap::new(),
@@ -1284,12 +1297,14 @@ impl<'a> Sema<'a> {
     }
 
     fn register_type(&mut self, item: &'a ast::N<Item>) {
-        let (name, vis, generics, kind) = match &item.k {
-            Item::ClassDecl { vis, name, generics, .. } => (name, vis, generics, "class"),
-            Item::StructDecl { vis, name, generics, .. } => (name, vis, generics, "struct"),
-            Item::InterfaceDecl { vis, name, .. } => (name, vis, &Vec::new(), "interface"),
-            Item::EnumDecl { vis, name, .. } => (name, vis, &Vec::new(), "enum"),
-            Item::TypeAlias { vis, name, generics, .. } => (name, vis, generics, "alias"),
+        let (name, vis, generics, kind, is_abstract, is_final) = match &item.k {
+            Item::ClassDecl { vis, name, generics, is_abstract, is_final, .. } => {
+                (name, vis, generics, "class", *is_abstract, *is_final)
+            }
+            Item::StructDecl { vis, name, generics, .. } => (name, vis, generics, "struct", false, false),
+            Item::InterfaceDecl { vis, name, .. } => (name, vis, &Vec::new(), "interface", false, false),
+            Item::EnumDecl { vis, name, .. } => (name, vis, &Vec::new(), "enum", false, false),
+            Item::TypeAlias { vis, name, generics, .. } => (name, vis, generics, "alias", false, false),
             _ => return,
         };
         let is_public = vis.as_deref() == Some("public");
@@ -1297,7 +1312,7 @@ impl<'a> Sema<'a> {
         if !self.declare_name(&reg, &item.tok, true) {
             return;
         }
-        let id = self.new_typedef(&reg, kind, &item.tok);
+        let id = self.new_typedef(&reg, kind, &item.tok, is_abstract, is_final);
         let g: Vec<(String, Vec<String>)> = generics
             .iter()
             .map(|g| (g.name.clone(), g.constraints.clone()))
@@ -1375,10 +1390,12 @@ impl<'a> Sema<'a> {
             vis: vis.clone().unwrap_or_else(|| "private".to_string()),
             is_static: false,
             is_override: false,
+            is_abstract: false,
             body: Some(body),
             implicit,
             gdepth: 0,
             mangle: None,
+            is_extern: false,
             parent: None,
             nested: BTreeMap::new(),
         };
@@ -1399,26 +1416,35 @@ impl<'a> Sema<'a> {
     }
 
     /// 注册 `extern "C"` 外部函数：无函数体，body=None，不检查 main 限制。
-    fn register_extern_func(&mut self, item: &'a ast::N<Item>, name: &str, _ret: &ast::TPtr, _params: &Vec<N<ast::Param>>) {
+    /// 返回类型与参数类型会被真正解析，以便后续调用点做类型检查与 C 代码生成。
+    fn register_extern_func(&mut self, item: &'a ast::N<Item>, name: &str, ret: &ast::TPtr, params: &Vec<N<ast::Param>>) {
         let reg = name.to_string();
         if !self.declare_name(&reg, &item.tok, false) {
             return;
+        }
+        let ret_ty = self.resolve_type(ret);
+        let mut param_tys: Vec<(String, Ty, Option<String>)> = Vec::new();
+        for p in params {
+            let pt = self.resolve_type(&p.k.ty);
+            param_tys.push((p.k.name.clone(), pt, p.k.borrow.clone()));
         }
         let f = FuncInfo {
             name: reg.clone(),
             tok: item.tok.clone(),
             module: self.cur_mod_path.clone(),
             owner: None,
-            params: Vec::new(),
-            ret: t_void(),
+            params: param_tys,
+            ret: ret_ty,
             generics: Vec::new(),
             vis: "private".to_string(),
             is_static: false,
             is_override: false,
+            is_abstract: false,
             body: None,
             implicit: false,
             gdepth: 0,
             mangle: None,
+            is_extern: true,
             parent: None,
             nested: BTreeMap::new(),
         };
@@ -1931,7 +1957,20 @@ impl<'a> Sema<'a> {
                         _ => None,
                     };
                     match pd {
-                        Some(pd) => self.typedefs[d as usize].parent = Some(pd),
+                        Some(pd) => {
+                            if self.typedefs[pd as usize].is_final {
+                                let parent_name = self.typedefs[pd as usize].name.clone();
+                                self.err(
+                                    "E3046",
+                                    &pt_node.tok,
+                                    "文稿 6.2",
+                                    "不能 `extend` final 类 `{0}`",
+                                    &[&parent_name],
+                                );
+                            } else {
+                                self.typedefs[d as usize].parent = Some(pd);
+                            }
+                        }
                         None => self.err("E3020", &pt_node.tok, "文稿 6.2", "`extend` 后面必须是 class", &[]),
                     }
                 }
@@ -2014,6 +2053,7 @@ impl<'a> Sema<'a> {
                             vis,
                             is_static,
                             is_override,
+                            is_abstract,
                             ret,
                             name,
                             params,
@@ -2031,11 +2071,13 @@ impl<'a> Sema<'a> {
                                 vis: vis.clone().unwrap_or_else(|| "private".to_string()),
                                 is_static: *is_static,
                                 is_override: *is_override,
+                                is_abstract: *is_abstract,
                                 implicit: false,
-                gdepth: 0,
-                mangle: None,
-                parent: Some(d as usize),
-                nested: BTreeMap::new(),
+                                gdepth: 0,
+                                mangle: None,
+                                is_extern: false,
+                                parent: Some(d as usize),
+                                nested: BTreeMap::new(),
                                 body: Some(body),
                             };
                             self.funcs.push(f);
@@ -2068,9 +2110,11 @@ impl<'a> Sema<'a> {
                                 vis: "private".to_string(),
                                 is_static: false,
                                 is_override: false,
+                                is_abstract: false,
                                 implicit: false,
                                 gdepth: 0,
                                 mangle: None,
+                                is_extern: false,
                                 parent: Some(d as usize),
                                 nested: BTreeMap::new(),
                                 body: Some(body),
@@ -2105,9 +2149,11 @@ impl<'a> Sema<'a> {
                         vis: "public".to_string(),
                         is_static: false,
                         is_override: false,
+                        is_abstract: false,
                         implicit: false,
                 gdepth: 0,
                 mangle: None,
+                is_extern: false,
                 parent: Some(d as usize),
                 nested: BTreeMap::new(),
                         body: m.k.default_body.as_ref(),
@@ -2135,15 +2181,17 @@ impl<'a> Sema<'a> {
         if let Some(members) = members_opt {
             for m in members {
                 if let ast::Member::Item(inner) = &m.k {
-                    let (name, kind, generics) = match &inner.k {
-                        Item::ClassDecl { name, generics, .. } => (name, "class", generics),
-                        Item::StructDecl { name, generics, .. } => (name, "struct", generics),
-                        Item::InterfaceDecl { name, .. } => (name, "interface", &Vec::new()),
-                        Item::EnumDecl { name, .. } => (name, "enum", &Vec::new()),
-                        Item::TypeAlias { name, generics, .. } => (name, "alias", generics),
+                    let (name, kind, generics, is_abstract, is_final) = match &inner.k {
+                        Item::ClassDecl { name, generics, is_abstract, is_final, .. } => {
+                            (name, "class", generics, *is_abstract, *is_final)
+                        }
+                        Item::StructDecl { name, generics, .. } => (name, "struct", generics, false, false),
+                        Item::InterfaceDecl { name, .. } => (name, "interface", &Vec::new(), false, false),
+                        Item::EnumDecl { name, .. } => (name, "enum", &Vec::new(), false, false),
+                        Item::TypeAlias { name, generics, .. } => (name, "alias", generics, false, false),
                         _ => continue,
                     };
-                    let nid = self.new_typedef(name, kind, &inner.tok);
+                    let nid = self.new_typedef(name, kind, &inner.tok, is_abstract, is_final);
                     let g: Vec<(String, Vec<String>)> = generics
                         .iter()
                         .map(|g| (g.name.clone(), g.constraints.clone()))
@@ -2395,7 +2443,8 @@ impl<'a> Sema<'a> {
             self.check_block(b, false);
         }
         let is_void = matches!(&*ret, TyS::Void);
-        if !is_void && !self.in_main && !self.block_returns(body) {
+        let is_abs = self.funcs[f].is_abstract;
+        if !is_abs && !is_void && !self.in_main && !self.block_returns(body) {
             self.err("E2006", &tok, "文稿 9.4", "函数 `{0}` 存在没有 return 的路径", &[&name]);
         }
         self.narrow = saved_narrow;
@@ -2503,6 +2552,12 @@ impl<'a> Sema<'a> {
                 .map(|(k, v)| (k.clone(), *v))
                 .collect();
             for (mname, m) in &methods {
+                let fi = &self.funcs[*m];
+                let m_tok = fi.tok.clone();
+                // 非抽象类不能声明抽象方法
+                if !self.typedefs[d as usize].is_abstract && fi.is_abstract {
+                    self.err("E3048", &m_tok, "文稿 6.2", "非抽象类不能声明抽象方法 `{0}`", &[mname]);
+                }
                 let pm = match parent {
                     Some(p) => self.find_method(p, mname),
                     None => None,
@@ -2534,6 +2589,24 @@ impl<'a> Sema<'a> {
                     }
                 } else if m_ov && !iface_names.contains(mname) {
                     self.err("E3016", &m_tok, "文稿 6.2", "`override` 没有对应的父类或 interface 方法", &[]);
+                }
+            }
+            // 非抽象类必须实现父类的所有抽象方法
+            if !self.typedefs[d as usize].is_abstract {
+                if let Some(p) = parent {
+                    let parent_abs: Vec<(String, usize)> = self.typedefs[p as usize]
+                        .methods
+                        .iter()
+                        .filter(|(_, &mi)| self.funcs[mi].is_abstract)
+                        .map(|(n, &mi)| (n.clone(), mi))
+                        .collect();
+                    for (pn, pi) in &parent_abs {
+                        let overridden = methods.iter().any(|(n, mi)| n == pn && self.funcs[*mi].is_override);
+                        if !overridden {
+                            let ptok = self.funcs[*pi].tok.clone();
+                            self.err("E3047", &ptok, "文稿 6.2", "抽象方法 `{0}` 未在子类 `{1}` 中实现", &[pn, &name]);
+                        }
+                    }
                 }
             }
             // interface 实现

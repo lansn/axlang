@@ -1,0 +1,32 @@
+// GTS 代码膨胀对比测试 —— 泛型类 Box<T> 实例化 3 个不同引用类型
+// 验证：Box<NodeA> / Box<NodeB> / Box<NodeC} 均有全引用字段（Value 为类类型），
+// 应全部擦除为共享名 Box_g_ref，共享同一 struct / vtable / 方法，
+// 仅生成 3 行 typedef 别名，而非 3 套独立的 struct+vtable+方法。
+
+class NodeA {
+    constructor() {}
+}
+
+class NodeB {
+    constructor() {}
+}
+
+class NodeC {
+    constructor() {}
+}
+
+class Box<T> {
+    public T Value
+    constructor(T v) { this.Value = v }
+    public T Get() {
+        return this.Value
+    }
+}
+
+int main() {
+    Box<NodeA> a = new Box(new NodeA())
+    Box<NodeB> b = new Box(new NodeB())
+    Box<NodeC> c = new Box(new NodeC())
+    println("ok")
+    return 0
+}

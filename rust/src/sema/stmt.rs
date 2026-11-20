@@ -1189,82 +1189,93 @@ impl<'a> Sema<'a> {
                 let all_resolved = names.iter().all(|n| subst.contains_key(n));
                 if all_resolved {
                     let generic_args: Vec<Ty> = names.iter().map(|n| subst[n].clone()).collect();
-                    let mangle = self.mangle_inst(&fname, &generic_args);
-                    let mut target_f = f;
-                    if let Some(&inst) = self.inst_registry.get(&mangle) {
-                        target_f = inst;
-                    } else if self.inst_registry.contains_key(&mangle) {
-                        target_f = self.inst_registry[&mangle];
-                    } else {
-                        let depth = self.cur_gdepth + 1;
-                        let check_body = depth <= 64;
-                        if !check_body && !self.depth_err_reported {
-                            self.err(
-                                "E4038",
-                                &node.tok,
-                                "T-37",
-                                "泛型实例化递归超过 64 层：`{0}`",
-                                &[&mangle],
-                            );
-                            self.depth_err_reported = true;
-                        }
-                        if self.inst_registry.contains_key(&mangle) {
+                    // 若类型实参不满足泛型约束，不实例化、不写回 slot，走下面的 AssignResult 错误路径
+                    if self.check_generic_constraints(&generics, &subst, &node.tok) {
+                        let mangle = self.mangle_inst(&fname, &generic_args);
+                        let mut target_f = f;
+                        if let Some(&inst) = self.inst_registry.get(&mangle) {
+                            target_f = inst;
+                        } else if self.inst_registry.contains_key(&mangle) {
                             target_f = self.inst_registry[&mangle];
                         } else {
-                            let subst_map: HashMap<String, Ty> = generics
-                                .iter()
-                                .zip(generic_args.iter())
-                                .map(|((g, _), t)| (g.clone(), t.clone()))
-                                .collect();
-                            let params2: Vec<(String, Ty, Option<String>)> = params
-                                .iter()
-                                .map(|(n, t, b)| {
-                                    let t2 = self.subst_ty(t, &subst_map);
-                                    (n.clone(), self.concretize(&t2, &node.tok), b.clone())
-                                })
-                                .collect();
-                            let r2 = self.subst_ty(&ret, &subst_map);
-                            let ret2 = self.concretize(&r2, &node.tok);
-                            let inst_fi = crate::sema::FuncInfo {
-                                name: fname.clone(),
-                                tok: node.tok.clone(),
-                                module,
-                                owner,
-                                params: params2,
-                                ret: ret2,
-                                generics: Vec::new(),
-                                vis,
-                                is_static,
-                                is_override,
-                                body,
-                                implicit: false,
-                                gdepth: depth,
-                                mangle: Some(mangle.clone()),
-                                parent,
-                                nested: BTreeMap::new(),
-                            };
-                            let inst = self.funcs.len();
-                            self.funcs.push(inst_fi);
-                            let iid = self.next_inst;
-                            self.next_inst += 1;
-                            self.inst_registry.insert(mangle, inst);
-                            self.inst_slot_of.insert(inst, iid);
-                            let env: HashMap<String, Ty> = generics
-                                .iter()
-                                .zip(generic_args.iter())
-                                .map(|((g, _), t)| (g.clone(), t.clone()))
-                                .collect();
-                            self.inst_env.insert(inst, env);
-                            if check_body {
-                                self.pending_insts.push(inst);
+                            let depth = self.cur_gdepth + 1;
+                            let check_body = depth <= 64;
+                            if !check_body && !self.depth_err_reported {
+                                self.err(
+                                    "E4038",
+                                    &node.tok,
+                                    "T-37",
+                                    "泛型实例化递归超过 64 层：`{0}`",
+                                    &[&mangle],
+                                );
+                                self.depth_err_reported = true;
                             }
-                            target_f = inst;
+                            if self.inst_registry.contains_key(&mangle) {
+                                target_f = self.inst_registry[&mangle];
+                            } else {
+                                let subst_map: HashMap<String, Ty> = generics
+                                    .iter()
+                                    .zip(generic_args.iter())
+                                    .map(|((g, _), t)| (g.clone(), t.clone()))
+                                    .collect();
+                                let params2: Vec<(String, Ty, Option<String>)> = params
+                                    .iter()
+                                    .map(|(n, t, b)| {
+                                        let t2 = self.subst_ty(t, &subst_map);
+                                        (n.clone(), self.concretize(&t2, &node.tok), b.clone())
+                                    })
+                                    .collect();
+                                let r2 = self.subst_ty(&ret, &subst_map);
+                                let ret2 = self.concretize(&r2, &node.tok);
+                                let inst_fi = crate::sema::FuncInfo {
+                                    name: fname.clone(),
+                                    tok: node.tok.clone(),
+                                    module,
+                                    owner,
+                                    params: params2,
+                                    ret: ret2,
+                                    generics: Vec::new(),
+                                    vis,
+                                    is_static,
+                                    is_override,
+                                    is_abstract: false,
+                                    body,
+                                    implicit: false,
+                                    gdepth: depth,
+                                    mangle: Some(mangle.clone()),
+                                    is_extern: false,
+                                    parent,
+                                    nested: BTreeMap::new(),
+                                };
+                                let inst = self.funcs.len();
+                                self.funcs.push(inst_fi);
+                                let iid = self.next_inst;
+                                self.next_inst += 1;
+                                self.inst_registry.insert(mangle, inst);
+                                self.inst_slot_of.insert(inst, iid);
+                                let env: HashMap<String, Ty> = generics
+                                    .iter()
+                                    .zip(generic_args.iter())
+                                    .map(|((g, _), t)| (g.clone(), t.clone()))
+                                    .collect();
+                                self.inst_env.insert(inst, env);
+                                if check_body {
+                                    self.pending_insts.push(inst);
+                                }
+                                target_f = inst;
+                            }
                         }
+                        let s = self.sl(node.id);
+                        s.func = Some(target_f);
+                        s.ty = Some(dst.clone());
+                        s.generic_args = generic_args;
+                        return;
                     }
+                    // 约束不满足（E4036 已由 check_generic_constraints 报告），
+                    // 不实例化，不写回 target_f，避免落到 match r 报告重复的 E4001
                     let s = self.sl(node.id);
-                    s.func = Some(target_f);
+                    s.func = Some(f);
                     s.ty = Some(dst.clone());
-                    s.generic_args = generic_args;
                     return;
                 }
             }

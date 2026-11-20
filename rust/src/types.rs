@@ -20,6 +20,8 @@ pub enum TyS {
     Bool,
     Void,
     Float,
+    /// 32 位单精度浮点（与 64 位 `float` 并存，C 层对应 `float`）
+    Float32,
     Decimal,
     Str,
     Object,
@@ -62,6 +64,9 @@ pub fn t_void() -> Ty {
 }
 pub fn t_float() -> Ty {
     Rc::new(TyS::Float)
+}
+pub fn t_float32() -> Ty {
+    Rc::new(TyS::Float32)
 }
 pub fn t_decimal() -> Ty {
     Rc::new(TyS::Decimal)
@@ -131,7 +136,7 @@ pub fn is_int(t: &Ty) -> bool {
 }
 
 pub fn is_numeric(t: &Ty) -> bool {
-    matches!(&**t, TyS::Int(..) | TyS::Float | TyS::Decimal)
+    matches!(&**t, TyS::Int(..) | TyS::Float | TyS::Float32 | TyS::Decimal)
 }
 
 /// 剥掉一层可空：`T?` → `T`，其余原样返回。
@@ -152,7 +157,7 @@ pub fn strip_nullable(t: &Ty) -> &Ty {
 /// `Unknown`/`Error`/`Never` 是已报错占位类型，返回 `true` 以免派生错误风暴。
 pub fn interp_supported(t: &Ty) -> bool {
     match &**t {
-        TyS::Int(..) | TyS::Float | TyS::Decimal | TyS::Bool | TyS::Str | TyS::Enum(_) => true,
+        TyS::Int(..) | TyS::Float | TyS::Float32 | TyS::Decimal | TyS::Bool | TyS::Str | TyS::Enum(_) => true,
         TyS::Array(..) | TyS::Map(..) | TyS::Tuple(..) => true,
         TyS::Nullable(i) => interp_supported(i),
         TyS::Unknown | TyS::Error | TyS::Never => true,
@@ -202,6 +207,7 @@ pub fn builtin_scalar(name: &str) -> Option<Ty> {
         "uint16" => t_int_b(16, false),
         "uint32" => t_int_b(32, false),
         "float" => t_float(),
+        "float32" => t_float32(),
         "decimal" => t_decimal(),
         "string" => t_string(),
         "object" => t_object(),
@@ -227,6 +233,7 @@ fn cn(k: &TyS) -> Option<&'static str> {
     Some(match k {
         TyS::Bool => "bool",
         TyS::Float => "float",
+        TyS::Float32 => "float32",
         TyS::Decimal => "decimal",
         TyS::Str => "string",
         TyS::Object => "object",
@@ -568,17 +575,21 @@ pub fn assignable(src: &Ty, dst: &Ty, ctx: &dyn AssignCtx, allow_unbox: bool) ->
             AssignResult::No("ArenaRef 元素类型不一致")
         };
     }
+    // float32 → float 隐式扩大（无损，C 层 float 自动提升为 double）
+    if matches!(&**src, TyS::Float32) && matches!(&**dst, TyS::Float) {
+        return AssignResult::Conv("f32_to_f64");
+    }
     if is_numeric(src) && is_numeric(dst) {
         return AssignResult::No("");
     }
     AssignResult::No("类型不匹配")
 }
 
-pub const BOXABLE_SCALARS: [&str; 5] = ["bool", "int", "float", "decimal", "string"];
+pub const BOXABLE_SCALARS: [&str; 6] = ["bool", "int", "float", "float32", "decimal", "string"];
 
 pub fn boxable(t: &Ty) -> bool {
     match &**t {
-        TyS::Bool | TyS::Int(..) | TyS::Float | TyS::Decimal | TyS::Str => true,
+        TyS::Bool | TyS::Int(..) | TyS::Float | TyS::Float32 | TyS::Decimal | TyS::Str => true,
         TyS::Array(..) | TyS::Map(..) => true,
         TyS::Named(..) => true, // class 实例（struct 由 sema 再拦）
         _ => false,
@@ -587,7 +598,7 @@ pub fn boxable(t: &Ty) -> bool {
 
 pub fn unboxable(t: &Ty) -> bool {
     match &**t {
-        TyS::Bool | TyS::Int(..) | TyS::Float | TyS::Decimal | TyS::Str => true,
+        TyS::Bool | TyS::Int(..) | TyS::Float | TyS::Float32 | TyS::Decimal | TyS::Str => true,
         TyS::Array(..) | TyS::Map(..) | TyS::Nullable(_) => true,
         TyS::Named(..) => true,
         _ => false,

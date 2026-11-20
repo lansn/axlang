@@ -1,0 +1,5 @@
+sum_arr      =1249999975000000
+sum_arr_plain=1249999975000000
+10kx move BigObj(1000) mv_sum=10000000
+50Mx identity(int) id_sum=1249999975000000
+Perf-4 done

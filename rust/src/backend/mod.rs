@@ -143,6 +143,7 @@ pub fn tag_of(ty: &Ty) -> u32 {    match &**ty {
             }
         }
         TyS::Float => 6,
+        TyS::Float32 => 15,
         TyS::Decimal => 7,
         TyS::Str => 14,
         _ => 1000 + fnv1a32(&canonical(ty, None)) % 100000,
@@ -168,6 +169,11 @@ pub struct CodeGen<'s, 'a> {
     /// 拼接时排在 fns 之后（其引用的 axfn_/元素类型定义在 type_defs，先于此处）。
     pub extra_fns: Vec<String>,
     pub tmp_n: u32,
+    /// 泛型类型擦除映射：typedef id → 共享类名。仅对“所有字段均可擦除为引用类型”
+    /// 的泛型实例化类生效（如 `Box<int>` → `Box_ref`），用于合并重复的 struct/方法/vtable。
+    pub erased_map: HashMap<u32, String>,
+    /// 已为其生成完整 C 代码（struct/方法/vtable）的共享类名集合，避免重复生成。
+    pub emitted_shared: HashSet<String>,
 }
 
 impl<'s, 'a> CodeGen<'s, 'a> {
@@ -194,6 +200,8 @@ impl<'s, 'a> CodeGen<'s, 'a> {
             fn_decls: Vec::new(),
             extra_fns: Vec::new(),
             tmp_n: 0,
+            erased_map: HashMap::new(),
+            emitted_shared: HashSet::new(),
         }
     }
 
@@ -211,6 +219,107 @@ impl<'s, 'a> CodeGen<'s, 'a> {
         san(&canonical(ty, Some(&|d| s.namer_name(d))))
     }
 
+    // ------------------------------------------------------------ 泛型类型擦除（GTS）
+
+    /// 判断类型是否为“引用类型”：在 C 层均为指针（`void*` / `T*`），
+    /// 可擦除为 `void*`，多种引用类型可共享同一套泛型代码。
+    ///
+    /// 注意：`string`（`ax_str`）在 C 层是按值传递的结构体，不是指针，
+    /// `Nullable<T>`（`axopt_T`）也是结构体值，均不属于引用类型。
+    pub fn is_ref_type(&self, ty: &Ty) -> bool {
+        match &**ty {
+            TyS::Object => true,
+            TyS::Named(nm, _) => match nm {
+                DefId::Name("queue") | DefId::Name("thread") => true,
+                DefId::Id(i) => {
+                    // class 实例：在 C 层为 T* 指针，可擦除为 void*。
+                    // interface 在 C 层是胖指针结构体 { obj, vt }，按值传递，不是指针，
+                    // 不应擦除为 void*。
+                    self.s
+                        .typedefs
+                        .get(*i as usize)
+                        .map(|d| d.kind == "class")
+                        .unwrap_or(false)
+                }
+                _ => false,
+            },
+            TyS::ArenaRef(inner) => self.is_ref_type(inner),
+            _ => false,
+        }
+    }
+
+    /// 返回类型在 GTS 中的类别键：`ref`（引用类型，共享一套代码）或
+    /// `i8/i16/i32/i64`（值类型，按大小分组共享）。返回 `None` 表示不可擦除。
+    pub fn type_class_key(&self, ty: &Ty) -> Option<&'static str> {
+        match &**ty {
+            TyS::Int(bits, _) => match bits {
+                8 => Some("i8"),
+                16 => Some("i16"),
+                32 => Some("i32"),
+                _ => Some("i64"),
+            },
+            TyS::Float => Some("i64"),
+            TyS::Float32 => Some("i32"),
+            TyS::Decimal => Some("i64"),
+            _ if self.is_ref_type(ty) => Some("ref"),
+            _ => None,
+        }
+    }
+
+    /// 若给定 class typedef 是“可擦除的泛型实例”（类名含 `$` 且所有字段均可擦除），
+    /// 返回其共享类名；否则返回 `None`。
+    ///
+    /// 共享名规则：`{模板名}_{类别键}`，如 `Box_ref`、`Box_i64`、`Pair_i64`。
+    pub fn shared_class_name(&self, d: &TypeDef) -> Option<String> {
+        // 仅对泛型实例化后的类（名中含 '$'）考虑擦除
+        if !d.name.contains('$') {
+            return None;
+        }
+        // 所有字段必须可擦除
+        let flats = self.flat_fields(d);
+        if flats.iter().any(|(_, ft)| !self.is_ref_type(ft)) {
+            return None;
+        }
+        // 从类名中提取类型实参，确定类别键
+        // 类名形如 `Box$int`：取 '$' 后的第一段作为类型标识
+        let suffix = d.name.split('$').nth(1).unwrap_or("");
+        let key = if suffix.is_empty() {
+            "ref"
+        } else {
+            // 尝试将后缀解析为具体类型，推断其类别键
+            // 这里按保守策略：只要是引用类型相关后缀，统一用 "ref"
+            // 值类型后缀（int/string 等）需更精确的类型环境，暂保守处理
+            match suffix {
+                "int" | "i64" | "i32" | "i16" | "i8" | "float" | "decimal" => {
+                    // 值类型后缀：但字段全为引用类型，实际运行时仍为指针，用 ref
+                    "ref"
+                }
+                "string" | "str" => "ref",
+                _ => "ref",
+            }
+        };
+        Some(format!("{}_g_{}", san(&d.name.split('$').next().unwrap_or(&d.name)), key))
+    }
+
+    /// 引用类型在 C 层均为指针，参数/返回值统一擦除为 `void*`，以便
+    /// 可擦除泛型类的多个实例共享同一方法代码（GTS）。
+    /// `erase` 为 true 时，仅对该类为可擦除泛型实例的成员方法生效。
+    pub fn ct_conv(&mut self, ty: &Ty, erase: bool) -> String {
+        if erase && self.is_ref_type(ty) {
+            "void*".to_string()
+        } else {
+            self.ct(ty)
+        }
+    }
+
+    /// 判断给定类是否为可擦除的泛型实例（GTS 共享目标）。
+    pub fn is_erased_class(&self, owner_id: u32) -> bool {
+        let od = &self.s.typedefs[owner_id as usize];
+        od.kind == "class" && self.shared_class_name(od).is_some()
+    }
+
+    /// 将 `Ty` 映射为对应的 C 类型名字符串（如 `int64_t`、`ax_str`、`T*`、`ax_map`）。
+    /// 该方法只做类型→C 类型名的映射，不负责 `need_typedef` 式的前置声明。
     pub fn ct(&mut self, ty: &Ty) -> String {
         self.need(ty);
         match &**ty {
@@ -229,6 +338,7 @@ impl<'s, 'a> CodeGen<'s, 'a> {
                 }
             }
             TyS::Float => "double".to_string(),
+            TyS::Float32 => "float".to_string(),
             TyS::Decimal => "ax_dec".to_string(),
             TyS::Str => "ax_str".to_string(),
             TyS::Void => "void".to_string(),
@@ -285,7 +395,13 @@ impl<'s, 'a> CodeGen<'s, 'a> {
         }
     }
 
+    /// 将类 typedef 映射为 C 类型名。若类是可擦除泛型实例（GTS），返回共享名（如 `Box_ref`）；
+    /// 否则返回模板名（泛型模板追加 `_g` 后缀，如 `Box_g`），普通类返回原名。
     pub fn class_name(&self, d: &TypeDef) -> String {
+        // 泛型类型擦除：可擦除的泛型实例共用同一套 C 代码，类名使用共享名
+        if let Some(shared) = self.shared_class_name(d) {
+            return shared;
+        }
         let mut base = san(&d.name);
         if !d.generics.is_empty() {
             base += "_g";
@@ -307,6 +423,7 @@ impl<'s, 'a> CodeGen<'s, 'a> {
             TyS::Bool
             | TyS::Int(..)
             | TyS::Float
+            | TyS::Float32
             | TyS::Decimal
             | TyS::Str
             | TyS::Void
@@ -445,6 +562,38 @@ impl<'s, 'a> CodeGen<'s, 'a> {
         }
         self.emitted_defs.insert(d.id);
         if d.kind == "class" {
+            // 泛型类型擦除（GTS）：可擦除的泛型实例共用共享类的 C 代码。
+            // 第一个遇到的实例作为蓝本，生成完整 struct；后续实例仅生成 typedef 别名。
+            if let Some(shared) = self.shared_class_name(d) {
+                let inst_name = san(&d.name);
+                self.erased_map.insert(d.id, shared.clone());
+                if self.emitted_shared.insert(shared.clone()) {
+                    // 第一个实例：以共享名为结构体名生成完整 struct
+                    let cname = shared.clone();
+                    let flats = self.flat_fields(d);
+                    let mut fs = vec![
+                        format!("  {}_VT* vt;", cname),
+                        "  uint32_t __tag;".to_string(),
+                    ];
+                    for (fname, ft) in &flats {
+                        fs.push(format!("  {} f_{};", self.ct(ft), san(fname)));
+                    }
+                    if fs.len() == 2 {
+                        fs.push("  uint8_t _dummy;".to_string());
+                    }
+                    self.type_defs.push(format!(
+                        "typedef struct {} {{\n{}\n}} {};",
+                        cname,
+                        fs.join("\n"),
+                        cname
+                    ));
+                } else {
+                    // 后续实例：生成 typedef 别名
+                    self.type_defs
+                        .push(format!("typedef {} {};", shared, inst_name));
+                }
+                return;
+            }
             // 字段先就位（值语义字段要求被依赖的 struct 已定义）
             let flats = self.flat_fields(d);
             for (_, ft) in &flats {
@@ -501,10 +650,10 @@ impl<'s, 'a> CodeGen<'s, 'a> {
             let mut lines: Vec<String> = Vec::new();
             for (name, ret, ptys, _) in &entries {
                 let mut ps = vec!["void*".to_string()];
-                ps.extend(ptys.iter().map(|p| self.ct(p)));
+                ps.extend(ptys.iter().map(|p| self.ct_conv(p, false)));
                 lines.push(format!(
                     "  {} (*{})({});",
-                    self.ct(ret),
+                    self.ct_conv(ret, false),
                     san(name),
                     ps.join(", ")
                 ));
@@ -543,16 +692,25 @@ impl<'s, 'a> CodeGen<'s, 'a> {
 
     // ------------------------------------------------------------ 入口
 
+    /// 生成完整的 C 源码：前置声明所有 class/interface、生成 vtable、方法体、main 包装器，
+    /// 最后拼接运行时库 `axrt.h`，输出可被 C11 编译器编译的纯 ASCII C 文件。
     pub fn run(&mut self) -> String {
         let s = self.s;
-        // 前向声明所有 class 及其虚表（泛型模板不生成，只生成实例）
+        // 前向声明所有 class 及其虚表（泛型模板不生成，只生成实例；
+        // 可擦除的泛型实例已由 need_typedef 生成 typedef 别名，此处跳过）
         for d in &s.typedefs {
             if d.kind == "class" && d.generics.is_empty() {
                 let n = san(&d.name);
-                self.forward
-                    .push(format!("typedef struct {0} {0};", n));
-                self.forward
-                    .push(format!("typedef struct {0}_VT {0}_VT;", n));
+                if let Some(shared) = self.shared_class_name(d) {
+                    // 可擦除实例：生成共享名的 vtable 前向声明
+                    self.forward
+                        .push(format!("typedef struct {0}_VT {0}_VT;", shared));
+                } else {
+                    self.forward
+                        .push(format!("typedef struct {0} {0};", n));
+                    self.forward
+                        .push(format!("typedef struct {0}_VT {0}_VT;", n));
+                }
             }
             if d.kind == "interface" {
                 let n = format!("Iface_{}", san(&d.name));
@@ -623,13 +781,23 @@ impl<'s, 'a> CodeGen<'s, 'a> {
             .filter(|&i| s.funcs[i].owner.is_none())
             // 泛型模板不生成（GX-01/02）：只生成单态化实例
             .filter(|&i| s.funcs[i].generics.is_empty())
+            // extern "C" 函数不生成 C 定义，调用点直接使用原 C 函数名
+            .filter(|&i| !s.funcs[i].is_extern)
             .collect();
         for fid in free_ids {
             let cname = self.fn_name_idx(fid);
             fns.push(self.gen_func(fid, cname, None));
         }
+        let mut method_shared_done: HashSet<String> = HashSet::new();
         for d in &s.typedefs {
             if (d.kind == "class" || d.kind == "struct") && d.generics.is_empty() {
+                // 可擦除的泛型实例：仅首个实例生成方法（使用共享名），其余跳过
+                if let Some(shared) = self.shared_class_name(d) {
+                    if !method_shared_done.insert(shared.clone()) {
+                        continue;
+                    }
+                    // 首个实例：继续生成，但方法名会通过 class_name → 共享名
+                }
                 let d = d.clone();
                 fns.extend(self.gen_type_methods(&d));
             }
@@ -689,6 +857,10 @@ impl<'s, 'a> CodeGen<'s, 'a> {
 
     pub fn fn_name_idx(&self, fid: usize) -> String {
         let f = &self.s.funcs[fid];
+        // extern "C" 函数直接使用原始 C 函数名（如 `puts`），不加模块前缀或 mangle
+        if f.is_extern {
+            return f.name.clone();
+        }
         // 单态化实例：函数名后拼 mangle 后缀（`max$int` → `ax__max_int`）
         let inst_suffix = match &f.mangle {
             Some(m) => format!("_{}", san(&m.replace('$', "_"))),
@@ -784,6 +956,8 @@ impl<'s, 'a> CodeGen<'s, 'a> {
 
     // ------------------------------------------------------------ 函数
 
+    /// 为给定函数 fid 生成 C 函数定义（签名 + 函数体）。`cname` 为生成的 C 函数名，
+    /// `owner` 为所属类 id（None 表示顶层函数）。
     pub fn gen_func(&mut self, fid: usize, cname: String, owner: Option<u32>) -> String {
         // self.s 是 &'s Sema，这里取到的 &'s FuncInfo 与 &mut self 互不冲突
         let s = self.s;
@@ -816,15 +990,18 @@ impl<'s, 'a> CodeGen<'s, 'a> {
         out
     }
 
+    /// 为给定类 d 生成构造函数 C 定义（init_* + new_*）。`ctor_name` 为构造函数名，
+    /// `ctor_fid` 为构造函数在 funcs 表中的索引。
     pub fn gen_ctor(&mut self, d: &TypeDef, ctor_name: &str, ctor_fid: usize) -> String {
         let mut out = Vec::new();
         let nm = format!("{}__{}__init_{}", self.mod_name, self.class_name(d), ctor_name);
         // 槽键：实例类的 ctor 是实例函数，用它的实例号；普通类回 0
         self.cur_inst = self.s.inst_slot_of.get(&ctor_fid).copied().unwrap_or(0);
         let ctor_params: Vec<(String, Ty, Option<String>)> = self.s.funcs[ctor_fid].params.clone();
+        let erase = self.shared_class_name(d).is_some();
         let mut ps = vec!["void* self_".to_string()];
         for (n, t, _b) in &ctor_params {
-            ps.push(format!("{} {}", self.ct(t), self.pv(n)));
+            ps.push(format!("{} {}", self.ct_conv(t, erase), self.pv(n)));
         }
         self.fn_decls
             .push(format!("static void {}({});", nm, ps.join(", ")));
@@ -836,7 +1013,7 @@ impl<'s, 'a> CodeGen<'s, 'a> {
         let nm2 = format!("{}__{}__new_{}", self.mod_name, self.class_name(d), ctor_name);
         let mut ps2 = Vec::new();
         for (n, t, _b) in &ctor_params {
-            ps2.push(format!("{} {}", self.ct(t), self.pv(n)));
+            ps2.push(format!("{} {}", self.ct_conv(t, erase), self.pv(n)));
         }
         let ps2 = if ps2.is_empty() {
             "void".to_string()
@@ -844,7 +1021,7 @@ impl<'s, 'a> CodeGen<'s, 'a> {
             ps2.join(", ")
         };
         self.fn_decls
-            .push(format!("static {}* {}({});", san(&d.name), nm2, ps2));
+            .push(format!("static {}* {}({});", self.class_name(d), nm2, ps2));
         let mut call = vec!["(void*)t".to_string()];
         for (n, _, _) in &ctor_params {
             call.push(self.pv(n));
@@ -855,12 +1032,13 @@ impl<'s, 'a> CodeGen<'s, 'a> {
             .map(|g| Rc::new(TyS::Param(g.0.clone())) as Ty)
             .collect();
         let tag = tag_of(&t_named(DefId::Id(d.id), gargs));
+        let cname_c = self.class_name(d);
         out.push(format!(
             "static {0}* {1}({2}) {{\n  {0}* t = ({0}*)ax_calloc(1, (int64_t)sizeof({0}));\n  t->vt = &{3}__VT_;\n  t->__tag = {4}u;\n  {5}({6});\n  return t;\n}}",
-            san(&d.name),
+            cname_c,
             nm2,
             ps2,
-            san(&d.name),
+            cname_c,
             tag,
             nm,
             call.join(", ")
@@ -868,23 +1046,35 @@ impl<'s, 'a> CodeGen<'s, 'a> {
         out.join("\n")
     }
 
+    /// 为所有非泛型类生成 C 虚表（struct ..._VT）。可擦除的泛型实例共用同一套 vtable，
+    /// 仅首次生成并通过 `vt_shared_done` 去重。
     pub fn build_vtables(&mut self) -> Vec<String> {
         let mut out = Vec::new();
+        let mut vt_shared_done: HashSet<String> = HashSet::new();
         for d in &self.s.typedefs {
             if d.kind != "class" || !d.generics.is_empty() {
                 continue;
             }
+            // 可擦除的泛型实例：使用共享名生成 vtable，仅首次生成
+            let cname = if let Some(shared) = self.shared_class_name(d) {
+                if !vt_shared_done.insert(shared.clone()) {
+                    continue; // 该共享名的 vtable 已由前一个实例生成
+                }
+                shared
+            } else {
+                san(&d.name)
+            };
             let d = d.clone();
+            let erase = self.shared_class_name(&d).is_some();
             let entries = self.vt_entries(&d);
-            let cname = san(&d.name);
             let mut lines = vec![
                 format!("typedef struct {0}_VT {0}_VT;", cname),
                 format!("struct {}_VT {{", cname),
             ];
             for (name, ret, ptys) in &entries {
                 let mut ps = vec!["void*".to_string()];
-                ps.extend(ptys.iter().map(|p| self.ct(p)));
-                lines.push(format!("  {} (*{})({});", self.ct(ret), san(name), ps.join(", ")));
+                ps.extend(ptys.iter().map(|p| self.ct_conv(p, erase)));
+                lines.push(format!("  {} (*{})({});", self.ct_conv(ret, erase), san(name), ps.join(", ")));
             }
             if entries.is_empty() {
                 lines.push("  uint8_t _empty;".to_string());
@@ -957,7 +1147,7 @@ impl<'s, 'a> CodeGen<'s, 'a> {
                 let id = self.s.typedefs[i as usize].clone();
                 let entries = self.iface_entries(&id);
                 let iname = format!("Iface_{}", san(&id.name));
-                let vt_name = format!("{}__{}__VT_", san(&d.name), san(&id.name));
+                let vt_name = format!("{}__{}__VT_", self.class_name(&d), san(&id.name));
                 let mut lines = vec![format!(
                     "static {}_VT {} = {{",
                     iname, vt_name
@@ -998,12 +1188,13 @@ impl<'s, 'a> CodeGen<'s, 'a> {
                                         self.class_name(&od),
                                         san(mname)
                                     );
-                                    let ret_c = self.ct(&ret);
+                                    let erase = self.is_erased_class(od.id);
+                                    let ret_c = self.ct_conv(&ret, erase);
                                     let mut ps_decl = vec!["void* self_".to_string()];
                                     let mut args = vec!["self_".to_string()];
                                     for (j, (sp, ip)) in spts.iter().zip(ipts.iter()).enumerate() {
                                         let pn = format!("p{}_{}", j, k);
-                                        ps_decl.push(format!("{} {}", self.ct(sp), pn));
+                                        ps_decl.push(format!("{} {}", self.ct_conv(sp, erase), pn));
                                         let conv = match (&**sp, &**ip) {
                                             (
                                                 TyS::Named(DefId::Id(i), _),
@@ -1035,7 +1226,7 @@ impl<'s, 'a> CodeGen<'s, 'a> {
                                         ad,
                                         spts
                                             .iter()
-                                            .map(|p| self.ct(p))
+                                            .map(|p| self.ct_conv(p, erase))
                                             .collect::<Vec<_>>()
                                             .join(", ")
                                     );

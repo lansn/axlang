@@ -1,0 +1,21 @@
+// EXPECT: E4036
+// GX-CrossMod-neg：跨模块泛型约束负例。
+// NotDrawable 不实现 model.Drawable，传给 f<T: Drawable> 应报 E4036。
+// 这验证 cross-module constraint lookup 成功后，implements 检查会正确拒绝不满足约束的类型。
+
+import model
+
+class NotDrawable {
+    public int X
+    constructor() {
+        this.X = 0
+    }
+}
+
+int f<T: Drawable>(T x) {
+    return 0
+}
+
+int main() {
+    return f(new NotDrawable())
+}

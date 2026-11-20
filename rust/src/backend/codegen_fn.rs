@@ -145,14 +145,24 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
 
     pub fn decl(&mut self) -> String {
         let ret = self.f.ret.clone();
-        let ret = self.cg.ct(&ret);
+        let erase = self.owner.map_or(false, |o| self.cg.is_erased_class(o));
+        let ret = if erase && self.cg.is_ref_type(&ret) {
+            "void*".to_string()
+        } else {
+            self.cg.ct(&ret)
+        };
         let mut ps: Vec<String> = Vec::new();
         let mut self_param: Option<String> = None;
         if self.owner.is_some() && !self.f.is_static {
             self_param = Some("void* self_".to_string());
         }
         for (name, ty, _borrow) in self.f.params.clone() {
-            ps.push(format!("{} {}", self.cg.ct(&ty), self.pv(&name)));
+            let ct_str = if erase && self.cg.is_ref_type(&ty) {
+                "void*".to_string()
+            } else {
+                self.cg.ct(&ty)
+            };
+            ps.push(format!("{} {}", ct_str, self.pv(&name)));
         }
         if let Some(sp) = self_param {
             ps.insert(0, sp);
@@ -163,15 +173,27 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
         format!("static {} {}({});", ret, self.cname, ps.join(", "))
     }
 
+    /// 引用类型在 C 层均为指针，参数/返回值统一擦除为 `void*`，以便
+    /// 可擦除泛型类的多个实例共享同一方法代码（GTS）。
+    /// `erase` 为 true 时，仅对该类为可擦除泛型实例的成员方法生效。
+    fn ct_conv(&mut self, ty: &Ty, erase: bool) -> String {
+        if erase && self.cg.is_ref_type(ty) {
+            "void*".to_string()
+        } else {
+            self.cg.ct(ty)
+        }
+    }
+
     pub fn signature(&mut self) -> String {
         let ret = self.f.ret.clone();
-        let ret = self.cg.ct(&ret);
+        let erase = self.owner.map_or(false, |o| self.cg.is_erased_class(o));
+        let ret = self.ct_conv(&ret, erase);
         let mut ps: Vec<String> = Vec::new();
         if self.owner.is_some() && !self.f.is_static {
             ps.push("void* self_".to_string());
         }
         for (name, ty, _borrow) in self.f.params.clone() {
-            ps.push(format!("{} {}", self.cg.ct(&ty), self.pv(&name)));
+            ps.push(format!("{} {}", self.ct_conv(&ty, erase), self.pv(&name)));
         }
         if ps.is_empty() {
             ps.push("void".to_string());
@@ -195,7 +217,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             // 只有 class 才做 self_ → 具体类型指针的收窄
             let od = &self.s().typedefs[self.owner.unwrap() as usize];
             if od.kind == "class" {
-                let cn = san(&od.name);
+                let cn = self.cg.class_name(od);
                 self.emit(format!(
                     "{0}* self = ({0}*)self_; (void)self;",
                     cn
@@ -224,7 +246,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
     pub fn ctor_body(&mut self, d: &crate::sema::TypeDef, _nm: &str, body: Option<&'a ast::Block>) -> String {
         self.lines = vec![self.signature()];
         self.ind = 1;
-        let cn = san(&d.name);
+        let cn = self.cg.class_name(d);
         self.emit(format!("{0}* self = ({0}*)self_; (void)self;", cn));
         if let Some(b) = body {
             self.block(Some(b), None, None);
@@ -1008,7 +1030,11 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
     }
 
     fn emit_defer_call(&mut self, call: &'a ast::EPtr) {
-        self.gen(call, None, false, true);
+        let v = self.gen(call, None, false, true);
+        if !v.is_empty() && v != "0" {
+            // defer 调用是语句位置的副作用，必须 emit 出去（与 simple() 一致）
+            self.emit(format!("(void)({});", v));
+        }
     }
 
     fn break_stmt(&mut self, s: &'a ast::N<Stmt>, is_break: bool) {

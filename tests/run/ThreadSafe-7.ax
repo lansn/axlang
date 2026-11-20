@@ -1,0 +1,49 @@
+// ============================================================================
+// axlang 多线程测试 —— ThreadSafe-7（try_pop 非阻塞队列原语）
+// 验证：try_pop() 对空队列立即返回 null，不阻塞；对非空队列返回值；
+//      对已关闭且空的队列也返回 null。
+// ============================================================================
+
+int main() {
+    queue<int> q = queue<int>()
+
+    // 1. 空队列 try_pop 应返回 null（非阻塞，立即返回）
+    int? v1 = q.TryPop()
+    bool t1 = (v1 == null)
+
+    // 2. Push 一个值后，try_pop 应返回该值
+    q.Push(42)
+    int? v2 = q.TryPop()
+    bool t2 = (v2 != null && v2 == 42)
+
+    // 3. 再次 try_pop，队列已空，应返回 null
+    int? v3 = q.TryPop()
+    bool t3 = (v3 == null)
+
+    // 4. 关闭队列后，try_pop 对空队列仍返回 null
+    q.Close()
+    int? v4 = q.TryPop()
+    bool t4 = (v4 == null)
+
+    // 5. 已关闭队列再 Push 是空操作（关闭后不再接收新元素），
+    //    try_pop 对已关闭且空的队列继续返回 null
+    q.Push(7)   // 被忽略：队列已关闭
+    int? v5 = q.TryPop()
+    bool t5 = (v5 == null)
+
+    // 6. 再次 try_pop，队列仍为空
+    int? v6 = q.TryPop()
+    bool t6 = (v6 == null)
+
+    bool ok = t1 && t2 && t3 && t4 && t5 && t6
+
+    println("t1_empty_null={t1}")
+    println("t2_has_value={t2}")
+    println("t3_again_null={t3}")
+    println("t4_closed_null={t4}")
+    println("t5_after_close_push={t5}")
+    println("t6_again_null={t6}")
+    println("ok={ok}")
+    println("ThreadSafe-7 done")
+    return 0
+}

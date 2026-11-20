@@ -328,6 +328,16 @@ impl<'a> Parser<'a> {
             return Ok(vec![self.parse_import()?]);
         }
         let mut vis: Option<String> = None;
+        let mut is_abstract = false;
+        let mut is_final = false;
+        if self.at("abstract") {
+            self.advance();
+            is_abstract = true;
+        }
+        if self.at("final") {
+            self.advance();
+            is_final = true;
+        }
         if self.at("public") {
             self.advance();
             vis = Some("public".to_string());
@@ -340,7 +350,7 @@ impl<'a> Parser<'a> {
             return Ok(vec![self.parse_const(vis)?]);
         }
         if self.at("class") {
-            return Ok(vec![self.parse_class(vis)?]);
+            return Ok(vec![self.parse_class(vis, is_abstract, is_final)?]);
         }
         if self.at("struct") {
             return Ok(vec![self.parse_struct(vis)?]);
@@ -588,20 +598,46 @@ impl<'a> Parser<'a> {
         let mut ps = Vec::new();
         self.expect("(", None)?;
         self.nl();
+        // 连续同类型参数语法糖（§15 项 8 方案 1）：`int a, b` 等价于 `int a, int b`
+        // 旧写法 `int a, int b` 保持完全兼容。
+        let mut prev_ty: Option<TPtr> = None;
+        let mut prev_borrow: Option<String> = None;
         while !self.at(")") {
             self.nl();
-            let mut borrow = None;
-            if self.at("&") {
+            let (borrow, ty, name): (Option<String>, TPtr, Tok) = if self.at("&") {
+                // 旧写法：带 borrow 修饰符 & 或 &const
                 self.advance();
-                borrow = Some("mut".to_string());
-                if self.at("const") {
+                let b = if self.at("const") {
                     self.advance();
-                    borrow = Some("const".to_string());
-                }
+                    Some("const".to_string())
+                } else {
+                    Some("mut".to_string())
+                };
                 self.nl();
-            }
-            let ty = self.parse_type()?;
-            let name = self.expect_ident("参数名")?;
+                let t = self.parse_type()?;
+                let n = self.expect_ident("参数名")?;
+                (b, t, n)
+            } else if self.at("IDENT") && matches!(
+                self.tok(1).kind.as_str(),
+                "," | ")" | "NL" | "EOF" | ";"
+            ) {
+                // 新写法：当前标识符是参数名，复用前一个参数的类型与 borrow
+                // 判断依据：下一个 token 是参数分隔符（不是 `类型 名字` 的旧写法模式）
+                let t = match prev_ty.clone() {
+                    Some(t) => t,
+                    None => return self.fail("E2001", &self.tok(0), "G-1", "期望参数类型", &[]),
+                };
+                let b = prev_borrow.clone();
+                let n = self.advance();
+                (b, t, n)
+            } else {
+                // 旧写法：类型 名字
+                let t = self.parse_type()?;
+                let n = self.expect_ident("参数名")?;
+                (None, t, n)
+            };
+            prev_ty = Some(ty.clone());
+            prev_borrow = borrow.clone();
             ps.push(self.nn(
                 name.clone(),
                 Param { borrow, ty, name: name.text().to_string() },
@@ -616,7 +652,7 @@ impl<'a> Parser<'a> {
         Ok(ps)
     }
 
-    fn parse_class(&mut self, vis: Option<String>) -> PResult<N<Item>> {
+    fn parse_class(&mut self, vis: Option<String>, is_abstract: bool, is_final: bool) -> PResult<N<Item>> {
         let t = self.expect("class", None)?;
         let name = self.expect_ident("类名")?;
         let generics = self.parse_generics()?;
@@ -664,7 +700,7 @@ impl<'a> Parser<'a> {
         self.expect("}", None)?;
         Ok(self.nn(
             t,
-            Item::ClassDecl { vis, name: name.text().to_string(), generics, parent, impls, members },
+            Item::ClassDecl { vis, is_abstract, is_final, name: name.text().to_string(), generics, parent, impls, members },
         ))
     }
 
@@ -675,17 +711,20 @@ impl<'a> Parser<'a> {
         }
         let mut stat = false;
         let mut is_override = false;
+        let mut is_abstract = false;
         let mut mod_tok: Option<Tok> = None;
-        while self.at("static") || self.at("override") {
+        while self.at("static") || self.at("override") || self.at("abstract") {
             let mt = self.advance();
             mod_tok = Some(mt.clone());
             if mt.is("static") {
                 stat = true;
-            } else {
+            } else if mt.is("override") {
                 is_override = true;
+            } else {
+                is_abstract = true;
             }
             if self.at("public") || self.at("protected") || self.at("private") {
-                self.err("E3012", None, "文稿 6.1", "修饰符顺序错误：可见性应写在 `static`/`override` 之前", &[]);
+                self.err("E3012", None, "文稿 6.1", "修饰符顺序错误：可见性应写在 `static`/`override`/`abstract` 之前", &[]);
                 vis = Some(self.advance().kind.clone());
             }
         }
@@ -728,7 +767,7 @@ impl<'a> Parser<'a> {
                 }
             };
             let it = if self.at("class") {
-                self.parse_class(sub_vis)?
+                self.parse_class(sub_vis, false, false)?
             } else if self.at("struct") {
                 self.parse_struct(sub_vis)?
             } else if self.at("interface") {
@@ -749,13 +788,24 @@ impl<'a> Parser<'a> {
         if self.at("(") {
             let params = self.parse_params()?;
             self.nl();
-            let body = self.parse_block()?;
+            let body = if is_abstract {
+                // 抽象方法无方法体，直接以 `;` 结束
+                self.expect(";", None)?;
+                Block { tok: name.clone(), stmts: Vec::new() }
+            } else {
+                self.parse_block()?
+            };
+            if is_abstract && stat {
+                let t = mod_tok.unwrap_or_else(|| name.clone());
+                self.err("E3049", Some(&t), "文稿 6.1", "抽象方法不能是 `static`", &[]);
+            }
             return Ok(Some(self.nn(
                 name.clone(),
                 Member::Method {
                     vis,
                     is_static: stat,
                     is_override,
+                    is_abstract,
                     ret: ty,
                     name: name.text().to_string(),
                     params,
@@ -838,7 +888,7 @@ impl<'a> Parser<'a> {
             || self.at("type")
         {
             let it = if self.at("class") {
-                self.parse_class(None)?
+                self.parse_class(None, false, false)?
             } else if self.at("struct") {
                 self.parse_struct(None)?
             } else if self.at("interface") {
@@ -862,6 +912,7 @@ impl<'a> Parser<'a> {
                     vis: None,
                     is_static: false,
                     is_override: false,
+                    is_abstract: false,
                     ret: ty,
                     name: nm.text().to_string(),
                     params,
@@ -1012,7 +1063,7 @@ impl<'a> Parser<'a> {
             let name = self.expect_ident("函数名")?;
             let generics = self.parse_generics()?;
             if !generics.is_empty() {
-                self.err("E3045", Some(&name), "文稿 15.1", "`extern` 函数不支持泛型", &[]);
+                self.err("E3048", Some(&name), "文稿 15.1", "`extern` 函数不支持泛型", &[]);
             }
             let params = self.parse_params()?;
             self.nl();
@@ -2002,11 +2053,11 @@ impl<'a> Parser<'a> {
         }
         if k == "FLOAT" {
             self.advance();
-            let (value, raw) = match &t.val {
-                TokVal::Float { value, raw } => (*value, raw.clone()),
+            let (value, raw, is_f32) = match &t.val {
+                TokVal::Float { value, raw, is_f32 } => (*value, raw.clone(), *is_f32),
                 _ => unreachable!(),
             };
-            return self.ne(t, Expr::FloatLit { value, raw });
+            return self.ne(t, Expr::FloatLit { value, raw, is_f32 });
         }
         if k == "DEC" {
             self.advance();

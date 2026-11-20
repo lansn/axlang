@@ -6,7 +6,7 @@
 `E4xxx` 类型与表达式 / `E5xxx` 转换与装箱 / `E6xxx` match 与错误传播 /
 `E7xxx` 所有权与借用。输出语言由 `--lang` / `AXC_LANG` / `axc.toml`（`lang = "zh"`）决定，默认英文。
 
-共 131 个码、335 条文案。
+共 136 个码、341 条文案。
 
 ## E1（词法）
 
@@ -137,16 +137,16 @@
 
 | `E3008` | 类 `{0}` 有字段但没有 constructor（文稿 6.1） | class `{0}` has fields but no constructor |
 
-| `E3009` | constructor 没有给字段 `{0}` 赋值（文稿 6.1） | the constructor never assigns field `{0}` |
+| `E3009` | constructor `{0}` 没有给字段 `{1}` 赋值（文稿 6.1） | constructor `{0}` never assigns field `{1}` |
 
-| `E3010` | 一个类只能有一个 constructor（文稿 6.1） | a class can have at most one constructor |
+| `E3010` | 构造函数名 `{0}` 重复（文稿 6.1） | duplicate constructor name `{0}` |
 
 | `E3011` | `constructor` 不能写可见性修饰词（默认 public）（N-11） | `constructor` cannot have a visibility modifier (it is public by default) |
 | `E3011` | `constructor` 不能是 `static` 或 `override`（N-11） | `constructor` cannot be `static` or `override` |
 | `E3011` | interface 成员不能写可见性修饰词（N-10） | interface members cannot have visibility modifiers |
 | `E3011` | struct 成员不能写可见性修饰词（一律 public）（N-10） | struct members cannot have visibility modifiers (they are always public) |
 
-| `E3012` | 修饰符顺序错误：可见性应写在 `static`/`override` 之前（文稿 6.1） | modifier order is wrong: visibility must come before `static`/`override` |
+| `E3012` | 修饰符顺序错误：可见性应写在 `static`/`override` 之前 | modifier order is wrong: visibility must come before `static`/`override` |
 
 | `E3013` | `{0}` 不是 public，不能跨模块使用（N-8） | `{0}` is not public and cannot be used across modules |
 | `E3013` | `{0}` 不是静态方法，请用实例调用（N-13） | `{0}` is not a static method; call it on an instance |
@@ -217,8 +217,8 @@
 
 | `E3036` | `static`/`override` 不能用于字段（文稿 6.1） | `static`/`override` cannot be applied to fields |
 
-| `E3037` | 嵌套类型缺少可见性修饰符：必须显式写 `public`、`private` 或 `protected`（文稿 6.1） | nested type is missing a visibility modifier: write `public`, `private`, or `protected` explicitly |
-| `E3037` | 类成员缺少可见性修饰符：必须显式写 `public`、`private` 或 `protected`（文稿 6.1） | class member is missing a visibility modifier: write `public`, `private`, or `protected` explicitly |
+| `E3037` | 嵌套类型缺少可见性修饰符：必须显式写 `public`、`private` 或 `protected` | nested type is missing a visibility modifier: write `public`, `private`, or `protected` explicitly |
+| `E3037` | 类成员缺少可见性修饰符：必须显式写 `public`、`private` 或 `protected` | class member is missing a visibility modifier: write `public`, `private`, or `protected` explicitly |
 
 | `E3038` | 静态方法体内没有 `this`（静态方法不属于任何对象）<br>  = 访问实例成员请改为实例方法，或通过参数把实例传进来（N-21） | there is no `this` inside a static method body (a static method does not belong to any object)<br>  = to access instance members, make it an instance method, or pass the instance in as a parameter |
 
@@ -228,9 +228,20 @@
 
 | `E3041` | 既有 `int main()` 又有顶层语句（顶层语句会自动包成 `main`）；二者只留一个——要么把语句搬进 `main`，要么删掉 `main`（文稿 9.4） | both an explicit `int main()` and top-level statements exist (top-level statements are wrapped into an implicit `main`); keep only one - either move the statements into `main`, or delete `main` |
 
-| `E3042` | `{0}` 有歧义：{1} 都导出了同名类型；请写全路径 `{2}.{3}` 或改用 `import {4}.{{{5}}}`（文稿 9.2） | `{0}` is ambiguous: both {1} export a type with that name; write the full path `{2}.{3}` or use `import {4}.{{{5}}}` |
+| `E3042` | `{0}` 有歧义：{1} 都导出了同名类型；请写全路径 `{2}.{3}` 或改用 `import {4}.{{{5}}}` | `{0}` is ambiguous: both {1} export a type with that name; write the full path `{2}.{3}` or use `import {4}.{{{5}}}` |
 
 | `E3043` | 成员名一律 PascalCase：{0} `{1}` 应写作 `{2}`（文稿 2.3） | member names are always PascalCase: {0} `{1}` should be written `{2}` |
+
+| `E3045` | `{0}` 有歧义：{1} 都通过具名导入引入了同名符号；请写全路径或使用 `import {2} as 别名` 加以区分（文稿 9.2） | `{0}` is ambiguous: both {1} introduce the same symbol via named imports; write the full path or use `import {2} as alias` to disambiguate |
+
+| `E3046` | 不能 `extend` final 类 `{0}`（文稿 6.2） | cannot `extend` final class `{0}` |
+
+| `E3047` | 抽象方法 `{0}` 未在子类 `{1}` 中实现（文稿 6.2） | abstract method `{0}` is not implemented in subclass `{1}` |
+
+| `E3048` | `extern` 函数不支持泛型，请去掉类型实参 | `extern` functions do not support generics; remove the type arguments |
+| `E3048` | 非抽象类不能声明抽象方法 `{0}`（文稿 6.2） | non-abstract class cannot declare abstract method `{0}` |
+
+| `E3049` | 抽象方法不能是 `static`（文稿 6.1） | abstract method cannot be `static` |
 
 ## E4（类型与表达式）
 
@@ -257,7 +268,7 @@
 | `E4001` | 模式 `{0}.{1}` 与 match 值类型 {2} 不一致（文稿 5.3） | pattern `{0}.{1}` does not match the match value type {2} |
 | `E4001` | 模式类型 {0} 与 match 值 {1} 不一致（文稿 5.3） | pattern type {0} does not match the match value {1} |
 | `E4001` | 比较两边类型不一致：{0} vs {1}（T-5） | the two sides of the comparison have different types: {0} vs {1} |
-| `E4001` | 类型不匹配：期望 {0}，得到 float（T-5） | type mismatch: expected {0}, found float |
+| `E4001` | 类型不匹配：期望 {0}，得到 float | type mismatch: expected {0}, found float |
 | `E4001` | 类型不匹配：期望 {0}，得到 {1}（{2}）（T-5） | type mismatch: expected {0}, found {1} ({2}) |
 | `E4001` | 类型模式不能是 interface（用具体类）（文稿 5.3） | a type pattern cannot be an interface (use a concrete class) |
 | `E4001` | 类型模式只能用于 object 或类引用，得到 {0}（文稿 5.3） | a type pattern can only be used on object or a class reference, found {0} |
@@ -366,7 +377,7 @@
 | `E4031` | `ok` 需要 1 个实参（文稿 10.1） | `ok` takes exactly 1 argument |
 | `E4031` | `parent(...)` 需要 {0} 个实参，得到 {1}（文稿 6.2） | `parent(...)` takes {0} arguments, found {1} |
 | `E4031` | `{0}(...)` 缺少实参（N-20） | `{0}(...)` is missing arguments |
-| `E4031` | `{0}` 的 constructor 需要 {1} 个实参，得到 {2}（N-20） | the constructor of `{0}` takes {1} arguments, found {2} |
+| `E4031` | `{0}` 的 constructor 需要 {1} 个实参，得到 {2} | the constructor of `{0}` takes {1} arguments, found {2} |
 | `E4031` | `{0}` 需要 {1} 个实参，得到 {2}（N-20） | `{0}` takes {1} arguments, found {2} |
 | `E4031` | `fmt.Printf` 至少需要 1 个实参（格式字符串）（文稿 11.2） | `fmt.Printf` takes at least 1 argument (the format string) |
 

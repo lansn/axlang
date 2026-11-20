@@ -2289,6 +2289,40 @@ int ax_queue_pop(ax_queue* q, void* out) {
 #endif
 }
 
+/* 非阻塞弹出：队列有数据返回 0 并写出，队列为空（无论是否已关闭）立即返回 1，不阻塞。 */
+int ax_queue_try_pop(ax_queue* q, void* out) {
+    if (!q) return 1;
+#ifdef _WIN32
+    EnterCriticalSection(&q->lock);
+    if (q->count == 0) {
+        LeaveCriticalSection(&q->lock);
+        return 1;
+    }
+    memcpy(out, q->items[q->head], (size_t)q->elem_size);
+    free(q->items[q->head]);
+    q->items[q->head] = NULL;
+    q->head = (q->head + 1) % AX_QUEUE_CAP;
+    q->count--;
+    WakeConditionVariable(&q->not_full);
+    LeaveCriticalSection(&q->lock);
+    return 0;
+#else
+    pthread_mutex_lock(&q->lock);
+    if (q->count == 0) {
+        pthread_mutex_unlock(&q->lock);
+        return 1;
+    }
+    memcpy(out, q->items[q->head], (size_t)q->elem_size);
+    free(q->items[q->head]);
+    q->items[q->head] = NULL;
+    q->head = (q->head + 1) % AX_QUEUE_CAP;
+    q->count--;
+    pthread_cond_signal(&q->not_full);
+    pthread_mutex_unlock(&q->lock);
+    return 0;
+#endif
+}
+
 void ax_queue_close(ax_queue* q) {
     if (!q) return;
 #ifdef _WIN32

@@ -1,0 +1,8 @@
+t1_empty_null=true
+t2_has_value=true
+t3_again_null=true
+t4_closed_null=true
+t5_after_close_push=true
+t6_again_null=true
+ok=true
+ThreadSafe-7 done

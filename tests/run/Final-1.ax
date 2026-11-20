@@ -1,0 +1,13 @@
+// final 关键词：final class 可正常 new，但禁止被其他类 extend
+final class Config {
+    public int Port
+    public string Host
+    constructor(int port, string host) { this.Port = port; this.Host = host }
+    public void Show() { println("config {this.Host}:{this.Port}") }
+}
+
+int main() {
+    Config c = new Config(8080, "localhost")
+    c.Show()
+    return 0
+}

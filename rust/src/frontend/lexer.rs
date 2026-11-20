@@ -18,13 +18,15 @@ pub const KEYWORDS: &[&str] = &[
     "try", "catch", "finally", "throw", "defer", "import", "public", "protected", "private",
     "static", "new", "as", "break", "continue", "constructor",
     "extern", "unsafe",
+    "abstract",
+    "final",
     "true", "false", "null",
 ];
 
 /// 保留类型名：词法上是 IDENT，语义上是根模块内建类型（E3018 用）。
 pub const RESERVED_TYPES: &[&str] = &[
     "bool", "int", "int8", "int16", "int32", "uint", "uint8", "uint16",
-    "uint32", "float", "decimal", "string", "object", "void", "result",
+    "uint32", "float", "float32", "decimal", "string", "object", "void", "result",
     "error", "func", "map", "Self", "range", "Rounding", "Arena", "ArenaRef",
 ];
 
@@ -52,7 +54,7 @@ pub enum StrPart {
 pub enum TokVal {
     Nil,
     Int { value: i64, raw: String },
-    Float { value: f64, raw: String },
+    Float { value: f64, raw: String, is_f32: bool },
     Dec { coeff: i128, scale: i32, raw: String },
     Str(Vec<StrPart>),
     Ident(String),
@@ -379,6 +381,7 @@ impl<'a> Lexer<'a> {
         let i0 = self.i;
         let mut is_float = false;
         let mut is_dec = false;
+        let mut is_f32 = false;
 
         // 0x / 0b / 0o
         if self.src[i0] == '0'
@@ -484,10 +487,21 @@ impl<'a> Lexer<'a> {
             is_dec = true;
             j += 1;
         }
+        // float32 后缀 f32 / F32
+        if j < self.n && matches!(self.src[j], 'f' | 'F')
+            && j + 2 < self.n
+            && matches!(self.src[j + 1], '3')
+            && matches!(self.src[j + 2], '2')
+        {
+            is_f32 = true;
+            j += 3;
+        }
 
         let raw = self.slice(i0, j);
         let body: String = if is_dec {
             raw[..raw.len() - 1].to_string()
+        } else if is_f32 {
+            raw[..raw.len() - 3].to_string()  // 去掉 f32/F32 后缀
         } else {
             raw.clone()
         };
@@ -510,7 +524,7 @@ impl<'a> Lexer<'a> {
                     0.0
                 }
             };
-            self.emit("FLOAT", TokVal::Float { value: v, raw }, i0, j);
+            self.emit("FLOAT", TokVal::Float { value: v, raw, is_f32 }, i0, j);
         } else {
             let v = match clean.parse::<i64>() {
                 Ok(v) => v,

@@ -1,0 +1,7 @@
+sum_single=12499995000000
+sum_multi =12499995000000
+expected  =12499995000000
+ok_single=true
+ok_multi =true
+ok_equal =true
+Conc-Speedup-1 done

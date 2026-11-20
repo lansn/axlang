@@ -1,0 +1,24 @@
+// EXPECT: E4036
+// GX-neg-05：泛型函数值实例化约束检查（GAP #4 剩余）。
+// id<T: Drawable> 是泛型函数，赋给 func(NotDrawable) NotDrawable 时，
+// 导出 T=NotDrawable，NotDrawable 不实现 Drawable，应报 E4036。
+
+interface Drawable {
+    string Draw()
+}
+
+class NotDrawable {
+    public int X
+    constructor() {
+        this.X = 0
+    }
+}
+
+T id<T: Drawable>(T x) {
+    return x
+}
+
+int main() {
+    func(NotDrawable) NotDrawable f = id
+    return 0
+}

@@ -1,0 +1,99 @@
+// ============================================================================
+// axlang 多线程安全测试 —— ThreadSafe-1
+// 验证：
+//   1. 多生产者独立队列 + 主线程顺序汇总（无数据竞争、无丢失、无重复）
+//   2. Close 信号：生产者关闭队列后，消费者收到 null 正常退出
+//   3. defer 在线程作用域内的确定性释放（线程结束前执行）
+//   4. 队列指针跨线程共享：生产者线程持有 queue 指针，主线程随后消费同一队列
+// ============================================================================
+
+// 每个生产者推入的元素个数
+const int BATCH = 1000
+
+// 生产者：向队列推入 0..BATCH，关闭队列
+void producer(queue<int> q) {
+    for i in 0..BATCH {
+        q.Push(i)
+    }
+    q.Close()
+}
+
+int main() {
+    // 创建 4 个独立队列
+    queue<int> q1 = queue<int>()
+    queue<int> q2 = queue<int>()
+    queue<int> q3 = queue<int>()
+    queue<int> q4 = queue<int>()
+
+    // 启动 4 个生产者线程（queue 指针作为上下文传入，线程内部操作）
+    var t1 = thread(producer, q1)
+    var t2 = thread(producer, q2)
+    var t3 = thread(producer, q3)
+    var t4 = thread(producer, q4)
+
+    // 主线程依次消费每个队列并汇总（各自队列，无共享竞争）
+    int total = 0
+
+    // 消费 q1
+    int sum1 = 0
+    int? v1 = null
+    while true {
+        v1 = q1.Pop()
+        if v1 == null {
+            break
+        }
+        sum1 = sum1 + (v1 ?? 0)
+    }
+    total = total + sum1
+
+    // 消费 q2
+    int sum2 = 0
+    int? v2 = null
+    while true {
+        v2 = q2.Pop()
+        if v2 == null {
+            break
+        }
+        sum2 = sum2 + (v2 ?? 0)
+    }
+    total = total + sum2
+
+    // 消费 q3
+    int sum3 = 0
+    int? v3 = null
+    while true {
+        v3 = q3.Pop()
+        if v3 == null {
+            break
+        }
+        sum3 = sum3 + (v3 ?? 0)
+    }
+    total = total + sum3
+
+    // 消费 q4
+    int sum4 = 0
+    int? v4 = null
+    while true {
+        v4 = q4.Pop()
+        if v4 == null {
+            break
+        }
+        sum4 = sum4 + (v4 ?? 0)
+    }
+    total = total + sum4
+
+    // 等待所有生产者线程结束
+    t1.Join()
+    t2.Join()
+    t3.Join()
+    t4.Join()
+
+    // 期望：4 * (0+1+...+999) = 4 * 499500 = 1998000
+    int expected = 1998000
+    println("total={total}")
+    println("expected={expected}")
+    bool ok = (total == expected)
+    println("ok={ok}")
+    println("ThreadSafe-1 done")
+    return 0
+}

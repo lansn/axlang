@@ -289,6 +289,8 @@ ax_queue*  ax_queue_create(int64_t elem_size);
 void       ax_queue_push(ax_queue* q, const void* data);
 /* 弹出元素：队列空且未关闭时阻塞；成功返回 0，队列已关闭且为空返回 1。 */
 int        ax_queue_pop(ax_queue* q, void* out);
+/* 非阻塞弹出：队列有数据返回 0 并写出，队列为空（无论是否已关闭）立即返回 1，不阻塞。 */
+int        ax_queue_try_pop(ax_queue* q, void* out);
 /* 关闭队列：后续 pop 在队列耗尽后返回 1，作为结束信号。 */
 void       ax_queue_close(ax_queue* q);
 

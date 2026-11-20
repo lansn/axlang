@@ -52,6 +52,8 @@ pub enum Item {
     },
     ClassDecl {
         vis: Option<String>,
+        is_abstract: bool,
+        is_final: bool,
         name: String,
         generics: Vec<TypeParam>,
         parent: Option<TPtr>,
@@ -104,6 +106,7 @@ pub enum Member {
         vis: Option<String>,
         is_static: bool,
         is_override: bool,
+        is_abstract: bool,
         ret: TPtr,
         name: String,
         params: Vec<N<Param>>,
@@ -307,7 +310,7 @@ pub enum SPart {
 #[derive(Clone, Debug)]
 pub enum Expr {
     IntLit { value: i64, raw: String },
-    FloatLit { value: f64, raw: String },
+    FloatLit { value: f64, raw: String, is_f32: bool },
     DecLit { coeff: i128, scale: i32, raw: String },
     BoolLit { value: bool },
     NullLit,
@@ -504,6 +507,7 @@ fn dump_member(m: &Member, ind: usize, out: &mut Vec<String>) {
             vis,
             is_static,
             is_override,
+            is_abstract,
             ret,
             name,
             params,
@@ -513,10 +517,11 @@ fn dump_member(m: &Member, ind: usize, out: &mut Vec<String>) {
                 out,
                 ind,
                 format!(
-                    "METHOD {}{}{} vis={} ret={}",
+                    "METHOD {}{}{}{} vis={} ret={}",
                     name,
                     if *is_static { " is_static" } else { "" },
                     if *is_override { " override" } else { "" },
+                    if *is_abstract { " abstract" } else { "" },
                     vis_s(vis),
                     ex_ty(ret)
                 ),

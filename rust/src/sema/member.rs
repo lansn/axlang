@@ -1210,6 +1210,7 @@ impl<'a> Sema<'a> {
                 Some(vec![
                     ("Push", vec![elem.clone()], t_void()),
                     ("Pop", vec![], t_nullable(elem.clone())),
+                    ("TryPop", vec![], t_nullable(elem.clone())),
                     ("Close", vec![], t_void()),
                 ])
             }

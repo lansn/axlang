@@ -1,0 +1,59 @@
+// ============================================================================
+// axlang 内存安全测试 —— MemSafe-1
+// 验证：可空类型 T?、移动语义、defer 确定性释放、数组越界
+// ============================================================================
+
+// 1. 可空类型 T?：空值必须显式判空后才能使用
+int get_len(&const string? s) {
+    if s == null {
+        return 0
+    }
+    return s.Len()
+}
+
+// 2. defer 确定性释放：defer 语句在离开作用域时执行
+int use_resource() {
+    println("open")
+    defer println("close")
+    println("read")
+    return 42
+}
+
+// 3. 移动语义：赋值转移所有权
+int move_test() {
+    string a = "hello"
+    string b = a            // 所有权移走，a 失效
+    return b.Len()
+}
+
+// 4. 数组正常访问（越界会运行期终止）
+int array_access() {
+    int[] xs = [1, 2, 3]
+    return xs[0]
+}
+
+int main() {
+    // 测试 1：可空类型
+    string? x = null
+    int n1 = get_len(&x)
+    println("n1={n1}")     // 期望 0
+
+    string y = "axlang"
+    int n2 = get_len(&y)
+    println("n2={n2}")     // 期望 6
+
+    // 测试 2：defer 确定性释放
+    int r = use_resource()
+    println("r={r}")       // 期望 42，close 在 read 之后打印
+
+    // 测试 3：移动语义
+    int n3 = move_test()
+    println("n3={n3}")     // 期望 5
+
+    // 测试 4：数组正常访问
+    int n4 = array_access()
+    println("n4={n4}")     // 期望 1
+
+    println("MemSafe-1 done")
+    return 0
+}

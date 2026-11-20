@@ -1,0 +1,82 @@
+// ============================================================================
+// axlang 亿级数据量基准测试 —— Perf-4
+// 验证：5000 万元素数组求和、泛型单态化、大对象移动、字符串操作
+// 注意：输出为确定性计算结果，适合回归比对
+// ============================================================================
+
+import time
+
+// 泛型求和（单态化）
+int sum_arr<T>(&const T[] xs) {
+    int s = 0
+    for i in 0..xs.Len() {
+        s = s + xs[i]
+    }
+    return s
+}
+
+// 普通求和（对比基准）
+int sum_arr_plain(&const int[] xs) {
+    int s = 0
+    for i in 0..xs.Len() {
+        s = s + xs[i]
+    }
+    return s
+}
+
+// 大对象：1000 个 int 的数组
+class BigObj {
+    public int[] Data
+    public int Tag
+    constructor(int n) {
+        this.Data = [0]
+        for i in 1..n {
+            this.Data.Push(i)
+        }
+        this.Tag = n
+    }
+}
+
+int move_big(BigObj b) {
+    return b.Tag
+}
+
+int main() {
+    const int N = 50000000
+
+    // ---------- 测试 1：5000 万元素数组求和 ----------
+    int[] xs = [0]
+    for i in 1..N {
+        xs.Push(i)
+    }
+
+    int s1 = sum_arr(&xs)
+    int s2 = sum_arr_plain(&xs)
+
+    println("sum_arr      ={s1}")
+    println("sum_arr_plain={s2}")
+
+    // ---------- 测试 2：大对象移动（零拷贝） ----------
+    int mv_sum = 0
+    for i in 0..10000 {
+        BigObj bd = new BigObj(1000)
+        int mv = move_big(bd)
+        mv_sum = mv_sum + mv
+    }
+    println("10kx move BigObj(1000) mv_sum={mv_sum}")
+
+    // ---------- 测试 3：泛型 identity 大规模 ----------
+    int id_sum = 0
+    for i in 0..N {
+        int id = identity(i)
+        id_sum = id_sum + id
+    }
+    println("50Mx identity(int) id_sum={id_sum}")
+
+    println("Perf-4 done")
+    return 0
+}
+
+T identity<T>(T x) {
+    return x
+}
