@@ -1,0 +1,9 @@
+public const int DEEP_VAL = 100
+
+public string deep_greet() {
+    return "from layer3"
+}
+
+public int deep_calc(int x) {
+    return x * 10
+}

@@ -1,0 +1,18 @@
+import layer1
+import layer1.layer2
+import layer1.layer2.layer3
+
+int main() {
+    println("top={layer1.TOP_VAL}")
+    println("mid={layer1.layer2.MID_VAL}")
+    println("deep={layer1.layer2.layer3.DEEP_VAL}")
+    println("g1={layer1.top_greet()}")
+    println("g2={layer1.layer2.mid_greet()}")
+    println("g3={layer1.layer2.layer3.deep_greet()}")
+    println("c1={layer1.top_calc(7)}")
+    println("c2={layer1.layer2.mid_calc(7)}")
+    println("c3={layer1.layer2.layer3.deep_calc(7)}")
+    println("chain1={layer1.top_mid_greet()}")
+    println("chain2={layer1.layer2.mid_deep_greet()}")
+    return 0
+}
