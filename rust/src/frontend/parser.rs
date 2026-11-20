@@ -48,15 +48,13 @@ pub struct Parser<'a> {
     next_id: u32,
     /// 顶层语句（入口文件允许，结束时包成隐式 `main`；文稿 9.4）
     top_stmts: Vec<N<Stmt>>,
-    /// 是否已解析过 `package` 声明（仅允许一次，且必须在文件首位）
-    has_package: bool,
 }
 
 type PResult<T> = Result<T, ParseError>;
 
 impl<'a> Parser<'a> {
     pub fn new(toks: Vec<Tok>, path: String, d: &'a mut Diags, next_id: u32) -> Self {
-        Parser { toks, p: 0, d, path, errors: 0, allow_incdec: false, next_id, top_stmts: Vec::new(), has_package: false }
+        Parser { toks, p: 0, d, path, errors: 0, allow_incdec: false, next_id, top_stmts: Vec::new()}
     }
 
     // ---------------- 基础 ----------------
@@ -246,21 +244,18 @@ impl<'a> Parser<'a> {
 
     pub fn parse(&mut self) -> Module {
         let mut items = Vec::new();
-        // `package` 仅允许作为文件的第一个顶层项（文稿 10.2）。
-        let mut first_item = true;
         loop {
             self.nl();
             if self.at("EOF") {
                 break;
             }
-            match self.parse_top_item(first_item) {
+            match self.parse_top_item() {
                 Ok(mut it) => items.append(&mut it),
                 Err(e) => {
                     self.report(&e);
                     self.sync();
                 }
             }
-            first_item = false;
             if self.errors >= MAX_PARSE_ERRORS {
                 self.err("E2015", None, "G-16", "语法错误过多（已达 {0} 条），停止解析", &[&MAX_PARSE_ERRORS]);
                 break;
@@ -304,7 +299,7 @@ impl<'a> Parser<'a> {
         self.errors += 1;
     }
 
-    fn parse_top_item(&mut self, first_item: bool) -> PResult<Vec<N<Item>>> {
+    fn parse_top_item(&mut self) -> PResult<Vec<N<Item>>> {
         let mut attrs: Vec<Attr> = Vec::new();
         while self.at("ATTR") {
             let t = self.advance();
@@ -328,18 +323,6 @@ impl<'a> Parser<'a> {
             }
             attrs.push(Attr { tok: t.clone(), name: t.text().to_string(), args });
             self.nl();
-        }
-        // `package` 必须在文件首位，在 `import` 之前处理；仅允许出现一次。
-        if self.at("package") {
-            if self.has_package || !first_item {
-                let t = self.advance();
-                self.err("E3044", Some(&t), "文稿 10.2", "`package` 声明必须在文件首位且只能出现一次", &[]);
-                // 跳过直到行尾，避免级联错误
-                self.sync();
-                return Ok(vec![]);
-            }
-            self.has_package = true;
-            return Ok(vec![self.parse_package()?]);
         }
         if self.at("import") {
             return Ok(vec![self.parse_import()?]);
@@ -516,18 +499,6 @@ impl<'a> Parser<'a> {
             names = Some(ns);
         }
         Ok(self.nn(t, Item::Import { path, alias, names }))
-    }
-
-    /// 解析 `package <路径>;`：如 `package shop.order;`
-    fn parse_package(&mut self) -> PResult<N<Item>> {
-        let t = self.expect("package", None)?;
-        let mut path = vec![self.expect_ident("包名")?.text().to_string()];
-        while self.at(".") && self.tok(1).is("IDENT") {
-            self.advance();
-            path.push(self.advance().text().to_string());
-        }
-        self.expect(";", None)?;
-        Ok(self.nn(t, Item::PackageDecl { path }))
     }
 
     fn parse_const(&mut self, vis: Option<String>) -> PResult<N<Item>> {

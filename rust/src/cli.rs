@@ -26,86 +26,6 @@ use crate::sema::{self, ExtraMod};
 // （`import a.b` 对应入口文件同目录的 `a/b.ax`）；循环导入是编译错误。
 // 解析在 sema 之前完成：拓扑序（被导入者在前）交给 analyze_multi 合并。
 
-/// 快速扫描源码首行是否有 `package <路径>;` 声明。
-/// 只做词法级扫描：找到 `package` 关键字后，读取圆点分隔的标识符路径，直到 `;`。
-/// 返回路径片段（如 `["shop", "order"]`），未声明则返回 None。
-fn detect_package(src: &str) -> Option<Vec<String>> {
-    let mut i = 0;
-    let chars: Vec<char> = src.chars().collect();
-    // 跳过 BOM、空白、注释
-    while i < chars.len() {
-        let c = chars[i];
-        if c.is_whitespace() {
-            i += 1;
-            continue;
-        }
-        if c == '/' && i + 1 < chars.len() && chars[i + 1] == '/' {
-            // 行注释，跳到行尾
-            while i < chars.len() && chars[i] != '\n' {
-                i += 1;
-            }
-            continue;
-        }
-        if c == '/' && i + 1 < chars.len() && chars[i + 1] == '*' {
-            // 块注释，跳到 */
-            i += 2;
-            while i + 1 < chars.len() && !(chars[i] == '*' && chars[i + 1] == '/') {
-                i += 1;
-            }
-            i += 2;
-            continue;
-        }
-        break;
-    }
-    // 期望以 `package` 开头
-    let kw = "package";
-    if i + kw.len() <= chars.len()
-        && chars[i..i + kw.len()].iter().collect::<String>() == kw
-        && (i + kw.len() == chars.len() || chars[i + kw.len()].is_whitespace())
-    {
-        i += kw.len();
-        // 跳过空白
-        while i < chars.len() && chars[i].is_whitespace() {
-            i += 1;
-        }
-        let mut path: Vec<String> = Vec::new();
-        loop {
-            // 读取一个标识符
-            let start = i;
-            while i < chars.len()
-                && (chars[i].is_ascii_alphanumeric() || chars[i] == '_')
-            {
-                i += 1;
-            }
-            if start == i {
-                break; // 没有标识符
-            }
-            let seg: String = chars[start..i].iter().collect();
-            path.push(seg);
-            // 跳过空白
-            while i < chars.len() && chars[i].is_whitespace() {
-                i += 1;
-            }
-            if i < chars.len() && chars[i] == '.' {
-                i += 1;
-                while i < chars.len() && chars[i].is_whitespace() {
-                    i += 1;
-                }
-                continue;
-            }
-            break;
-        }
-        // 跳过空白，期望 `;`
-        while i < chars.len() && chars[i].is_whitespace() {
-            i += 1;
-        }
-        if i < chars.len() && chars[i] == ';' {
-            return Some(path);
-        }
-    }
-    None
-}
-
 /// 基于文件路径推导传统 canon（文件名 sanitized，冲突时加序号）。
 fn file_stem_canon(fpath: &str, used_prefixes: &mut std::collections::HashMap<String, u32>) -> String {
     let stem = std::path::Path::new(fpath)
@@ -236,14 +156,8 @@ fn load_module_rec(
     }
     stack.pop();
 
-    // 规范前缀：优先使用文件的 `package <路径>;` 声明；未写则回退到文件名 sanitized。
-    let canon = match detect_package(&src) {
-        Some(pkg_path) => {
-            let joined_pkg = pkg_path.join(".");
-            san(&joined_pkg)
-        }
-        None => file_stem_canon(&fpath, used_prefixes),
-    };
+    // 规范前缀：取文件名 sanitized，冲突时加序号。
+    let canon = file_stem_canon(&fpath, used_prefixes);
 
     let idx = arena.len();
     arena.push((canon.clone(), fpath, m));

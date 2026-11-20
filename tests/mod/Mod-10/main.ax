@@ -1,9 +1,7 @@
-package shop.order;
-
 import model
 
 int main() {
-    println("v={VALUE}")
-    println("g={greet()}")
+    println("v={model.VALUE}")
+    println("g={model.greet()}")
     return 0
 }

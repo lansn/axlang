@@ -1,3 +1,0 @@
-// EXPECT: E3044
-int x = 1
-package shop.order;

@@ -28,7 +28,7 @@ dist\axc.exe check samples\01_hello.ax
 | `10_goods.ax` | 综合业务 | 文稿 §12 原文：类 + 继承 + 接口 + `db` 查询 + 金额舍入 |
 | `11_try_catch.ax` | 就地捕获错误 | `try` / `catch` 按 error 变体过滤 / `finally` 必执行 / catch 内改写再抛 / 只写 finally 也不吞错误 |
 | `demo/OrderDemo/` | 多模块工程 | 4 个模块 + 入口：`catalog.product`、`catalog.inventory`、`checkout.bill`（具名导入）、`checkout.wholesale`（跨模块继承）；`import` 之后裸类名直接 `new Product(...)` |
-| `demo/Package/` | `package` 声明 + 按目录组织包 + 包内多文件互见 | `main.ax` 声明 `package main;`，`import shop` 引入整个包；`shop/inventory.ax` 与 `shop/stock.ax` 都在 `shop/` 文件夹下，都声明 `package shop;`，属于同一个包，`inventory.ax` 可直接调用 `stock.ax` 中的私有函数（无需 `import`）；`main.ax` 用 `shop.VALUE` / `shop.greet()` / `shop.helper_double()` / `shop.double_stock()` 访问包内 `public` 符号 |
+| `demo/Package/` | 多文件模块（文件即是模块） | `main.ax` 显式 `import shop.inventory` / `import shop.stock`；`shop/inventory.ax` 与 `shop/stock.ax` 各自为独立模块，通过 `shop.inventory.VALUE` / `shop.stock.greet()` 等多段路径访问跨模块 `public` 符号 |
 
 ## demo：多模块 + 类的引入与调用
 

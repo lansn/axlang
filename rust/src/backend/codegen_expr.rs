@@ -1046,9 +1046,9 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             let nm = match ctor_fid {
                 Some(fid) => {
                     let fname = &self.cg.s.funcs[fid].name;
-                    format!("{}__{}__new_{}", self.cg.mod_name, self.cg.class_name(&td), fname)
+                    format!("{}__new_{}", self.cg.class_name(&td), fname)
                 }
-                None => format!("{}__{}__new", self.cg.mod_name, self.cg.class_name(&td)),
+                None => format!("{}__new", self.cg.class_name(&td)),
             };
             let params: Vec<(String, Ty, Option<String>)> = match ctor_fid {
                 Some(c) => self.cg.s.funcs[c].params.clone(),
@@ -1111,8 +1111,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 .or_else(|| ptd.ctors.keys().next().cloned())
                 .unwrap_or_else(|| "constructor".to_string());
             return format!(
-                "{}__{}__init_{}({})",
-                self.cg.mod_name,
+                "{}__init_{}({})",
                 self.cg.class_name(&ptd),
                 ctor_name,
                 parts.join(", ")
@@ -1399,8 +1398,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             };
             let dd = self.cg.s.typedefs[owner as usize].clone();
             let nm = format!(
-                "{}__{}__{}",
-                self.cg.mod_name,
+                "{}__{}",
                 self.cg.class_name(&dd),
                 san(&fname)
             );
@@ -1431,8 +1429,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 out.push(v);
             }
             return format!(
-                "{}__{}__{}({})",
-                self.cg.mod_name,
+                "{}__{}({})",
                 self.cg.class_name(&ptd),
                 san(&fname),
                 out.join(", ")
@@ -1660,9 +1657,9 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 let nm = match td.ctors.get("constructor").copied().or_else(|| td.ctors.values().next().copied()) {
                     Some(fid) => {
                         let fname = &self.cg.s.funcs[fid].name;
-                        format!("{}__{}__new_{}", self.cg.mod_name, self.cg.class_name(&td), fname)
+                        format!("{}__new_{}", self.cg.class_name(&td), fname)
                     }
-                    None => format!("{}__{}__new", self.cg.mod_name, self.cg.class_name(&td)),
+                    None => format!("{}__new", self.cg.class_name(&td)),
                 };
                 let mut a: Vec<String> = Vec::new();
                 for (i, x) in args.iter().enumerate() {
@@ -2520,9 +2517,9 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
         let nm = match ctor_fid {
             Some(fid) => {
                 let fname = &self.cg.s.funcs[fid].name;
-                format!("{}__{}__new_{}", self.cg.mod_name, self.cg.class_name(&td), fname)
+                format!("{}__new_{}", self.cg.class_name(&td), fname)
             }
-            None => format!("{}__{}__new", self.cg.mod_name, self.cg.class_name(&td)),
+            None => format!("{}__new", self.cg.class_name(&td)),
         };
         let mut out = Vec::new();
         for a in args {

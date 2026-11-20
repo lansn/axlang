@@ -28,11 +28,6 @@ pub struct Module {
 
 #[derive(Clone, Debug)]
 pub enum Item {
-    /// `package <路径>;`：可选的显式模块名声明。未写时模块名按文件名推导。
-    /// 位于文件首位，仅出现一次。
-    PackageDecl {
-        path: Vec<String>,
-    },
     Import {
         path: Vec<String>,
         alias: Option<String>,
@@ -388,7 +383,6 @@ fn w(out: &mut Vec<String>, ind: usize, s: String) {
 
 fn dump_item(it: &Item, tok: &Tok, ind: usize, out: &mut Vec<String>) {
     match it {
-        Item::PackageDecl { path } => w(out, ind, format!("PACKAGE {}", path.join("."))),
         Item::Import { path, .. } => w(out, ind, format!("IMPORT {}", path.join("."))),
         Item::ConstDecl { name, ty, init, .. } => w(
             out,

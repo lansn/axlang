@@ -159,7 +159,9 @@ pub struct CodeGen<'s, 'a> {
     /// 当前生成中的单态化实例号（槽表键的高 32 位；0 = 非泛型世界）
     pub cur_inst: u32,
     pub path: String,
-    pub mod_name: String,
+    /// 入口文件模块前缀：取文件名 stem（sanitized）。入口文件顶层符号（cur_mod_prefix=None）
+    /// 在 C 层需加此前缀，避免与 wrapper 生成的 `main` 符号冲突。
+    pub module_prefix: String,
     pub emitted: HashSet<Ty>,
     pub emitted_defs: HashSet<u32>,
     pub type_defs: Vec<String>,
@@ -184,20 +186,15 @@ impl<'s, 'a> CodeGen<'s, 'a> {
     }
 
     pub fn new(s: &'s Sema<'a>, path: &str) -> Self {
-        // mod_name 优先取 Sema 中记录的入口模块名（有 package 声明时为 package 路径），
-        // 否则回退到文件名 sanitized，保持向后兼容。
-        let base = if !s.mod_name.is_empty() {
-            s.mod_name.clone()
-        } else {
-            std::path::Path::new(path)
-                .file_stem()
-                .map(|x| x.to_string_lossy().to_string())
-                .unwrap_or_else(|| "unit".to_string())
-        };
+        // 入口文件模块前缀取文件名 stem（sanitized），用于 C 层符号前缀。
+        let module_prefix = std::path::Path::new(path)
+            .file_stem()
+            .map(|x| san(x.to_string_lossy().as_ref()))
+            .unwrap_or_else(|| "unit".to_string());
         CodeGen {
             s,
             path: path.to_string(),
-            mod_name: san(&base),
+            module_prefix,
             cur_inst: 0,
             emitted: HashSet::new(),
             emitted_defs: HashSet::new(),
@@ -816,8 +813,7 @@ impl<'s, 'a> CodeGen<'s, 'a> {
                 for (_, fid) in &d.methods {
                     if self.s.funcs[*fid].body.is_some() {
                         let nm = format!(
-                            "{}__{}__{}",
-                            self.mod_name,
+                            "{}__{}",
                             self.class_name(&d),
                             san(&self.s.funcs[*fid].name)
                         );
@@ -863,7 +859,7 @@ impl<'s, 'a> CodeGen<'s, 'a> {
 
     pub fn fn_name_idx(&self, fid: usize) -> String {
         let f = &self.s.funcs[fid];
-        // extern "C" 函数直接使用原始 C 函数名（如 `puts`），不加模块前缀或 mangle
+        // extern "C" 函数直接使用原始 C 函数名（如 `puts`），不加 mangle
         if f.is_extern {
             return f.name.clone();
         }
@@ -876,34 +872,27 @@ impl<'s, 'a> CodeGen<'s, 'a> {
             Some(o) => {
                 let d = self.s.typedefs[o as usize].clone();
                 format!(
-                    "{}__{}__{}{}",
-                    self.mod_name,
+                    "{}__{}{}",
                     self.class_name(&d),
                     san(&f.name),
                     inst_suffix
                 )
             }
             None => {
-                // reg_name 已按 cur_mod_prefix 加了前缀（如 `shop_order__main`）；
-                // 若 f.name 已带 mod_name__ 前缀，后端不再重复加，避免 `shop_order__shop_order__main`。
-                let prefixed = format!("{}__", self.mod_name);
-                let base = if f.name.starts_with(&prefixed) {
-                    san(&f.name)
-                } else {
-                    format!("{}__{}", self.mod_name, san(&f.name))
-                };
+                // reg_name 已按 cur_mod_prefix 加了前缀（如 `inventory__greet`）；
+                // 入口文件符号为裸名（如 `main`），需加 module_prefix 前缀避免与 C wrapper 冲突。
+                let base = format!("{}__{}", self.module_prefix, san(&f.name));
                 format!("{}{}", base, inst_suffix)
             }
         }
     }
 
     pub fn const_name(&self, name: &str) -> String {
-        // reg_name 已按 cur_mod_prefix 加了前缀；若 name 已带 mod_name__ 前缀，不再重复加。
-        let prefixed = format!("{}__", self.mod_name);
-        let base = if name.starts_with(&prefixed) {
+        // reg_name 已按 cur_mod_prefix 加了前缀；入口文件常量为裸名，需加 module_prefix。
+        let base = if name.starts_with(&format!("{}__", self.module_prefix)) {
             san(name)
         } else {
-            format!("{}__{}", self.mod_name, san(name))
+            format!("{}__{}", self.module_prefix, san(name))
         };
         format!("k_{}", base)
     }
@@ -1003,8 +992,7 @@ impl<'s, 'a> CodeGen<'s, 'a> {
         let method_ids: Vec<usize> = d.methods.values().copied().collect();
         for fid in method_ids {
             let nm = format!(
-                "{}__{}__{}",
-                self.mod_name,
+                "{}__{}",
                 self.class_name(d),
                 san(&self.s.funcs[fid].name)
             );
@@ -1017,7 +1005,7 @@ impl<'s, 'a> CodeGen<'s, 'a> {
     /// `ctor_fid` 为构造函数在 funcs 表中的索引。
     pub fn gen_ctor(&mut self, d: &TypeDef, ctor_name: &str, ctor_fid: usize) -> String {
         let mut out = Vec::new();
-        let nm = format!("{}__{}__init_{}", self.mod_name, self.class_name(d), ctor_name);
+        let nm = format!("{}__init_{}", self.class_name(d), ctor_name);
         // 槽键：实例类的 ctor 是实例函数，用它的实例号；普通类回 0
         self.cur_inst = self.s.inst_slot_of.get(&ctor_fid).copied().unwrap_or(0);
         let ctor_params: Vec<(String, Ty, Option<String>)> = self.s.funcs[ctor_fid].params.clone();
@@ -1033,7 +1021,7 @@ impl<'s, 'a> CodeGen<'s, 'a> {
         let mut fg = crate::backend::codegen_fn::FnGen::new(self, f, nm.clone(), Some(d.id), true);
         out.push(fg.ctor_body(d, &nm, ctor_body_opt));
         // new
-        let nm2 = format!("{}__{}__new_{}", self.mod_name, self.class_name(d), ctor_name);
+        let nm2 = format!("{}__new_{}", self.class_name(d), ctor_name);
         let mut ps2 = Vec::new();
         for (n, t, _b) in &ctor_params {
             ps2.push(format!("{} {}", self.ct_conv(t, erase), self.pv(n)));
@@ -1108,8 +1096,7 @@ impl<'s, 'a> CodeGen<'s, 'a> {
                 let owner = self.vt_impl_owner(&d, name);
                 let owner_d = self.s.typedefs[owner as usize].clone();
                 let impl_ = format!(
-                    "{}__{}__{}",
-                    self.mod_name,
+                    "{}__{}",
                     self.class_name(&owner_d),
                     san(name)
                 );
@@ -1185,8 +1172,7 @@ impl<'s, 'a> CodeGen<'s, 'a> {
                                 None => usize::MAX,
                             };
                             let direct = format!(
-                                "{}__{}__{}",
-                                self.mod_name,
+                                "{}__{}",
                                 self.class_name(&od),
                                 san(mname)
                             );
@@ -1206,8 +1192,7 @@ impl<'s, 'a> CodeGen<'s, 'a> {
                                 }) {
                                 Some((ipts, spts, ret)) if ipts != spts => {
                                     let ad = format!(
-                                        "{}__{}__{}__ad",
-                                        self.mod_name,
+                                        "{}__{}__ad",
                                         self.class_name(&od),
                                         san(mname)
                                     );
@@ -1272,8 +1257,7 @@ impl<'s, 'a> CodeGen<'s, 'a> {
                         None => {
                             // 类链上没有实现：用 interface 默认方法体
                             format!(
-                                "{}__{}__{}",
-                                self.mod_name,
+                                "{}__{}",
                                 self.class_name(&id),
                                 san(mname)
                             )
@@ -1362,14 +1346,13 @@ impl<'s, 'a> CodeGen<'s, 'a> {
     }
 
     pub fn gen_main_wrapper(&mut self) -> String {
-        // 入口文件若有 `package`，reg_name 会把 main 登记为 `shop_order__main`；
-        // 这里按 `main` 或 `*__main` 查找。
+        // 入口文件的 main 始终是裸名（无 package 前缀）。
         let main_fid = match self
             .s
             .funcs
             .iter()
             .enumerate()
-            .find(|(_, f)| f.name == "main" || f.name.ends_with("__main"))
+            .find(|(_, f)| f.name == "main")
             .map(|(i, _)| i)
         {
             Some(f) => f,

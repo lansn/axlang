@@ -1,5 +1,3 @@
-package shop;
-
 public string greet() {
     return "hi";
 }
@@ -8,6 +6,6 @@ public int helper_double(int x) {
     return x * 2;
 }
 
-int double_value(int x) {
+public int double_value(int x) {
     return x * 2;
 }
