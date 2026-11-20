@@ -1381,9 +1381,9 @@ impl<'a> Sema<'a> {
     }
 
     fn register_func(&mut self, item: &'a ast::N<Item>) {
-        let (name, vis, generics, body, implicit, is_pure, is_nothrow, is_ref_return) = match &item.k {
-            Item::FuncDecl { vis, name, generics, body, implicit, is_pure, is_nothrow, is_ref_return, .. } => {
-                (name, vis, generics, body, *implicit, *is_pure, *is_nothrow, *is_ref_return)
+        let (name, vis, generics, body, implicit, attrs, is_ref_return) = match &item.k {
+            Item::FuncDecl { vis, name, generics, body, implicit, attrs, is_ref_return, .. } => {
+                (name, vis, generics, body, *implicit, attrs, *is_ref_return)
             }
             _ => return,
         };
@@ -1421,6 +1421,9 @@ impl<'a> Sema<'a> {
         if !self.declare_name(&reg, &item.tok, false) {
             return;
         }
+        // 从属性中读取 pure/nothrow 标记（@pure / @nothrow）
+        let is_pure = attrs.iter().any(|a| a.name == "pure");
+        let is_nothrow = attrs.iter().any(|a| a.name == "nothrow");
         let f = FuncInfo {
             name: reg.clone(),
             tok: item.tok.clone(),

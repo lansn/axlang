@@ -21,8 +21,8 @@ class Box {
 }
 
 int main() {
-    static assert is(Circle : Shape)
-    static assert is(Box : Shape) == false
+    const bool _c1 = is(Circle : Shape)
+    const bool _c2 = is(Box : Shape) == false
     bool b1 = is(Circle : Shape)
     bool b2 = is(Box : Shape)
     println("b1={b1} b2={b2}")

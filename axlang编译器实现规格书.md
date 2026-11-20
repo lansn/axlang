@@ -1673,28 +1673,28 @@ int n = o;              /* ax_unbox_int(o, file, line, col) */
 3. **调用方**：`call()` 对 `is_ref_return` 的函数调用，生成 `*(call)` 解引用，调用方无需关心是 ref 返回。
 4. **左值要求**：ref 返回值只能绑定到左值变量，编译期由 sema 检查（codegen 不做额外处理）。
 
-### 13.11 `pure` / `nothrow` 函数的 C 生成（B-18）
+### 13.11 `@pure` / `@nothrow` 函数属性的 C 生成（B-18）
 
-`pure` / `nothrow` 是 D 语言风格的**编译期契约，零运行期开销**（文稿 §5.4）：
+`@pure` / `@nothrow` 是 D 语言风格的**编译期契约，零运行期开销**（文稿 §5.4），以属性形式置于函数声明前，不新增关键词：
 
 | 特性 | 语义检查（sema） | C 代码生成（codegen） |
 |---|---|---|
-| `pure` | 纯函数内不能调用非纯函数 → `E6015` | **无任何特殊标记或代码**，与普通函数完全相同 |
-| `nothrow` | nothrow 函数内不能 `throw` → `E6014` | **无任何特殊标记或代码**，与普通函数完全相同 |
+| `@pure` | 从 `FuncDecl.attrs` 读取 `is_pure`；`@pure` 函数内不能调用非 `@pure` 函数 → `E6015` | **无任何特殊标记或代码**，与普通函数完全相同 |
+| `@nothrow` | 从 `FuncDecl.attrs` 读取 `is_nothrow`；`@nothrow` 函数内不能 `throw` → `E6014` | **无任何特殊标记或代码**，与普通函数完全相同 |
 
 C 层不生成 `__attribute__((pure))`、`__attribute__((nothrow))` 等编译器扩展，严格遵守 C11 一致性（§13.0）。两者仅影响 sema 层的调用合法性检查，不影响生成的 C 代码形态。
 
-### 13.12 `static assert` 的 C 生成（B-19）
+### 13.12 编译期断言（const 检查）的 C 生成（B-19）
 
-`static assert` 是**编译期断言**（文稿 §6.1.1）：
+编译期断言用 `const bool _check = 条件;` 表达（文稿 §6.1.1），不再使用 `Stmt::StaticAssert` AST 节点：
 
 | 阶段 | 行为 |
 |---|---|
-| 语法 | `static assert 条件` 或 `static assert 条件, "消息"` |
-| 语义 | 条件必须是编译期常量表达式，求值为 false → `E6016` 停止编译 |
-| 代码生成 | `codegen_fn.rs` `stmt()` 中 `Stmt::StaticAssert { .. } => {}`，**不生成任何 C 代码** |
+| 语法 | `const bool _check = 条件` |
+| 语义 | `check_local_const()`：条件必须是编译期常量表达式；`ty` 为 `bool` 且求值为 `ConstVal::Bool(false)` → `E6016` 停止编译 |
+| 代码生成 | 无特殊分支，`const` 走常规 `var_decl` 路径，assert 条件本身不生成运行期代码 |
 
-`static assert` 仅在编译期生效，产物中不留任何痕迹。消息字符串仅用于诊断输出，不进入生成的 C 文件。
+编译期断言仅在编译期生效，产物中不留任何痕迹。
 
 ### 13.13 `is T` 类型特征的 C 生成（B-20）
 

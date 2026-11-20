@@ -1,7 +1,7 @@
-// EXPECT: E4001
-// static assert 条件必须是常量表达式
+// EXPECT: E3003
+// const 初始化器必须是常量表达式（x 不是 const，原 static assert）
 int main() {
     int x = 1
-    static assert x == 1
+    const bool _check = x == 1
     return 0
 }

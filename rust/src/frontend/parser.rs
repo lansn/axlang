@@ -306,8 +306,8 @@ impl<'a> Parser<'a> {
         let mut attrs: Vec<Attr> = Vec::new();
         while self.at("ATTR") {
             let t = self.advance();
-            if t.text() != "os" && t.text() != "arch" {
-                self.err("E3029", Some(&t), "L-23", "未知属性 `@{0}`（只支持 @os 与 @arch）", &[&t.text()]);
+            if t.text() != "os" && t.text() != "arch" && t.text() != "pure" && t.text() != "nothrow" {
+                self.err("E3029", Some(&t), "L-23", "未知属性 `@{0}`（只支持 @os、@arch、@pure、@nothrow）", &[&t.text()]);
             }
             let mut args = Vec::new();
             if self.accept("(").is_some() {
@@ -333,8 +333,6 @@ impl<'a> Parser<'a> {
         let mut vis: Option<String> = None;
         let mut is_abstract = false;
         let mut is_final = false;
-        let mut is_pure = false;
-        let mut is_nothrow = false;
         if self.at("abstract") {
             self.advance();
             is_abstract = true;
@@ -342,14 +340,6 @@ impl<'a> Parser<'a> {
         if self.at("final") {
             self.advance();
             is_final = true;
-        }
-        if self.at("pure") {
-            self.advance();
-            is_pure = true;
-        }
-        if self.at("nothrow") {
-            self.advance();
-            is_nothrow = true;
         }
         if self.at("public") {
             self.advance();
@@ -401,7 +391,7 @@ impl<'a> Parser<'a> {
             return Ok(vec![]);
         }
         // 函数
-        match self.parse_func(attrs, vis, is_pure, is_nothrow) {
+        match self.parse_func(attrs, vis) {
             Ok(it) => Ok(vec![it]),
             Err(e) => {
                 if self.at("if") || self.at("for") || self.at("while") || self.at("return") {
@@ -463,7 +453,7 @@ impl<'a> Parser<'a> {
         true
     }
 
-    fn parse_func(&mut self, attrs: Vec<Attr>, vis: Option<String>, is_pure: bool, is_nothrow: bool) -> PResult<N<Item>> {
+    fn parse_func(&mut self, attrs: Vec<Attr>, vis: Option<String>) -> PResult<N<Item>> {
         let is_ref_return = self.at("ref");
         if is_ref_return {
             self.advance();
@@ -474,6 +464,9 @@ impl<'a> Parser<'a> {
         let params = self.parse_params()?;
         self.nl();
         let body = self.parse_block()?;
+        // 从属性中读取 pure/nothrow 标记
+        let is_pure = attrs.iter().any(|a| a.name == "pure");
+        let is_nothrow = attrs.iter().any(|a| a.name == "nothrow");
         Ok(self.nn(
             name.clone(),
             Item::FuncDecl {
@@ -1403,25 +1396,7 @@ impl<'a> Parser<'a> {
         if k == "const" {
             return Ok(Some(self.parse_const_stmt()?));
         }
-        if k == "static" {
-            self.advance();
-            self.nl();
-            if self.at("assert") {
-                self.advance();
-                self.nl();
-                let cond = self.parse_expr()?;
-                let msg = if self.accept(",").is_some() {
-                    self.nl();
-                    Some(self.parse_expr()?)
-                } else {
-                    None
-                };
-                return Ok(Some(self.nn(t, Stmt::StaticAssert { cond, msg })));
-            } else {
-                let tk = self.tok(0).clone();
-                return self.fail("E2001", &tk, "G-1", "期望 `assert` 紧跟在 `static` 之后", &[]).map(Some);
-            }
-        }        // 标签：IDENT ':' for
+        // 标签：IDENT ':' for
         if k == "IDENT" && self.tok(1).is(":") && self.tok(2).is("for") {
             let label = self.advance().text().to_string();
             self.advance();

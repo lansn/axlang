@@ -228,11 +228,6 @@ pub enum Stmt {
     Unsafe {
         body: Block,
     },
-    /// `static assert <cond> [, <msg>]`：编译期断言，失败直接报错，零运行期代价
-    StaticAssert {
-        cond: EPtr,
-        msg: Option<EPtr>,
-    },
 }
 
 /// IfNode 语句与表达式两用（if 作表达式是语言特性）。
@@ -668,12 +663,6 @@ fn dump_stmt(s: &Stmt, tok: &Tok, ind: usize, out: &mut Vec<String>) {
         Stmt::Unsafe { body } => {
             w(out, ind, "UNSAFE".to_string());
             dump_block(body, ind + 1, out);
-        }
-        Stmt::StaticAssert { cond, msg } => {
-            w(out, ind, format!("STATIC_ASSERT cond={}", ex(cond)));
-            if let Some(m) = msg {
-                w(out, ind, format!("  msg={}", ex(m)));
-            }
         }
     }
     let _ = tok;

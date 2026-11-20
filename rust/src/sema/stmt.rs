@@ -316,7 +316,6 @@ impl<'a> Sema<'a> {
             Stmt::Unsafe { body } => self.check_block(body, true),
             Stmt::Return { .. } => self.check_return(s),
             Stmt::Throw { .. } => self.check_throw(s),
-            Stmt::StaticAssert { .. } => self.check_static_assert(s),
             Stmt::TryCatch(_) => self.check_try_catch(s),
             Stmt::Defer { .. } => self.check_defer(s),
             Stmt::Break { label } => {
@@ -371,6 +370,11 @@ impl<'a> Sema<'a> {
         let v = self.eval_const(init);
         if v.is_none() {
             self.err("E3003", &init.tok, "S-2", "const 初始化器必须是常量表达式", &[]);
+        }
+        // 编译期断言语义：`const bool _check = 条件;` 若条件在编译期求值为 false，
+        // 直接编译失败（复用 E6016），不生成任何运行期代码。
+        if matches!(&*ty, TyS::Bool) && matches!(v, Some(ConstVal::Bool(false))) {
+            self.err("E6016", &s.tok, "文稿 10.1", "编译期断言失败：常量条件为 false", &[]);
         }
         self.sl(s.id).const_value = v;
         self.declare(name, ty, true, &s.tok);
@@ -1034,39 +1038,6 @@ impl<'a> Sema<'a> {
         }
         if !matches!(variant.as_str(), "NotFound" | "Invalid" | "Money" | "IO") {
             self.err("E3027", &s.tok, "文稿 10.1", "未知的错误变体 `error.{0}`（可用：NotFound/Invalid/Money/IO）", &[&variant]);
-        }
-        self.sl(s.id).ty = Some(t_never());
-    }
-
-    /// `static assert <cond> [, <msg>]`：编译期断言，失败直接报错，零运行期代价。
-    /// 条件必须是可编译期求值的 bool 常量表达式；求值为 false 时编译失败。
-    fn check_static_assert(&mut self, s: &ast::SPtr) {
-        let (cond, msg) = match &s.k {
-            Stmt::StaticAssert { cond, msg } => (cond, msg),
-            _ => return,
-        };
-        let t = self.check_expr(cond, Some(&t_bool()));
-        if *t != *t_bool() {
-            self.err("E4001", &cond.tok, "文稿 10.1", "`static assert` 的条件必须是 bool，得到 {0}", &[&self.ts(&t)]);
-        }
-        let v = self.eval_const(cond);
-        match v {
-            Some(ConstVal::Bool(false)) => {
-                if let Some(m) = msg {
-                    let mt = self.check_expr(m, Some(&t_string()));
-                    if *mt != *t_string() {
-                        self.err("E4001", &m.tok, "文稿 10.1", "`static assert` 的消息必须是 string，得到 {0}", &[&self.ts(&mt)]);
-                    }
-                }
-                self.err("E6016", &s.tok, "文稿 10.1", "`static assert` 失败：{0}", &[&match msg {
-                    Some(_) => "断言条件不成立".to_string(),
-                    None => "断言条件不成立".to_string(),
-                }]);
-            }
-            Some(ConstVal::Bool(true)) => {}
-            _ => {
-                self.err("E4001", &cond.tok, "文稿 10.1", "`static assert` 的条件必须是常量表达式", &[]);
-            }
         }
         self.sl(s.id).ty = Some(t_never());
     }

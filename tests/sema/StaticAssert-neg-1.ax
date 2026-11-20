@@ -1,6 +1,6 @@
 // EXPECT: E6016
-// static assert 条件为 false 时编译失败
+// const 条件为 false 时编译失败（原 static assert）
 int main() {
-    static assert 1 + 1 == 3
+    const bool _check = 1 + 1 == 3
     return 0
 }

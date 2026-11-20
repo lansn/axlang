@@ -374,7 +374,6 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             Stmt::Break { .. } => self.break_stmt(s, true),
             Stmt::Continue { .. } => self.break_stmt(s, false),
             Stmt::Const { .. } => self.var_decl(s),
-            Stmt::StaticAssert { .. } => {}
         }
     }
 
