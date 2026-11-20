@@ -146,21 +146,39 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
     pub fn decl(&mut self) -> String {
         let ret = self.f.ret.clone();
         let erase = self.owner.map_or(false, |o| self.cg.is_erased_class(o));
-        let ret = if erase && self.cg.is_ref_type(&ret) {
+        let mut ret = if erase && self.cg.is_ref_type(&ret) {
             "void*".to_string()
         } else {
             self.cg.ct(&ret)
         };
+        // ref 返回值：C 层为指针返回类型（T* 或 const T*）
+        if self.f.is_ref_return {
+            ret = format!("{}*", ret);
+        }
         let mut ps: Vec<String> = Vec::new();
         let mut self_param: Option<String> = None;
         if self.owner.is_some() && !self.f.is_static {
             self_param = Some("void* self_".to_string());
         }
-        for (name, ty, _borrow) in self.f.params.clone() {
-            let ct_str = if erase && self.cg.is_ref_type(&ty) {
-                "void*".to_string()
+        for (name, ty, borrow) in self.f.params.clone() {
+            let is_ref = borrow.is_some();
+            let ct_str = if is_ref {
+                // ref 参数：按引用传递，C 层为指针（T* 或 const T*）
+                let base = if erase && self.cg.is_ref_type(&ty) {
+                    "void*".to_string()
+                } else {
+                    self.cg.ct(&ty)
+                };
+                match borrow.as_deref() {
+                    Some("const") => format!("const {}*", base),
+                    _ => format!("{}*", base),
+                }
             } else {
-                self.cg.ct(&ty)
+                if erase && self.cg.is_ref_type(&ty) {
+                    "void*".to_string()
+                } else {
+                    self.cg.ct(&ty)
+                }
             };
             ps.push(format!("{} {}", ct_str, self.pv(&name)));
         }
@@ -187,13 +205,27 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
     pub fn signature(&mut self) -> String {
         let ret = self.f.ret.clone();
         let erase = self.owner.map_or(false, |o| self.cg.is_erased_class(o));
-        let ret = self.ct_conv(&ret, erase);
+        let mut ret = self.ct_conv(&ret, erase);
+        // ref 返回值：C 层为指针返回类型（T* 或 const T*）
+        if self.f.is_ref_return {
+            ret = format!("{}*", ret);
+        }
         let mut ps: Vec<String> = Vec::new();
         if self.owner.is_some() && !self.f.is_static {
             ps.push("void* self_".to_string());
         }
-        for (name, ty, _borrow) in self.f.params.clone() {
-            ps.push(format!("{} {}", self.ct_conv(&ty, erase), self.pv(&name)));
+        for (name, ty, borrow) in self.f.params.clone() {
+            let is_ref = borrow.is_some();
+            let ct_str = if is_ref {
+                let base = self.ct_conv(&ty, erase);
+                match borrow.as_deref() {
+                    Some("const") => format!("const {}*", base),
+                    _ => format!("{}*", base),
+                }
+            } else {
+                self.ct_conv(&ty, erase)
+            };
+            ps.push(format!("{} {}", ct_str, self.pv(&name)));
         }
         if ps.is_empty() {
             ps.push("void".to_string());
@@ -342,6 +374,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             Stmt::Break { .. } => self.break_stmt(s, true),
             Stmt::Continue { .. } => self.break_stmt(s, false),
             Stmt::Const { .. } => self.var_decl(s),
+            Stmt::StaticAssert { .. } => {}
         }
     }
 
@@ -549,12 +582,12 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                     Some(Res::Local(v)) => Some(v),
                     _ => None,
                 };
-                let (is_param, v_nullable) = match &v {
+                let (is_param, v_nullable, v_borrow) = match &v {
                     Some(v) => {
                         let b = v.borrow();
-                        (b.is_param, matches!(&*b.ty, TyS::Nullable(_)))
+                        (b.is_param, matches!(&*b.ty, TyS::Nullable(_)), b.borrow.clone())
                     }
-                    None => (false, false),
+                    None => (false, false, None),
                 };
                 let name = if v.is_some() && is_param {
                     self.pv(&segs[0])
@@ -562,10 +595,21 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                     self.lv(&segs[0])
                 };
                 let lty_nonopt = !matches!(&**lty, TyS::Nullable(_));
-                if v.is_some() && v_nullable && lty_nonopt {
-                    self.emit(format!("{}.v = {}; {}.has = 1;", name, rhs, name));
+                // ref 参数写入：通过指针写（*p_a = ...）。
+                // 若 name 已带 .v（可空拆箱），需解引用基名再取 .v：(*p_s).v = ... 而非 *p_s.v = ...
+                let lhs_expr = if is_param && v_borrow.is_some() {
+                    if let Some(base_name) = name.strip_suffix(".v") {
+                        format!("(*{}).v", base_name)
+                    } else {
+                        format!("*{}", name)
+                    }
                 } else {
-                    self.emit(format!("{} = {};", name, rhs));
+                    name
+                };
+                if v.is_some() && v_nullable && lty_nonopt {
+                    self.emit(format!("{}.v = {}; {}.has = 1;", lhs_expr, rhs, lhs_expr));
+                } else {
+                    self.emit(format!("{} = {};", lhs_expr, rhs));
                 }
             }
             Expr::FieldAccess { recv, name } => {
@@ -678,22 +722,38 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
     pub fn recv_c(&mut self, node: &'a ast::EPtr) -> (String, bool) {
         match &node.k {
             Expr::Path { .. } => {
-                let (name, _v) = self.var_c(node);
+                let (name, v) = self.var_c(node);
                 let ty = self.ty_or_int(node.id);
+                // ref 参数：C 层是指针，字段/方法访问需先解引用，(*p_a)->field
+                // 若 name 已带 .v（可空拆箱），需只对基名解引用：(*p_s).v 而非 (*p_s.v)。
+                let recv_name = if let Some(vi) = &v {
+                    let b = vi.borrow();
+                    if b.is_param && b.borrow.is_some() {
+                        if let Some(base_name) = name.strip_suffix(".v") {
+                            format!("(*{}).v", base_name)
+                        } else {
+                            format!("(*{})", name)
+                        }
+                    } else {
+                        name
+                    }
+                } else {
+                    name
+                };
                 match &*ty {
-                    TyS::Nullable(_) => (name, false),
+                    TyS::Nullable(_) => (recv_name, false),
                     // ArenaRef<T> 在 C 层就是 T*，与 class 引用同形
-                    TyS::ArenaRef(_) => (name, true),
+                    TyS::ArenaRef(_) => (recv_name, true),
                     TyS::Named(did, _) => {
                         let is_class = self.cg.def_of(did).map_or(false, |d| d.kind == "class");
                         if is_class {
-                            (name, true)
+                            (recv_name, true)
                         } else {
-                            (name, false)
+                            (recv_name, false)
                         }
                     }
-                    TyS::Object => (name, true),
-                    _ => (name, false),
+                    TyS::Object => (recv_name, true),
+                    _ => (recv_name, false),
                 }
             }
             Expr::This => ("self".to_string(), true),
@@ -775,17 +835,26 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
         let saved = if !self.try_stack.is_empty() {
             match value {
                 Some(v) => {
-                    let vt = if matches!(&*ret, TyS::Void) {
-                        t_int()
+                    if self.f.is_ref_return {
+                        // ref 返回值：保存指针到临时变量（C 层为 T*）
+                        let ct = format!("{}*", self.cg.ct(&ret));
+                        let vc = format!("&{}", self.gen(v, None, false, false));
+                        let n = self.tmpn();
+                        self.emit(format!("{} {} = {};", ct, n, vc));
+                        Some(n)
                     } else {
-                        ret.clone()
-                    };
-                    let vc = if matches!(&*ret, TyS::Void) {
-                        self.gen(v, None, false, false)
-                    } else {
-                        self.gen(v, Some(&ret), false, false)
-                    };
-                    Some(self.declare(&vt, &vc))
+                        let vt = if matches!(&*ret, TyS::Void) {
+                            t_int()
+                        } else {
+                            ret.clone()
+                        };
+                        let vc = if matches!(&*ret, TyS::Void) {
+                            self.gen(v, None, false, false)
+                        } else {
+                            self.gen(v, Some(&ret), false, false)
+                        };
+                        Some(self.declare(&vt, &vc))
+                    }
                 }
                 None => None,
             }
@@ -795,7 +864,9 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
         self.emit_finally_chain();
         self.emit_defers(None);
         if let Some(tmp) = saved {
-            if self.is_main && ret != t_int() {
+            if self.f.is_ref_return {
+                self.emit(format!("return {};", tmp));
+            } else if self.is_main && ret != t_int() {
                 self.emit(format!("return (int64_t)({});", tmp));
             } else if matches!(&*ret, TyS::Void) {
                 self.emit(format!("(void)({});", tmp));
@@ -813,11 +884,18 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             }
             return;
         }
-        let v = if !matches!(&*ret, TyS::Void) {
+        let v = if self.f.is_ref_return {
+            // ref 返回值：返回变量的地址（&value），不做类型强制转换
+            format!("&{}", self.gen(value.as_ref().unwrap(), None, false, false))
+        } else if !matches!(&*ret, TyS::Void) {
             self.gen(value.as_ref().unwrap(), Some(&ret), false, false)
         } else {
             self.gen(value.as_ref().unwrap(), None, false, false)
         };
+        if self.f.is_ref_return {
+            self.emit(format!("return {};", v));
+            return;
+        }
         if self.is_main && ret != t_int() {
             self.emit(format!("return (int64_t)({});", v));
             return;

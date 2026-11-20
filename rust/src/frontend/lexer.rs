@@ -20,6 +20,10 @@ pub const KEYWORDS: &[&str] = &[
     "extern", "unsafe",
     "abstract",
     "final",
+    "pure", "nothrow",
+    "ref",
+    "assert",
+    "is",
     "true", "false", "null",
 ];
 

@@ -49,6 +49,12 @@ pub enum Item {
         attrs: Vec<Attr>,
         /// 由入口文件的顶层语句自动包出来的隐式 `main`（文稿 9.4）
         implicit: bool,
+        /// D 语言风格属性：pure 函数无副作用、不调用非纯函数
+        is_pure: bool,
+        /// D 语言风格属性：nothrow 函数不抛出错误，不调用可能 throw 的函数
+        is_nothrow: bool,
+        /// D 语言风格：ref 返回值，按引用返回
+        is_ref_return: bool,
     },
     ClassDecl {
         vis: Option<String>,
@@ -222,6 +228,11 @@ pub enum Stmt {
     Unsafe {
         body: Block,
     },
+    /// `static assert <cond> [, <msg>]`：编译期断言，失败直接报错，零运行期代价
+    StaticAssert {
+        cond: EPtr,
+        msg: Option<EPtr>,
+    },
 }
 
 /// IfNode 语句与表达式两用（if 作表达式是语言特性）。
@@ -337,6 +348,19 @@ pub enum Expr {
     If(Box<IfNode>),
     Match(Box<MatchNode>),
     AnonFunc { params: Vec<N<Param>>, body: Block },
+    /// `is(T == Type)` / `is(T : Interface)` / `is(typeof(Expr) == Type)`：编译期类型查询，返回 bool
+    IsType {
+        /// 检查方式："eq" (==), "impl" (:), "typeof_eq" (typeof(Expr) == Type)
+        kind: String,
+        /// 类型（或左侧类型）
+        ty: Option<TPtr>,
+        /// 右侧类型（用于 eq/impl）
+        target: Option<TPtr>,
+        /// 表达式（用于 typeof_eq）
+        expr: Option<EPtr>,
+        /// 接口名（用于 impl）
+        interface: Option<Vec<String>>,
+    },
 }
 
 // ---------------------------------------------------------------- 类型
@@ -645,6 +669,12 @@ fn dump_stmt(s: &Stmt, tok: &Tok, ind: usize, out: &mut Vec<String>) {
             w(out, ind, "UNSAFE".to_string());
             dump_block(body, ind + 1, out);
         }
+        Stmt::StaticAssert { cond, msg } => {
+            w(out, ind, format!("STATIC_ASSERT cond={}", ex(cond)));
+            if let Some(m) = msg {
+                w(out, ind, format!("  msg={}", ex(m)));
+            }
+        }
     }
     let _ = tok;
 }
@@ -865,5 +895,6 @@ pub fn ex(e: &EPtr) -> String {
         Expr::If(n) => format!("IF({}){{...}}", ex(&n.cond)),
         Expr::Match(n) => format!("MATCH({}){{...}}", ex(&n.scrutinee)),
         Expr::AnonFunc { params, .. } => format!("ANON{}", dump_params(params)),
+        Expr::IsType { kind, .. } => format!("is({})", kind),
     }
 }

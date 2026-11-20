@@ -302,6 +302,8 @@ pub struct VarInfo {
     pub state: VarState,
     pub decl_line: u32,
     pub is_param: bool,
+    /// `ref` / `ref const` 参数的 borrow 标记：`Some("mut")` 或 `Some("const")`，`None` 表示普通按值参数
+    pub borrow: Option<String>,
     pub idx: usize,
     /// ArenaRef 变量绑定的 region id（`ar.Alloc(x)` 的来源区域）。
     /// 所有使用点必须位于该 region 的 arena 声明块内（O-18/E7006）。
@@ -331,6 +333,12 @@ pub struct FuncInfo<'a> {
     pub is_static: bool,
     pub is_override: bool,
     pub is_abstract: bool,
+    /// D 语言风格：pure 函数无副作用，不调用非纯函数
+    pub is_pure: bool,
+    /// D 语言风格：nothrow 函数不抛出错误，不调用可能 throw 的函数
+    pub is_nothrow: bool,
+    /// D 语言风格：ref 返回值，按引用返回
+    pub is_ref_return: bool,
     pub body: Option<&'a ast::Block>,
     /// 隐式 `main`：入口文件的顶层语句包出来的（文稿 9.4）
     pub implicit: bool,
@@ -749,6 +757,9 @@ impl<'a> Sema<'a> {
                 is_static: false,
                 is_override: false,
                 is_abstract: false,
+                is_pure: false,
+                is_nothrow: false,
+                is_ref_return: false,
                 body: None,
                 implicit: false,
                 gdepth: 0,
@@ -1370,9 +1381,9 @@ impl<'a> Sema<'a> {
     }
 
     fn register_func(&mut self, item: &'a ast::N<Item>) {
-        let (name, vis, generics, body, implicit) = match &item.k {
-            Item::FuncDecl { vis, name, generics, body, implicit, .. } => {
-                (name, vis, generics, body, *implicit)
+        let (name, vis, generics, body, implicit, is_pure, is_nothrow, is_ref_return) = match &item.k {
+            Item::FuncDecl { vis, name, generics, body, implicit, is_pure, is_nothrow, is_ref_return, .. } => {
+                (name, vis, generics, body, *implicit, *is_pure, *is_nothrow, *is_ref_return)
             }
             _ => return,
         };
@@ -1425,6 +1436,9 @@ impl<'a> Sema<'a> {
             is_static: false,
             is_override: false,
             is_abstract: false,
+            is_pure,
+            is_nothrow,
+            is_ref_return,
             body: Some(body),
             implicit,
             gdepth: 0,
@@ -1474,6 +1488,9 @@ impl<'a> Sema<'a> {
             is_static: false,
             is_override: false,
             is_abstract: false,
+            is_pure: false,
+            is_nothrow: false,
+            is_ref_return: false,
             body: None,
             implicit: false,
             gdepth: 0,
@@ -2106,6 +2123,9 @@ impl<'a> Sema<'a> {
                                 is_static: *is_static,
                                 is_override: *is_override,
                                 is_abstract: *is_abstract,
+                                is_pure: false,
+                                is_nothrow: false,
+                                is_ref_return: false,
                                 implicit: false,
                                 gdepth: 0,
                                 mangle: None,
@@ -2145,6 +2165,9 @@ impl<'a> Sema<'a> {
                                 is_static: false,
                                 is_override: false,
                                 is_abstract: false,
+                                is_pure: false,
+                                is_nothrow: false,
+                                is_ref_return: false,
                                 implicit: false,
                                 gdepth: 0,
                                 mangle: None,
@@ -2184,6 +2207,9 @@ impl<'a> Sema<'a> {
                         is_static: false,
                         is_override: false,
                         is_abstract: false,
+                        is_pure: false,
+                        is_nothrow: false,
+                        is_ref_return: false,
                         implicit: false,
                 gdepth: 0,
                 mangle: None,
@@ -2417,7 +2443,7 @@ impl<'a> Sema<'a> {
             parent: None,
             names: HashMap::new(),
         })));
-        for (i, (pname, pty, _borrow)) in params.iter().enumerate() {
+        for (i, (pname, pty, borrow)) in params.iter().enumerate() {
             let dup = {
                 let scope = self.scope.as_ref().unwrap();
                 scope.borrow().names.contains_key(pname)
@@ -2435,6 +2461,7 @@ impl<'a> Sema<'a> {
                     state: VarState::Live,
                     decl_line: 0,
                     is_param: true,
+                    borrow: borrow.clone(),
                     idx: i,
                     arena_region: None,
                 })),

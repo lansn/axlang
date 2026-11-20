@@ -1592,6 +1592,10 @@ impl<'a> Sema<'a> {
                 }
                 Some(a)
             }
+            Expr::IsType { .. } => {
+                // `is` 是编译期求值，结果已存入槽的 const_value
+                self.slot(&e.id).and_then(|s| s.const_value.clone())
+            }
             Expr::Call { callee, args } => {
                 // `typeof(x)` 的结果在 check_call 时已作为常量存进槽（编译期字符串）
                 if let Some(slot) = self.slot(&e.id) {

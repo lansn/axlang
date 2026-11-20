@@ -1,0 +1,6 @@
+// EXPECT: E4001
+// static assert 条件必须是 bool
+int main() {
+    static assert 42
+    return 0
+}

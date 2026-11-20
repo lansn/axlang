@@ -1,0 +1,30 @@
+// is(T : Interface)：编译期接口实现检查
+interface Shape {
+    int Area()
+}
+
+class Circle implement Shape {
+    public int R
+    constructor(int r) {
+        this.R = r
+    }
+    public int Area() {
+        return this.R * this.R
+    }
+}
+
+class Box {
+    public int W
+    constructor(int w) {
+        this.W = w
+    }
+}
+
+int main() {
+    static assert is(Circle : Shape)
+    static assert is(Box : Shape) == false
+    bool b1 = is(Circle : Shape)
+    bool b2 = is(Box : Shape)
+    println("b1={b1} b2={b2}")
+    return 0
+}

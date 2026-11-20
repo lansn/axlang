@@ -1,0 +1,6 @@
+// EXPECT: E6016
+// static assert 条件为 false 时编译失败
+int main() {
+    static assert 1 + 1 == 3
+    return 0
+}

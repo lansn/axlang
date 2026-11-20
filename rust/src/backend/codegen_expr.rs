@@ -5,6 +5,7 @@
 
 use crate::frontend::ast::{self, Expr, Pat, SPart, Stmt};
 use crate::backend::{cstr, san, tag_of, AX_FAIL, AX_OK};
+use crate::sema::ConstVal;
 use crate::types::*;
 
 use super::codegen_fn::{BinInfo, FnGen};
@@ -315,6 +316,23 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                     .unwrap_or(0);
                 self.cg.fn_name_idx(fid)
             }
+            Expr::IsType { .. } => {
+                // `is` 是编译期求值，结果已存为 const_value；直接输出布尔字面量
+                if let Some(slot) = self.cg.s.slot(&e.id) {
+                    if let Some(cv) = slot.const_value.clone() {
+                        match cv {
+                            ConstVal::Bool(b) => {
+                                if b { "true".to_string() } else { "false".to_string() }
+                            }
+                            _ => "false".to_string(),
+                        }
+                    } else {
+                        "false".to_string()
+                    }
+                } else {
+                    "false".to_string()
+                }
+            }
         }
     }
 
@@ -326,7 +344,19 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
         let res = self.res_of(e.id);
         match res {
             Some(crate::sema::Res::Local(_)) => {
-                let (base, _v) = self.var_c(e);
+                let (base, v) = self.var_c(e);
+                // ref 参数：C 层是指针，读取值时需解引用。加括号避免 * 与 . / [ 等后缀运算符优先级冲突：
+                // (*p_xs).len 正确，*p_xs.len 会被解析为 *(p_xs.len)。
+                // 若 base 已带 .v（可空拆箱），需只对基名解引用：(*p_s).v 而非 (*p_s.v)。
+                if let Some(vi) = &v {
+                    let b = vi.borrow();
+                    if b.is_param && b.borrow.is_some() {
+                        if let Some(base_name) = base.strip_suffix(".v") {
+                            return format!("(*{}).v", base_name);
+                        }
+                        return format!("(*{})", base);
+                    }
+                }
                 return base;
             }
             Some(crate::sema::Res::Const(c)) => {
@@ -1195,6 +1225,30 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             for (i, arg) in args.iter().enumerate() {
                 let v = match params.get(i) {
                     Some(p) => {
+                        // ref 形参：实参需传地址。
+                        //   - 局部变量：取 &var
+                        //   - 本身是 ref 形参：直接传指针（var_c 取 base，不走 path() 的 *ptr）
+                        //   - 字面量/复杂表达式：先落临时变量，再取其地址
+                        if p.2.is_some() {
+                            if let Expr::Path { .. } = &arg.k.expr.k {
+                                if let Some(crate::sema::Res::Local(vi)) = self.res_of(arg.k.expr.id) {
+                                    let b = vi.borrow();
+                                    let (base, _) = self.var_c(&arg.k.expr);
+                                    if b.is_param && b.borrow.is_some() {
+                                        out.push(base);
+                                        continue;
+                                    } else if !b.is_param {
+                                        out.push(format!("&{}", base));
+                                        continue;
+                                    }
+                                }
+                            }
+                            // 非左值实参：创建临时变量，传其地址
+                            let val = self.gen(&arg.k.expr, Some(&p.1), false, false);
+                            let temp = self.declare(&p.1, &val);
+                            out.push(format!("&{}", temp));
+                            continue;
+                        }
                         let mut val =
                             self.gen(&arg.k.expr, Some(&p.1), false, false);
                         if is_extern && matches!(&*p.1, TyS::Str) {
@@ -1208,6 +1262,10 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 out.push(v);
             }
             let mut call = format!("{}({})", nm, out.join(", "));
+            if f.is_ref_return {
+                // ref 返回值：解引用指针返回（*{...}）
+                call = format!("*({})", call);
+            }
             if is_extern && ret_is_str {
                 // const char* -> ax_str
                 call = format!("ax_str_from_cstr({})", call);

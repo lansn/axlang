@@ -1,0 +1,11 @@
+// ref 返回值：按引用返回，调用方读取被引用变量的值
+ref int get_ref(ref int x) {
+    return x
+}
+
+int main() {
+    int a = 42
+    int r = get_ref(a)
+    println("r={r}")     // 期望 42
+    return 0
+}

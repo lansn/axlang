@@ -56,6 +56,7 @@ pub fn kind_name(e: &ast::Expr) -> &'static str {
         ast::Expr::If(_) => "IfExpr",
         ast::Expr::Match(_) => "MatchExpr",
         ast::Expr::AnonFunc { .. } => "AnonFunc",
+        ast::Expr::IsType { .. } => "IsType",
     }
 }
 

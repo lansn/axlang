@@ -1,0 +1,9 @@
+// is(T == Type)：编译期类型相等比较
+int main() {
+    static assert is(int == int)
+    static assert is(int == string) == false
+    bool b1 = is(int == int)
+    bool b2 = is(string == int)
+    println("b1={b1} b2={b2}")
+    return 0
+}

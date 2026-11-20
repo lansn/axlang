@@ -1,0 +1,6 @@
+// EXPECT: E6016
+// is(int == string) 为 false，static assert 失败
+int main() {
+    static assert is(int == string)
+    return 0
+}

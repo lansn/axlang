@@ -279,6 +279,9 @@ impl<'a> Parser<'a> {
                 body: Block { tok, stmts: stmts.into_iter().map(Box::new).collect() },
                 attrs: Vec::new(),
                 implicit: true,
+                is_pure: false,
+                is_nothrow: false,
+                is_ref_return: false,
             });
             items.push(f);
         }
@@ -330,6 +333,8 @@ impl<'a> Parser<'a> {
         let mut vis: Option<String> = None;
         let mut is_abstract = false;
         let mut is_final = false;
+        let mut is_pure = false;
+        let mut is_nothrow = false;
         if self.at("abstract") {
             self.advance();
             is_abstract = true;
@@ -337,6 +342,14 @@ impl<'a> Parser<'a> {
         if self.at("final") {
             self.advance();
             is_final = true;
+        }
+        if self.at("pure") {
+            self.advance();
+            is_pure = true;
+        }
+        if self.at("nothrow") {
+            self.advance();
+            is_nothrow = true;
         }
         if self.at("public") {
             self.advance();
@@ -388,7 +401,7 @@ impl<'a> Parser<'a> {
             return Ok(vec![]);
         }
         // 函数
-        match self.parse_func(attrs, vis) {
+        match self.parse_func(attrs, vis, is_pure, is_nothrow) {
             Ok(it) => Ok(vec![it]),
             Err(e) => {
                 if self.at("if") || self.at("for") || self.at("while") || self.at("return") {
@@ -404,7 +417,7 @@ impl<'a> Parser<'a> {
     /// 与 `int f(...)`、`map<string, int> m = {}` 区分开——先跳类型前缀，再看后面是什么。
     fn top_is_stmt(&self) -> bool {
         const KW: &[&str] = &[
-            "if", "for", "while", "unsafe", "match", "return", "break", "continue", "defer", "throw", "try", "var",
+            "if", "for", "while", "unsafe", "match", "return", "break", "continue", "defer", "throw", "try", "var", "static",
         ];
         if KW.iter().any(|k| self.at(k)) {
             return true;
@@ -450,7 +463,11 @@ impl<'a> Parser<'a> {
         true
     }
 
-    fn parse_func(&mut self, attrs: Vec<Attr>, vis: Option<String>) -> PResult<N<Item>> {
+    fn parse_func(&mut self, attrs: Vec<Attr>, vis: Option<String>, is_pure: bool, is_nothrow: bool) -> PResult<N<Item>> {
+        let is_ref_return = self.at("ref");
+        if is_ref_return {
+            self.advance();
+        }
         let ret = self.parse_type()?;
         let name = self.expect_ident("函数名")?;
         let generics = self.parse_generics()?;
@@ -468,6 +485,9 @@ impl<'a> Parser<'a> {
                 params,
                 body,
                 attrs,
+                is_pure,
+                is_nothrow,
+                is_ref_return,
             },
         ))
     }
@@ -604,7 +624,20 @@ impl<'a> Parser<'a> {
         let mut prev_borrow: Option<String> = None;
         while !self.at(")") {
             self.nl();
-            let (borrow, ty, name): (Option<String>, TPtr, Tok) = if self.at("&") {
+            let (borrow, ty, name): (Option<String>, TPtr, Tok) = if self.at("ref") {
+                // ref 参数：按引用传递，避免拷贝
+                self.advance();
+                let b = if self.at("const") {
+                    self.advance();
+                    Some("const".to_string())
+                } else {
+                    Some("mut".to_string())
+                };
+                self.nl();
+                let t = self.parse_type()?;
+                let n = self.expect_ident("参数名")?;
+                (b, t, n)
+            } else if self.at("&") {
                 // 旧写法：带 borrow 修饰符 & 或 &const
                 self.advance();
                 let b = if self.at("const") {
@@ -1084,6 +1117,9 @@ impl<'a> Parser<'a> {
                     params,
                     body: Block { tok: name.clone(), stmts: Vec::new() },
                     attrs: Vec::new(),
+                    is_pure: false,
+                    is_nothrow: false,
+                    is_ref_return: false,
                 },
             ));
             self.nl();
@@ -1366,6 +1402,25 @@ impl<'a> Parser<'a> {
         }
         if k == "const" {
             return Ok(Some(self.parse_const_stmt()?));
+        }
+        if k == "static" {
+            self.advance();
+            self.nl();
+            if self.at("assert") {
+                self.advance();
+                self.nl();
+                let cond = self.parse_expr()?;
+                let msg = if self.accept(",").is_some() {
+                    self.nl();
+                    Some(self.parse_expr()?)
+                } else {
+                    None
+                };
+                return Ok(Some(self.nn(t, Stmt::StaticAssert { cond, msg })));
+            } else {
+                let tk = self.tok(0).clone();
+                return self.fail("E2001", &tk, "G-1", "期望 `assert` 紧跟在 `static` 之后", &[]).map(Some);
+            }
         }        // 标签：IDENT ':' for
         if k == "IDENT" && self.tok(1).is(":") && self.tok(2).is("for") {
             let label = self.advance().text().to_string();
@@ -2180,6 +2235,9 @@ impl<'a> Parser<'a> {
             self.advance();
             return self.ne(t, Expr::Parent);
         }
+        if k == "is" {
+            return self.parse_is_expr(t);
+        }
         if k == "IDENT" {
             self.advance();
             let segs = vec![t.text().to_string()];
@@ -2199,6 +2257,71 @@ impl<'a> Parser<'a> {
             return self.ne(t, Expr::Path { segs, args: Vec::new() });
         }
         self.fail("E2001", &t, "G-1", "非法的表达式起点 `{0}`", &[&display_tok(&t)])
+    }
+
+    fn parse_is_expr(&mut self, t: Tok) -> PResult<EPtr> {
+        self.advance(); // consume `is`, current is now `(`
+        self.expect("(", None)?; // consume `(`
+        self.nl();
+        // 检查 typeof(Expr) == Type 形式：typeof 关键字在左侧
+        if self.at("IDENT") && self.tok(0).text() == "typeof" {
+            self.advance();
+            self.nl();
+            self.expect("(", None)?;
+            self.nl();
+            let expr = self.parse_expr()?;
+            self.nl();
+            self.expect(")", None)?;
+            self.nl();
+            self.expect("==", None)?;
+            self.nl();
+            let right_ty = self.parse_type()?;
+            self.nl();
+            self.expect(")", None)?;
+            return self.ne(t, Expr::IsType {
+                kind: "typeof_eq".to_string(),
+                ty: None,
+                target: Some(right_ty),
+                expr: Some(expr),
+                interface: None,
+            });
+        }
+        let left_ty = self.parse_type()?;
+        self.nl();
+        if self.at("==") {
+            self.advance();
+            self.nl();
+            let right_ty = self.parse_type()?;
+            self.nl();
+            self.expect(")", None)?;
+            return self.ne(t, Expr::IsType {
+                kind: "eq".to_string(),
+                ty: Some(left_ty),
+                target: Some(right_ty),
+                expr: None,
+                interface: None,
+            });
+        }
+        if self.at(":") {
+            self.advance();
+            self.nl();
+            let mut path = vec![self.expect_ident("接口名")?.text().to_string()];
+            while self.at(".") && self.tok(1).is("IDENT") {
+                self.advance();
+                path.push(self.advance().text().to_string());
+            }
+            self.nl();
+            self.expect(")", None)?;
+            return self.ne(t, Expr::IsType {
+                kind: "impl".to_string(),
+                ty: Some(left_ty),
+                target: None,
+                expr: None,
+                interface: Some(path),
+            });
+        }
+        let tk = self.tok(0).clone();
+        return self.fail("E2001", &tk, "G-1", "期望 `==` 或 `:` 或 `typeof(` 在 `is(` 之后", &[]);
     }
 
     fn build_str(&mut self, t: Tok) -> PResult<EPtr> {

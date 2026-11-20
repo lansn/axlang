@@ -1637,6 +1637,77 @@ int n = o;              /* ax_unbox_int(o, file, line, col) */
 - 模块级 `const`：能编译期求值的直接内联；不能的（`S-2` 不允许，所以不会发生）。字符串常量用 `static const` 数组 + 只读 `ax_str`。
 - **没有可变全局变量**，因此生成的 C 里不允许出现非 `const` 的全局对象（除 vtable/itab 这类只读表）。
 
+### 13.10 `ref` 参数与返回值的 C 生成（B-17）
+
+**`ref` 参数**（按引用传递，文稿 §5.2）：
+
+| axlang | C 层表示 | 说明 |
+|---|---|---|
+| `ref T x` | `T* x` | 指针参数，可读可写 |
+| `ref const T x` | `const T* x` | 指针参数，只读 |
+| `ref string? x` | `const axopt_opt_string* x` | 可空引用，内层 `.v` 拆箱 |
+
+生成规则：
+
+1. **函数签名**：`decl()` / `signature()` 中，`borrow` 为 `Some(...)` 的参数生成 `类型*`（`const` 修饰符随 borrow 值而定）；非 ref 参数保持原样。
+2. **读取 ref 参数值**：`path()` 生成 `(*base_name)`，加括号避免 `*` 与 `.` / `[` 等后缀运算符优先级冲突。若变量名已带 `.v` 后缀（可空拆箱后），只对基名解引用：`(*base_name).v` 而非 `(*base_name.v)`。
+3. **写入 ref 参数**：`assign()` 中，`*name = rhs`（带 `.v` 时为 `(*base_name).v = rhs`）。
+4. **调用时传地址**：
+   - 局部变量实参：`&var`
+   - 已是 ref 参数的实参：直接传指针（`var_c` 取 base，不走 `path()` 的 `*ptr`）
+   - 字面量/复杂表达式实参：先落临时变量 `T tmp = expr;`，再传 `&tmp`
+
+**`ref` 返回值**（按引用返回，文稿 §5.3）：
+
+| axlang | C 层表示 | 说明 |
+|---|---|---|
+| `ref T` 返回 | `T*` 返回类型 | `ct()` 结果后追加 `*` |
+| 函数体 `return x` | `return &x;` | 返回变量地址，不是值 |
+| 调用方 `r = f(a)` | `r = *(f(a))` | 自动解引用 |
+| try 块内 `return x` | 先保存指针到临时变量 | `T* tN = &x; ...; return tN;` |
+
+生成规则：
+
+1. **函数声明/定义**：`is_ref_return` 为 true 时，返回类型在 `ct()` 结果后加 `*`（`decl()` 和 `signature()` 同步）。
+2. **函数体内 return**：`return x` 生成 `return &x;`；若在 try 块内，先算出值落临时变量、取地址保存，再按内→外补跑 finally，最后 `return tmp;`。
+3. **调用方**：`call()` 对 `is_ref_return` 的函数调用，生成 `*(call)` 解引用，调用方无需关心是 ref 返回。
+4. **左值要求**：ref 返回值只能绑定到左值变量，编译期由 sema 检查（codegen 不做额外处理）。
+
+### 13.11 `pure` / `nothrow` 函数的 C 生成（B-18）
+
+`pure` / `nothrow` 是 D 语言风格的**编译期契约，零运行期开销**（文稿 §5.4）：
+
+| 特性 | 语义检查（sema） | C 代码生成（codegen） |
+|---|---|---|
+| `pure` | 纯函数内不能调用非纯函数 → `E6015` | **无任何特殊标记或代码**，与普通函数完全相同 |
+| `nothrow` | nothrow 函数内不能 `throw` → `E6014` | **无任何特殊标记或代码**，与普通函数完全相同 |
+
+C 层不生成 `__attribute__((pure))`、`__attribute__((nothrow))` 等编译器扩展，严格遵守 C11 一致性（§13.0）。两者仅影响 sema 层的调用合法性检查，不影响生成的 C 代码形态。
+
+### 13.12 `static assert` 的 C 生成（B-19）
+
+`static assert` 是**编译期断言**（文稿 §6.1.1）：
+
+| 阶段 | 行为 |
+|---|---|
+| 语法 | `static assert 条件` 或 `static assert 条件, "消息"` |
+| 语义 | 条件必须是编译期常量表达式，求值为 false → `E6016` 停止编译 |
+| 代码生成 | `codegen_fn.rs` `stmt()` 中 `Stmt::StaticAssert { .. } => {}`，**不生成任何 C 代码** |
+
+`static assert` 仅在编译期生效，产物中不留任何痕迹。消息字符串仅用于诊断输出，不进入生成的 C 文件。
+
+### 13.13 `is T` 类型特征的 C 生成（B-20）
+
+`is T` 是 D 语言风格的**编译期类型特征判断**（文稿 §12）：
+
+| 阶段 | 行为 |
+|---|---|
+| 语法 | `is(T)`、`is(T == U)`、`is(T : Interface)` 等形式 |
+| 语义 | 编译期求值，结果存为 `ConstVal::Bool` 到节点 slot |
+| 代码生成 | `codegen_expr.rs` `_gen()` 中 `Expr::IsType { .. }` 分支，直接从 `slot.const_value` 读取布尔值，输出 `true` / `false` 字面量 |
+
+`is` 表达式**不产生任何运行时代码**，完全在编译期求值。若节点无 const_value（应不发生，sema 已保证），兜底输出 `false`。
+
 ---
 
 ## 14. 运行时库 `axrt`（C11）

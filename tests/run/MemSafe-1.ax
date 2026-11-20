@@ -38,7 +38,7 @@ int main() {
     int n1 = get_len(&x)
     println("n1={n1}")     // 期望 0
 
-    string y = "axlang"
+    string? y = "axlang"
     int n2 = get_len(&y)
     println("n2={n2}")     // 期望 6
 

@@ -235,6 +235,7 @@ impl<'a> Sema<'a> {
             Expr::SafeCall { .. } => self.check_safe_call(e, expected),
             Expr::Index { .. } => self.check_index(e, expected),
             Expr::New { .. } => self.check_new(e, expected),
+            Expr::IsType { .. } => self.check_is_type(e),
             Expr::If(n) => {
                 self.check_if(e.id, &e.tok, n, expected);
                 return self.ty_of(e.id).unwrap_or_else(t_void);
@@ -282,6 +283,9 @@ impl<'a> Sema<'a> {
                     is_static: false,
                     is_abstract: false,
                     is_override: false,
+                    is_pure: false,
+                    is_nothrow: false,
+                    is_ref_return: false,
                     implicit: false,
                 gdepth: 0,
                 mangle: None,
@@ -1347,6 +1351,53 @@ impl<'a> Sema<'a> {
         t_string()
     }
 
+    /// `is(T == Type)` / `is(T : Interface)` / `is(typeof(Expr) == Type)`：编译期类型查询，
+    /// 返回 bool 常量，零运行期代价。
+    fn check_is_type(&mut self, e: &ast::EPtr) -> Ty {
+        let (kind, ty_node, target_node, expr_node, iface_path) = match &e.k {
+            Expr::IsType { kind, ty, target, expr, interface } => {
+                (kind.clone(), ty.clone(), target.clone(), expr.clone(), interface.clone())
+            }
+            _ => return t_bool(),
+        };
+
+        let result = match kind.as_str() {
+            "eq" => {
+                let lt = self.resolve_type(ty_node.as_ref().unwrap());
+                let rt = self.resolve_type(target_node.as_ref().unwrap());
+                ConstVal::Bool(lt == rt)
+            }
+            "impl" => {
+                let lt = self.resolve_type(ty_node.as_ref().unwrap());
+                let iface_name = iface_path.as_ref().unwrap().join(".");
+                // 查找 interface 定义，检查 lt 是否实现了该 interface
+                let mut found = false;
+                if let Some(d) = self.lookup_type_name(&iface_name, &e.tok) {
+                    let td = &self.typedefs[d as usize];
+                    if td.kind == "interface" {
+                        // 检查 lt 是否是 class/struct 且其 impls 包含该 interface
+                        let type_name = self.ts(&lt);
+                        if let Some(td_id) = self.lookup_type_name(&type_name, &e.tok) {
+                            let src_td = &self.typedefs[td_id as usize];
+                            found = src_td.impls.contains(&d);
+                        }
+                    }
+                }
+                ConstVal::Bool(found)
+            }
+            "typeof_eq" => {
+                let et = self.check_expr(expr_node.as_ref().unwrap(), None);
+                let rt = self.resolve_type(target_node.as_ref().unwrap());
+                ConstVal::Bool(et == rt)
+            }
+            _ => ConstVal::Bool(false),
+        };
+
+        self.sl(e.id).ty = Some(t_bool());
+        self.sl(e.id).const_value = Some(result);
+        t_bool()
+    }
+
     /// `print` / `println`（文稿 11.2）：签名是 `void print(string)`，但允许
     /// 「可直接插值的单个值」直接传——语义等价于 `print("{x}")`，只是省掉花括号。
     /// 仍然只有一种格式化能力（插值），占位符与多实参依旧不支持。
@@ -1469,10 +1520,17 @@ impl<'a> Sema<'a> {
         args: &[ast::N<ast::Arg>],
         callee_targs: &[ast::TPtr],
     ) -> Ty {
-        let (fname, generics) = {
+        let (fname, generics, is_pure, _is_nothrow) = {
             let fi = &self.funcs[f];
-            (fi.name.clone(), fi.generics.clone())
+            (fi.name.clone(), fi.generics.clone(), fi.is_pure, fi.is_nothrow)
         };
+        // pure 函数内不能调用非纯函数
+        if let Some(cur_f) = self.current_func {
+            if self.funcs[cur_f].is_pure && !is_pure {
+                let cur_name = self.funcs[cur_f].name.clone();
+                self.err("E6015", &e.tok, "文稿 10.1", "`pure` 函数 `{0}` 不能调用非纯函数 `{1}`", &[&cur_name, &fname]);
+            }
+        }
         let mut generic_args: Vec<Ty> = Vec::new();
         // 推断失败（E4037）时不做实例化——object 兜底实参不该生成实例
         let mut infer_failed = false;
@@ -1591,6 +1649,9 @@ impl<'a> Sema<'a> {
                         is_static: fi.is_static,
                         is_override: fi.is_override,
                         is_abstract: fi.is_abstract,
+                        is_pure: fi.is_pure,
+                        is_nothrow: fi.is_nothrow,
+                        is_ref_return: fi.is_ref_return,
                         body: fi.body,
                         implicit: false,
                         gdepth: depth,
@@ -1959,9 +2020,22 @@ impl<'a> Sema<'a> {
         // 方法 / ctor：签名替换，体共享 AST，入队按实例重查
         let mut methods = tmpl.methods.clone();
         for (mn, fid) in tmpl.methods.iter() {
-            let (fname, ftok, fmod, fparams, fret, fvis, fstatic, foverride, fbody) = {
+            let (fname, ftok, fmod, fparams, fret, fvis, fstatic, foverride, fbody, fpure, fnothrow, frefret) = {
                 let fi = &self.funcs[*fid];
-                (fi.name.clone(), fi.tok.clone(), fi.module.clone(), fi.params.clone(), fi.ret.clone(), fi.vis.clone(), fi.is_static, fi.is_override, fi.body)
+                (
+                    fi.name.clone(),
+                    fi.tok.clone(),
+                    fi.module.clone(),
+                    fi.params.clone(),
+                    fi.ret.clone(),
+                    fi.vis.clone(),
+                    fi.is_static,
+                    fi.is_override,
+                    fi.body,
+                    fi.is_pure,
+                    fi.is_nothrow,
+                    fi.is_ref_return,
+                )
             };
             let mut params = fparams;
             for p in params.iter_mut() {
@@ -1983,6 +2057,9 @@ impl<'a> Sema<'a> {
                 is_static: fstatic,
                 is_override: foverride,
                 is_abstract: false,
+                is_pure: fpure,
+                is_nothrow: fnothrow,
+                is_ref_return: frefret,
                 body: fbody,
                 implicit: false,
                 gdepth: depth,
@@ -2000,9 +2077,22 @@ impl<'a> Sema<'a> {
         }
         let mut ctors = HashMap::new();
         for (cname, &cf) in &tmpl.ctors {
-            let (fname, ftok, fmod, fparams, fret, fvis, fstatic, foverride, fbody) = {
+            let (fname, ftok, fmod, fparams, fret, fvis, fstatic, foverride, fbody, fpure, fnothrow, frefret) = {
                 let fi = &self.funcs[cf];
-                (fi.name.clone(), fi.tok.clone(), fi.module.clone(), fi.params.clone(), fi.ret.clone(), fi.vis.clone(), fi.is_static, fi.is_override, fi.body)
+                (
+                    fi.name.clone(),
+                    fi.tok.clone(),
+                    fi.module.clone(),
+                    fi.params.clone(),
+                    fi.ret.clone(),
+                    fi.vis.clone(),
+                    fi.is_static,
+                    fi.is_override,
+                    fi.body,
+                    fi.is_pure,
+                    fi.is_nothrow,
+                    fi.is_ref_return,
+                )
             };
             let mut params = fparams;
             for p in params.iter_mut() {
@@ -2022,6 +2112,9 @@ impl<'a> Sema<'a> {
                 is_static: fstatic,
                 is_override: foverride,
                 is_abstract: false,
+                is_pure: fpure,
+                is_nothrow: fnothrow,
+                is_ref_return: frefret,
                 body: fbody,
                 implicit: false,
                 gdepth: depth,
