@@ -571,7 +571,7 @@ pub struct Sema<'a> {
     /// 当前模块生效的具名导入限制
     active_view_names: HashMap<String, Option<Vec<String>>>,
     /// decl_order 平行的所属模块（None = 入口文件）
-    decl_mod: Vec<Option<String>>,
+    pub(crate) decl_mod: Vec<Option<String>>,
     /// typedefs 平行的所属模块
     typedef_mod: Vec<Option<String>>,
     next_node_id: u32,

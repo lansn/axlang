@@ -2,9 +2,9 @@ import shop.inventory
 import shop.stock
 
 int main() {
-    println("VALUE = {shop.inventory.VALUE}")
-    println("greet = {shop.stock.greet()}")
-    println("helper = {shop.stock.helper_double(21)}")
-    println("double = {shop.inventory.double_stock(7)}")
+    println("VALUE = {inventory.VALUE}")
+    println("greet = {stock.greet()}")
+    println("helper = {stock.helper_double(21)}")
+    println("double = {inventory.double_stock(7)}")
     return 0
 }

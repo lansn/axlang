@@ -907,12 +907,30 @@ impl<'s, 'a> CodeGen<'s, 'a> {
 
     // ------------------------------------------------------------ 常量
 
+    /// 只生成入口文件自己定义的常量的 C 静态定义。导入模块的常量在各自的 C
+    /// 文件中已有定义，且常量引用在 codegen 中已内联为字面量（const_c），
+    //  不会引用 k_* 变量，因此若为导入常量也生成定义会触发 -Wunused-const-variable。
     pub fn gen_consts(&mut self) -> Vec<String> {
         let mut out = Vec::new();
         let s = self.s;
+        // 收集入口文件（decl_mod 为 None）自己定义的常量名
+        let local_const_names: std::collections::HashSet<&String> = s
+            .decl_order
+            .iter()
+            .zip(s.decl_mod.iter())
+            .filter(|(_, modc)| modc.is_none())
+            .filter_map(|(item, _)| match &item.k {
+                ast::Item::ConstDecl { name, .. } => Some(name),
+                _ => None,
+            })
+            .collect();
         let mut names: Vec<&String> = s.consts.keys().collect();
         names.sort();
         for n in names {
+            // 只生成入口文件自己定义的常量，跳过导入模块的常量
+            if !local_const_names.contains(n) {
+                continue;
+            }
             let c = s.consts[n].clone();
             let value = c.value.borrow().clone();
             let ty = c.ty.borrow().clone();
@@ -925,8 +943,6 @@ impl<'s, 'a> CodeGen<'s, 'a> {
             if matches!(&*ty, TyS::Decimal) {
                 continue;
             }
-            // __attribute__((unused))：只被编译期常量折叠用到的 const，
-            // 在生成代码里可能一次都没出现，避免 -Werror 报 unused-const-variable
             out.push(format!(
                 "static const {} {} = {};",
                 self.ct(&ty),

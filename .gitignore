@@ -22,6 +22,8 @@ Thumbs.db
 # Executables
 # 注意：`/dist/` 是刻意跟踪的——`dist/axc.exe` 是分发用的编译器本体，
 # 与源码版本号同步更新，不进忽略清单。
+# 编译过程中在 rust/ 根目录产出的 axc.exe 不应入库
+/rust/main.exe
 # *.swf
 # *.air
 # *.ipa
