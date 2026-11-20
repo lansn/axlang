@@ -492,8 +492,10 @@ impl<'a> Sema<'a> {
         }
         if let TyS::ModuleT(m) = &*rt {
             // 用户模块函数调用 / 类型构造（文稿 9.2）：`mod.f(...)`、`mod.Ctor(...)`
-            if let Some((canon, exact)) = self.view_canon_of(m) {
-                if canon != "*builtin*" && exact {
+            // 前缀匹配也可（如仅 import shop.inventory/shop.stock，写 shop.f() 时
+            // view_canon_of 返回前缀匹配，exact 为 false，同样应走 user_mod_call）。
+            if let Some((canon, _)) = self.view_canon_of(m) {
+                if canon != "*builtin*" {
                     return self.user_mod_call(e, args, m, &canon);
                 }
             }

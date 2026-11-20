@@ -937,24 +937,54 @@ impl<'a> Sema<'a> {
 
     /// 模块视图解析：精确匹配优先，其次点号路径前缀（`import net.http` 时
     /// `net` 也是合法的中间视图）。返回 (canon, 是否精确匹配)。
+    /// 前缀匹配时，所有以 `m.` 开头的视图键必须指向同一 canon，否则返回 None（歧义）。
     pub(crate) fn view_canon_of(&self, m: &str) -> Option<(String, bool)> {
         if let Some(c) = self.active_views.get(m) {
             return Some((c.clone(), true));
         }
         let dot = format!("{}.", m);
-        if self.active_views.keys().any(|v| v.starts_with(&dot)) {
-            return Some(("__prefix__".to_string(), false));
+        let mut found_canon: Option<String> = None;
+        for v in self.active_views.keys() {
+            if v.starts_with(&dot) {
+                let c = self.active_views.get(v).unwrap();
+                match &found_canon {
+                    None => found_canon = Some(c.clone()),
+                    Some(existing) if existing == c => {} // 同一 canon，无歧义
+                    Some(_) => return None,              // 不同 canon，有歧义
+                }
+            }
+        }
+        if let Some(c) = found_canon {
+            return Some((c, false));
         }
         None
     }
 
     /// 解析表达式路径前缀指向的导入模块：返回 (匹配段数, 规范前缀)。
     /// 视图名取 alias 或完整导入路径，最长匹配优先（`import a.b` → `a.b.foo`）。
+    /// 前缀匹配：`import a.b` / `import a.c` 后，若 `a.b` 和 `a.c` 同属 canon `a`，
+    /// 则 `a.foo` 能解析到 canon `a`（同包多文件互见场景）。
     fn view_of(&self, segs: &[String]) -> Option<(usize, String)> {
         for k in (1..=segs.len()).rev() {
             let v = segs[..k].join(".");
+            // 1) 精确匹配
             if let Some(c) = self.active_views.get(&v) {
                 return Some((k, c.clone()));
+            }
+            // 2) 前缀匹配：查找以 v + "." 开头的键，所有匹配键必须指向同一 canon
+            let prefix = format!("{}.", v);
+            let mut found_canon: Option<String> = None;
+            for (view, canon) in &self.active_views {
+                if view.starts_with(&prefix) {
+                    match &found_canon {
+                        None => found_canon = Some(canon.clone()),
+                        Some(c) if c == canon => {} // 同一 canon，无歧义
+                        Some(_) => return None,     // 不同 canon，有歧义，放弃
+                    }
+                }
+            }
+            if let Some(c) = found_canon {
+                return Some((k, c));
             }
         }
         None

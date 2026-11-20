@@ -1,6 +1,7 @@
 package main;
 
-import shop
+import shop.inventory
+import shop.stock
 
 int main() {
     println("VALUE = {shop.VALUE}")
