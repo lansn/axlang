@@ -1,0 +1,7 @@
+package shop;
+
+public const int VALUE = 42
+
+public int double_stock(int x) {
+    return double_value(x);
+}

@@ -1,10 +1,11 @@
 package main;
 
-import model
+import shop
 
 int main() {
-    println("VALUE = {model.VALUE}")
-    println("greet = {model.greet()}")
-    println("helper = {model.helper_double(21)}")
+    println("VALUE = {shop.VALUE}")
+    println("greet = {shop.greet()}")
+    println("helper = {shop.helper_double(21)}")
+    println("double = {shop.double_stock(7)}")
     return 0
 }
