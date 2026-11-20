@@ -1,0 +1,11 @@
+top=300
+mid=200
+deep=100
+g1=from layer1
+g2=from layer2
+g3=from layer3
+c1=76
+c2=75
+c3=70
+chain1=from layer2 -> layer1
+chain2=from layer3 -> layer2

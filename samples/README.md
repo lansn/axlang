@@ -29,6 +29,7 @@ dist\axc.exe check samples\01_hello.ax
 | `11_try_catch.ax` | 就地捕获错误 | `try` / `catch` 按 error 变体过滤 / `finally` 必执行 / catch 内改写再抛 / 只写 finally 也不吞错误 |
 | `demo/OrderDemo/` | 多模块工程 | 4 个模块 + 入口：`catalog.product`、`catalog.inventory`、`checkout.bill`（具名导入）、`checkout.wholesale`（跨模块继承）；`import` 之后裸类名直接 `new Product(...)` |
 | `demo/Package/` | 多文件模块（文件即是模块） | `main.ax` 显式 `import shop.inventory` / `import shop.stock`；`shop/inventory.ax` 与 `shop/stock.ax` 各自为独立模块，通过 `shop.inventory.VALUE` / `shop.stock.greet()` 等多段路径访问跨模块 `public` 符号 |
+| `demo/MultiLayer/` | 至少 3 层文件夹的跨层多模块引用 | `layer1`→`layer1.layer2`→`layer1.layer2.layer3` 三层嵌套；常量/函数/链式调用跨层访问，验证多层文件夹多模块引用不出现引用地狱 |
 
 ## demo：多模块 + 类的引入与调用
 
