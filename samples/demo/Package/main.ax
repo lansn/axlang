@@ -1,0 +1,11 @@
+package shop.order;
+
+import model
+
+int main() {
+    println("VALUE = {VALUE}")
+    println("greet = {greet()}")
+    println("helper = {helper_double(21)}")
+    println("secret = {SECRET}")
+    return 0
+}

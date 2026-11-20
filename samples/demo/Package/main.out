@@ -1,0 +1,4 @@
+VALUE = 42
+greet = hi
+helper = 42
+secret = 99
