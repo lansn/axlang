@@ -1,11 +1,10 @@
-package shop.order;
+package main;
 
 import model
 
 int main() {
-    println("VALUE = {VALUE}")
-    println("greet = {greet()}")
-    println("helper = {helper_double(21)}")
-    println("secret = {SECRET}")
+    println("VALUE = {model.VALUE}")
+    println("greet = {model.greet()}")
+    println("helper = {model.helper_double(21)}")
     return 0
 }

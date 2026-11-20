@@ -1,6 +1,4 @@
-// 模块 shop.order —— model：public 常量与函数，以及同模块可见的私有符号
-
-package shop.order;
+package demo.Package.model;
 
 public const int VALUE = 42
 
@@ -8,14 +6,8 @@ public string greet() {
     return "hi"
 }
 
-// 私有常量：仅本模块可见，但同一 package 内的其他文件（main.ax）也能直接用
-const int SECRET = 99
-
-// 私有函数：仅本模块可见，被同模块的 public 函数调用
-int _double(int x) {
+public int helper_double(int x) {
     return x * 2
 }
 
-public int helper_double(int x) {
-    return _double(x)
-}
+const int SECRET = 99

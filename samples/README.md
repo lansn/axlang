@@ -28,7 +28,7 @@ dist\axc.exe check samples\01_hello.ax
 | `10_goods.ax` | 综合业务 | 文稿 §12 原文：类 + 继承 + 接口 + `db` 查询 + 金额舍入 |
 | `11_try_catch.ax` | 就地捕获错误 | `try` / `catch` 按 error 变体过滤 / `finally` 必执行 / catch 内改写再抛 / 只写 finally 也不吞错误 |
 | `demo/OrderDemo/` | 多模块工程 | 4 个模块 + 入口：`catalog.product`、`catalog.inventory`、`checkout.bill`（具名导入）、`checkout.wholesale`（跨模块继承）；`import` 之后裸类名直接 `new Product(...)` |
-| `demo/Package/` | `package` 声明 + 同模块多文件自动互见 | `main.ax` 与 `model.ax` 同声明 `package shop.order;`，`main.ax` 仅 `import model` 即可直接裸名使用 `VALUE`、`greet()`、`helper_double()`、`SECRET`，无需 `model.` 前缀；模块内私有符号在同一 `package` 内亦可见 |
+| `demo/Package/` | `package` 声明 + 跨模块引用（不同包） | `main.ax` 声明 `package main;`，`model.ax` 声明 `package demo.Package.model;`（按目录+文件结构命名）；`main.ax` 通过 `import model` 引用，用 `model.VALUE` / `model.greet()` / `model.helper_double()` 访问导入模块的 `public` 符号；模块内私有符号 `SECRET` 跨包不可见，主文件中不可引用 |
 
 ## demo：多模块 + 类的引入与调用
 
