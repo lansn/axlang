@@ -184,10 +184,16 @@ impl<'s, 'a> CodeGen<'s, 'a> {
     }
 
     pub fn new(s: &'s Sema<'a>, path: &str) -> Self {
-        let base = std::path::Path::new(path)
-            .file_stem()
-            .map(|x| x.to_string_lossy().to_string())
-            .unwrap_or_else(|| "unit".to_string());
+        // mod_name 优先取 Sema 中记录的入口模块名（有 package 声明时为 package 路径），
+        // 否则回退到文件名 sanitized，保持向后兼容。
+        let base = if !s.mod_name.is_empty() {
+            s.mod_name.clone()
+        } else {
+            std::path::Path::new(path)
+                .file_stem()
+                .map(|x| x.to_string_lossy().to_string())
+                .unwrap_or_else(|| "unit".to_string())
+        };
         CodeGen {
             s,
             path: path.to_string(),
@@ -877,12 +883,29 @@ impl<'s, 'a> CodeGen<'s, 'a> {
                     inst_suffix
                 )
             }
-            None => format!("{}__{}{}", self.mod_name, san(&f.name), inst_suffix),
+            None => {
+                // reg_name 已按 cur_mod_prefix 加了前缀（如 `shop_order__main`）；
+                // 若 f.name 已带 mod_name__ 前缀，后端不再重复加，避免 `shop_order__shop_order__main`。
+                let prefixed = format!("{}__", self.mod_name);
+                let base = if f.name.starts_with(&prefixed) {
+                    san(&f.name)
+                } else {
+                    format!("{}__{}", self.mod_name, san(&f.name))
+                };
+                format!("{}{}", base, inst_suffix)
+            }
         }
     }
 
     pub fn const_name(&self, name: &str) -> String {
-        format!("k_{}__{}", self.mod_name, san(name))
+        // reg_name 已按 cur_mod_prefix 加了前缀；若 name 已带 mod_name__ 前缀，不再重复加。
+        let prefixed = format!("{}__", self.mod_name);
+        let base = if name.starts_with(&prefixed) {
+            san(name)
+        } else {
+            format!("{}__{}", self.mod_name, san(name))
+        };
+        format!("k_{}", base)
     }
 
     pub fn lv(&self, name: &str) -> String {
@@ -1339,8 +1362,17 @@ impl<'s, 'a> CodeGen<'s, 'a> {
     }
 
     pub fn gen_main_wrapper(&mut self) -> String {
-        let main_fid = match self.s.func_by_name.get("main") {
-            Some(&f) => f,
+        // 入口文件若有 `package`，reg_name 会把 main 登记为 `shop_order__main`；
+        // 这里按 `main` 或 `*__main` 查找。
+        let main_fid = match self
+            .s
+            .funcs
+            .iter()
+            .enumerate()
+            .find(|(_, f)| f.name == "main" || f.name.ends_with("__main"))
+            .map(|(i, _)| i)
+        {
+            Some(f) => f,
             None => return String::new(),
         };
         let nm = self.fn_name_idx(main_fid);

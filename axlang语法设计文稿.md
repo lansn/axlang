@@ -339,13 +339,13 @@ if price > 0
   - **其余用户侧命名只推荐**：类型、模块级函数推荐 PascalCase（`Session`、`Config`、`CheckEmail`、`DoubleIt`）；局部变量与参数写 `snake_case` 或 `camelCase` 均可（`user_id` / `userId`）；常量推荐全大写蛇形（`MAX_RETRY`）。这些是**文档推荐与代码评审的依据，编译器不检查、不报错、不警告**。
   - 上面几条里，内建类型名、裸调用函数名、`.` 右侧的成员名是**语法级硬约束**：标准库与内建的拼写就是名字本身——`Len` 不是 `len` 的驼峰版，`len` 就是个不存在的名字（反过来 `s.len()` 也不存在）。分界依据是 2.2 第 3 判据：标准库名字可枚举（几百个），统一成本为零且必须统一，否则用户猜不出拼写；用户代码里"可自由取名"的部分（类型、函数、变量）几十万个、各有所好，编译器无从裁决，强制只会让 C/Python/Rust 程序员集体改肌肉记忆，而收益只是"好看一点"；用户自己写的**成员**不在此列——它不是一个可以随便叫的名字，而是某个语法位置上唯一允许的写法（写成 `read` 就报 `E3043`）。风格上仍推荐：**内建裸函数全小写（`print`）、凡带 `.` 的成员 PascalCase（`io.ReadLine`）、用户类型与函数也 PascalCase（`Session` / `CheckEmail`）**。
   - 单独的 `_` 不是标识符（保留给 `match` 通配模式）；`@` 不属于标识符字符，`@name(...)` 是编译期属性语法，只允许 `@os` / `@arch`（见 9.3）。
-- 保留关键字（全部，共 36 个）：
+- 保留关键字（全部，共 37 个）：
 
 ```
 var         const       class       struct      interface   extend
 implement   override    parent      this        enum        type
 if          else        for         in          match       return
-try         catch       finally     throw       defer       import
+try         catch       finally     throw       defer       import      package
 public      protected   private     static      new         as          break
 continue    constructor true        false       null
 ```
@@ -1510,22 +1510,26 @@ import json as j                    // 重命名，解决名字冲突的官方�
 import net.http.server              // 点号路径 → 目录结构
 ```
 
-**没有 `package` 声明，模块名就是文件名。** 这是与 Go 最根本的一处分歧：
+**`package` 声明（可选）**：模块名可由文件首行的 `package <路径>;` 显式声明；未写 `package` 的文件继续按"文件名去扩展名即模块名"工作，向后兼容。
 
-| | Go | ax |
+| | Go | ax（当前） |
 |---|---|---|
-| 包名从哪来 | 每个文件首行 `package foo` | **不声明**：文件名去扩展名即模块名 |
-| 包的粒度 | **目录**（同目录多文件同属一包，符号自动互见） | **文件**（一个 `.ax` = 一个模块，跨文件必须 `import`） |
+| 包名从哪来 | 每个文件首行 `package foo` | 可选 `package foo;`；缺省时文件名去扩展名即模块名 |
+| 包的粒度 | **目录**（同目录多文件同属一包，符号自动互见） | 同一 `package` 声明的多个 `.ax` 文件属于同一模块，符号自动互见；未声明时每个文件独立 |
 | 跨模块引用 | `import "mod/foo"` → `foo.X` | `import foo` → `foo.X` |
 | 导出控制 | 首字母大小写 | `public`（默认私有，9.1） |
 
 规则：
 
-- **目录只是命名分组，不是"包"**：`net/http.ax` 的模块名是 `net.http`，同目录里的另一个文件 `net/tcp.ax` 是**另一个模块**，两者互相引用要各自 `import`，被引用的符号要 `public`。想"同包内共享私有 helper"在这里做不到——要么把 helper 提到 `public`，要么放进同一个文件。
+- **`package` 声明语法**：文件首行可写 `package <路径>;`（如 `package shop.order;`），声明后的所有顶层声明属于该模块。`package` 必须出现在文件首位，仅可出现一次，之后才能是 `import`、类、函数等声明。
+- **向后兼容**：文件中没有 `package` 声明时，模块名仍按文件名推导（去掉 `.ax`，`/` 换成 `.`），与旧版完全一致，现有代码无需改动。
+- **同模块多文件自动互见**：多个 `.ax` 文件若声明相同的 `package <路径>`，它们属于同一模块，模块内的 `public` 与私有符号彼此可见，无需彼此 `import`。跨模块引用仍需 `import`，且被引用的符号要 `public`。
+- **包名冲突**：两个不同文件若声明相同的 `package <路径>` 但位于不同目录，属于合法的跨文件同模块；若两个文件在**同一目录**且声明不同 `package`，各自独立，互不可见，需 `import`。
+- **循环包依赖**：模块间若形成 `import` 循环，编译报 `E3026`（包循环依赖）。
 - **导入路径按入口文件所在目录解析**，不是按当前文件所在目录。写在任何模块里的 `import` 都站在"工程根"（入口文件所在目录）看，路径一律写成从根出发的完整路径；库代码换目录使用时不必改自身的 `import` 行。
 - **`-I <dir>` 追加搜索根**：入口文件目录优先命中，其后按 `-I` 的给出顺序查找。这是把模块放到工程目录之外的唯一手段（多项目共用同一份库）。
-- **内建模块名是保留的**：`db` `file` `io` `json` `math` `string` `time` 七个名字优先解析为内建模块；同名的用户文件不会被加载，编译报 `E3039` 提示改名。
-- **不提供"目录即模块"**：`import pkg` 只对应 `pkg.ax`，不会去找 `pkg/main.ax`——一个模块只对应一个文件，没有第二种形态。
+- **内建模块名是保留的**：`db` `file` `fmt` `io` `json` `math` `string` `time` 八个名字优先解析为内建模块；同名的用户文件不会被加载，编译报 `E3039` 提示改名。
+- **不提供"目录即模块"**：`import pkg` 只对应 `pkg.ax`，不会去找 `pkg/main.ax`——一个模块只对应一个或多个声明同一 `package` 的文件，没有隐式目录聚合。
 - 不支持 `import io.*` 通配导入（污染命名空间，禁止）。
 - **默认短名**：`import net.http` 之后 `net.http.ping()` 与 `http.ping()` **等价**——一条导入同时绑定全路径与末段，长的路径不用每次抄全。`http.PORT`、`new http.Server(...)`、`http.Server` 作为类型名同样可用。给了 `as` 就只留别名（`import net.http as h` 之后只有 `h.ping()`，`net.http.ping()` 不再可用）——别名是"我要的名字"，不再自动多出一个。两个模块末段撞名（`net.http` 与 `web.http`）时报 `E3040`，用 `as` 区分；末段短名不越过具名导入的白名单。
 - **裸类型名**：`import shop.model` 之后类型直接写 `Product`——`import` 已经把模块的 `public` 类型带进作用域，`new`、类型标注、静态方法、`struct` 位置构造、`enum` 变体（`Status.Ok`）一律用裸名即可，不必每次抄模块路径。`Product` / 末段短名 `model.Product` / 全路径 `shop.model.Product` 三种写法指向同一个类。**两个已导入模块导出同名类型时裸名没有唯一答案**，报 `E3042`（文案里会列出是哪两个模块），此时才需要写全路径，或用 `as` 把其中一个改名。

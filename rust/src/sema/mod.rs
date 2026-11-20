@@ -26,6 +26,7 @@ use crate::diag::Diags;
 use crate::frontend::lexer::Tok;
 use crate::frontend::lexer::TokVal;
 use crate::types::*;
+use crate::backend::san;
 use std::cell::RefCell;
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::rc::Rc;
@@ -575,6 +576,9 @@ pub struct Sema<'a> {
     /// typedefs 平行的所属模块
     typedef_mod: Vec<Option<String>>,
     next_node_id: u32,
+    /// 入口文件生效的模块名：有 `package` 声明时用 package 路径，否则按文件名推导。
+    /// 供 backend 生成 C 符号前缀（`mod_name__...`）使用。
+    pub mod_name: String,
 }
 
 /// 用户模块的导出符号（模块内 `public` 的顶层声明）。
@@ -674,6 +678,7 @@ impl<'a> Sema<'a> {
             typedef_mod: Vec::new(),
             bare_type_ambig: HashSet::new(),
             next_node_id: 1_000_000_000,
+            mod_name: String::new(),
         };
         sema.seed_builtin_ifaces();
         sema
@@ -766,6 +771,16 @@ impl<'a> Sema<'a> {
     }
 
     // ------------------------------------------------------ 用户模块（文稿 9）
+
+    /// 从模块的顶层项中提取 `package <路径>;` 声明的路径片段；未声明则返回 None。
+    fn extract_package_path(m: &ast::Module) -> Option<Vec<String>> {
+        for item in &m.items {
+            if let ast::Item::PackageDecl { path } = &item.k {
+                return Some(path.clone());
+            }
+        }
+        None
+    }
 
     /// 注册名：入口文件符号保持裸名；用户模块符号带 `模块__` 前缀，
     /// 避免跨模块同名冲突（文稿 9.1：文件内符号默认私有，`public` 导出）。
@@ -1205,15 +1220,32 @@ impl<'a> Sema<'a> {
     // ---------------------------------------------------------------- 收集
 
     fn collect(&mut self) {
+        // 入口文件的 package 声明：若有，入口也按同一 package 视为模块，
+        // 其符号与同 package 的导入文件共享 canon__ 前缀，实现同模块自动互见。
+        let entry_pkg = Self::extract_package_path(self.mod_);
+        let entry_prefix: Option<String> = entry_pkg.as_ref().map(|p| san(&p.join(".")));
+
+        // 入口文件的 mod_name：有 package 时用 package 路径，否则回退到文件名 stem。
+        self.mod_name = match &entry_pkg {
+            Some(p) => san(&p.join(".")),
+            None => {
+                let base = std::path::Path::new(&self.path)
+                    .file_stem()
+                    .map(|x| x.to_string_lossy().to_string())
+                    .unwrap_or_else(|| "main".to_string());
+                san(&base)
+            }
+        };
+
         // 模块处理顺序：extras（拓扑序，被导入者在前）→ 入口文件。
         // extras 的顶层符号以 `canon__name` 注册进共享表并记入导出表；
-        // 入口文件符号保持裸名。
+        // 入口文件符号保持裸名（无 package 时），或带 package__ 前缀（有 package 时）。
         let mut order: Vec<(Option<String>, &'a ast::Module, String)> = self
             .extras
             .iter()
             .map(|e| (Some(e.canon.clone()), e.module, e.file_path.clone()))
             .collect();
-        order.push((None, self.mod_, self.path.clone()));
+        order.push((entry_prefix.clone(), self.mod_, self.path.clone()));
 
         for (prefix, m, fpath) in order {
             self.cur_mod_prefix = prefix.clone();
@@ -1249,6 +1281,7 @@ impl<'a> Sema<'a> {
                             self.insert_view(&canon, &short, &target, names.as_ref(), &item.tok, &joined);
                         }
                     }
+                    Item::PackageDecl { .. } => {}
                     Item::FuncDecl { .. } => {
                         self.decl_order.push(item);
                         self.decl_mod.push(prefix.clone());
@@ -1346,7 +1379,9 @@ impl<'a> Sema<'a> {
         };
         // 文稿 9.4：全工程只能有一个 int main——非入口文件声明 main 直接报错。
         // 隐式 main 是"顶层语句"包出来的，被 import 的模块里出现它要说清楚是"不能写语句"。
-        if self.cur_mod_prefix.is_some() && name == "main" {
+        // `main` 只能在入口文件声明。入口文件即使有 `package` 声明，cur_mod_path
+        // 也等于 self.path；被 import 的模块 cur_mod_path 不等于 self.path。
+        if self.cur_mod_prefix.is_some() && name == "main" && self.cur_mod_path != self.path {
             if implicit {
                 self.err(
                     "E3024",
@@ -1842,7 +1877,8 @@ impl<'a> Sema<'a> {
                 }
                 Item::ConstDecl { .. } => self.resolve_const_decl(item),
                 Item::Import { .. } => {}
-                    Item::ExternBlock { funcs } => {
+                Item::PackageDecl { .. } => {}
+                Item::ExternBlock { funcs } => {
                         for fn_item in funcs {
                             if let Item::FuncDecl { name, .. } = &fn_item.k {
                                 let reg = self.reg_name(name);
@@ -2805,7 +2841,9 @@ impl<'a> Sema<'a> {
             .funcs
             .iter()
             .enumerate()
-            .filter(|(_, f)| f.name == "main")
+            // 入口文件若有 `package` 声明，reg_name 会给 main 加前缀（如 `shop__order__main`）；
+            // 同时也匹配无前缀的裸名 `main`（未写 package 时）。
+            .filter(|(_, f)| f.name == "main" || f.name.ends_with("__main"))
             .map(|(i, _)| i)
             .collect();
         if mains.is_empty() {

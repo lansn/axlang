@@ -1048,7 +1048,7 @@ enum ConstVal {
 | `E3023` | `struct` 字段含 class 引用（含容器元素） | `T-29` |
 | `E3024` | 被 `import` 的文件出现顶层语句；或顶层语句带可见性修饰词（`public int x = 0`） | 文稿 9.4 |
 | `E3025` | 无 `main` / 多个 `main` / `main` 签名不符 | 文稿 9.4 |
-| `E3026` | 模块循环导入 | 文稿 9.2 |
+| `E3026` | 模块循环导入 | 文稿 10.2 |
 | `E3027` | 导入的符号不存在或未导出 | 文稿 9.2 |
 | `E3028` | `@os`/`@arch` 同组命中数 ≠ 1 | 文稿 9.3 |
 | `E3029` | 未知属性 / 属性参数非法 | `L-23` |
@@ -1065,6 +1065,7 @@ enum ConstVal {
 | `E3041` | 入口文件同时有显式 `main` 与顶层语句（顶层语句会被包成隐式 `main`），两处入口冲突 | 文稿 9.4 |
 | `E3042` | 裸类型名歧义：两个已导入模块都导出同名 `public` 类型（`import a` + `import b`，都有 `Product`）。同一行（类型标注 + `new`）只报一次 | 文稿 9.2 |
 | `E3043` | 成员名不是 PascalCase：方法 / 静态方法 / 接口方法 / 字段 / 枚举成员以小写或下划线开头。声明处报，文案点名正确拼写（`read` → `Read`、`min_qty` → `MinQty`）；`constructor` 是关键字，不在其列 | 文稿 2.3 |
+| `E3044` | `package` 声明语法错误：未放在文件首行 / 重复出现 / 路径格式非法 | 文稿 10.2 |
 
 ### 9.4 类型与表达式 `E4xxx`
 
@@ -1959,6 +1960,8 @@ void    ax_file_close(ax_file* f);                   /* 幂等 */
 | `Mod-7` | `import model` 后**裸类型名**：`Product p = new Product(...)` / `Product.Sample()` / `Point(3,4)` / `Color.Red` | 通过（`Mod-7.out`） |
 | `Mod-neg-ambig` | `import a` + `import b`，两者都导出 `Product` | 恰好一条 `E3042` |
 | `Mod-8` | 跨模块 interface 多态：类 `implement model.Describable`、interface 变量再赋子类实例（派发到 override）、interface 作跨模块参数 | 通过（`Mod-8.out`） |
+| `Mod-10` | `package` 声明 + 同模块多文件自动互见：`main.ax` 与 `model.ax` 声明相同 `package shop.order`，`main.ax` 直接使用 `model.ax` 的 `public` 与私有符号（`VALUE`、`greet()`），无需 `import` | 通过（`Mod-10.out`） |
+| `Mod-neg-package` | `package` 声明不在文件首行（先写 `import` 再写 `package`） | 恰好一条 `E3044` |
 | `Upcast-1` | 上转赋值：`Animal a = new Dog(...)`（声明 / 传参 / return 三处），派发走子类 override | 通过；生成 C 显式强转，`-Werror` 零警告（`Upcast-1.out`） |
 | `Iface-1` | interface 多态：interface 变量 / 参数 / 返回值 / 数组元素，两个实现类派发 | 通过（`Iface-1.out`） |
 | `Iface-2` | `interface Pet extend Animal`：父 interface 方法经子 interface 变量调用；实现 `Pet` 隐式实现 `Animal`（直接上转） | 通过（`Iface-2.out`） |

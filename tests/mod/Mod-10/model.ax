@@ -1,0 +1,6 @@
+package shop.order;
+
+public const VALUE = 42
+public string greet() {
+    return "hi"
+}
