@@ -690,6 +690,15 @@ int bad = nums[9]             // 终止进程：越界是 bug，不提供"沉默
 
 int? may = nums.At(9)         // null：确实"可能没有"时才走这条路
 
+  - **切片**：`nums[lo..hi]` / `nums[lo..=hi]` 对动态数组 `T[]` 取子范围，返回新的 `T[]`（浅层共享底层数据）。`lo` 缺省默认 0，`hi` 缺省默认 `Len()`；`..=` 为左闭右闭，`..` 为左闭右开。越界即终止进程。定长数组 `T[N]` 暂不支持切片语法（报 `E4001`），请先转为动态数组。
+
+```ax
+int[] nums = [0, 1, 2, 3, 4]
+int[] sub = nums[1..3]   // [1, 2]
+int[] sub2 = nums[0..=2] // [0, 1, 2]
+int[] all  = nums[0..5]  // [0, 1, 2, 3, 4]
+```
+
 map<string, decimal> prices = {"apple": 9.9d}
 decimal p = prices["apple"]        // 键不存在 → 终止进程
 prices["kiwi"] = 1.5d              // 键不存在则插入

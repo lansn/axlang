@@ -633,7 +633,7 @@ literal       = INT_LIT | FLOAT_LIT | DECIMAL_LIT | TEMPLATE_LIT
 | `Binary` | `op`, `lhs`, `rhs` | |
 | `Ternary` | `cond`, `then`, `els` | |
 | `Coalesce` | `lhs`, `rhs` | `??` |
-| `Range` | `lo`, `hi`, `inclusive` | 只允许出现在 `for` 头 / `.Step()` 实参 |
+| `Range` | `lo`, `hi`, `inclusive` | 允许出现在 `for` 头、`.Step()` 实参、以及动态数组切片 `T[][lo..hi]` / `T[][lo..=hi]`（返回 `T[]`；定长数组 `T[N]` 切片暂不支持） |
 | `Try` | `inner` | 后缀 `try` |
 | `New` | `ty: Vec<Ident>`, `args` | |
 | `IfExpr` | `cond`, `then: BlockId`, `els: Option<Either<IfExpr, BlockId>>` | |
