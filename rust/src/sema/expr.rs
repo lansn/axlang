@@ -761,6 +761,8 @@ impl<'a> Sema<'a> {
         };
         let name = &segs[0];
         if let Some(v) = self.lookup_var(name) {
+            // 标记变量已被读取（用于 W1005 未使用变量警告）
+            v.borrow_mut().is_used = true;
             if v.borrow().state == VarState::Moved {
                 self.err("E7001", &e.tok, "O-2", "`{0}` 已被移走，此处不可再用（重新赋一个值可复活）", &[&name]);
             }

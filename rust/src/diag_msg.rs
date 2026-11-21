@@ -489,6 +489,7 @@ pub static CATALOG: &[(&str, &str, &str)] = &[
     ("E7009", "不能对 const `{0}` 取可变借用（写 `&const`）", "cannot take a mutable borrow of const `{0}` (write `&const`)"),
     ("E7010", "返回局部变量 `{0}` 的引用会悬垂（局部变量随函数结束而释放）", "returning reference to local variable `{0}` would dangle"),
     ("W1003", "对 copy 类型 `{0}` 写借用等价于传值，`&` 是多余的", "a borrow of copy type `{0}` is equivalent to pass-by-value; `&` is redundant"),
+    ("W1005", "局部变量 `{0}` 声明后未被使用", "local variable `{0}` is declared but never used"),
     ("SUMMARY", "{0} 个错误", "{0} error(s)"),
     ("FILE_NOT_FOUND", "找不到文件 {0}", "file not found: {0}"),
 ];

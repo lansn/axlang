@@ -302,6 +302,8 @@ pub struct VarInfo {
     pub state: VarState,
     pub decl_line: u32,
     pub is_param: bool,
+    /// 该变量是否已被读取（用于 W1005 未使用变量警告）
+    pub is_used: bool,
     /// `ref` / `ref const` 参数的 borrow 标记：`Some("mut")` 或 `Some("const")`，`None` 表示普通按值参数
     pub borrow: Option<String>,
     pub idx: usize,
@@ -2482,6 +2484,7 @@ impl<'a> Sema<'a> {
                     state: VarState::Live,
                     decl_line: 0,
                     is_param: true,
+                    is_used: false,
                     borrow: borrow.clone(),
                     idx: i,
                     arena_region: None,
@@ -2535,6 +2538,30 @@ impl<'a> Sema<'a> {
         self.loop_depth = saved_loop_depth;
         self.loop_labels = saved_labels;
         self.iter_targets = saved_iters;
+        // W1005：函数体作用域即将销毁前，检查未使用的局部变量（跳过参数和 const）
+        let mut unused: Vec<(String, u32)> = Vec::new();
+        if !self.probe {
+            if let Some(s) = &self.scope {
+                let names: Vec<String> = s.borrow().names.keys().cloned().collect();
+                for name in names {
+                    if let Some(v) = s.borrow().names.get(&name) {
+                        let vi = v.borrow();
+                        if vi.is_param || vi.is_const || vi.is_used {
+                            continue;
+                        }
+                        unused.push((vi.name.clone(), vi.decl_line));
+                    }
+                }
+            }
+        }
+        for (name, line) in unused {
+            let mut tok = dummy_tok();
+            tok.line = line;
+            tok.col = 1;
+            tok.eline = line;
+            tok.ecol = 2;
+            self.warn("W1005", &tok, "N-17", "局部变量 `{0}` 声明后未被使用", &[&name]);
+        }
         // 恢复调用方上下文：check_func 也会被匿名函数合成在表达式检查中途调用，
         // 此时 scope / current_func / 泛型环境属于外层函数，必须原样还回去，
         // 否则匿名函数体检查完，外层局部变量会全部"消失"（E3003）。

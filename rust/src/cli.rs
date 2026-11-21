@@ -504,6 +504,15 @@ pub fn run(argv: &[String]) -> i32 {
         );
         return 1;
     }
+    // -Werror：警告升级为错误
+    if opts.werror && (*s.d).warning_count > 0 {
+        report(&*s.d, &opts.diag);
+        eprintln!(
+            "axc: {}",
+            crate::diag_msg::tr(s.d.lang, "SUMMARY", "{0} 个错误", &[&(*s.d).warning_count])
+        );
+        return 1;
+    }
     report(&*s.d, &opts.diag); // 只剩 warning
 
     finish(&s, &opts, &path)

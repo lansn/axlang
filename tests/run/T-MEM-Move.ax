@@ -15,6 +15,5 @@ int main() {
     b = new Buf(4)
     b.Write("xy")
     println("b.N={b.N}")
-    println("c.N={c.N}")
     return 0
 }

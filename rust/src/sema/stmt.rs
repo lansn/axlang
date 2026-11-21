@@ -33,6 +33,31 @@ impl<'a> Sema<'a> {
     }
 
     pub fn pop_scope(&mut self) {
+        // W1005：在作用域弹出前，检查当前作用域中声明但未使用的局部变量
+        let mut unused: Vec<(String, u32)> = Vec::new();
+        if let Some(s) = &self.scope {
+            let names: Vec<String> = s.borrow().names.keys().cloned().collect();
+            for name in names {
+                if let Some(v) = s.borrow().names.get(&name) {
+                    let vi = v.borrow();
+                    if vi.is_param || vi.is_const || vi.is_used {
+                        continue;
+                    }
+                    unused.push((vi.name.clone(), vi.decl_line));
+                }
+            }
+        }
+        // 释放所有不可变借用后再发出可变调用（warn）
+        if !self.probe {
+            for (name, line) in unused {
+                let mut tok = super::dummy_tok();
+                tok.line = line;
+                tok.col = 1;
+                tok.eline = line;
+                tok.ecol = 2;
+                self.warn("W1005", &tok, "N-17", "局部变量 `{0}` 声明后未被使用", &[&name]);
+            }
+        }
         let s = self.scope.take();
         self.scope = s.and_then(|s| s.borrow().parent.clone());
         self.narrow.pop();
@@ -56,6 +81,7 @@ impl<'a> Sema<'a> {
                 state: VarState::Live,
                 decl_line: tok.line,
                 is_param: false,
+                is_used: false,
                 borrow: None,
                 idx: 0,
                 arena_region: None,
@@ -71,6 +97,7 @@ impl<'a> Sema<'a> {
             state: VarState::Live,
             decl_line: tok.line,
             is_param: false,
+            is_used: false,
             borrow: None,
             idx: 0,
             arena_region: None,

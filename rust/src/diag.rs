@@ -65,6 +65,7 @@ pub struct Diags {
     last: Option<usize>,
     pub sources: HashMap<String, String>,
     pub error_count: usize,
+    pub warning_count: usize,
     /// 诊断文案语言（默认英文；`--lang` / `AXC_LANG` / `axc.toml` 决定）
     pub lang: crate::diag_msg::Lang,
 }
@@ -77,6 +78,7 @@ impl Diags {
             last: None,
             sources: HashMap::new(),
             error_count: 0,
+            warning_count: 0,
             lang: crate::diag_msg::Lang::En,
         }
     }
@@ -171,6 +173,7 @@ impl Diags {
         });
         self.seen.insert(key, idx);
         self.last = Some(idx);
+        self.warning_count += 1;
     }
 
     /// 给最近一条诊断补建议（`help:` 行）。
