@@ -443,8 +443,12 @@ impl<'a> Sema<'a> {
                 TyS::Never => t_object(),
                 _ => t,
             });
-        } else {
-            let dst = ty.clone().unwrap();
+        }
+        // 始终走 coerce，以便触发 E7003（借用不能逃逸）等检查。
+        // 但若初始化表达式已是 Null/Void/Range（已在上方报 E4007），跳过 coerce 避免重复 E4001。
+        let dst = ty.clone().unwrap();
+        let init_ty = self.ty_of(init.id).unwrap_or_else(|| t_object());
+        if !matches!(&*init_ty, TyS::Null | TyS::Void | TyS::Range | TyS::Never) {
             self.coerce(init, &dst, "变量初始化");
         }
         let ty = ty.unwrap();
@@ -1163,6 +1167,17 @@ impl<'a> Sema<'a> {
     // ---------------------------------------------------------------- coerce / take
 
     pub fn coerce(&mut self, node: &ast::EPtr, dst: &Ty, what: &str) {
+        // E7003：借用不能作为返回值、赋给变量或存入容器（`&` 不是一等值）。
+        if self.sl(node.id).is_borrow {
+            self.err(
+                "E7003",
+                &node.tok,
+                "O-11",
+                "借用不能作为返回值、赋给变量或存入容器（`&` 不是一等值）",
+                &[],
+            );
+            return;
+        }
         let src = match self.ty_of(node.id) {
             Some(t) => t,
             None => return,

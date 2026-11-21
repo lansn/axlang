@@ -521,6 +521,17 @@ impl<'a> Sema<'a> {
             }
             return t;
         }
+        if op == "&" {
+            // &x：x 必须是 place（变量、字段、元素），否则 E7007
+            let t = self.check_expr(operand, None);
+            if !self.is_place(operand) {
+                self.err("E7007", &e.tok, "O-8", "`&` 只能作用于可写位置（变量、字段、元素）", &[]);
+            }
+            self.sl(e.id).ty = Some(t.clone());
+            // 标记为借用表达式，由赋值/返回/容器存储检查并报 E7003（借用不能逃逸）
+            self.sl(e.id).is_borrow = true;
+            return t;
+        }
         t_int()
     }
 

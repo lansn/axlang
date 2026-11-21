@@ -1985,7 +1985,7 @@ impl<'a> Parser<'a> {
 
     fn parse_unary(&mut self) -> PResult<EPtr> {
         let t = self.tok(0).clone();
-        if t.is("!") || t.is("-") || t.is("~") {
+        if t.is("!") || t.is("-") || t.is("~") || t.is("&") {
             self.advance();
             let operand = self.parse_unary()?;
             return self.ne(t.clone(), Expr::Unary { op: t.kind.clone(), operand });

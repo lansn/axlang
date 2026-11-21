@@ -423,6 +423,9 @@ pub struct Slot {
     pub folded: Option<ConstVal>,
     pub as_dec: bool,
     pub is_move: bool,
+    /// 本表达式是 `&x` 借用表达式（& 不是一等值，不能逃逸到变量/返回值/容器）。
+    /// 由 check_unary 设置，由赋值/返回/容器存储检查并报 E7003。
+    pub is_borrow: bool,
     pub ckind: Option<&'static str>,
     pub bname: Option<String>,
     pub func: Option<usize>,
