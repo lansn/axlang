@@ -526,10 +526,11 @@ impl<'a> Sema<'a> {
             let t = self.check_expr(operand, None);
             if !self.is_place(operand) {
                 self.err("E7007", &e.tok, "O-8", "`&` 只能作用于可写位置（变量、字段、元素）", &[]);
+            } else {
+                // 仅在操作数为 place 时标记为借用表达式；非-place 已报 E7007，不再重复报 E7003
+                self.sl(e.id).is_borrow = true;
             }
             self.sl(e.id).ty = Some(t.clone());
-            // 标记为借用表达式，由赋值/返回/容器存储检查并报 E7003（借用不能逃逸）
-            self.sl(e.id).is_borrow = true;
             return t;
         }
         t_int()
