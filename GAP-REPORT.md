@@ -173,10 +173,13 @@ python samples/run_all.py         # 11 个示例程序跑一遍看输出
 
 ---
 
-## 四、待设计者裁决清单
-| # | 条目 | 若裁定为"另一种" | 改动量 |
-|---|---|---|---|
-| 1 | GAP-1 `decimal` ⊕ 整数是否合法 | 删 `check_binary` 的 decimal/int 分支 + 改文稿 §12 示例 | 2 处 + 1 个用例 |
-| 2 | GAP-2 整数字面量可落到 `decimal` | 删 `check_int_lit` 的 decimal 分支 + `Rt-15` 改成 `decimal(3)` | 2 处 |
-| 3 | D-03' `check` 是否强制 `main` | `require_main` 默认改 `True`，§16 负例补 `main` | 1 行 + 约 20 个用例 |
-| 4 | GAP-5 `db.Query` 未命中形态 | 改 `ax_db_query_result` 返回 `tag=0`，`RUN-3` 期望改 stderr | 2 处 |
+## 四、已裁决清单（设计者最终裁决，已落地代码）
+
+| # | 条目 | 裁决结果 | 代码位置 | 说明 |
+|---|---|---|---|---|
+| 1 | GAP-1 `decimal` ⊕ 整数是否合法 | **合法**（按 C-3 无损提升） | `rust/src/sema/expr.rs:684-696` | 算术运算符 `+ - * /` 允许 `decimal` 与整数家族混算，整数在运行期精确提升为 `decimal`，结果类型 `decimal`。**变量之间**仍按 `T-8` 禁止隐式转换（`decimal d = intVar` 仍是 `E4003`）。`%` 明确禁止（`E4009`）。 |
+| 2 | GAP-2 整数字面量可落到 `decimal` | **允许**（字面量阶段落地） | `rust/src/sema/expr.rs:328-331` | 整数字面量在"目标类型为 `decimal` 的位置"直接落地为 `decimal`（`T-9` 推广，无运行期转换）。`float` 字面量赋给 `decimal` 仍报 `E4003`（C-6）。不作用于变量，仅作用于字面量。 |
+| 3 | D-03' `check` 是否强制 `main` | **不强制**（仅 `build/run` 要求） | `rust/src/sema/mod.rs:2912-2926` | `axc check` 允许模块是库（不要求 `main`）；`axc build` / `axc run` 产出可执行文件时要求 `main`，缺失 / 重复 / 签名不符均报 `E3025`。通过 `require_main` 参数控制，`check` 传 `false`，`build`/`run` 传 `true`。 |
+| 4 | GAP-5 `db.Query` 未命中形态 | **返回 `ok(空行)`** | `rust/src/backend/codegen_expr.rs:1785-1791` | `db.Query` 返回 `result<Row>`；**查询成功但无记录 → `ok(空行)`**（`row.Empty() == true`）；**没有夹具 / 环境不可用 → `fail(error.IO)`**。`try` 只在"环境/驱动层失败"时中断；"数据不存在"走业务分支（`row.Empty()`）。 |
+
+裁决时间：2026-11-21。以上四项均已按"临时决策"方案实现并回归通过，现予以最终确认，无需进一步代码改动。
