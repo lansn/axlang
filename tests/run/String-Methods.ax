@@ -1,0 +1,34 @@
+// string 实例方法回归：锁定 sema intrinsic 表与 codegen 分支的一一对应
+// 覆盖：Len/ByteLen/At/Chars/CodepointAt/Contains/Split/IndexOf/LastIndexOf/ToString/
+// Trim/Left/Right/Mid/Upper/Lower/StartsWith/EndsWith/Join/Replace/Repeat
+
+int main() {
+    string s = "Hello World";
+    string c = "ax一中";
+
+    println("trim=[{s.Trim()}]");
+    println("upper=[{s.Upper()}]");
+    println("lower=[{s.Lower()}]");
+    println("contains World={s.Contains("World")}");
+    println("starts He={s.StartsWith("He")}");
+    println("ends d={s.EndsWith("d")}");
+    println("left 5=[{s.Left(5)}]");
+    println("right 5=[{s.Right(5)}]");
+    println("mid 2,4=[{s.Mid(2, 4)}]");
+    println("indexOf o={s.IndexOf("o")}");
+    println("lastIndexOf l={s.LastIndexOf("l")}");
+    println("replace l->L=[{s.Replace("l", "L")}]");
+    println("repeat 3=[{s.Repeat(3)}]");
+    println("join=[{"-".Join(["a", "b"])}]");
+    println("split Len={s.Split(",").Len()}");
+    println("chars Len={s.Chars().Len()}");
+    println("at 0=[{s.At(0) ?? ""}]");
+    println("codepointAt 0={s.CodepointAt(0) ?? -1}");
+    println("bytelength={s.ByteLen()}");
+    println("length={s.Len()}");
+    println("c len={c.Len()}");
+    println("c at 2=[{c.At(2) ?? ""}]");
+    println("c codepointAt 2={c.CodepointAt(2) ?? -1}");
+
+    return 0
+}
