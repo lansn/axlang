@@ -1,0 +1,34 @@
+// while 循环正例：条件控制循环、break/continue
+int main() {
+    int i = 0
+    int sum = 0
+    while i < 5 {
+        sum = sum + i
+        i = i + 1
+    }
+    println("while sum={sum}")  // 期望 0+1+2+3+4=10
+
+    // break
+    int j = 0
+    while true {
+        j = j + 1
+        if j == 3 {
+            break
+        }
+    }
+    println("break j={j}")  // 期望 3
+
+    // continue
+    int k = 0
+    int odd_sum = 0
+    while k < 5 {
+        k = k + 1
+        if k % 2 == 0 {
+            continue
+        }
+        odd_sum = odd_sum + k
+    }
+    println("odd sum={odd_sum}")  // 期望 1+3+5=9
+
+    return 0
+}

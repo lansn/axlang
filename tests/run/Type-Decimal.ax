@@ -1,0 +1,38 @@
+// decimal 数据类型正例：精确十进制金额计算，避免浮点误差
+decimal add(decimal a, decimal b) {
+    return a + b
+}
+
+decimal sub(decimal a, decimal b) {
+    return a - b
+}
+
+decimal mul(decimal a, decimal b) {
+    return a * b
+}
+
+decimal div(decimal a, decimal b) {
+    return a / b
+}
+
+int main() {
+    decimal price = 19.99d
+    int count = 3
+    decimal total = price * count    // GAP-1: decimal * int 合法，结果为 decimal
+
+    println("price={price}")
+    println("count={count}")
+    println("total={total}")       // 期望 59.97
+    decimal t2 = add(price, 5.00d)
+    println("add={t2}")            // 期望 24.99
+    decimal t3 = sub(price, 5.00d)
+    println("sub={t3}")            // 期望 14.99
+    decimal t4 = mul(price, 2d)
+    println("mul={t4}")            // 期望 39.98
+    decimal t5 = div(price, 2d)
+    println("div={t5}")            // 期望 10.00
+    // 整数字面量可落到 decimal（GAP-2）
+    decimal d = 100
+    println("lit={d}")             // 期望 100
+    return 0
+}

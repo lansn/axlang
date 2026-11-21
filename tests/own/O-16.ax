@@ -1,0 +1,8 @@
+// EXPECT: E7009
+// 人类常犯：对 const 取可变借用（应写 &const）
+const int MAX = 100
+
+int main() {
+    int p = &MAX   // const 不能可变借用 → E7009
+    return 0
+}

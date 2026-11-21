@@ -1,0 +1,9 @@
+// EXPECT: E3025
+// 人类常犯：有多个 main 函数
+int main() {
+    return 0
+}
+
+int main() {
+    return 1
+}

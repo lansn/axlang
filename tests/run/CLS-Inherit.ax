@@ -1,0 +1,35 @@
+// 类继承正例：extend、parent(...)、override、多态派发
+class Shape {
+    public string Name
+
+    constructor(string name) {
+        this.Name = name
+    }
+
+    public string Describe() {
+        return "图形：{this.Name}"
+    }
+}
+
+class Circle extend Shape {
+    public decimal Radius
+
+    constructor(string name, decimal radius) {
+        parent(name)
+        this.Radius = radius
+    }
+
+    public override string Describe() {
+        return "圆：{this.Name} 半径={this.Radius}"
+    }
+}
+
+int main() {
+    Shape s = new Circle("小圆", 5.0d)   // 上转
+    println(s.Describe())                 // 期望：圆：小圆 半径=5.00
+
+    Shape s2 = new Shape("基础图形")
+    println(s2.Describe())                // 期望：图形：基础图形
+
+    return 0
+}

@@ -1,0 +1,46 @@
+// interface 正例：定义、implement、接口变量、多态
+// interface 成员不能写可见性修饰词（E3011），一律 public
+interface Drawable {
+    string Draw()
+}
+
+class Box implement Drawable {
+    public string Name
+
+    constructor(string name) {
+        this.Name = name
+    }
+
+    public string Draw() {
+        return "画框：{this.Name}"
+    }
+}
+
+class Ball implement Drawable {
+    public string Name
+
+    constructor(string name) {
+        this.Name = name
+    }
+
+    public string Draw() {
+        return "画球：{this.Name}"
+    }
+}
+
+void show(Drawable d) {
+    println(d.Draw())
+}
+
+int main() {
+    Box box = new Box("盒子A")
+    Ball ball = new Ball("球B")
+
+    show(box)   // 期望：画框：盒子A
+    show(ball)  // 期望：画球：球B
+
+    Drawable d = new Box("盒子C")   // 接口变量持有子类实例
+    println(d.Draw())               // 期望：画框：盒子C
+
+    return 0
+}

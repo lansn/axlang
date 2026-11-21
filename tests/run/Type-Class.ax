@@ -1,0 +1,26 @@
+// class 数据类型正例：引用语义、字段、方法、构造函数
+class Account {
+    public string Owner
+    public decimal Balance
+
+    constructor(string owner, decimal initial) {
+        this.Owner = owner
+        this.Balance = initial
+    }
+
+    public void Deposit(decimal amount) {
+        this.Balance = this.Balance + amount
+    }
+
+    public decimal GetBalance() {
+        return this.Balance
+    }
+}
+
+int main() {
+    Account acc = new Account("张三", 100.00d)
+    acc.Deposit(50.00d)
+    println("owner={acc.Owner}")
+    println("balance={acc.GetBalance()}")
+    return 0
+}

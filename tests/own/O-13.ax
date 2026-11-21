@@ -1,0 +1,17 @@
+// EXPECT: E7001
+// 人类常犯：move 后再使用原变量
+class Buffer {
+    public int N
+    constructor(int n) {
+        this.N = n
+    }
+    public void Write(string s) {
+    }
+}
+
+int main() {
+    var b = new Buffer(8)
+    var c = b       // b 被 move 给 c
+    b.Write("x")    // b 已被移走，不可再用 → E7001
+    return 0
+}

@@ -1,0 +1,36 @@
+// for 循环正例：范围循环 0..n、集合遍历、break/continue
+int main() {
+    // 范围循环：0..3 表示 0,1,2
+    int sum = 0
+    for i in 0..3 {
+        sum = sum + i
+    }
+    println("sum(0..3)={sum}")   // 期望 3
+
+    // break
+    for i in 0..10 {
+        if i == 5 {
+            break
+        }
+        sum = sum + i
+    }
+    println("break at 5, sum={sum}")  // 期望 3+0+1+2+3+4=13
+
+    // continue
+    int even_sum = 0
+    for i in 0..6 {
+        if i % 2 == 1 {
+            continue
+        }
+        even_sum = even_sum + i
+    }
+    println("even sum={even_sum}")  // 期望 0+2+4=6
+
+    // 集合遍历
+    string[] names = ["a", "b", "c"]
+    for s in names {
+        println("name={s}")
+    }
+
+    return 0
+}

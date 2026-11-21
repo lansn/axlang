@@ -1,0 +1,10 @@
+// EXPECT: E3037
+// 人类常犯：类成员缺少可见性修饰符
+class Box {
+    string Name  // 缺少 public/private/protected
+}
+
+int main() {
+    Box b = new Box()
+    return 0
+}

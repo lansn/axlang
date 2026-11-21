@@ -1,0 +1,7 @@
+// EXPECT: E2010
+// 人类常犯：++ 在表达式中使用，ax 只允许独立成句
+int main() {
+    int i = 1
+    int j = i++
+    return 0
+}

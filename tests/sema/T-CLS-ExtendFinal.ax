@@ -1,0 +1,12 @@
+// EXPECT: E3046
+// 人类常犯：不能 extend final 类
+final class Sealed {
+    public string Name
+}
+
+class Child extend Sealed {
+}
+
+int main() {
+    return 0
+}

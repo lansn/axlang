@@ -1,0 +1,6 @@
+// EXPECT: E3025
+// 人类常犯：build/run 时缺少 int main() 入口
+//（此文件作为入口文件时，缺少 main 会报 E3025）
+class Foo {
+    public string Name
+}

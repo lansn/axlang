@@ -1,0 +1,26 @@
+// static 正例：静态方法、通过类名调用
+// 字段不能用 static（E3036），改用静态方法返回计数
+class Counter {
+    constructor() {
+    }
+
+    public static int GetCount() {
+        return 3
+    }
+
+    public int InstanceMethod() {
+        return 3
+    }
+}
+
+int main() {
+    Counter c1 = new Counter()
+    Counter c2 = new Counter()
+    Counter c3 = new Counter()
+
+    println("count={Counter.GetCount()}")   // 期望 3
+    println("c1={c1.InstanceMethod()}")     // 期望 3
+    println("c2={c2.InstanceMethod()}")     // 期望 3
+    println("c3={c3.InstanceMethod()}")     // 期望 3
+    return 0
+}

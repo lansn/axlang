@@ -1,0 +1,38 @@
+// string 数据类型正例：插值、Len()、Contains()、Trim()、StartsWith()
+int main() {
+    string name = "柴犬粮"
+    decimal price = 19.99d
+    int stock = 10
+
+    // 字符串插值（{x} 语法，不是 + 拼接）
+    println("商品：{name}")
+    println("单价：￥{price}")
+    println("库存：{stock}")
+    println("折后小计：{price * stock}")
+
+    // 字符串长度
+    int len = name.Len()
+    println("名字长度={len}")
+
+    // 包含判断
+    println("含粮={name.Contains("粮")}")
+    println("含米={name.Contains("米")}")
+
+    // Trim 去首尾空格
+    string s = "  hello  "
+    println("trimmed={s.Trim()}")
+
+    // StartsWith / EndsWith
+    println("starts with 柴={name.StartsWith("柴")}")
+    println("ends with 粮={name.EndsWith("粮")}")
+
+    // 字符串比较
+    string a = "hello"
+    string b = "hello"
+    string c = "world"
+    println("a==b={a == b}")
+    println("a==c={a == c}")
+    println("a!=c={a != c}")
+
+    return 0
+}

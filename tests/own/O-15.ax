@@ -1,0 +1,10 @@
+// EXPECT: E7007
+// 人类常犯：& 作用于非-place 表达式（函数调用结果不是可写位置）
+int foo() {
+    return 1
+}
+
+int main() {
+    int p = &foo()   // foo() 不是 place → E7007
+    return 0
+}

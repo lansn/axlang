@@ -1,0 +1,24 @@
+// struct 数据类型正例：值语义、字段访问、构造、方法
+// 字段名必须是 PascalCase（E3043）
+struct Point {
+    int X
+    int Y
+}
+
+int area(Point p) {
+    return p.X * p.Y
+}
+
+int main() {
+    Point p = Point(10, 20)
+    println("p.X={p.X}")
+    println("p.Y={p.Y}")
+    println("area={area(p)}")
+
+    // struct 字段可直接修改（值语义）
+    p.X = 30
+    println("p.X={p.X}")
+    println("area={area(p)}")
+
+    return 0
+}

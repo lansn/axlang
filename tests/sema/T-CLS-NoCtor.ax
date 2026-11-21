@@ -1,0 +1,11 @@
+// EXPECT: E3008
+// 人类常犯：类有字段但没有 constructor
+class Point {
+    public int X
+    public int Y
+}
+
+int main() {
+    Point p = new Point(10, 20)
+    return 0
+}

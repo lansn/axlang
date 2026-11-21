@@ -1,0 +1,30 @@
+// 可空类型 T? 正例：?? 运算符、判空收窄
+// ?. 运算符可能未实现，先用判空方式
+int main() {
+    string? a = null
+    string? b = "hello"
+
+    // ?? 运算符：左为 null 时取右侧
+    string c = a ?? "默认值"
+    println("c={c}")
+
+    string d = b ?? "默认值"
+    println("d={d}")
+
+    // 判空收窄
+    if a != null {
+        println("a 不为空：{a}")
+    } else {
+        println("a 为空")
+    }
+
+    // 可空整数
+    int? n = 7
+    int? z = null
+    int m = n ?? 0
+    println("m={m}")
+    int m2 = z ?? 0
+    println("m2={m2}")
+
+    return 0
+}

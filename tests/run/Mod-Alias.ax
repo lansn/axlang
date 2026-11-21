@@ -1,0 +1,4 @@
+// import ... as 别名正例：已移至 tests/mod/ 多文件结构测试
+int main() {
+    return 0
+}

@@ -1,0 +1,10 @@
+// EXPECT: E4001
+// 人类常犯：比较两边类型不一致
+int main() {
+    int a = 1
+    string b = "hello"
+    if a == b {
+        println("equal")
+    }
+    return 0
+}

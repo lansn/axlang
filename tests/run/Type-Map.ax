@@ -1,0 +1,21 @@
+// map 数据类型正例：创建、插入、查找、(k,v) in 遍历
+int main() {
+    map<string, int> stock = {}
+    stock["柴犬粮"] = 10
+    stock["猫粮"] = 5
+    stock["鸟粮"] = 20
+
+    println("柴犬粮库存={stock["柴犬粮"]}")
+    println("猫粮库存={stock["猫粮"]}")
+
+    // (k, v) in 遍历 map
+    for (k, v) in stock {
+        println("{k}={v}")
+    }
+
+    // map 插入后查找
+    stock["新商品"] = 99
+    println("新商品库存={stock["新商品"]}")
+
+    return 0
+}

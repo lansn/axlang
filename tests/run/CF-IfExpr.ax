@@ -1,0 +1,24 @@
+// if 作为表达式正例：两分支必须有 else，类型一致
+int max(int a, int b) {
+    int m = if a > b { a } else { b }
+    return m
+}
+
+string sign(int n) {
+    if n > 0 {
+        return "正"
+    } else if n < 0 {
+        return "负"
+    } else {
+        return "零"
+    }
+}
+
+int main() {
+    println("max(3, 7)={max(3, 7)}")
+    println("max(10, 2)={max(10, 2)}")
+    println("sign(5)={sign(5)}")
+    println("sign(-3)={sign(-3)}")
+    println("sign(0)={sign(0)}")
+    return 0
+}

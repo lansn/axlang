@@ -1,0 +1,10 @@
+// EXPECT: E4001
+// 人类常犯：赋值当表达式（if a = b），ax 禁止赋值作为表达式
+int main() {
+    int a = 1
+    int b = 2
+    if a = b {
+        println("equal")
+    }
+    return 0
+}

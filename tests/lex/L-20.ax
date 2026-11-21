@@ -1,0 +1,6 @@
+// EXPECT: E1006
+// 人类常犯：源文件中出现非法字符 $
+int main() {
+    int x = 1 $ 2
+    return 0
+}
