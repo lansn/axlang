@@ -292,6 +292,7 @@ impl<'a> Sema<'a> {
                 gdepth: 0,
                 mangle: None,
                 is_extern: false,
+                is_export: false,
                 parent: None,
                 nested: BTreeMap::new(),
                     body: Some(leaked),
@@ -1691,6 +1692,7 @@ impl<'a> Sema<'a> {
                         gdepth: depth,
                         mangle: Some(mangle.clone()),
                         is_extern: fi.is_extern,
+                        is_export: fi.is_export,
                         parent: None,
                         nested: BTreeMap::new(),
                     };
@@ -2103,6 +2105,7 @@ impl<'a> Sema<'a> {
                 gdepth: depth,
                 mangle: None,
                 is_extern: false,
+                is_export: false,
                 parent: None,
                 nested: BTreeMap::new(),
             });
@@ -2162,6 +2165,7 @@ impl<'a> Sema<'a> {
                 gdepth: depth,
                 mangle: None,
                 is_extern: false,
+                is_export: false,
                 parent: None,
                 nested: BTreeMap::new(),
             });

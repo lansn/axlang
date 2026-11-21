@@ -19,6 +19,7 @@ pub const KEYWORDS: &[&str] = &[
     "static", "new", "as", "break", "continue", "constructor",
     "extern", "unsafe",
     "abstract",
+    "export",
     "final",
     "ref",
     "is",

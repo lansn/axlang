@@ -266,6 +266,8 @@ pub struct Opts {
     pub version: bool,
     /// `--lang=en|zh`（None = 走 AXC_LANG / axc.toml / 默认英文）
     pub lang: Option<String>,
+    /// 产物类型："exe"（默认）或 "shared"，共享库模式下跳过 main 包装并加 -shared
+    pub kind: String,
 }
 
 impl Default for Opts {
@@ -285,6 +287,7 @@ impl Default for Opts {
             help: false,
             version: false,
             lang: None,
+            kind: "exe".to_string(),
         }
     }
 }
@@ -349,6 +352,8 @@ pub fn parse_args(argv: &[String]) -> Opts {
                     o.cc = v.to_string();
                 } else if let Some(v) = a.strip_prefix("--lang=") {
                     o.lang = Some(v.to_string());
+                } else if let Some(v) = a.strip_prefix("--kind=") {
+                    o.kind = v.to_string();
                 } else if a.starts_with('-') {
                     // 未知选项：忽略（历史宽松解析行为，测试钉死）
                 } else if o.file.is_none() {
@@ -382,6 +387,7 @@ pub fn print_help() {
     println!("  --cc=<path>         指定 C 编译器");
     println!("  --lang=en|zh        诊断文案语言（默认 en；也可用 AXC_LANG 环境变量或 axc.toml）");
     println!("  --keep              保留构建目录（排查生成代码用）");
+    println!("  --kind=exe|shared   产物类型：exe（默认可执行文件）或 shared（动态链接库 .dll/.so/.dylib）");
     println!("  -V, --version       打印版本号后退出");
 }
 
@@ -472,8 +478,8 @@ pub fn run(argv: &[String]) -> i32 {
         return 1;
     }
 
-    // check 阶段不要求 main（build/run 才要求）
-    let need_main = matches!(opts.cmd.as_str(), "build" | "run");
+    // check 阶段不要求 main；shared 模式生成动态库，也不需要 main 入口
+    let need_main = matches!(opts.cmd.as_str(), "build" | "run") && opts.kind != "shared";
 
     // 用户模块加载（文稿 9）：解析 import，递归加载非内建模块，循环导入报错
     let mut arena: Vec<(String, String, ast::Module)> = Vec::new();
@@ -515,13 +521,13 @@ pub fn run(argv: &[String]) -> i32 {
     }
     report(&*s.d, &opts.diag); // 只剩 warning
 
-    finish(&s, &opts, &path)
+    finish(&s, &opts, &path, &opts.kind)
 }
 
 /// 语义检查通过后的产出阶段：emit-c / build / run。
-fn finish(s: &sema::Sema, opts: &Opts, path: &str) -> i32 {
+fn finish(s: &sema::Sema, opts: &Opts, path: &str, kind: &str) -> i32 {
     if opts.emit_c || opts.dump.as_deref() == Some("c") {
-        let csrc = backend::CodeGen::build_c(s, path);
+        let csrc = backend::CodeGen::build_c(s, path, kind);
         println!("{}", csrc);
         return 0;
     }
@@ -529,7 +535,7 @@ fn finish(s: &sema::Sema, opts: &Opts, path: &str) -> i32 {
         return 0;
     }
 
-    let csrc = backend::CodeGen::build_c(s, path);
+    let csrc = backend::CodeGen::build_c(s, path, kind);
 
     // run 的产物是临时的：落到临时目录，跑完即删，避免在工作目录里堆 exe；
     // 显式给了 -o 就尊重用户的选择（也方便"编译一次跑多次"）。
@@ -542,12 +548,12 @@ fn finish(s: &sema::Sema, opts: &Opts, path: &str) -> i32 {
         ));
         let _ = fs::create_dir_all(&d);
         tmpdir = Some(d.clone());
-        d.join(default_out(path))
+        d.join(default_out(path, kind))
     } else {
-        std::path::PathBuf::from(opts.out.clone().unwrap_or_else(|| default_out(path)))
+        std::path::PathBuf::from(opts.out.clone().unwrap_or_else(|| default_out(path, kind)))
     };
 
-    let res = cc_compile(&csrc, opts, &out);
+    let res = cc_compile(&csrc, opts, &out, kind);
     let rc = match res {
         None => 1,
         Some(()) => {
@@ -578,15 +584,28 @@ fn now_nanos() -> u128 {
         .unwrap_or(0)
 }
 
-fn default_out(path: &str) -> String {
+fn default_out(path: &str, kind: &str) -> String {
     let base = std::path::Path::new(path)
         .file_stem()
         .map(|x| x.to_string_lossy().to_string())
         .unwrap_or_else(|| "a".to_string());
-    if cfg!(windows) {
-        format!("{}.exe", base)
-    } else {
-        base
+    match kind {
+        "shared" => {
+            if cfg!(windows) {
+                format!("{}.dll", base)
+            } else if cfg!(target_os = "macos") {
+                format!("lib{}.dylib", base)
+            } else {
+                format!("lib{}.so", base)
+            }
+        }
+        _ => {
+            if cfg!(windows) {
+                format!("{}.exe", base)
+            } else {
+                base
+            }
+        }
     }
 }
 
@@ -615,8 +634,8 @@ fn rt_dir() -> Option<std::path::PathBuf> {
     None
 }
 
-/// 把生成的 C 源码和 axrt.c 一起编译成可执行文件。
-fn cc_compile(csrc: &str, opts: &Opts, out_path: &std::path::Path) -> Option<()> {
+/// 把生成的 C 源码和 axrt.c 一起编译成可执行文件或动态链接库。
+fn cc_compile(csrc: &str, opts: &Opts, out_path: &std::path::Path, kind: &str) -> Option<()> {
     let rt = match rt_dir() {
         Some(r) => r,
         None => {
@@ -649,6 +668,61 @@ fn cc_compile(csrc: &str, opts: &Opts, out_path: &std::path::Path) -> Option<()>
             .unwrap_or_else(|_| out_path.to_path_buf())
     };
 
+    let is_shared = kind == "shared";
+
+    // 共享库模式：收集导出符号，生成链接器导出列表文件（def / 版本脚本）
+    let mut export_list_path: Option<std::path::PathBuf> = None;
+    if is_shared {
+        // 从 C 源码中提取导出符号：查找 `ax_export_*` 标记的函数
+        // backend 会在生成的 C 里给 export 函数加 `ax_export_` 前缀，def 文件里也需带此前缀
+        let exports: Vec<String> = csrc
+            .lines()
+            .filter_map(|line| {
+                let trimmed = line.trim();
+                let pos = match trimmed.find("ax_export_") {
+                    Some(p) => p,
+                    None => return None,
+                };
+                let rest = &trimmed[pos..];
+                // 函数名截止于 '(' 或空格（如 `static int64_t ax_export_foo(...)`）
+                let end = rest
+                    .find(|c: char| c == '(' || c.is_whitespace())
+                    .unwrap_or(rest.len());
+                let name = &rest[..end];
+                if !name.is_empty() {
+                    Some(name.to_string())
+                } else {
+                    None
+                }
+            })
+            .collect();
+        if !exports.is_empty() {
+            if cfg!(windows) {
+                // Windows .def 文件（MinGW/gcc 格式）
+                let def_path = workdir.join("exports.def");
+                let mut def_content = String::from("EXPORTS\n");
+                for name in &exports {
+                    def_content.push_str(&format!("    {}\n", name));
+                }
+                if fs::write(&def_path, &def_content).is_ok() {
+                    export_list_path = Some(def_path);
+                }
+            } else {
+                // Linux/macOS 版本脚本
+                let map_path = workdir.join("exports.map");
+                let mut map_content = String::from("{\n  global:\n");
+                for (i, name) in exports.iter().enumerate() {
+                    let comma = if i + 1 < exports.len() { ";" } else { "" };
+                    map_content.push_str(&format!("    {};{}\n", name, comma));
+                }
+                map_content.push_str("  local: *;\n};\n");
+                if fs::write(&map_path, &map_content).is_ok() {
+                    export_list_path = Some(map_path);
+                }
+            }
+        }
+    }
+
     let mut cmd = std::process::Command::new(&opts.cc);
     cmd.arg("-std=c11")
         .arg("-O2")
@@ -665,6 +739,20 @@ fn cc_compile(csrc: &str, opts: &Opts, out_path: &std::path::Path) -> Option<()>
         .arg(workdir.join("axrt.c"))
         .arg("-lm")
         .current_dir(&workdir);
+
+    if is_shared {
+        cmd.arg("-shared");
+        if cfg!(windows) {
+            if let Some(ref def_path) = export_list_path {
+                cmd.arg(def_path);
+            }
+        } else {
+            if let Some(ref map_path) = export_list_path {
+                cmd.arg(format!("-Wl,--version-script={}", map_path.display()));
+            }
+        }
+    }
+
     let out = cmd.output();
     let out = match out {
         Ok(o) => o,

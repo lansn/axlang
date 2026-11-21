@@ -163,6 +163,9 @@ pub struct CodeGen<'s, 'a> {
     /// 入口文件模块前缀：取文件名 stem（sanitized）。入口文件顶层符号（cur_mod_prefix=None）
     /// 在 C 层需加此前缀，避免与 wrapper 生成的 `main` 符号冲突。
     pub module_prefix: String,
+    /// 产物类型："exe"（默认）或 "shared"。shared 模式下跳过 gen_main_wrapper，
+    /// 并给导出函数加 `ax_export_` 前缀。
+    pub kind: String,
     pub emitted: HashSet<Ty>,
     pub emitted_defs: HashSet<u32>,
     pub type_defs: Vec<String>,
@@ -177,6 +180,8 @@ pub struct CodeGen<'s, 'a> {
     pub erased_map: HashMap<u32, String>,
     /// 已为其生成完整 C 代码（struct/方法/vtable）的共享类名集合，避免重复生成。
     pub emitted_shared: HashSet<String>,
+    /// 共享库模式下收集的导出函数 C 名，用于生成链接器导出列表。
+    pub export_names: Vec<String>,
 }
 
 impl<'s, 'a> CodeGen<'s, 'a> {
@@ -186,7 +191,7 @@ impl<'s, 'a> CodeGen<'s, 'a> {
         self.s.slots.get(&k)
     }
 
-    pub fn new(s: &'s Sema<'a>, path: &str) -> Self {
+    pub fn new(s: &'s Sema<'a>, path: &str, kind: &str) -> Self {
         // 入口文件模块前缀取文件名 stem（sanitized），用于 C 层符号前缀。
         let module_prefix = std::path::Path::new(path)
             .file_stem()
@@ -196,6 +201,7 @@ impl<'s, 'a> CodeGen<'s, 'a> {
             s,
             path: path.to_string(),
             module_prefix,
+            kind: kind.to_string(),
             cur_inst: 0,
             emitted: HashSet::new(),
             emitted_defs: HashSet::new(),
@@ -206,6 +212,7 @@ impl<'s, 'a> CodeGen<'s, 'a> {
             tmp_n: 0,
             erased_map: HashMap::new(),
             emitted_shared: HashSet::new(),
+            export_names: Vec::new(),
         }
     }
 
@@ -790,6 +797,9 @@ impl<'s, 'a> CodeGen<'s, 'a> {
             .collect();
         for fid in free_ids {
             let cname = self.fn_name_idx(fid);
+            if self.s.funcs[fid].is_export {
+                self.export_names.push(cname.clone());
+            }
             fns.push(self.gen_func(fid, cname, None));
         }
         let mut method_shared_done: HashSet<String> = HashSet::new();
@@ -852,7 +862,10 @@ impl<'s, 'a> CodeGen<'s, 'a> {
         body.extend(fns);
         body.extend(self.extra_fns.iter().cloned());
         body.push(String::new());
-        body.push(self.gen_main_wrapper());
+        // 共享库模式不生成 main 包装器
+        if self.kind != "shared" {
+            body.push(self.gen_main_wrapper());
+        }
         body.join("\n")
     }
 
@@ -869,7 +882,7 @@ impl<'s, 'a> CodeGen<'s, 'a> {
             Some(m) => format!("_{}", san(&m.replace('$', "_"))),
             None => String::new(),
         };
-        match f.owner {
+        let base = match f.owner {
             Some(o) => {
                 let d = self.s.typedefs[o as usize].clone();
                 format!(
@@ -885,7 +898,12 @@ impl<'s, 'a> CodeGen<'s, 'a> {
                 let base = format!("{}__{}", self.module_prefix, san(&f.name));
                 format!("{}{}", base, inst_suffix)
             }
+        };
+        // 导出函数加 ax_export_ 前缀，便于 cc_compile 扫描并生成链接器导出列表
+        if f.is_export {
+            return format!("ax_export_{}", base);
         }
+        base
     }
 
     pub fn const_name(&self, name: &str) -> String {
@@ -1401,9 +1419,9 @@ impl<'s, 'a> CodeGen<'s, 'a> {
         .join("\n")
     }
 
-    /// 顶层入口：生成整份 C 源码。
-    pub fn build_c(s: &'s Sema<'a>, path: &str) -> String {
-        let mut cg = CodeGen::new(s, path);
+    /// 顶层入口：生成整份 C 源码。`kind` 为 "exe"（默认）或 "shared"。
+    pub fn build_c(s: &'s Sema<'a>, path: &str, kind: &str) -> String {
+        let mut cg = CodeGen::new(s, path, kind);
         cg.run()
     }
 }

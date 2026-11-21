@@ -188,7 +188,13 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
         if ps.is_empty() {
             ps.push("void".to_string());
         }
-        format!("static {} {}({});", ret, self.cname, ps.join(", "))
+        let static_kw = if self.f.is_export { "" } else { "static" };
+        let decl = if static_kw.is_empty() {
+            format!("{} {}({});", ret, self.cname, ps.join(", "))
+        } else {
+            format!("static {} {}({});", ret, self.cname, ps.join(", "))
+        };
+        decl
     }
 
     /// 引用类型在 C 层均为指针，参数/返回值统一擦除为 `void*`，以便
@@ -230,7 +236,13 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
         if ps.is_empty() {
             ps.push("void".to_string());
         }
-        format!("static {} {}({}) {{", ret, self.cname, ps.join(", "))
+        let static_kw = if self.f.is_export { "" } else { "static" };
+        let sig = if static_kw.is_empty() {
+            format!("{} {}({}) {{", ret, self.cname, ps.join(", "))
+        } else {
+            format!("static {} {}({}) {{", ret, self.cname, ps.join(", "))
+        };
+        sig
     }
 
     pub fn pv(&self, name: &str) -> String {

@@ -1326,6 +1326,7 @@ impl<'a> Sema<'a> {
                                     gdepth: depth,
                                     mangle: Some(mangle.clone()),
                                     is_extern: false,
+                                    is_export: false,
                                     parent,
                                     nested: BTreeMap::new(),
                                 };

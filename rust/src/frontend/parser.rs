@@ -160,6 +160,7 @@ impl<'a> Parser<'a> {
             "throw", "defer", "import", "static", "public", "protected", "new", "as",
             "in", "else", "this", "parent", "true", "false", "null", "constructor",
             "interface", "struct", "enum", "extend", "implement", "override",
+            "abstract", "final", "export",
             "break", "continue",
         ];
         if KEYWORDS.contains(&t.kind.as_str()) {
@@ -282,6 +283,7 @@ impl<'a> Parser<'a> {
                 is_pure: false,
                 is_nothrow: false,
                 is_ref_return: false,
+                is_export: false,
             });
             items.push(f);
         }
@@ -333,6 +335,7 @@ impl<'a> Parser<'a> {
         let mut vis: Option<String> = None;
         let mut is_abstract = false;
         let mut is_final = false;
+        let mut is_export = false;
         if self.at("abstract") {
             self.advance();
             is_abstract = true;
@@ -340,6 +343,10 @@ impl<'a> Parser<'a> {
         if self.at("final") {
             self.advance();
             is_final = true;
+        }
+        if self.at("export") {
+            self.advance();
+            is_export = true;
         }
         if self.at("public") {
             self.advance();
@@ -391,7 +398,7 @@ impl<'a> Parser<'a> {
             return Ok(vec![]);
         }
         // 函数
-        match self.parse_func(attrs, vis) {
+        match self.parse_func(attrs, vis, is_export) {
             Ok(it) => Ok(vec![it]),
             Err(e) => {
                 if self.at("if") || self.at("for") || self.at("while") || self.at("return") {
@@ -453,7 +460,7 @@ impl<'a> Parser<'a> {
         true
     }
 
-    fn parse_func(&mut self, attrs: Vec<Attr>, vis: Option<String>) -> PResult<N<Item>> {
+    fn parse_func(&mut self, attrs: Vec<Attr>, vis: Option<String>, is_export: bool) -> PResult<N<Item>> {
         let is_ref_return = self.at("ref");
         if is_ref_return {
             self.advance();
@@ -481,6 +488,7 @@ impl<'a> Parser<'a> {
                 is_pure,
                 is_nothrow,
                 is_ref_return,
+                is_export,
             },
         ))
     }
@@ -1113,6 +1121,7 @@ impl<'a> Parser<'a> {
                     is_pure: false,
                     is_nothrow: false,
                     is_ref_return: false,
+                    is_export: false,
                 },
             ));
             self.nl();

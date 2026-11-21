@@ -55,6 +55,8 @@ pub enum Item {
         is_nothrow: bool,
         /// D 语言风格：ref 返回值，按引用返回
         is_ref_return: bool,
+        /// 导出符号：shared library 模式下会被放进导出列表（def/version script）
+        is_export: bool,
     },
     ClassDecl {
         vis: Option<String>,

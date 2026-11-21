@@ -354,6 +354,8 @@ pub struct FuncInfo<'a> {
     pub mangle: Option<String>,
     /// 是否为 `extern "C"` 外部函数：不生成函数定义，调用点直接使用 C 函数名。
     pub is_extern: bool,
+    /// 导出符号：shared library 模式下会被放进导出列表（def/version script）
+    pub is_export: bool,
     /// 所属父函数（嵌套函数）；模块级函数为 None。
     pub parent: Option<usize>,
     /// 该函数体内直接声明的嵌套函数：源码名 → fid（供裸名调用解析）。
@@ -776,6 +778,7 @@ impl<'a> Sema<'a> {
                 gdepth: 0,
                 mangle: None,
                 is_extern: false,
+                is_export: false,
                 parent: None,
                 nested: BTreeMap::new(),
             };
@@ -1392,12 +1395,30 @@ impl<'a> Sema<'a> {
     }
 
     fn register_func(&mut self, item: &'a ast::N<Item>) {
-        let (name, vis, generics, body, implicit, attrs, is_ref_return) = match &item.k {
-            Item::FuncDecl { vis, name, generics, body, implicit, attrs, is_ref_return, .. } => {
-                (name, vis, generics, body, *implicit, attrs, *is_ref_return)
-            }
-            _ => return,
-        };
+        let (name, vis, generics, body, implicit, attrs, is_ref_return, is_export) =
+            match &item.k {
+                Item::FuncDecl {
+                    vis,
+                    name,
+                    generics,
+                    body,
+                    implicit,
+                    attrs,
+                    is_ref_return,
+                    is_export,
+                    ..
+                } => (
+                    name,
+                    vis,
+                    generics,
+                    body,
+                    *implicit,
+                    attrs,
+                    *is_ref_return,
+                    *is_export,
+                ),
+                _ => return,
+            };
         // 文稿 9.4：全工程只能有一个 int main——非入口文件声明 main 直接报错。
         // 隐式 main 是"顶层语句"包出来的，被 import 的模块里出现它要说清楚是"不能写语句"。
         // `main` 只能在入口文件声明。入口文件即使有 `package` 声明，cur_mod_path
@@ -1462,6 +1483,7 @@ impl<'a> Sema<'a> {
             gdepth: 0,
             mangle: None,
             is_extern: false,
+            is_export,
             parent: None,
             nested: BTreeMap::new(),
         };
@@ -1516,6 +1538,7 @@ impl<'a> Sema<'a> {
             gdepth: 0,
             mangle: None,
             is_extern: true,
+            is_export: false,
             parent: None,
             nested: BTreeMap::new(),
         };
@@ -2152,6 +2175,7 @@ impl<'a> Sema<'a> {
                                 gdepth: 0,
                                 mangle: None,
                                 is_extern: false,
+                                is_export: false,
                                 parent: Some(d as usize),
                                 nested: BTreeMap::new(),
                                 body: Some(body),
@@ -2196,6 +2220,7 @@ impl<'a> Sema<'a> {
                                 gdepth: 0,
                                 mangle: None,
                                 is_extern: false,
+                                is_export: false,
                                 parent: Some(d as usize),
                                 nested: BTreeMap::new(),
                                 body: Some(body),
@@ -2240,6 +2265,7 @@ impl<'a> Sema<'a> {
                 gdepth: 0,
                 mangle: None,
                 is_extern: false,
+                is_export: false,
                 parent: Some(d as usize),
                 nested: BTreeMap::new(),
                         body: m.k.default_body.as_ref(),
