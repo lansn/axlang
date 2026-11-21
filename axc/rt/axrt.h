@@ -234,6 +234,9 @@ int64_t ax_now_ms(void);
 ax_str ax_time_to_str(int64_t ms);
 ax_str ax_time_format(int64_t ms, const char* fmt);
 
+/* 毫秒睡眠（对标 C <unistd.h> usleep / Windows Sleep） */
+void ax_time_sleep(int64_t ms);
+
 /* json.Parse 的 result<map<string, object>> 形态（文稿 11.3）：
    ok 携带 ax_map（string → ax_box*），fail 携带解析错误（code=1 + 位置信息）。 */
 typedef struct { uint8_t tag; union { ax_map ok; ax_err err; } u; } ax_res_map;
@@ -258,6 +261,22 @@ int     ax_file_read_line(ax_file* f, ax_str* out);  /* 0=读到一行 1=EOF 或
 int64_t ax_file_write(ax_file* f, ax_str s);         /* >=0 写入字节数，<0 失败 */
 int64_t ax_file_write_line(ax_file* f, ax_str s);    /* 同上，末尾补 '\n' */
 void    ax_file_close(ax_file* f);                   /* 幂等；之后句柄不可再用 */
+
+/* 文件/目录操作（对标 C <stdio.h>/<stdlib.h> remove/rename/mkdir） */
+int     ax_file_remove(ax_str path);                 /* 0=成功 1=失败 */
+int     ax_file_rename(ax_str old_path, ax_str new_path); /* 0=成功 1=失败 */
+int     ax_file_exists(ax_str path);                 /* 1=存在 0=不存在 */
+int     ax_dir_create(ax_str path);                  /* 0=成功 1=失败 */
+
+/* ---------------- os 模块（对标 Go os/stdLib stdlib） ---------------- */
+/* 读环境变量，未设置返回空字符串 */
+ax_str  ax_os_getenv(ax_str name);
+/* 终止进程，对标 C exit() */
+void    ax_os_exit(int code);
+/* 命令行参数：main 包装器会在进入 main 前调用 ax_os_set_args 设置；
+ * ax_os_args 返回 argv[1..] 组成的 ax_arr（元素为 ax_str，浅拷贝）。 */
+void    ax_os_set_args(ax_arr* args);
+ax_arr  ax_os_args(void);
 
 int   ax_parse_i64(ax_str s, int64_t* out);
 int   ax_parse_f64(ax_str s, double* out);

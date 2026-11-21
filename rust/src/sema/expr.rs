@@ -14,6 +14,8 @@ pub fn module_sig(mod_: &str, name: &str) -> Option<(Vec<Option<Ty>>, Ty)> {
     Some(match (mod_, name) {
         ("io", "ReadLine") => (vec![], t(TyS::Nullable(t_string()))),
         ("io", "ReadFile") => (vec![Some(t_string())], t_result(t_string())),
+        ("io", "Write") => (vec![Some(t_string())], t_void()),
+        ("io", "WriteLine") => (vec![Some(t_string())], t_void()),
         ("math", "Equals") => (
             vec![Some(t_float()), Some(t_float()), Some(t_float())],
             t_bool(),
@@ -22,6 +24,16 @@ pub fn module_sig(mod_: &str, name: &str) -> Option<(Vec<Option<Ty>>, Ty)> {
         ("math", "Abs") => (vec![Some(t_float())], t_float()),
         ("math", "Max") => (vec![Some(t_float()), Some(t_float())], t_float()),
         ("math", "Min") => (vec![Some(t_float()), Some(t_float())], t_float()),
+        ("math", "Sqrt") => (vec![Some(t_float())], t_float()),
+        ("math", "Pow") => (vec![Some(t_float()), Some(t_float())], t_float()),
+        ("math", "Exp") => (vec![Some(t_float())], t_float()),
+        ("math", "Log") => (vec![Some(t_float())], t_float()),
+        ("math", "Sin") => (vec![Some(t_float())], t_float()),
+        ("math", "Cos") => (vec![Some(t_float())], t_float()),
+        ("math", "Tan") => (vec![Some(t_float())], t_float()),
+        ("math", "Ceil") => (vec![Some(t_float())], t_float()),
+        ("math", "Floor") => (vec![Some(t_float())], t_float()),
+        ("math", "Round") => (vec![Some(t_float())], t_float()),
         ("json", "Parse") => (
             vec![Some(t_string())],
             t_result(t_map(t_string(), t_object())),
@@ -43,10 +55,24 @@ pub fn module_sig(mod_: &str, name: &str) -> Option<(Vec<Option<Ty>>, Ty)> {
             vec![Some(t_string())],
             t_result(t_named(DefId::Name("File"), Vec::new())),
         ),
+        ("file", "Remove") => (vec![Some(t_string())], t_int()),
+        ("file", "Rename") => (vec![Some(t_string()), Some(t_string())], t_int()),
+        ("file", "Exists") => (vec![Some(t_string())], t_int()),
+        ("file", "Mkdir") => (vec![Some(t_string())], t_int()),
         ("string", "FromCodepoint") => (vec![Some(t_int())], t_result(t_string())),
         ("time", "NowMs") => (vec![], t_int()),
         ("time", "Now") => (vec![], t_named(DefId::Name("time"), Vec::new())),
         ("time", "FromUnixMs") => (vec![Some(t_int())], t_named(DefId::Name("time"), Vec::new())),
+        ("time", "Sleep") => (vec![Some(t_int())], t_void()),
+        /* os 模块 */
+        ("os", "Getenv") => (vec![Some(t_string())], t_string()),
+        ("os", "Exit") => (vec![Some(t_int())], t_void()),
+        ("os", "Args") => (vec![], t_array(t_string(), None)),
+        /* strconv 模块 */
+        ("strconv", "Atoi") => (vec![Some(t_string())], t_int()),
+        ("strconv", "Itoa") => (vec![Some(t_int())], t_string()),
+        ("strconv", "ParseFloat") => (vec![Some(t_string())], t_float()),
+        ("strconv", "FormatFloat") => (vec![Some(t_float())], t_string()),
         _ => return None,
     })
 }

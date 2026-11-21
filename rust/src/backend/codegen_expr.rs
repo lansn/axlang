@@ -1790,6 +1790,15 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                     p = a[0]
                 )
             }
+            ("io", "Write") => {
+                self.emit(format!("ax_write_stdout({});", a[0]));
+                "0".to_string()
+            }
+            ("io", "WriteLine") => {
+                self.emit(format!("ax_write_stdout({});", a[0]));
+                self.emit("ax_write_stdout(AX_S(\"\\n\"));".to_string());
+                "0".to_string()
+            }
             ("math", "Equals") => {
                 format!("(fabs(({}) - ({})) <= ({}))", a[0], a[1], a[2])
             }
@@ -1800,6 +1809,16 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             ("math", "Abs") => format!("(fabs({}))", a[0]),
             ("math", "Max") => format!("(fmax({}, {}))", a[0], a[1]),
             ("math", "Min") => format!("(fmin({}, {}))", a[0], a[1]),
+            ("math", "Sqrt") => format!("(sqrt({}))", a[0]),
+            ("math", "Pow") => format!("(pow({}, {}))", a[0], a[1]),
+            ("math", "Exp") => format!("(exp({}))", a[0]),
+            ("math", "Log") => format!("(log({}))", a[0]),
+            ("math", "Sin") => format!("(sin({}))", a[0]),
+            ("math", "Cos") => format!("(cos({}))", a[0]),
+            ("math", "Tan") => format!("(tan({}))", a[0]),
+            ("math", "Ceil") => format!("(ceil({}))", a[0]),
+            ("math", "Floor") => format!("(floor({}))", a[0]),
+            ("math", "Round") => format!("(round({}))", a[0]),
             ("db", "Query") => {
                 let arg = if a.len() > 1 {
                     a[1].clone()
@@ -1813,9 +1832,33 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             ("file", "Open") => format!("ax_file_open_result({}, 0)", a[0]),
             ("file", "Create") => format!("ax_file_open_result({}, 1)", a[0]),
             ("file", "Append") => format!("ax_file_open_result({}, 2)", a[0]),
+            ("file", "Remove") => format!("ax_file_remove({})", a[0]),
+            ("file", "Rename") => format!("ax_file_rename({}, {})", a[0], a[1]),
+            ("file", "Exists") => format!("ax_file_exists({})", a[0]),
+            ("file", "Mkdir") => format!("ax_dir_create({})", a[0]),
             ("time", "NowMs") => "ax_now_ms()".to_string(),
             ("time", "Now") => "ax_now_ms()".to_string(),
             ("time", "FromUnixMs") => a[0].clone(),
+            ("time", "Sleep") => {
+                self.emit(format!("ax_time_sleep({});", a[0]));
+                "0".to_string()
+            }
+            /* ---------------- os 模块 ---------------- */
+            ("os", "Getenv") => format!("ax_os_getenv({})", a[0]),
+            ("os", "Exit") => {
+                self.emit(format!("ax_os_exit({});", a[0]));
+                "0".to_string()
+            }
+            ("os", "Args") => "ax_os_args()".to_string(),
+            /* ---------------- strconv 模块 ---------------- */
+            ("strconv", "Atoi") => {
+                format!("({{ int64_t v_; ax_parse_i64({}, &v_) ? v_ : 0; }})", a[0])
+            }
+            ("strconv", "Itoa") => format!("ax_str_of_int({})", a[0]),
+            ("strconv", "ParseFloat") => {
+                format!("({{ double v_; ax_parse_f64({}, &v_) ? v_ : 0.0; }})", a[0])
+            }
+            ("strconv", "FormatFloat") => format!("ax_str_of_f64({})", a[0]),
             _ => "0".to_string(),
         }
     }

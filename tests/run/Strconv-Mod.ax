@@ -1,0 +1,22 @@
+// strconv 模块：Atoi / Itoa / ParseFloat / FormatFloat
+import strconv
+
+int main() {
+    int n = strconv.Atoi("123")
+    println(n)
+    int n2 = strconv.Atoi("abc")
+    println(n2)
+
+    string s = strconv.Itoa(456)
+    println(s)
+
+    float f = strconv.ParseFloat("3.14")
+    println("{f}")
+    float f2 = strconv.ParseFloat("xyz")
+    println("{f2}")
+
+    string fs = strconv.FormatFloat(789.5)
+    println(fs)
+
+    return 0
+}

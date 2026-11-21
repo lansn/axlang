@@ -1,0 +1,15 @@
+// os 模块：Getenv / Args / Exit
+import os
+
+int main() {
+    string e = os.Getenv("AX_NONEXISTENT_VAR_12345")
+    if e == "" {
+        println("getenv-empty-ok")
+    } else {
+        println("getenv-empty-fail")
+    }
+    string[] args = os.Args()
+    println("args len={args.Len()}")
+    os.Exit(42)
+    return 0
+}

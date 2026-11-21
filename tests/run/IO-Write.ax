@@ -1,0 +1,11 @@
+// io.Write / io.WriteLine：向 stdout 写入字符串
+import io
+
+int main() {
+    io.WriteLine("hello world")
+    io.WriteLine("")
+    io.WriteLine("第二行")
+    io.Write("第三行：中文测试")
+    io.WriteLine("")
+    return 0
+}

@@ -1409,7 +1409,7 @@ impl<'s, 'a> CodeGen<'s, 'a> {
             "    ax_str s = ax_str_from_cstr(argv[i]);".to_string(),
             "    ax_arr_push(&args, &s, (int64_t)sizeof(ax_str));".to_string(),
             "  }".to_string(),
-            "  (void)args;".to_string(),
+            "  ax_os_set_args(&args);".to_string(),
             format!("  int64_t rc = {};", call),
             "  if (rc < 0) rc = 1;".to_string(),
             "  if (rc > 255) rc = 255;".to_string(),

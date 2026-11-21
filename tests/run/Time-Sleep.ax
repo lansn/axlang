@@ -1,0 +1,15 @@
+// time.Sleep：毫秒睡眠
+import time
+
+int main() {
+    int t0 = time.NowMs()
+    time.Sleep(100)
+    int t1 = time.NowMs()
+    int elapsed = t1 - t0
+    if elapsed >= 90 {
+        println("sleep-ok")
+    } else {
+        println("sleep-fail")
+    }
+    return 0
+}

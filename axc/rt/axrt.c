@@ -13,6 +13,7 @@
 #endif
 #include <windows.h>
 #include <io.h>
+#include <direct.h>
 #else
 #include <sys/time.h>
 #include <pthread.h>
@@ -1940,6 +1941,14 @@ ax_str ax_time_format(int64_t ms, const char* fmt) {
     size_t n = strftime(buf, sizeof buf, f, &tm);
     return ax_str_from_bytes((const uint8_t*)buf, (int64_t)n);
 }
+
+void ax_time_sleep(int64_t ms) {
+#ifdef _WIN32
+    Sleep((DWORD)ms);
+#else
+    if (ms > 0) usleep((useconds_t)(ms * 1000));
+#endif
+}
 int ax_read_line(ax_str* out) {
     size_t cap = 128, len = 0;
     char* buf = (char*)ax_alloc((int64_t)cap);
@@ -2095,6 +2104,67 @@ void ax_file_close(ax_file* f) {
         fclose(f->fp);
         f->fp = NULL;
     }
+}
+
+int ax_file_remove(ax_str path) {
+    /* ax_str 是 const uint8_t*，需要转为 const char* 传给 remove */
+    return remove((const char*)path.p) == 0 ? 0 : 1;
+}
+
+int ax_file_rename(ax_str old_path, ax_str new_path) {
+    return rename((const char*)old_path.p, (const char*)new_path.p) == 0 ? 0 : 1;
+}
+
+int ax_file_exists(ax_str path) {
+    /* 用 fopen 尝试打开，成功则存在 */
+    FILE* fp = fopen((const char*)path.p, "rb");
+    if (fp) {
+        fclose(fp);
+        return 1;
+    }
+    return 0;
+}
+
+int ax_dir_create(ax_str path) {
+#ifdef _WIN32
+    return _mkdir((const char*)path.p) == 0 ? 0 : 1;
+#else
+    return mkdir((const char*)path.p, 0755) == 0 ? 0 : 1;
+#endif
+}
+
+/* ---------------- os 模块 ---------------- */
+
+static int ax_os_path_cstr(ax_str s, char* out, int cap) {
+    if (s.len >= (int64_t)cap) return 0;
+    memcpy(out, s.p, (size_t)s.len);
+    out[s.len] = 0;
+    return 1;
+}
+
+ax_str ax_os_getenv(ax_str name) {
+    char buf[256];
+    if (!ax_os_path_cstr(name, buf, (int)sizeof buf)) return ax_str_empty();
+    return ax_env_utf8(buf);
+}
+
+void ax_os_exit(int code) {
+    exit(code);
+}
+
+/* 命令行参数全局（由 main 包装器在进入用户 main 前设置） */
+static ax_arr g_os_args;
+static int  g_os_args_set = 0;
+
+void ax_os_set_args(ax_arr* args) {
+    if (!g_os_args_set) {
+        g_os_args = *args;      /* 浅拷贝：data 指针由 main 端的 ax_arr 管理 */
+        g_os_args_set = 1;
+    }
+}
+
+ax_arr ax_os_args(void) {
+    return g_os_args;
 }
 
 /* ---------------- arena（区域分配器） ---------------- */

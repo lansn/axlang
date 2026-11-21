@@ -1,0 +1,17 @@
+// math 模块扩展函数：Sqrt/Pow/Exp/Log/Sin/Cos/Tan/Ceil/Floor/Round
+import math
+
+int main() {
+    println("{math.Sqrt(16.0)}")
+    println("{math.Pow(2.0, 10.0)}")
+    println("{math.Exp(1.0)}")
+    println("{math.Log(math.Exp(1.0))}")
+    println("{math.Sin(0.0)}")
+    println("{math.Cos(0.0)}")
+    println("{math.Tan(0.0)}")
+    println("{math.Ceil(3.2)}")
+    println("{math.Floor(3.8)}")
+    println("{math.Round(3.5)}")
+    println("{math.Round(3.4)}")
+    return 0
+}
