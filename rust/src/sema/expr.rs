@@ -19,6 +19,9 @@ pub fn module_sig(mod_: &str, name: &str) -> Option<(Vec<Option<Ty>>, Ty)> {
             t_bool(),
         ),
         ("math", "Compare") => (vec![Some(t_float()), Some(t_float())], t_int()),
+        ("math", "Abs") => (vec![Some(t_float())], t_float()),
+        ("math", "Max") => (vec![Some(t_float()), Some(t_float())], t_float()),
+        ("math", "Min") => (vec![Some(t_float()), Some(t_float())], t_float()),
         ("json", "Parse") => (
             vec![Some(t_string())],
             t_result(t_map(t_string(), t_object())),

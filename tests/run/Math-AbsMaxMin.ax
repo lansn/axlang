@@ -1,0 +1,18 @@
+// math 模块新增函数：Abs / Max / Min（float）
+import math
+
+int main() {
+    println("{math.Abs(5.0)}")
+    println("{math.Abs(-3.0)}")
+    println("{math.Abs(0.0)}")
+    println("{math.Max(1.0, 2.0)}")
+    println("{math.Max(2.0, 1.0)}")
+    println("{math.Max(3.0, 3.0)}")
+    println("{math.Min(1.0, 2.0)}")
+    println("{math.Min(2.0, 1.0)}")
+    println("{math.Min(3.0, 3.0)}")
+    println("{math.Abs(math.Max(-5.0, -3.0))}")
+    println("{math.Max(math.Abs(-10.0), math.Abs(3.0))}")
+    println("{math.Min(math.Abs(-7.0), math.Abs(2.0))}")
+    return 0
+}

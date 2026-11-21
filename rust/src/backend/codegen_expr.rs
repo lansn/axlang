@@ -1797,6 +1797,9 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 "((({0}) < ({1})) ? -1 : ((({0}) > ({1})) ? 1 : 0))",
                 a[0], a[1]
             ),
+            ("math", "Abs") => format!("(fabs({}))", a[0]),
+            ("math", "Max") => format!("(fmax({}, {}))", a[0], a[1]),
+            ("math", "Min") => format!("(fmin({}, {}))", a[0], a[1]),
             ("db", "Query") => {
                 let arg = if a.len() > 1 {
                     a[1].clone()
