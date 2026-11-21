@@ -2419,7 +2419,7 @@ int main() {
 | pure / nothrow | `@pure` / `@nothrow` 属性（置于函数前，不新增关键词） | 编译期副作用/错误行为契约，零运行期开销 |
 | nogc / deprecated | `@nogc` / `@deprecated` 属性（置于函数前，不新增关键词） | `@nogc` 零堆分配静态承诺；`@deprecated` 引用时 W1004 警告，零运行期开销 |
 | 编译期断言 | `const bool _check = 条件;`（条件为 false 即报错，复用 E6016） | 编译期断言，不产出目标代码 |
-| is T | `x is int` / `x is string?` | 编译期类型特征判断，返回 bool |
+| is T | `is(T == Type)` / `is(T : Interface)` / `is(typeof(Expr) == Type)` | 编译期类型查询，返回 `bool` 常量；用于 `const bool` 断言与条件编译 |
 | 循环 | `for i in 0..n { ... }` | 唯一循环，无 while；上界只求值一次，遍历期间不得改长度 |
 | 区间 | `0..n` / `0..=n`；只能用于 `for` 与 `.Step(n)` | 不是值，不能赋给变量、不能传参 |
 | 匹配 | `match x { 1 => ..., _ => ... }` | 强制穷尽，替代 switch |

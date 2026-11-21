@@ -1089,7 +1089,7 @@ impl<'a> Parser<'a> {
             let name = self.expect_ident("函数名")?;
             let generics = self.parse_generics()?;
             if !generics.is_empty() {
-                self.err("E3048", Some(&name), "文稿 15.1", "`extern` 函数不支持泛型", &[]);
+                self.err("E3033", Some(&name), "文稿 15.1", "`extern` 函数不支持泛型", &[]);
             }
             let params = self.parse_params()?;
             self.nl();

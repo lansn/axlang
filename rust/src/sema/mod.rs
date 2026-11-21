@@ -2083,7 +2083,7 @@ impl<'a> Sema<'a> {
                 sorted.sort();
                 sorted.dedup();
                 if sorted.len() != variants.len() {
-                    self.err("E3031", &item.tok, "文稿 6.4", "enum 成员名重复", &[]);
+                    self.err("E3044", &item.tok, "文稿 6.4", "enum 成员名重复", &[]);
                 }
                 self.typedefs[d as usize].variants = variants.clone();
             }
