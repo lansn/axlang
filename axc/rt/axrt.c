@@ -1331,6 +1331,15 @@ void ax_map_clear(ax_map* m) {
     if (m->idxcap) memset(m->idx, 0, (size_t)m->idxcap * sizeof(int32_t));
 }
 
+ax_arr ax_map_keys(ax_map* m) {
+    ax_arr keys;
+    ax_arr_init(&keys);
+    for (int64_t i = 0; i < m->len; i++) {
+        ax_arr_push(&keys, m->entries[i].k, (int64_t)m->ksz);
+    }
+    return keys;
+}
+
 /* ================================================================ 装箱 */
 ax_box* ax_box_new(uint32_t tag, const void* payload, int64_t size) {
     ax_box* b = (ax_box*)ax_alloc((int64_t)sizeof(ax_box));

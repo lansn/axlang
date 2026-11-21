@@ -1,0 +1,5 @@
+65=A
+97=a
+19968=一
+-1-fail=bad codepoint
+0x110000-fail=bad codepoint

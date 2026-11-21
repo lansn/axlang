@@ -1185,6 +1185,7 @@ impl<'a> Sema<'a> {
                     ("Keys", vec![], t_array(k1.clone(), None)),
                     ("Remove", vec![k1.clone()], t_void()),
                     ("Has", vec![k1.clone()], t_bool()),
+                    ("Clear", vec![], t_void()),
                 ])
             }
             TyS::Decimal => Some(vec![

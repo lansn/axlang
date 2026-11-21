@@ -2167,7 +2167,17 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             TyS::Map(kt, vt) => {
                 let kt = kt.clone();
                 let vt = vt.clone();
-                let tv = self.declare(&rt, &rv);
+                // 修改接收者的方法必须作用在左值上（与数组方法保持一致），
+                // 否则改副本不影响原变量。
+                let tv = if matches!(
+                    name.as_str(),
+                    "Remove" | "Clear"
+                ) && Self::is_lvalue(recv)
+                {
+                    format!("({})", rv)
+                } else {
+                    self.declare(&rt, &rv)
+                };
                 match name.as_str() {
                     "Len" => format!("{}.len", tv),
                     "Has" => {
@@ -2189,6 +2199,27 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                             tv, kv, n, vtc
                         ));
                         n
+                    }
+                    "Remove" => {
+                        let kv = self.declare(&kt, &a[0]);
+                        self.emit(format!(
+                            "ax_map_remove(&{}, &{});",
+                            tv, kv
+                        ));
+                        "0".to_string()
+                    }
+                    "Keys" => {
+                        let etc = self.cg.ct(&kt);
+                        let n = self.tmpn();
+                        self.emit(format!(
+                            "ax_arr {} = ax_map_keys(&{});",
+                            n, tv
+                        ));
+                        n
+                    }
+                    "Clear" => {
+                        self.emit(format!("ax_map_clear(&{});", tv));
+                        "0".to_string()
                     }
                     _ => "0".to_string(),
                 }
