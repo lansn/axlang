@@ -1,0 +1,47 @@
+// 数组方法全面测试：Push / Pop / Remove / Clear / ToString / 函数返回数组
+int[] make(int n) {
+    int[] r = []
+    for i in 0..n {
+        r.Push(i * 10)
+    }
+    return r
+}
+
+int main() {
+    // Push：向数组尾部追加元素
+    int[] xs = [1, 2, 3]
+    xs.Push(4)
+    xs.Push(5)
+    println("push len={xs.Len()}")       // 5
+    println("push xs={xs}")              // [1, 2, 3, 4, 5]
+
+    // Pop：弹出尾部元素（返回可空 int?）
+    int? v = xs.Pop()
+    if v != null {
+        println("pop v={v}")             // 5
+    }
+    println("after pop len={xs.Len()}")  // 4
+    println("after pop xs={xs}")         // [1, 2, 3, 4]
+
+    // Remove：移除指定索引元素
+    xs.Remove(1)                         // 移除索引1（值为2）
+    println("after remove len={xs.Len()}")  // 3
+    println("after remove xs={xs}")      // [1, 3, 4]
+
+    // Clear：清空数组
+    xs.Clear()
+    println("after clear len={xs.Len()}")   // 0
+    println("after clear xs={xs}")          // []
+
+    // ToString：数组转字符串
+    int[] ys = [10, 20, 30]
+    string s = ys.ToString()
+    println("tostring={s}")              // [10, 20, 30]
+
+    // 函数返回数组
+    int[] r = make(4)
+    println("make len={r.Len()}")        // 4
+    println("make r={r}")                // [0, 10, 20, 30]
+
+    return 0
+}
