@@ -2344,6 +2344,15 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                     _ => "0".to_string(),
                 }
             }
+            TyS::Range => {
+                let tv = self.declare(&rt, &rv);
+                match name.as_str() {
+                    // Range 以 int64_t 表示，且只能出现在 for 头（parser 已转为 ForKind::Step），
+                    // 作为独立表达式出现时 sema 会拦截（E4007），此分支仅防止 codegen 返回 "0" 占位符。
+                    "Step" => tv,
+                    _ => "0".to_string(),
+                }
+            }
             _ => "0".to_string(),
         }
     }
