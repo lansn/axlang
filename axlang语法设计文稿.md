@@ -276,6 +276,130 @@ axlang 的设计哲学是"关键词少、语法面窄"。每新增一个关键�
 
 *本节为 axlang 语法设计的宪法性条款，后续任何语法新增必须先对照三条铁律，再写进设计文稿。*
 
+### 2.7 关键词全览与设计决策
+
+#### 2.7.1 已收录关键词（共 43 个）
+
+下表为 axlang 当前所有关键词，按功能分组。每个关键词均为完整英文单词或行业通用词，**无一缩写**。
+
+| 分组 | 关键词 | 数量 |
+|------|--------|------|
+| 类型与声明 | `var`, `const`, `class`, `struct`, `interface`, `enum`, `type` | 7 |
+| 继承与实现 | `extend`, `implement`, `override`, `parent` | 4 |
+| 控制流 | `if`, `else`, `for`, `while`, `in`, `match`, `return`, `break`, `continue` | 9 |
+| 错误处理 | `try`, `catch`, `finally`, `throw`, `defer` | 5 |
+| 模块与可见性 | `import`, `public`, `protected`, `private` | 4 |
+| 函数与内存 | `static`, `new`, `as`, `constructor`, `extern`, `unsafe`, `ref` | 7 |
+| 类修饰 | `abstract`, `final` | 2 |
+| 类型判断与字面量 | `is`, `this`, `true`, `false`, `null` | 5 |
+| **合计** | | **43** |
+
+> **内建类型名不是关键词**：`bool`, `int`, `int8`, `int16`, `int32`, `uint`, `uint8`, `uint16`, `uint32`, `float`, `float32`, `decimal`, `string`, `object`, `void`, `result`, `error`, `func`, `map`, `Self`, `range`, `Rounding`, `Arena`, `ArenaRef` 属于标准库根模块内建类型（保留字 `RESERVED_TYPES`），不是 `KEYWORDS` 表中的项，同样遵循“不缩写”规则。
+
+#### 2.7.2 与主流语言关键词数量对比
+
+| 语言 | 关键词数（约） | 标准版本 | 与 ax 相对 |
+|------|---------------|----------|-----------|
+| **ax** | **43** | 自定义 | 基准 |
+| Go | 25 | Go 1.x | ax 多 18 个，但 ax 有泛型、OOP、所有权等 Go 早期缺失特性 |
+| C (C11) | 44 | ISO C11 | 基本持平，但 C 有大量前缀下划线关键字（`_Alignas` 等） |
+| Python 3 | 35~40 | Python 3.11+ | ax 略多，但 Python 有大量内建函数（`len`, `range`, `dict` 等）属于“准关键词” |
+| JavaScript | 30~40 | ES2023 | 基本持平 |
+| Java | 50~53 | Java 21 | ax 少约 7~10 个 |
+| Rust | 40~45 | Rust 2021 | 基本持平 |
+| Swift | 50~60 | Swift 5.x | ax 少约 7~17 个 |
+| Kotlin | 50+ | Kotlin 1.x | ax 少 7 个以上 |
+| TypeScript | 50+ | TS 5.x | ax 少 7 个以上 |
+| C++ | 90+ | C++20 | ax 少约一半以上 |
+| C# | 80+ | C# 12 | ax 少约一半以上 |
+| D | 80+ | D 2.x | ax 少约一半以上 |
+
+**结论：** ax 关键词数处于主流语言的中低位置，远低于 C++、C#、D、Java、Kotlin，略高于 Go。更重要的是，ax 没有“隐藏成本”——没有 `fn`/`impl`/`i32`/`u64` 这类需要预学习的缩写黑话，每个关键词都见名知义。
+
+#### 2.7.3 每个关键词的设计 rationale
+
+| 关键词 | 用途 | 与其他语言对比 | 设计决策 |
+|--------|------|---------------|---------|
+| `var` | 类型推断声明 | 与 C# `var` 同义，仅作推断 | 保留，C 系程序员零学习成本 |
+| `const` | 不可变 / 编译期常量 | 与 C/C# 一致 | 保留，双语义：局部 `const` 不可变；模块级 `const bool _check = ...` 做编译期断言 |
+| `class` | 引用类型，支持继承与多态 | 与 C++/Java/C# 一致 | 保留 |
+| `struct` | 值类型，纯数据聚合，成员默认 public | 与 C/C# 一致 | 保留，与 `class` 职责分离 |
+| `interface` | 纯抽象契约，类可多实现 | 与 Java/C# 一致 | 保留，行业通用词 |
+| `enum` | 枚举类型 | 与 C/C#/Java 一致 | 保留 |
+| `type` | 类型别名 | 与 Go 一致 | 保留 |
+| `extend` | 单继承父类 | 替代 C++/Java 的 `:` / `extends` | 保留，单词即语义，见名知义 |
+| `implement` | 实现一个或多个 interface | 与 Java `implements` 同义 | 保留，与 `extend` 分工清晰：`extend` 继承实现，`implement` 实现契约 |
+| `override` | 显式覆写父类方法 | 与 C# 一致 | 保留，防意外隐藏父类方法 |
+| `parent` | 访问父类构造函数/方法 | Java/C# 用 `super`/`base`，PHP 用 `parent::` | **保留为 `parent`**。理由：对中文使用者，“parent”即“父类”，比拉丁词源的 `super` 更直白；PHP 已有先例；不与 `super`/`base` 同时保留，避免两套写法 |
+| `this` | 当前实例 | 与 C++/Java/C# 一致 | 保留 |
+| `if` / `else` / `for` / `while` / `in` | 控制流 | 与 C 系一致 | 保留，行业通用词 |
+| `match` | 模式匹配 | 与 Rust/Scala 一致 | 保留，代替 C 的 `switch` |
+| `return` | 函数返回 | 与 C 系一致 | 保留 |
+| `break` / `continue` | 循环控制 | 与 C 系一致 | 保留 |
+| `try` / `catch` / `finally` | 错误处理 | 与 Java/C# 一致 | 保留，与 `result<T>` 共存：可恢复错误走 `result`，不可恢复的程序 bug 直接终止进程 |
+| `throw` | 抛出错误 | 与 C++/Java/C# 一致 | 保留，但不跳栈、无析构，与 axlang 无 GC、确定性释放一致 |
+| `defer` | 作用域退出清理 | 与 Go 一致 | 保留，覆盖 `try/finally` 的绝大多数场景（文件关闭、锁释放） |
+| `import` | 模块导入 | 与 Python/Java 一致 | 保留 |
+| `public` / `protected` / `private` | 可见性 | 与 Java/C# 一致 | 保留，`protected` 仅修饰类成员 |
+| `static` | 静态方法/字段 | 与 C++/Java/C# 一致 | 保留 |
+| `new` | 堆分配 / 类实例化 | 与 C++/Java/C# 一致 | 保留，`@nogc` 属性可静态承诺函数体内不出现 `new` |
+| `as` | 模块别名（`import a as b`） | 与 Python 一致 | 保留，**只保留这一个用途**，类型转换统一为 `T(x)`，避免两套写法 |
+| `constructor` | 构造函数 | 与类初始化对应 | 保留，命名构造 `constructor.Name` 支持多入口 |
+| `extern` | 外部 C 函数声明 | 与 C++ 一致 | 保留，FFI 零成本调用 C 库 |
+| `unsafe` | 标记不安全代码块 | 与 C#/Rust 一致 | 保留，审计友好 |
+| `ref` | 按引用传参 / 按引用返回 | 与 C++ 引用、C# `ref` 一致 | **保留，必要**。axlang 是系统级语言，性能敏感场景需要零拷贝的引用语义。`ref` 既可作参数（`ref int x`），也可作返回类型（`ref int f()`），C 层生成指针，零运行期开销 |
+| `abstract` | 抽象类 / 抽象方法 | 与 Java/C# 一致 | 保留，零新增关键词（复用现有） |
+| `final` | final 类（禁止继承） | 与 Java 一致 | 保留，与 `finally` 语义不同，不合并 |
+| `is` | 编译期类型判断 | 与 D 类似，但 axlang 更简化 | 保留，`is(T == U)` / `is(T : Interface)` 等 |
+| `true` / `false` / `null` | 布尔与空字面量 | 与 C 系一致 | 保留 |
+
+#### 2.7.4 `final` 与 `finally` 不合并的理由
+
+| 关键词 | 语法位置 | 语义 | 示例 |
+|--------|----------|------|------|
+| `final` | 类修饰符，出现在 `class` 之前 | 该类禁止被继承 | `final class Foo { }` |
+| `finally` | 语句块，出现在 `try/catch` 之后 | 无论是否抛错都执行的清理块 | `try { } catch { } finally { }` |
+
+- `final` 是**类级修饰符**，`finally` 是**语句级关键字**，语法位置完全不同，合并会导致解析歧义。
+- axlang 已有 `defer`，它在作用域退出时逆序执行清理，可覆盖 `try/finally` 的绝大多数场景。`finally` 保留主要是为了与主流异常处理模式兼容。
+
+#### 2.7.5 `ref` 的存在理由
+
+axlang 定位系统级编程，对性能敏感场景（实时交易、嵌入式片段）需要：
+
+1. **按引用传参**：避免大型结构体/数组不必要的拷贝，函数内修改直接影响调用方。
+2. **按引用返回**：C 层返回指针，调用方自动解引用，零拷贝访问容器元素。
+
+`ref` 显式标记引用语义，比隐式引用更安全、更易于推理，符合 axlang“编译期保证，运行期零开销”的设计。
+
+#### 2.7.6 收词标准（宁缺不滥）
+
+同一含义只留一个词：
+
+- 有同义词的不收：`super` 归 `parent`、`self` 归 `this`
+- 纯语法糖、能换行解决的不收：`where`
+- 能靠已有符号表达的就不造词：成员访问 `.`、类型转换 `T(x)`、取模 `%`
+- **新关键词只在“没有现成符号能表达该语义”时才考虑**
+
+#### 2.7.7 零新增关键词原则的落地
+
+| D 语言优点 | D 语言做法（需新增关键词） | axlang 做法（零新增关键词） |
+|------------|---------------------------|---------------------------|
+| 纯函数 | `pure` 关键词 | `@pure` 属性 |
+| 不抛异常 | `nothrow` 关键词 | `@nothrow` 属性 |
+| 零 GC 承诺 | `@nogc` 关键词/属性 | `@nogc` 属性（复用 `@` 机制） |
+| 函数已弃用 | `@deprecated` 属性 | `@deprecated` 属性（复用 `@` 机制） |
+| 编译期断言 | `static assert` 关键词 | `const bool _check = 条件;`（复用 `const`） |
+| 编译期类型判断 | `__traits`, `is` 等 | `is T` 已保留，无需 `__traits` |
+| 作用域退出清理 | `scope(exit)` 关键词 | `defer` 已有，覆盖该场景 |
+| 单元测试 | `unittest` 关键词 | 交给外部测试框架（`runtests.py` 驱动器，非编译器关键字） |
+| 模板/混合 | `template`, `mixin` 关键词 | **明确不支持**（闭包与模板元编程成本过高，不符合易学原则） |
+| 不可变修饰符 | `immutable` 独立关键词 | **不引入**，复用 `const` |
+
+**建议：** 关键词冻结。不再向 `KEYWORDS` 列表添加任何新项。所有新特性走属性路径（`@` 机制），或复用现有关键词。
+
+---
+
 
 
 ### 3.1 源文件
