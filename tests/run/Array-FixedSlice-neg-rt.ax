@@ -1,0 +1,9 @@
+// 定长数组切片：运行期越界（非常量下标绕过编译期检查，触发 R101）
+int main() {
+    int[5] xs = [10, 20, 30, 40, 50]
+    int lo = 4
+    int hi = 6
+    int[] a = xs[lo..hi]
+    println("a len={a.Len()}")
+    return 0
+}
