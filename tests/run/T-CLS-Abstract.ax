@@ -1,0 +1,23 @@
+// 类：abstract class 与 abstract 方法
+abstract class Shape {
+    public float R
+    constructor(float r) {
+        this.R = r
+    }
+    public abstract float Area();
+}
+
+class Circle extend Shape {
+    constructor(float r) {
+        parent(r)
+    }
+    public override float Area() {
+        return 3.14159 * this.R * this.R
+    }
+}
+
+int main() {
+    Circle c = new Circle(5.0)
+    println("area={c.Area():.2}")
+    return 0
+}

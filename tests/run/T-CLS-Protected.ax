@@ -1,0 +1,22 @@
+// 类：protected 可见性
+class Base {
+    protected int Secret
+    constructor(int s) {
+        this.Secret = s
+    }
+}
+
+class Child extend Base {
+    constructor(int s) {
+        parent(s)
+    }
+    public int Reveal() {
+        return this.Secret
+    }
+}
+
+int main() {
+    Child c = new Child(42)
+    println("secret={c.Reveal()}")
+    return 0
+}

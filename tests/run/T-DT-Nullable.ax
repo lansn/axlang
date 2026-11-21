@@ -1,0 +1,16 @@
+// 数据类型：T? 可空类型
+int main() {
+    int? a = null
+    int? b = 100
+    if a != null {
+        println("a has value")
+    } else {
+        println("a is null")
+    }
+    if b != null {
+        println("b={b}")
+    }
+    int c = b ?? 0
+    println("c={c}")
+    return 0
+}

@@ -1,0 +1,10 @@
+// 数据类型：object 任意值
+int main() {
+    object o = 42
+    int n = o
+    println("object={n}")
+    object s = "hello"
+    string str = s
+    println("objstr={str}")
+    return 0
+}

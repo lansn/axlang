@@ -1,0 +1,7 @@
+import mymath.{Add, PI}
+
+int main() {
+    println("add = {Add(2, 3)}")
+    println("PI = {PI}")
+    return 0
+}

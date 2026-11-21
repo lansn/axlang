@@ -1,0 +1,9 @@
+// EXPECT: E3048
+// 类：非 abstract 类不可声明 abstract 方法
+class Concrete {
+    public abstract void Bar();
+}
+
+int main() {
+    return 0
+}

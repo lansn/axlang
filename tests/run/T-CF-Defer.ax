@@ -1,0 +1,8 @@
+// 控制流：defer 确定性释放
+int main() {
+    println("start")
+    defer println("defer 1")
+    defer println("defer 2")
+    println("end")
+    return 0
+}

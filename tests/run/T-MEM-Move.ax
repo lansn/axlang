@@ -1,0 +1,19 @@
+// 内存安全：move 语义与重新赋值复活
+class Buf {
+    public int N
+    constructor(int n) {
+        this.N = n
+    }
+    public void Write(string s) {
+        this.N = this.N + s.Len()
+    }
+}
+
+int main() {
+    var b = new Buf(8)
+    var c = b
+    b = new Buf(4)
+    b.Write("xy")
+    println("b.N={b.N}")
+    return 0
+}

@@ -1,0 +1,7 @@
+// EXPECT: E2005
+// 控制流：if 缺少 else 作表达式应报 E2005
+int main() {
+    int x = 10
+    int y = if x > 5 { 1 }
+    return 0
+}

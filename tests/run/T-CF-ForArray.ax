@@ -1,0 +1,10 @@
+// 控制流：for 集合循环（数组）
+int main() {
+    int[] xs = [10, 20, 30]
+    int sum = 0
+    for x in xs {
+        sum = sum + x
+    }
+    println("array sum={sum}")
+    return 0
+}

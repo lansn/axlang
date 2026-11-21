@@ -1,0 +1,9 @@
+// EXPECT: E3030
+// 尝试使用私有符号 helper，应报 E3030
+import priv
+
+int main() {
+    int r = priv.Helper(5)
+    println("r={r}")
+    return 0
+}

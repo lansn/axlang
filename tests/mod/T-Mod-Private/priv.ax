@@ -1,0 +1,8 @@
+// 私有模块：只有 Add 是 public，helper 是私有
+public int Add(int a, int b) {
+    return a + b
+}
+
+int Helper(int x) {
+    return x * 2
+}

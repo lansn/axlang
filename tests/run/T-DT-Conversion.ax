@@ -1,0 +1,9 @@
+// 数据类型：类型转换 T(x)
+int main() {
+    int a = 100
+    float b = float(a)
+    int c = int(b)
+    decimal d = decimal(10)
+    println("float={b} int32={c} decimal={d}")
+    return 0
+}

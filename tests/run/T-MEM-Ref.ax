@@ -1,0 +1,23 @@
+// 内存安全：ref 参数与返回值
+void swap(ref int a, ref int b) {
+    int tmp = a
+    a = b
+    b = tmp
+}
+
+ref int refRet(&int[] xs, int i) {
+    return xs[i]
+}
+
+int main() {
+    int x = 10
+    int y = 20
+    swap(x, y)
+    println("swap: x={x} y={y}")
+
+    int[] arr = [100, 200, 300]
+    int r = refRet(arr, 1)
+    arr = [100, 200, 300]
+    println("refRet: arr[1]={arr[1]} r={r}")
+    return 0
+}

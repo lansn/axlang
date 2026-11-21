@@ -1,0 +1,19 @@
+// 错误处理：throw 语句
+result<int> Check(int v) {
+    if v < 0 {
+        throw error.Invalid("negative value")
+    }
+    return ok(v)
+}
+
+int main() {
+    match Check(5) {
+        ok(v) => println("ok={v}"),
+        fail(e) => println("fail: {e.msg}"),
+    }
+    match Check(-1) {
+        ok(v) => println("ok={v}"),
+        fail(e) => println("fail: {e.msg}"),
+    }
+    return 0
+}

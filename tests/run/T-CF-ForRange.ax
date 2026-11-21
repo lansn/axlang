@@ -1,0 +1,9 @@
+// 控制流：for 区间循环
+int main() {
+    int sum = 0
+    for i in 1..=5 {
+        sum = sum + i
+    }
+    println("sum 1..5={sum}")
+    return 0
+}

@@ -1,0 +1,16 @@
+// 类：struct 值类型（已有 Struct-1，这里测试嵌套）
+struct Point {
+    int X
+    int Y
+}
+
+struct Rect {
+    Point TL
+    Point BR
+}
+
+int main() {
+    Rect r = Rect(Point(0, 0), Point(10, 10))
+    println("rect={r.TL.X},{r.TL.Y} {r.BR.X},{r.BR.Y}")
+    return 0
+}

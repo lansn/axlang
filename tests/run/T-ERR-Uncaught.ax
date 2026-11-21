@@ -1,0 +1,13 @@
+// 错误处理：未捕获的 try 后缀失败导致非零退出
+result<string> Divide(int a, int b) {
+    if b == 0 {
+        throw error.Invalid("divide by zero")
+    }
+    return ok("{a}/{b} = {a / b}")
+}
+
+int main() {
+    var r = Divide(10, 0) try
+    println("result={r}")
+    return 0
+}

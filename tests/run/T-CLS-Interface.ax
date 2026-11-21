@@ -1,0 +1,22 @@
+// 类：接口 implement
+interface Drawable {
+    void Draw()
+}
+
+class Rect implement Drawable {
+    public int W
+    public int H
+    constructor(int w, int h) {
+        this.W = w
+        this.H = h
+    }
+    public override void Draw() {
+        println("draw rect {this.W}x{this.H}")
+    }
+}
+
+int main() {
+    Rect r = new Rect(10, 20)
+    r.Draw()
+    return 0
+}

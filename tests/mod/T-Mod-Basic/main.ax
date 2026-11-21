@@ -1,0 +1,19 @@
+import utils
+import utils as u
+import net.http
+
+int main() {
+    int s = utils.Add(2, 3)
+    println("add = {s}")
+    println("MAX = {utils.MAX}")
+    println("double = {utils.DoubleIt(21)}")
+
+    utils.Calc c = utils.Calc(5)
+    println("twice = {c.Twice()}")
+    utils.Calc z = utils.Calc.Zero()
+    println("zero base = {z.Base}")
+
+    println("alias add = {u.Add(1, 1)}")
+    println("http get = {http.Get()}")
+    return 0
+}

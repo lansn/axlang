@@ -1,0 +1,13 @@
+// 泛型：泛型函数值
+int apply<T>(T x, func(T) int f) {
+    return f(x)
+}
+
+int doubleIt(int v) {
+    return v * 2
+}
+
+int main() {
+    println("apply={apply(42, doubleIt)}")
+    return 0
+}

@@ -1,0 +1,12 @@
+// 类：static 方法
+class MathUtil {
+    public static int Add(int a, int b) {
+        return a + b
+    }
+}
+
+int main() {
+    int r = MathUtil.Add(3, 4)
+    println("add={r}")
+    return 0
+}

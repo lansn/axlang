@@ -1,0 +1,10 @@
+// math 模块：公开和私有符号
+public int Add(int a, int b) {
+    return a + b
+}
+
+public const int PI = 3
+
+int SecretValue() {
+    return 42
+}

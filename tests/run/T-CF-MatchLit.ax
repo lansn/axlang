@@ -1,0 +1,11 @@
+// 控制流：match 字面量模式
+int main() {
+    int x = 3
+    match x {
+        1 => println("one"),
+        2 => println("two"),
+        3 => println("three"),
+        _ => println("other"),
+    }
+    return 0
+}

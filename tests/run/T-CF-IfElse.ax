@@ -1,0 +1,17 @@
+// 控制流：if/else 语句
+int main() {
+    int x = 10
+    if x > 5 {
+        println("big")
+    } else {
+        println("small")
+    }
+    if x < 5 {
+        println("tiny")
+    } else if x > 20 {
+        println("huge")
+    } else {
+        println("medium")
+    }
+    return 0
+}

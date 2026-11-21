@@ -1,0 +1,18 @@
+// 类：class 基本声明与实例化
+class User {
+    public int Id
+    public string Name
+    constructor(int id, string name) {
+        this.Id = id
+        this.Name = name
+    }
+    public string Describe() {
+        return "User({this.Id}, {this.Name})"
+    }
+}
+
+int main() {
+    User u = new User(1, "axlang")
+    println(u.Describe())
+    return 0
+}

@@ -1,0 +1,10 @@
+// 数据类型：bool 布尔
+int main() {
+    bool x = true
+    bool y = false
+    bool z = x && y
+    bool w = x || y
+    bool n = !x
+    println("and={z} or={w} not={n}")
+    return 0
+}

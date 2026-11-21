@@ -1,0 +1,23 @@
+// 泛型：泛型类与泛型 struct
+class Box<T> {
+    public T Value
+    constructor(T v) { this.Value = v }
+    public T Get() {
+        return this.Value
+    }
+}
+
+struct Pair<T> {
+    T First
+    T Second
+}
+
+int main() {
+    Box<int> b = new Box(42)
+    println("box={b.Get()}")
+    Box<string> sb = new Box("文本")
+    println("sbox={sb.Get()}")
+    Pair<int> p = Pair(1, 2)
+    println("pair={p.First}+{p.Second}={p.First + p.Second}")
+    return 0
+}

@@ -1,0 +1,20 @@
+// 数据类型：int 基本运算
+int main() {
+    int a = 10
+    int b = 3
+    int c = a + b
+    int d = a - b
+    int e = a * b
+    int f = a / b
+    int g = a % b
+    int h = -a
+    println("add={c} sub={d} mul={e} div={f} mod={g} neg={h}")
+    bool lt = a < b
+    bool le = a <= b
+    bool gt = a > b
+    bool ge = a >= b
+    bool eq = a == b
+    bool ne = a != b
+    println("lt={lt} le={le} gt={gt} ge={ge} eq={eq} ne={ne}")
+    return 0
+}

@@ -1,0 +1,19 @@
+// 错误处理：match ok/fail 分类处理
+result<string> Divide(int a, int b) {
+    if b == 0 {
+        throw error.Invalid("divide by zero")
+    }
+    return ok("{a}/{b} = {a / b}")
+}
+
+int main() {
+    match Divide(10, 2) {
+        ok(v) => println("ok: {v}"),
+        fail(e) => println("fail: {e.msg}"),
+    }
+    match Divide(10, 0) {
+        ok(v) => println("ok: {v}"),
+        fail(e) => println("fail: {e.msg}"),
+    }
+    return 0
+}

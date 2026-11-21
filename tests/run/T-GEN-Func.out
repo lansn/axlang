@@ -1,0 +1,4 @@
+max(1,2)=2
+max(100,42)=100
+max<string>=banana
+pair=头|尾
