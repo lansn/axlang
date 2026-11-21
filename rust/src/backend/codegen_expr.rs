@@ -2389,13 +2389,14 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 ));
             }
             _ => {
+                let okv = self.tmpn();
                 self.emit(format!(
-                    "ax_dec {0} = ax_dec_from_i64(0); int ok_ = 0; {0} = ax_dec_parse({1}, &ok_);",
-                    ov, s
+                    "ax_dec {0} = ax_dec_from_i64(0); int {2} = 0; {0} = ax_dec_parse({1}, &{2});",
+                    ov, s, okv
                 ));
                 self.emit(format!(
-                    "if (ok_) {{ {0}.tag = 1; {0}.u.ok = {1}; }} else {{ {0}.tag = 0; {0}.u.err = ax_err_new(2, AX_S(\"parse failed\")); }}",
-                    n, ov
+                    "if ({2}) {{ {0}.tag = 1; {0}.u.ok = {1}; }} else {{ {0}.tag = 0; {0}.u.err = ax_err_new(2, AX_S(\"parse failed\")); }}",
+                    n, ov, okv
                 ));
             }
         }
