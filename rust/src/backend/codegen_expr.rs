@@ -2513,11 +2513,9 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 let et = et.clone();
                 match &index.k {
                     Expr::Range { lo, hi, inclusive } => {
-                        // 数组切片 m[lo..hi] / m[lo..=hi] → 生成一个新的 ax_arr 指向子范围
-                        // 仅支持动态数组（len.is_none()）；定长数组切片留待后续
-                        if len.is_some() {
-                            return "0".to_string();
-                        }
+                        // 数组切片 m[lo..hi] / m[lo..=hi] → 生成一个新的 ax_arr
+                        // 动态数组：浅层共享底层数据（零复制）
+                        // 定长数组 T[N]：深度复制到堆内存（避免悬垂指针，符合值语义）
                         let m = self.hoist(recv, &rt);
                         let lo_c = self.gen(lo, None, false, false);
                         let hi_c = self.gen(hi, None, false, false);
@@ -2530,22 +2528,58 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                         } else {
                             hi_var.clone()
                         };
+                        let slice_len = format!("({} - {})", eff_hi, lo_var);
+                        let pa = self.pos_args(&e.tok);
+
+                        // 运行期边界检查：动态数组用 m.len，定长数组用编译期常数 n
+                        let bound_check = match &len {
+                            Some(n) => {
+                                format!("({} < 0 || {} > {})", lo_var, eff_hi, n)
+                            }
+                            None => format!("({} < 0 || {} > ({}).len)", lo_var, eff_hi, m),
+                        };
                         self.emit(format!(
-                            "ax_arr {}; ax_arr_init(&{});",
-                            slice_var, slice_var
+                            "if ({}) ax_trap(R_INDEX, {}, {}, {}, \"slice out of range\");",
+                            bound_check, pa, pa, pa
                         ));
-                        self.emit(format!(
-                            "{}.data = (uint8_t*)({}).data + (int64_t){} * (int64_t)sizeof({});",
-                            slice_var, m, lo_var, etc
-                        ));
-                        self.emit(format!(
-                            "{}.len = {} - {};",
-                            slice_var, eff_hi, lo_var
-                        ));
-                        self.emit(format!(
-                            "{}.cap = {} - {};",
-                            slice_var, eff_hi, lo_var
-                        ));
+
+                        if len.is_some() {
+                            // 定长数组 T[N]：深度复制到堆（ax_alloc + 逐元素复制）
+                            // 避免栈上数组销毁后悬垂，符合值语义
+                            self.emit(format!(
+                                "ax_arr {}; ax_arr_init(&{});",
+                                slice_var, slice_var
+                            ));
+                            self.emit(format!(
+                                "{}.data = ax_alloc((int64_t){} * (int64_t)sizeof({}));",
+                                slice_var, slice_len, etc
+                            ));
+                            self.emit(format!(
+                                "{}.len = {}; {}.cap = {};",
+                                slice_var, slice_len, slice_var, slice_len
+                            ));
+                            // 逐元素复制，避免 memcpy 的指针类型问题。
+                            // 定长数组在 C 层是 `typedef struct { T v[N]; } axfix_<name>;`，
+                            // 数据字段是 `.v[N]`，直接下标访问即可（m 已由 hoist 落为左值变量）。
+                            self.emit(format!(
+                                "for (int64_t i_ = 0; i_ < {}; i_++) {{ (({}*){}.data)[i_] = {}.v[{} + i_]; }}",
+                                slice_len, etc, slice_var, m, lo_var
+                            ));
+                        } else {
+                            // 动态数组 T[]：浅层共享底层数据（零复制）
+                            self.emit(format!(
+                                "ax_arr {}; ax_arr_init(&{});",
+                                slice_var, slice_var
+                            ));
+                            self.emit(format!(
+                                "{}.data = (uint8_t*)({}).data + (int64_t){} * (int64_t)sizeof({});",
+                                slice_var, m, lo_var, etc
+                            ));
+                            self.emit(format!(
+                                "{}.len = {}; {}.cap = {};",
+                                slice_var, slice_len, slice_var, slice_len
+                            ));
+                        }
                         return format!("{}", slice_var);
                     }
                     _ => {}
