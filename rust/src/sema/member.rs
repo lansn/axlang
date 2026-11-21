@@ -428,22 +428,13 @@ impl<'a> Sema<'a> {
             match &index.k {
                 Expr::Range { lo, hi, inclusive } => {
                     // 数组切片 m[lo..hi] / m[lo..=hi] → 返回动态数组 T[]
+                    // 仅支持动态数组；定长数组切片留待后续 codegen 实现
+                    if len.is_some() {
+                        self.err("E4001", &index.tok, "S-1", "定长数组切片暂不支持，请先转为动态数组 T[]", &[]);
+                        return t_array(et.clone(), None);
+                    }
                     self.check_expr(lo, Some(&t_int()));
                     self.check_expr(hi, Some(&t_int()));
-                    // 定长数组的常量边界检查
-                    if let Some(n) = len {
-                        if let Expr::IntLit { value: lo_val, .. } = &lo.k {
-                            if *lo_val < 0 || *lo_val >= *n {
-                                self.err("E4005", &lo.tok, "S-1", "定长数组长度为 {0}，切片下标 {1} 越界（合法范围 0..{2}）", &[&n, &lo_val, &(n - 1)]);
-                            }
-                        }
-                        if let Expr::IntLit { value: hi_val, .. } = &hi.k {
-                            let eff_hi = if *inclusive { *hi_val + 1 } else { *hi_val };
-                            if eff_hi < 0 || eff_hi > *n {
-                                self.err("E4005", &hi.tok, "S-1", "定长数组长度为 {0}，切片结束下标 {1} 越界（合法范围 0..{2}）", &[&n, &eff_hi, &n]);
-                            }
-                        }
-                    }
                     return t_array(et.clone(), None);
                 }
                 _ => {
