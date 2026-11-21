@@ -1175,12 +1175,12 @@ impl<'a> Sema<'a> {
             && matches!(&*src, TyS::Func(..))
             && self.ty_contains_param(&src)
         {
-            let (f, fname, module, generics, params, ret, vis, is_static, is_override, body, owner, parent) = {
+            let (f, fname, module, generics, params, ret, vis, is_static, is_override, is_nogc, is_deprecated, body, owner, parent) = {
                 if let Some(Res::Func(fid)) = self.sl(node.id).res.clone() {
                     let fi = &self.funcs[fid];
                     if fi.generics.is_empty() {
                         // 非泛型函数不走此分支
-                        (0, String::new(), String::new(), Vec::new(), Vec::new(), t_void(), String::new(), false, false, None, None, None)
+                        (0, String::new(), String::new(), Vec::new(), Vec::new(), t_void(), String::new(), false, false, false, false, None, None, None)
                     } else {
                         (
                             fid,
@@ -1192,13 +1192,15 @@ impl<'a> Sema<'a> {
                             fi.vis.clone(),
                             fi.is_static,
                             fi.is_override,
+                            fi.is_nogc,
+                            fi.is_deprecated,
                             fi.body,
                             fi.owner,
                             fi.parent,
                         )
                     }
                 } else {
-                    (0, String::new(), String::new(), Vec::new(), Vec::new(), t_void(), String::new(), false, false, None, None, None)
+                    (0, String::new(), String::new(), Vec::new(), Vec::new(), t_void(), String::new(), false, false, false, false, None, None, None)
                 }
             };
 
@@ -1272,10 +1274,12 @@ impl<'a> Sema<'a> {
                                     is_static,
                                     is_override,
                                     is_abstract: false,
-                                    is_pure: self.funcs[f].is_pure,
-                                    is_nothrow: self.funcs[f].is_nothrow,
-                                    is_ref_return: self.funcs[f].is_ref_return,
-                                    body,
+                                is_pure: self.funcs[f].is_pure,
+                                is_nothrow: self.funcs[f].is_nothrow,
+                                is_ref_return: self.funcs[f].is_ref_return,
+                                is_nogc: is_nogc,
+                                is_deprecated: is_deprecated,
+                                body,
                                     implicit: false,
                                     gdepth: depth,
                                     mangle: Some(mangle.clone()),

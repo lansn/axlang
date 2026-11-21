@@ -299,7 +299,7 @@ impl<'a> Lexer<'a> {
                     self.emit("ATTR", TokVal::Text(name), i0, k);
                     self.i = k;
                 } else {
-                    self.err("E2001", "`@` 后必须是属性名（`@os` 或 `@arch`）", i0, i0 + 1, "L-23", &[]);
+                    self.err("E2001", "`@` 后必须是属性名（如 `@os`、`@arch`、`@pure`、`@nothrow`、`@nogc`、`@deprecated`）", i0, i0 + 1, "L-23", &[]);
                     self.i += 1;
                 }
                 continue;

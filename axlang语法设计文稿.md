@@ -338,7 +338,7 @@ if price > 0
   - **成员名一律 PascalCase（硬约束，`E3043`）**：方法、静态方法、接口方法、字段、枚举成员——只要出现在 `.` 右侧，就首字母大写、不含下划线：`s.Len()`、`user.UserId`、`Shape.Area()`、`Color.Red`。写错即报错并点名正确拼写（`read` → `Read`、`min_qty` → `MinQty`）。这一档不适用下一条的宽容，理由是成员只有一个语法位置：位置唯一，拼法就必须唯一，否则同一个 `.` 上会有两套写法（`io.ReadLine()` 旁边站着 `s.read()`）。C# 的做法正是把公开成员（含属性）写成 PascalCase，靠 `[JsonPropertyName]` 之类把外部的 `user_id` 映射进来，而不是让成员名跟着外部走。`constructor` 是关键字不是成员名，不受此限；将来若引入 FFI / `extern` 绑定声明，C 侧字段名另开一条窄口子豁免。
   - **其余用户侧命名只推荐**：类型、模块级函数推荐 PascalCase（`Session`、`Config`、`CheckEmail`、`DoubleIt`）；局部变量与参数写 `snake_case` 或 `camelCase` 均可（`user_id` / `userId`）；常量推荐全大写蛇形（`MAX_RETRY`）。这些是**文档推荐与代码评审的依据，编译器不检查、不报错、不警告**。
   - 上面几条里，内建类型名、裸调用函数名、`.` 右侧的成员名是**语法级硬约束**：标准库与内建的拼写就是名字本身——`Len` 不是 `len` 的驼峰版，`len` 就是个不存在的名字（反过来 `s.len()` 也不存在）。分界依据是 2.2 第 3 判据：标准库名字可枚举（几百个），统一成本为零且必须统一，否则用户猜不出拼写；用户代码里"可自由取名"的部分（类型、函数、变量）几十万个、各有所好，编译器无从裁决，强制只会让 C/Python/Rust 程序员集体改肌肉记忆，而收益只是"好看一点"；用户自己写的**成员**不在此列——它不是一个可以随便叫的名字，而是某个语法位置上唯一允许的写法（写成 `read` 就报 `E3043`）。风格上仍推荐：**内建裸函数全小写（`print`）、凡带 `.` 的成员 PascalCase（`io.ReadLine`）、用户类型与函数也 PascalCase（`Session` / `CheckEmail`）**。
-  - 单独的 `_` 不是标识符（保留给 `match` 通配模式）；`@` 不属于标识符字符，`@name(...)` 是编译期属性语法，只允许 `@os` / `@arch`（见 9.3）。
+  - 单独的 `_` 不是标识符（保留给 `match` 通配模式）；`@` 不属于标识符字符，`@name(...)` 是编译期属性语法，只允许 `@os` / `@arch` / `@pure` / `@nothrow` / `@nogc` / `@deprecated`（见 9.3）。
 - 保留关键字（全部，共 37 个）：
 
 ```
@@ -851,6 +851,41 @@ int safe_div(int a, int b) { // 不抛错误：不抛出异常/result
 - `@nothrow` 函数：不抛出任何错误（不 `throw`、`try` 调用可能失败的函数、不调用可能抛错的函数）。编译期检查：`@nothrow` 函数体内不得抛错，也不得调用非 `@nothrow` 的会抛错函数。
 - 两个属性可组合：连续书写 `@pure @nothrow int f(...)`。
 - 目前为编译期契约，运行时不额外开销（零成本抽象）。
+
+### 5.5 `@nogc` 函数属性
+
+参考 D 语言的 `@nogc`，函数可通过 `@nogc` 属性承诺函数体内零堆分配，**不新增关键词**（复用已有的 `@` 属性机制）：
+
+```ax
+@nogc
+int add(int a, int b) {       // 体内不出现 new 表达式，零堆分配承诺
+    return a + b
+}
+```
+
+规则：
+
+- `@nogc` 函数体内不得出现 `new` 表达式（包括 `new T()`、`new ClassName(...)`、`new int[...]` 等所有形式的堆分配）。
+- 编译期检查：若当前函数标记 `@nogc` 且体内遇到 `new` 表达式，报 `E6017`。
+- ax 本来无 GC，`@nogc` 作为静态承诺，零运行期开销，主要用于确定性性能敏感代码（如实时交易、嵌入式片段）。
+- 可与 `@pure`、`@nothrow` 组合：`@pure @nogc int f(...)`。
+
+### 5.6 `@deprecated` 函数属性
+
+函数可通过 `@deprecated` 属性标记为已弃用，**不新增关键词**（复用已有的 `@` 属性机制）：
+
+```ax
+@deprecated
+int old_func(int x) {         // 已弃用，建议迁移至 new_func
+    return x * 2
+}
+```
+
+规则：
+
+- 引用 `@deprecated` 函数时，编译期发出 `W1004` 警告（函数已弃用），但不阻止编译，程序可正常运行。
+- 警告仅提示，不改变语义，用于平滑迁移旧 API。
+- 可与其他属性组合：`@deprecated @nogc int f(...)`。
 
 ---
 
@@ -2240,6 +2275,7 @@ int main() {
 | ref 参数 | `void f(ref int a)` / `ref const int a` | 按引用传递，C 层为指针；写入通过 `(*ptr)=...`，调用传 `&var` |
 | ref 返回值 | `ref int f() { return x; }` | C 层为 `T*` 返回，调用方自动解引用 |
 | pure / nothrow | `@pure` / `@nothrow` 属性（置于函数前，不新增关键词） | 编译期副作用/错误行为契约，零运行期开销 |
+| nogc / deprecated | `@nogc` / `@deprecated` 属性（置于函数前，不新增关键词） | `@nogc` 零堆分配静态承诺；`@deprecated` 引用时 W1004 警告，零运行期开销 |
 | 编译期断言 | `const bool _check = 条件;`（条件为 false 即报错，复用 E6016） | 编译期断言，不产出目标代码 |
 | is T | `x is int` / `x is string?` | 编译期类型特征判断，返回 bool |
 | 循环 | `for i in 0..n { ... }` | 唯一循环，无 while；上界只求值一次，遍历期间不得改长度 |

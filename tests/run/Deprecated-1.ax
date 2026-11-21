@@ -1,0 +1,11 @@
+// @deprecated：函数已弃用，引用时发 W1004 警告
+@deprecated
+int old_func(int x) {
+    return x * 2
+}
+
+int main() {
+    int r = old_func(21)
+    println("old_func(21)={r}")
+    return 0
+}

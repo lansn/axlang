@@ -339,6 +339,10 @@ pub struct FuncInfo<'a> {
     pub is_nothrow: bool,
     /// D 语言风格：ref 返回值，按引用返回
     pub is_ref_return: bool,
+    /// @nogc：函数体内零堆分配（不出现 `new` 表达式），ax 本来无 GC，此处作为静态承诺
+    pub is_nogc: bool,
+    /// @deprecated：函数已弃用，引用时发 W1004 警告
+    pub is_deprecated: bool,
     pub body: Option<&'a ast::Block>,
     /// 隐式 `main`：入口文件的顶层语句包出来的（文稿 9.4）
     pub implicit: bool,
@@ -760,6 +764,8 @@ impl<'a> Sema<'a> {
                 is_pure: false,
                 is_nothrow: false,
                 is_ref_return: false,
+                is_nogc: false,
+                is_deprecated: false,
                 body: None,
                 implicit: false,
                 gdepth: 0,
@@ -1424,6 +1430,8 @@ impl<'a> Sema<'a> {
         // 从属性中读取 pure/nothrow 标记（@pure / @nothrow）
         let is_pure = attrs.iter().any(|a| a.name == "pure");
         let is_nothrow = attrs.iter().any(|a| a.name == "nothrow");
+        let is_nogc = attrs.iter().any(|a| a.name == "nogc");
+        let is_deprecated = attrs.iter().any(|a| a.name == "deprecated");
         let f = FuncInfo {
             name: reg.clone(),
             tok: item.tok.clone(),
@@ -1442,6 +1450,8 @@ impl<'a> Sema<'a> {
             is_pure,
             is_nothrow,
             is_ref_return,
+            is_nogc,
+            is_deprecated,
             body: Some(body),
             implicit,
             gdepth: 0,
@@ -1494,6 +1504,8 @@ impl<'a> Sema<'a> {
             is_pure: false,
             is_nothrow: false,
             is_ref_return: false,
+            is_nogc: false,
+            is_deprecated: false,
             body: None,
             implicit: false,
             gdepth: 0,
@@ -2129,6 +2141,8 @@ impl<'a> Sema<'a> {
                                 is_pure: false,
                                 is_nothrow: false,
                                 is_ref_return: false,
+                                is_nogc: false,
+                                is_deprecated: false,
                                 implicit: false,
                                 gdepth: 0,
                                 mangle: None,
@@ -2171,6 +2185,8 @@ impl<'a> Sema<'a> {
                                 is_pure: false,
                                 is_nothrow: false,
                                 is_ref_return: false,
+                                is_nogc: false,
+                                is_deprecated: false,
                                 implicit: false,
                                 gdepth: 0,
                                 mangle: None,
@@ -2213,6 +2229,8 @@ impl<'a> Sema<'a> {
                         is_pure: false,
                         is_nothrow: false,
                         is_ref_return: false,
+                        is_nogc: false,
+                        is_deprecated: false,
                         implicit: false,
                 gdepth: 0,
                 mangle: None,

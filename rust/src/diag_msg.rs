@@ -477,6 +477,8 @@ pub static CATALOG: &[(&str, &str, &str)] = &[
     ("E6014", "`nothrow` 函数 `{0}` 内不能 `throw`", "`nothrow` function `{0}` cannot `throw`"),
     ("E6015", "`pure` 函数 `{0}` 不能调用非纯函数 `{1}`", "`pure` function `{0}` cannot call non-pure function `{1}`"),
     ("E6016", "编译期断言失败：{0}", "compile-time assert failed: {0}"),
+    ("E6017", "`@nogc` 函数 `{0}` 内不得出现 `new` 表达式（堆分配）；`@nogc` 承诺函数体内零堆分配", "`@nogc` function `{0}` must not contain `new` expressions (heap allocation)"),
+    ("W1004", "符号 `{0}` 已弃用（`@deprecated`），建议不再使用", "symbol `{0}` is deprecated (`@deprecated`), consider not using it anymore"),
     ("E7001", "`{0}` 已被移走，此处不可再用（重新赋一个值可复活）", "`{0}` has been moved and can no longer be used here (assign it a new value to revive it)"),
     ("E7002", "同一语句内对 `{0}` 有多个借用（至少一个是可变的）", "multiple borrows of `{0}` within one statement (at least one is mutable)"),
     ("E7003", "借用不能作为返回值、赋给变量或存入容器（借用逃逸，`&` 不是一等值）", "borrow cannot escape: return, assign to variable, or store in container"),

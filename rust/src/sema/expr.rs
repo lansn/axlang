@@ -286,6 +286,8 @@ impl<'a> Sema<'a> {
                     is_pure: false,
                     is_nothrow: false,
                     is_ref_return: false,
+                    is_nogc: false,
+                    is_deprecated: false,
                     implicit: false,
                 gdepth: 0,
                 mangle: None,
@@ -794,31 +796,47 @@ impl<'a> Sema<'a> {
         }
         if let Some(&f) = self.qual_lookup(&self.func_by_name, name) {
             let f: usize = f;
-            let (vis, module) = {
+            let (vis, module, is_deprecated, params, ret) = {
                 let fi = &self.funcs[f];
-                (fi.vis.clone(), fi.module.clone())
+                (
+                    fi.vis.clone(),
+                    fi.module.clone(),
+                    fi.is_deprecated,
+                    fi.params.clone(),
+                    fi.ret.clone(),
+                )
             };
             if vis != "public" && module != self.cur_mod_path {
                 self.err("E3013", &e.tok, "N-8", "`{0}` 不是 public，不能跨模块使用", &[&name]);
             }
             self.sl(e.id).res = Some(Res::Func(f));
-            let fi = &self.funcs[f];
-            return t_fn(fi.params.iter().map(|p| p.1.clone()).collect(), fi.ret.clone());
+            if is_deprecated {
+                self.warn("W1004", &e.tok, "文稿 9.3", "符号 `{0}` 已弃用（`@deprecated`），建议不再使用", &[&name]);
+            }
+            return t_fn(params.iter().map(|p| p.1.clone()).collect(), ret);
         }
         // 具名导入兜底：`import m.{f}` 之后裸 `f` 也要能解析；多模块同名时报 E3045（文稿 9.2，#15）。
         else if let Some(canon) = self.named_import_canon(name, &e.tok) {
             if let Some(&f) = self.func_by_name.get(&format!("{}__{}", canon, name)) {
                 let f: usize = f;
-                let (vis, module) = {
+                let (vis, module, is_deprecated, params, ret) = {
                     let fi = &self.funcs[f];
-                    (fi.vis.clone(), fi.module.clone())
+                    (
+                        fi.vis.clone(),
+                        fi.module.clone(),
+                        fi.is_deprecated,
+                        fi.params.clone(),
+                        fi.ret.clone(),
+                    )
                 };
                 if vis != "public" && module != self.cur_mod_path {
                     self.err("E3013", &e.tok, "N-8", "`{0}` 不是 public，不能跨模块使用", &[&name]);
                 }
                 self.sl(e.id).res = Some(Res::Func(f));
-                let fi = &self.funcs[f];
-                return t_fn(fi.params.iter().map(|p| p.1.clone()).collect(), fi.ret.clone());
+                if is_deprecated {
+                    self.warn("W1004", &e.tok, "文稿 9.3", "符号 `{0}` 已弃用（`@deprecated`），建议不再使用", &[&name]);
+                }
+                return t_fn(params.iter().map(|p| p.1.clone()).collect(), ret);
             }
         }
         if let Some(d) = self.lookup_type_name(name, &e.tok) {
@@ -1652,6 +1670,8 @@ impl<'a> Sema<'a> {
                         is_pure: fi.is_pure,
                         is_nothrow: fi.is_nothrow,
                         is_ref_return: fi.is_ref_return,
+                        is_nogc: fi.is_nogc,
+                        is_deprecated: fi.is_deprecated,
                         body: fi.body,
                         implicit: false,
                         gdepth: depth,
@@ -2020,7 +2040,7 @@ impl<'a> Sema<'a> {
         // 方法 / ctor：签名替换，体共享 AST，入队按实例重查
         let mut methods = tmpl.methods.clone();
         for (mn, fid) in tmpl.methods.iter() {
-            let (fname, ftok, fmod, fparams, fret, fvis, fstatic, foverride, fbody, fpure, fnothrow, frefret) = {
+            let (fname, ftok, fmod, fparams, fret, fvis, fstatic, foverride, fbody, fpure, fnothrow, frefret, fnogc, fdeprecated) = {
                 let fi = &self.funcs[*fid];
                 (
                     fi.name.clone(),
@@ -2035,6 +2055,8 @@ impl<'a> Sema<'a> {
                     fi.is_pure,
                     fi.is_nothrow,
                     fi.is_ref_return,
+                    fi.is_nogc,
+                    fi.is_deprecated,
                 )
             };
             let mut params = fparams;
@@ -2060,6 +2082,8 @@ impl<'a> Sema<'a> {
                 is_pure: fpure,
                 is_nothrow: fnothrow,
                 is_ref_return: frefret,
+                is_nogc: fnogc,
+                is_deprecated: fdeprecated,
                 body: fbody,
                 implicit: false,
                 gdepth: depth,
@@ -2077,7 +2101,7 @@ impl<'a> Sema<'a> {
         }
         let mut ctors = HashMap::new();
         for (cname, &cf) in &tmpl.ctors {
-            let (fname, ftok, fmod, fparams, fret, fvis, fstatic, foverride, fbody, fpure, fnothrow, frefret) = {
+            let (fname, ftok, fmod, fparams, fret, fvis, fstatic, foverride, fbody, fpure, fnothrow, frefret, fnogc, fdeprecated) = {
                 let fi = &self.funcs[cf];
                 (
                     fi.name.clone(),
@@ -2092,6 +2116,8 @@ impl<'a> Sema<'a> {
                     fi.is_pure,
                     fi.is_nothrow,
                     fi.is_ref_return,
+                    fi.is_nogc,
+                    fi.is_deprecated,
                 )
             };
             let mut params = fparams;
@@ -2115,6 +2141,8 @@ impl<'a> Sema<'a> {
                 is_pure: fpure,
                 is_nothrow: fnothrow,
                 is_ref_return: frefret,
+                is_nogc: fnogc,
+                is_deprecated: fdeprecated,
                 body: fbody,
                 implicit: false,
                 gdepth: depth,
@@ -2505,6 +2533,20 @@ impl<'a> Sema<'a> {
     }
 
     fn check_new(&mut self, e: &ast::EPtr, expected: Option<&Ty>) -> Ty {
+        // @nogc：函数体内不得出现 `new` 表达式（堆分配）
+        if let Some(f) = self.current_func {
+            if self.funcs[f].is_nogc {
+                let fname = self.funcs[f].name.clone();
+                self.err(
+                    "E6017",
+                    &e.tok,
+                    "文稿 9.3",
+                    "`@nogc` 函数 `{0}` 内不得出现 `new` 表达式（堆分配）",
+                    &[&fname],
+                );
+                return t_object();
+            }
+        }
         let (path, args) = match &e.k {
             Expr::New { path, args } => (path, args),
             _ => unreachable!(),

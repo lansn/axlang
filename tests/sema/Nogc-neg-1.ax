@@ -1,0 +1,12 @@
+// EXPECT: E6017
+// @nogc 函数内不得出现 new 表达式
+@nogc
+int bad() {
+    object o = new object()
+    return 0
+}
+
+int main() {
+    bad()
+    return 0
+}

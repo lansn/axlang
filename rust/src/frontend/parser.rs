@@ -306,8 +306,8 @@ impl<'a> Parser<'a> {
         let mut attrs: Vec<Attr> = Vec::new();
         while self.at("ATTR") {
             let t = self.advance();
-            if t.text() != "os" && t.text() != "arch" && t.text() != "pure" && t.text() != "nothrow" {
-                self.err("E3029", Some(&t), "L-23", "未知属性 `@{0}`（只支持 @os、@arch、@pure、@nothrow）", &[&t.text()]);
+            if t.text() != "os" && t.text() != "arch" && t.text() != "pure" && t.text() != "nothrow" && t.text() != "nogc" && t.text() != "deprecated" {
+                self.err("E3029", Some(&t), "L-23", "未知属性 `@{0}`（只支持 @os、@arch、@pure、@nothrow、@nogc、@deprecated）", &[&t.text()]);
             }
             let mut args = Vec::new();
             if self.accept("(").is_some() {
