@@ -143,6 +143,7 @@ void  ax_arr_remove(ax_arr* a, int64_t i, int64_t esz, const char* f, int l, int
 void  ax_arr_clear(ax_arr* a);
 void  ax_arr_from(void* out, const void* src, int64_t n, int64_t esz);
 ax_arr ax_arr_of(const void* src, int64_t n, int64_t esz);
+int   ax_arr_eq(const ax_arr* a, const ax_arr* b, int64_t esz);
 
 /* ---------------- map（Rt-8，插入序） ---------------- */
 typedef struct { uint64_t hash; void* k; void* v; } ax_mentry;

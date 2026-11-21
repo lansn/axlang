@@ -1171,6 +1171,18 @@ void ax_arr_remove(ax_arr* a, int64_t i, int64_t esz, const char* f, int l, int 
 
 void ax_arr_clear(ax_arr* a) { a->len = 0; }
 
+int ax_arr_eq(const ax_arr* a, const ax_arr* b, int64_t esz) {
+    if (a->len != b->len) return 0;
+    if (a->len == 0) return 1;
+    if (a->data == NULL || b->data == NULL) return a->data == b->data;
+    for (int64_t i = 0; i < a->len; i++) {
+        const void* pa = (const uint8_t*)a->data + i * esz;
+        const void* pb = (const uint8_t*)b->data + i * esz;
+        if (memcmp(pa, pb, (size_t)esz) != 0) return 0;
+    }
+    return 1;
+}
+
 /* ================================================================ map */
 static uint64_t hash_bytes(const uint8_t* p, int64_t n) {
     uint64_t h = 0x811C9DC5u;

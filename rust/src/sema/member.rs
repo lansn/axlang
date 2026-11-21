@@ -425,16 +425,40 @@ impl<'a> Sema<'a> {
             }
             vt.clone()
         } else if let TyS::Array(et, len) = &*rt {
-            let it = self.check_expr(index, Some(&t_int()));
-            if !is_int(&it) {
-                self.err("E4009", &index.tok, "文稿 3.3", "数组下标必须是 int，得到 {0}", &[&self.ts(&it)]);
-            }
-            if let (Some(n), Expr::IntLit { value, .. }) = (len, &index.k) {
-                if *value < 0 || *value >= *n {
-                    self.err("E4005", &index.tok, "S-1", "定长数组长度为 {0}，常量下标 {1} 越界（合法范围 0..{2}）", &[&n, &value, &(n - 1)]);
+            match &index.k {
+                Expr::Range { lo, hi, inclusive } => {
+                    // 数组切片 m[lo..hi] / m[lo..=hi] → 返回动态数组 T[]
+                    self.check_expr(lo, Some(&t_int()));
+                    self.check_expr(hi, Some(&t_int()));
+                    // 定长数组的常量边界检查
+                    if let Some(n) = len {
+                        if let Expr::IntLit { value: lo_val, .. } = &lo.k {
+                            if *lo_val < 0 || *lo_val >= *n {
+                                self.err("E4005", &lo.tok, "S-1", "定长数组长度为 {0}，切片下标 {1} 越界（合法范围 0..{2}）", &[&n, &lo_val, &(n - 1)]);
+                            }
+                        }
+                        if let Expr::IntLit { value: hi_val, .. } = &hi.k {
+                            let eff_hi = if *inclusive { *hi_val + 1 } else { *hi_val };
+                            if eff_hi < 0 || eff_hi > *n {
+                                self.err("E4005", &hi.tok, "S-1", "定长数组长度为 {0}，切片结束下标 {1} 越界（合法范围 0..{2}）", &[&n, &eff_hi, &n]);
+                            }
+                        }
+                    }
+                    return t_array(et.clone(), None);
+                }
+                _ => {
+                    let it = self.check_expr(index, Some(&t_int()));
+                    if !is_int(&it) {
+                        self.err("E4009", &index.tok, "文稿 3.3", "数组下标必须是 int，得到 {0}", &[&self.ts(&it)]);
+                    }
+                    if let (Some(n), Expr::IntLit { value, .. }) = (len, &index.k) {
+                        if *value < 0 || *value >= *n {
+                            self.err("E4005", &index.tok, "S-1", "定长数组长度为 {0}，常量下标 {1} 越界（合法范围 0..{2}）", &[&n, &value, &(n - 1)]);
+                        }
+                    }
+                    et.clone()
                 }
             }
-            et.clone()
         } else if matches!(&*rt, TyS::Str) {
             self.err("E4006", &e.tok, "文稿 11.2", "string 不支持 `s[i]`；请用 `s.at(i)`（返回 string?）或 `s[i..j]` 之外的切片方法", &[]);
             t_string()

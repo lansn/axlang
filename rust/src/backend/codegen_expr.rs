@@ -830,6 +830,21 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 "<" | "<=" | ">" | ">=" => format!("(ax_str_cmp({}, {}) {} 0)", a, b, op),
                 _ => format!("({} {} {})", a, op, b),
             },
+            TyS::Array(et, _) => match op {
+                "==" => format!(
+                    "ax_arr_eq(&{}, &{}, (int64_t)sizeof({}))",
+                    a,
+                    b,
+                    self.cg.ct(&et.clone())
+                ),
+                "!=" => format!(
+                    "(!ax_arr_eq(&{}, &{}, (int64_t)sizeof({})))",
+                    a,
+                    b,
+                    self.cg.ct(&et.clone())
+                ),
+                _ => format!("({} {} {})", a, op, b),
+            },
             // 实现 Comparable 的类（文稿 7.1）：`a > b` 按 `a.compare(b) > 0`
             TyS::Named(DefId::Id(d), _) if matches!(op, "<" | "<=" | ">" | ">=") => {
                 let mut cur = Some(*d);
@@ -2496,6 +2511,45 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             }
             TyS::Array(et, len) => {
                 let et = et.clone();
+                match &index.k {
+                    Expr::Range { lo, hi, inclusive } => {
+                        // 数组切片 m[lo..hi] / m[lo..=hi] → 生成一个新的 ax_arr 指向子范围
+                        // 仅支持动态数组（len.is_none()）；定长数组切片留待后续
+                        if len.is_some() {
+                            return "0".to_string();
+                        }
+                        let m = self.hoist(recv, &rt);
+                        let lo_c = self.gen(lo, None, false, false);
+                        let hi_c = self.gen(hi, None, false, false);
+                        let lo_var = self.declare(&t_int(), &lo_c);
+                        let hi_var = self.declare(&t_int(), &hi_c);
+                        let etc = self.cg.ct(&et);
+                        let slice_var = self.tmpn();
+                        let eff_hi = if *inclusive {
+                            format!("({} + 1)", hi_var)
+                        } else {
+                            hi_var.clone()
+                        };
+                        self.emit(format!(
+                            "ax_arr {}; ax_arr_init(&{});",
+                            slice_var, slice_var
+                        ));
+                        self.emit(format!(
+                            "{}.data = (uint8_t*)({}).data + (int64_t){} * (int64_t)sizeof({});",
+                            slice_var, m, lo_var, etc
+                        ));
+                        self.emit(format!(
+                            "{}.len = {} - {};",
+                            slice_var, eff_hi, lo_var
+                        ));
+                        self.emit(format!(
+                            "{}.cap = {} - {};",
+                            slice_var, eff_hi, lo_var
+                        ));
+                        return format!("{}", slice_var);
+                    }
+                    _ => {}
+                }
                 if len.is_some() {
                     let (a, deref) = self.recv_c(recv);
                     let idx = self.gen(index, None, false, false);
@@ -2510,7 +2564,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 let etc = self.cg.ct(&et);
                 let pa = self.pos_args(&e.tok);
                 format!(
-                    "*({0}*)ax_arr_at(&{1}, {2}, (int64_t)sizeof({0}), {3})",
+                    "(*({0}*)ax_arr_at(&{1}, {2}, (int64_t)sizeof({0}), {3}))",
                     etc, m, iv, pa
                 )
             }
