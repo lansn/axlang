@@ -1,0 +1,17 @@
+// if 作为表达式（设计文稿 §6.1）
+int main() {
+    int x = 5
+    int sign = if x >= 0 { 1 } else { -1 }
+    println("sign={sign}")
+
+    int a = 10
+    int b = 20
+    int max = if a > b { a } else { b }
+    println("max={max}")
+
+    bool flag = true
+    string msg = if flag { "yes" } else { "no" }
+    println("msg={msg}")
+
+    return 0
+}

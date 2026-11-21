@@ -1,0 +1,29 @@
+// match 作为表达式（设计文稿 §6.3）
+enum Status {
+    Ok, Error, Pending
+}
+
+string describe(Status s) {
+    return match s {
+        Status.Ok => "成功",
+        Status.Error => "失败",
+        Status.Pending => "处理中"
+    }
+}
+
+int main() {
+    println(describe(Status.Ok))
+    println(describe(Status.Error))
+    println(describe(Status.Pending))
+
+    int n = 3
+    string label = match n {
+        1 => "一",
+        2 => "二",
+        3 => "三",
+        _ => "其他"
+    }
+    println("label={label}")
+
+    return 0
+}
