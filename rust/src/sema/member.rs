@@ -1294,6 +1294,10 @@ impl<'a> Sema<'a> {
             self.check_pattern(&arm.pat, &st, &mut seen_variants, &mut seen_lits, has_wild);
             if matches!(arm.pat.k, ast::Pat::Wild | ast::Pat::Bind { .. }) {
                 has_wild = true;
+            } else if let ast::Pat::Multi { pats } = &arm.pat.k {
+                if pats.iter().any(|p| matches!(&p.k, ast::Pat::Wild | ast::Pat::Bind { .. })) {
+                    has_wild = true;
+                }
             }
             let t = self.check_expr(&arm.body, expected);
             // 注意：不能把臂值类型写回 `arm.pat.id`——类型模式（`Dog d`）已在
@@ -1517,6 +1521,17 @@ impl<'a> Sema<'a> {
                     return;
                 }
                 self.declare(name, st.clone(), false, &p.tok);
+            }
+            ast::Pat::Multi { pats } => {
+                for sp in pats {
+                    match &sp.k {
+                        ast::Pat::Bind { .. } | ast::Pat::Type { .. } | ast::Pat::Result { .. } => {
+                            self.err("E4001", &sp.tok, "文稿 5.3", "多值模式 `a,b,c =>` 中不允许绑定模式（`{0} x`、`ok(x)`、`类型 x`）", &[&sp.tok.text()]);
+                        }
+                        _ => {}
+                    }
+                    self.check_pattern(sp, st, seen_variants, seen_lits, has_wild);
+                }
             }
         }
     }

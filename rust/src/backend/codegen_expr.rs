@@ -2630,6 +2630,26 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                             .unwrap_or(0);
                         self.emit(format!("case {}: {{", idx));
                     }
+                    Pat::Multi { pats } => {
+                        let enum_pats: Vec<&ast::N<ast::Pat>> = pats
+                            .iter()
+                            .filter(|sp| matches!(&sp.k, ast::Pat::Enum { .. }))
+                            .collect();
+                        if !enum_pats.is_empty() {
+                            for sp in &enum_pats {
+                                if let ast::Pat::Enum { variant, .. } = &sp.k {
+                                    let idx = d
+                                        .as_ref()
+                                        .and_then(|td| td.variants.iter().position(|v| v == variant))
+                                        .unwrap_or(0);
+                                    self.emit(format!("case {}: ", idx));
+                                }
+                            }
+                            self.emit("{".to_string());
+                        } else {
+                            self.emit("default: {".to_string());
+                        }
+                    }
                     _ => {
                         self.emit("default: {".to_string());
                     }
@@ -2712,6 +2732,17 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             Pat::Wild | Pat::Bind { .. } => None,
             // enum 分支走 switch，不进 if 链
             Pat::Enum { .. } => None,
+            Pat::Multi { pats } => {
+                let conds: Vec<String> = pats
+                    .iter()
+                    .filter_map(|sp| self.pat_cond(sp, sv, st))
+                    .collect();
+                if conds.is_empty() {
+                    None
+                } else {
+                    Some(conds.join(" || "))
+                }
+            }
             Pat::Lit { expr } => {
                 let lit = self.gen(expr, None, false, false);
                 if matches!(&**st, TyS::Str) {
@@ -2811,6 +2842,9 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             Pat::Bind { name } => {
                 let stc = self.cg.ct(st);
                 self.emit(format!("{} {} = {};", stc, self.lv(name), sv));
+            }
+            Pat::Multi { .. } => {
+                // 多值模式不绑定变量（子模式仅限非绑定模式）
             }
             _ => {}
         }

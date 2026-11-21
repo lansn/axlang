@@ -1,0 +1,50 @@
+// match 多值替代模式：1,3,6 => （文稿 5.3 扩展）
+enum Status {
+    Ok, Error, Pending
+}
+
+string status_name(Status s) {
+    return match s {
+        Status.Ok, Status.Pending => "正常或处理中",
+        Status.Error => "失败",
+    }
+}
+
+string tag_name(string t) {
+    return match t {
+        "a", "b", "c" => "small",
+        "x", "y", "z" => "large",
+        _ => "other",
+    }
+}
+
+int num_group(int n) {
+    return match n {
+        1, 3, 5, 7, 9 => 1,
+        2, 4, 6, 8, 10 => 2,
+        _ => 0,
+    }
+}
+
+int main() {
+    println(status_name(Status.Ok))
+    println(status_name(Status.Pending))
+    println(status_name(Status.Error))
+
+    println(tag_name("a"))
+    println(tag_name("b"))
+    println(tag_name("c"))
+    println(tag_name("x"))
+    println(tag_name("y"))
+    println(tag_name("z"))
+    println(tag_name("q"))
+
+    println(num_group(1))
+    println(num_group(2))
+    println(num_group(3))
+    println(num_group(4))
+    println(num_group(5))
+    println(num_group(99))
+
+    return 0
+}

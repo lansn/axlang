@@ -1,6 +1,6 @@
 # axlang 编译器实现规格书（AI 执行版）
 
-> 版本：v0.27　配套：`axlang语法设计文稿.md` v0.49
+> 版本：v0.28　配套：`axlang语法设计文稿.md` v0.50
 > 读者：具备代码生成能力的 AI（及人类实现者）
 > 用途：**唯一目的**是从零产出可运行的 `axc` 编译器（词法 → 语法 → 语义 → 代码生成 → 运行时）
 > 本文件不是语言设计稿，不新增任何语言特性；语言事实一律以文稿为准
@@ -441,7 +441,7 @@ assign_op     = '=' | '+=' | '-=' | '*=' | '/=' | '%=' ;
 if_expr       = 'if' expr block [ 'else' ( if_expr | block ) ] ;
 
 match_expr    = 'match' expr '{' match_arm { ',' match_arm } [ ',' ] '}' ;
-match_arm     = pattern '=>' expr ;
+match_arm     = pattern { ',' pattern } '=>' expr ;
 
 pattern       = literal
               | range_pat
@@ -653,6 +653,7 @@ literal       = INT_LIT | FLOAT_LIT | DECIMAL_LIT | TEMPLATE_LIT
 | `TypePat` | `ty: TypeAst`, `bind: Ident` |
 | `Wild` | — |
 | `Bind` | `name: Ident` |
+| `Multi` | `pats: Vec<PatAst>`（多值替代 `a,b,c =>`，子模式仅限非绑定模式） |
 
 ### 5.2 每个节点必须携带的语义槽（sema 填写，codegen 只读）
 

@@ -380,6 +380,9 @@ pub enum Pat {
     Type { ty: TPtr, bind: String },
     Wild,
     Bind { name: String },
+    /// 多值替代模式：`1,3,6 =>` 表示任意一个匹配即可
+    /// 子模式仅限非绑定模式（Lit / Range / Enum / Wild），不含 Bind/Type/Result
+    Multi { pats: Vec<N<Pat>> },
 }
 
 // ---------------------------------------------------------------- dump
@@ -733,6 +736,9 @@ fn dump_pat(p: &N<Pat>) -> String {
         Pat::Type { ty, bind } => format!("{} {}", ex_ty(ty), bind),
         Pat::Wild => "_".to_string(),
         Pat::Bind { name } => name.clone(),
+        Pat::Multi { pats } => {
+            pats.iter().map(dump_pat).collect::<Vec<_>>().join(",")
+        }
     }
 }
 

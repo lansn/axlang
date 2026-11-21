@@ -1647,6 +1647,28 @@ impl<'a> Parser<'a> {
 
     fn parse_pattern(&mut self) -> PResult<N<Pat>> {
         let t = self.tok(0).clone();
+        let first = self.parse_single_pattern()?;
+        // 多值替代：`1,3,6 =>` 表示任意一个匹配即可
+        if self.accept(",").is_some() {
+            let mut pats = vec![first];
+            loop {
+                self.nl();
+                if self.at("=>") || self.at("}") || self.at("EOF") {
+                    break;
+                }
+                pats.push(self.parse_single_pattern()?);
+                if self.accept(",").is_none() {
+                    break;
+                }
+            }
+            return Ok(self.nn(t, Pat::Multi { pats }));
+        }
+        Ok(first)
+    }
+
+    /// 解析单个模式（不含逗号分隔的多值）
+    fn parse_single_pattern(&mut self) -> PResult<N<Pat>> {
+        let t = self.tok(0).clone();
         if self.at("_") {
             self.advance();
             return Ok(self.nn(t, Pat::Wild));
