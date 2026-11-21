@@ -988,6 +988,25 @@ impl<'a> Sema<'a> {
             Some(ret.clone())
         };
         let t = self.check_expr(value, exp.as_ref());
+        // E7010：ref 返回函数不得返回局部变量的引用（会悬垂，局部变量随函数结束而释放）
+        if let Some(f) = self.current_func {
+            if self.funcs[f].is_ref_return {
+                if let Expr::Path { segs, .. } = &value.k {
+                    if let Some(v) = self.lookup_var(&segs[0]) {
+                        let vi = v.borrow();
+                        if !vi.is_param {
+                            self.err(
+                                "E7010",
+                                &value.tok,
+                                "O-10",
+                                "返回局部变量 `{0}` 的引用会悬垂（局部变量随函数结束而释放）",
+                                &[&vi.name],
+                            );
+                        }
+                    }
+                }
+            }
+        }
         // O-18：ArenaRef 不能作为返回值逃出函数
         if matches!(&*t, TyS::ArenaRef(_)) {
             self.err(
