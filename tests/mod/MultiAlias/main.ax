@@ -1,0 +1,7 @@
+import verylongname as vln
+
+int main() {
+    println("vln.VALUE={vln.VALUE}")
+    println("vln.greet()={vln.greet()}")
+    return 0
+}

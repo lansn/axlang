@@ -1,0 +1,9 @@
+// EXPECT: E3045
+// 两个模块通过具名导入引入同名符号 X，产生歧义
+import a.{X}
+import b.{X}
+
+int main() {
+    println(X)
+    return 0
+}

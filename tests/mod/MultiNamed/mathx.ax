@@ -1,0 +1,13 @@
+public const int LIMIT = 100
+
+public int square(int x) {
+    return x * x
+}
+
+public int cube(int x) {
+    return x * x * x
+}
+
+int secret(int x) {
+    return -x
+}

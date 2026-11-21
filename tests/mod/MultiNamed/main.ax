@@ -1,0 +1,8 @@
+import mathx.{square, cube, LIMIT}
+
+int main() {
+    println("limit={LIMIT}")
+    println("square(5)={square(5)}")
+    println("cube(3)={cube(3)}")
+    return 0
+}

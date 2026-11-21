@@ -1,0 +1,16 @@
+// 字符串边界测试：空字符串、单字符
+int main() {
+    string empty = ""
+    string single = "a"
+    string normal = "hello"
+
+    println("empty len={empty.Len()}")
+    println("single len={single.Len()}")
+    println("normal len={normal.Len()}")
+
+    println("empty==\"\"={empty == ""}")
+    println("single==\"a\"={single == "a"}")
+    println("normal!=single={normal != single}")
+
+    return 0
+}
