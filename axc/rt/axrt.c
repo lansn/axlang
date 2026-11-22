@@ -2370,6 +2370,27 @@ ax_str ax_filepath_ext(ax_str path) {
     return ax_str_slice_cp(path, dot, path.len);
 }
 
+/* 分割路径为 [dir, base] 数组（对标 Go filepath.Split） */
+ax_arr ax_filepath_split(ax_str path) {
+    ax_arr arr;
+    ax_arr_init(&arr);
+    int64_t pos = ax_filepath_last_sep(path);
+    ax_str dir, base;
+    if (pos < 0) {
+        dir = ax_str_from_cstr(".");
+        base = path;
+    } else if (pos == 0) {
+        dir = ax_str_from_cstr(AX_FILEPATH_SEP);
+        base = ax_str_slice_cp(path, 1, path.len);
+    } else {
+        dir = ax_str_slice_cp(path, 0, pos);
+        base = ax_str_slice_cp(path, pos + 1, path.len);
+    }
+    ax_arr_push(&arr, &dir, (int64_t)sizeof(ax_str));
+    ax_arr_push(&arr, &base, (int64_t)sizeof(ax_str));
+    return arr;
+}
+
 /* ---------------- arena（区域分配器） ---------------- */
 struct ax_arena {
     void**  items;
