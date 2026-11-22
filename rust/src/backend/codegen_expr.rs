@@ -1875,6 +1875,9 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 )
             }
             ("file", "WriteAll") => format!("ax_file_write_all({}, {})", a[0], a[1]),
+            ("file", "Chmod") => format!("ax_file_chmod({}, {})", a[0], a[1]),
+            ("file", "Chtimes") => format!("ax_file_chtimes({}, {}, {})", a[0], a[1], a[2]),
+            ("file", "TempFile") => format!("ax_file_tempfile({}, {})", a[0], a[1]),
             ("time", "NowMs") => "ax_now_ms()".to_string(),
             ("time", "Now") => "ax_now_ms()".to_string(),
             ("time", "FromUnixMs") => a[0].clone(),

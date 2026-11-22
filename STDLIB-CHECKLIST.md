@@ -189,9 +189,9 @@
 | `file.IsFile` | `(path: string) -> int` | Go `os.Stat`+`Mode().IsRegular()` | 1=常规文件 0=否或不存在 | ✅ | 1=常规文件 0=否或不存在 |
 | `file.Size` | `(path: string) -> int` | Go `os.Stat`+`Size()` | 字节数，失败返回 -1 | ✅ | 字节数，失败返回 -1 |
 | `file.ModTime` | `(path: string) -> int` | Go `os.Stat`+`ModTime()` | Unix 毫秒，失败返回 -1 | ✅ | Unix 毫秒，失败返回 -1 |
-| `file.Chmod` | `(path: string, mode: int) -> int` | Go `os.Chmod` / C `chmod` | 未落地 | ⬜ | 未落地 |
-| `file.Chtimes` | `(path: string, atime: int, mtime: int) -> int` | Go `os.Chtimes` | 未落地 | ⬜ | 未落地 |
-| `file.TempFile` | `(dir: string, prefix: string) -> result<File>` | Go `os.CreateTemp` | 未落地 | ⬜ | 未落地 |
+| `file.Chmod` | `(path: string, mode: int) -> int` | Go `os.Chmod` / C `chmod` | 修改文件权限，0=成功 1=失败 | ✅ | 已落地 |
+| `file.Chtimes` | `(path: string, atime: int, mtime: int) -> int` | Go `os.Chtimes` | 修改访问/修改时间，0=成功 1=失败 | ✅ | 已落地 |
+| `file.TempFile` | `(dir: string, prefix: string) -> result<File>` | Go `os.CreateTemp` | 创建临时文件，返回 result<File> | ✅ | 已落地 |
 
 
 ### 6. db（axlang 特有，无直接 Go 对标）
@@ -813,7 +813,7 @@
 
 | P0 已落地 | strconv 13 个函数；string 6 个 ctype 判断函数 | string.ToUpperRune/ToLowerRune |
 
-| P1 待落地 | — | file.Chmod/Chtimes/TempFile；os.UserHomeDir/…；string.ContainsAny/Count/IndexAny/…；math.Exp2/Log10/…；time.Date/Until/… |
+| P1 待落地 | — | os.UserHomeDir/…；string.ContainsAny/Count/IndexAny/…；math.Log2/Log1p；time.UnixMicro/UnixNano |
 
 | P2 待落地 | — | fmt.Sprintf/Fprintf/…；json.MarshalIndent/Valid；csv.ReadAll/Write；sort.Float64s/…；maps.*；unique.*；bytes/bufio；log/errors；sync/atomic；reflect |
 
@@ -831,13 +831,15 @@
 
 1. ✅ `file.Size` / `file.ModTime`（对标 Go `os.Stat`，文件元信息，P1，已落地 2026-11-22）
 
-2. `math.Log10` / `math.Exp2` / `math.IsNaN` / `math.IsInf`（对标 C `math.h` / Go `math`，数学能力补齐，P1）
+2. ✅ `math.Log10` / `math.Exp2` / `math.IsNaN` / `math.IsInf`（对标 C `math.h` / Go `math`，数学能力补齐，P1，已落地 2026-11-22）
 
-3. `time.Date` / `time.Until` / `time.After` / `time.Before`（对标 Go `time`，时间能力补齐，P1）
+3. ✅ `time.Date` / `time.Until` / `time.After` / `time.Before`（对标 Go `time`，时间能力补齐，P1，已落地 2026-11-22）
 
 4. ✅ `slices.Contains` / `slices.Index` / `slices.Sort`（对标 Go `slices`，泛型切片工具，P2，已落地 2026-11-22）
 
-5. `fmt.Sprintf` / `fmt.Sprint`（对标 Go `fmt`，格式化字符串，P2）
+5. ✅ `fmt.Sprintf` / `fmt.Sprint`（对标 Go `fmt`，格式化字符串，P2，已落地 2026-11-22）
+
+6. `file.Chmod` / `file.Chtimes` / `file.TempFile`（对标 Go `os`，文件权限/时间/临时文件，P1）
 
 
 

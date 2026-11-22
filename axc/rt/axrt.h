@@ -314,6 +314,13 @@ int64_t ax_file_modtime(ax_str path);                /* Unix 毫秒，失败返�
 /* 将整个字符串写入文件（创建/截断），0=成功 1=失败 */
 int     ax_file_write_all(ax_str path, ax_str s);
 
+/* 修改文件权限，对标 Go os.Chmod / C chmod；0=成功 1=失败。 */
+int     ax_file_chmod(ax_str path, int mode);
+/* 修改访问/修改时间，对标 Go os.Chtimes；0=成功 1=失败。 */
+int     ax_file_chtimes(ax_str path, int64_t atime, int64_t mtime);
+/* 创建临时文件，对标 Go os.CreateTemp；返回 result<File>。 */
+ax_res_file ax_file_tempfile(ax_str dir, ax_str prefix);
+
 /* ---------------- os 模块（对标 Go os/stdLib stdlib） ---------------- */
 /* 读环境变量，未设置返回空字符串 */
 ax_str  ax_os_getenv(ax_str name);

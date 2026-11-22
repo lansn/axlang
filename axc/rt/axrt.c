@@ -17,6 +17,7 @@
 #include <io.h>
 #include <direct.h>
 #include <process.h>   /* _environ */
+#include <sys/utime.h> /* _utimbuf, _utime */
 #else
 #include <sys/time.h>
 #include <pthread.h>
@@ -2692,6 +2693,82 @@ int ax_file_write_all(ax_str path, ax_str s) {
     }
     fclose(fp);
     return 0;
+}
+
+/* 修改文件权限，对标 Go os.Chmod / C chmod；0=成功 1=失败。 */
+int ax_file_chmod(ax_str path, int mode) {
+    char name[1024];
+    int64_t n = path.len < 1023 ? path.len : 1023;
+    memcpy(name, path.p, (size_t)n);
+    name[n] = 0;
+#if defined(_WIN32)
+    return _chmod(name, mode) == 0 ? 0 : 1;
+#else
+    return chmod(name, (mode_t)mode) == 0 ? 0 : 1;
+#endif
+}
+
+/* 修改访问/修改时间，对标 Go os.Chtimes；atime/mtime 为 Unix 毫秒；0=成功 1=失败。 */
+int ax_file_chtimes(ax_str path, int64_t atime, int64_t mtime) {
+    char name[1024];
+    int64_t n = path.len < 1023 ? path.len : 1023;
+    memcpy(name, path.p, (size_t)n);
+    name[n] = 0;
+#if defined(_WIN32)
+    struct _utimbuf times;
+    times.actime = (time_t)(atime / 1000);
+    times.modtime = (time_t)(mtime / 1000);
+    return _utime(name, &times) == 0 ? 0 : 1;
+#else
+    struct timeval times[2];
+    times[0].tv_sec = (time_t)(atime / 1000);
+    times[0].tv_usec = (long)((atime % 1000) * 1000);
+    times[1].tv_sec = (time_t)(mtime / 1000);
+    times[1].tv_usec = (long)((mtime % 1000) * 1000);
+    return utimes(name, times) == 0 ? 0 : 1;
+#endif
+}
+
+/* 创建临时文件，对标 Go os.CreateTemp。dir 为目录，prefix 为文件名前缀。 */
+ax_res_file ax_file_tempfile(ax_str dir, ax_str prefix) {
+    ax_res_file r;
+    char name[1024];
+    int64_t dn = dir.len < 1023 ? dir.len : 1023;
+    memcpy(name, dir.p, (size_t)dn);
+    name[dn] = 0;
+    int len = (int)dn;
+    if (len > 0 && name[len-1] != '/' && name[len-1] != '\\') {
+#if defined(_WIN32)
+        name[len++] = '\\';
+#else
+        name[len++] = '/';
+#endif
+    }
+    static int counter = 0;
+    counter++;
+    int64_t now = ax_now_ms();
+    int pn = prefix.len < 128 ? prefix.len : 128;
+    memcpy(name + len, prefix.p, (size_t)pn);
+    len += pn;
+    len += snprintf(name + len, (size_t)(sizeof name - len), "%lld_%d.tmp",
+                    (long long)now, counter);
+    if (len < 0 || len >= (int)sizeof name) {
+        r.tag = 0;
+        r.u.err = ax_err_new(4, ax_str_from_cstr("tempfile name too long"));
+        return r;
+    }
+    name[len] = 0;
+    FILE* fp = fopen(name, "wb+");
+    if (!fp) {
+        r.tag = 0;
+        r.u.err = ax_err_new(4, ax_str_from_cstr("cannot create temp file"));
+        return r;
+    }
+    ax_file* f = (ax_file*)ax_alloc((int64_t)sizeof(ax_file));
+    f->fp = fp;
+    r.tag = 1;
+    r.u.ok = f;
+    return r;
 }
 
 /* ---------------- os 模块 ---------------- */
