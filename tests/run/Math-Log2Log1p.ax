@@ -1,0 +1,15 @@
+// math.Log2 / math.Log1p（P1 第 1 项）
+import math
+
+int main() {
+    println("{math.Log2(1.0)}")
+    println("{math.Log2(2.0)}")
+    println("{math.Log2(4.0)}")
+    println("{math.Log2(8.0)}")
+    println("{math.Log2(1024.0)}")
+    println("{math.Log2(0.5)}")
+    println("{math.Log1p(0.0)}")
+    println("{math.Log1p(1.0)}")
+    println("{math.Log1p(10.0)}")
+    return 0
+}

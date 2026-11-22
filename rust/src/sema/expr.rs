@@ -37,7 +37,9 @@ pub fn module_sig(mod_: &str, name: &str) -> Option<(Vec<Option<Ty>>, Ty)> {
         ("math", "Sign") => (vec![Some(t_float())], t_int()),
         ("math", "Mod") => (vec![Some(t_float()), Some(t_float())], t_float()),
         ("math", "Exp2") => (vec![Some(t_float())], t_float()),
+        ("math", "Log2") => (vec![Some(t_float())], t_float()),
         ("math", "Log10") => (vec![Some(t_float())], t_float()),
+        ("math", "Log1p") => (vec![Some(t_float())], t_float()),
         ("math", "IsNaN") => (vec![Some(t_float())], t_bool()),
         ("math", "IsInf") => (vec![Some(t_float()), Some(t_int())], t_bool()),
         ("json", "Parse") => (
