@@ -1,0 +1,22 @@
+// sort 模块：Ints / Strings（对标 Go sort.Ints / sort.Strings，原地升序）
+import sort
+
+int main() {
+    int[] a = [3, 1, 2]
+    sort.Ints(a)
+    println("ints-0={a[0]}")
+    println("ints-1={a[1]}")
+    println("ints-2={a[2]}")
+
+    string[] b = ["banana", "apple", "cherry"]
+    sort.Strings(b)
+    println("strs-0={b[0]}")
+    println("strs-1={b[1]}")
+    println("strs-2={b[2]}")
+
+    int[] c = []
+    sort.Ints(c)
+    println("empty-ok=true")
+
+    return 0
+}

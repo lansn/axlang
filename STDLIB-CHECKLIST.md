@@ -219,8 +219,8 @@
 #### sort（对标 Go sort）
 | 函数 | 签名 | 对标 | 状态 |
 |------|------|------|------|
-| `sort.Ints` | `(a: int[]) -> void` | Go `sort.Ints` | ⬜ |
-| `sort.Strings` | `(a: string[]) -> void` | Go `sort.Strings` | ⬜ |
+| `sort.Ints` | `(a: int[]) -> void` | Go `sort.Ints` | ✅ 已落地（2026-11-22） |
+| `sort.Strings` | `(a: string[]) -> void` | Go `sort.Strings` | ✅ 已落地（2026-11-22） |
 
 ---
 
@@ -243,9 +243,9 @@
 
 | 阶段 | 已完成 | 待完成 |
 |------|--------|--------|
-| 已落地模块 | io, math, json, file, db, string, time, decimal, Int/Float/Bool/Enum, Array, Map, Range, thread/queue, os, strconv, filepath | — |
+| 已落地模块 | io, math, json, file, db, string, time, decimal, Int/Float/Bool/Enum, Array, Map, Range, thread/queue, os, strconv, filepath, rand, sort | — |
 | P0 待落地 | — | strconv.ParseInt/FormatInt, ParseBool/FormatBool; filepath.Ext/Split/Clean/Abs/IsAbs |
 | P1 待落地 | — | — |
-| P2 待落地 | — | sort.Ints/Strings |
+| P2 待落地 | — | — |
 
 *更新于 2026-11-22*

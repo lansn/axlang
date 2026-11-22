@@ -2385,6 +2385,30 @@ double ax_rand_float(void) {
     return (double)rand() / ((double)RAND_MAX + 1.0);
 }
 
+/* ---------------- sort 模块（对标 Go sort） ---------------- */
+
+static int ax_sort_int_cmp(const void* a_, const void* b_) {
+    int64_t va = *(const int64_t*)a_;
+    int64_t vb = *(const int64_t*)b_;
+    if (va < vb) return -1;
+    if (va > vb) return 1;
+    return 0;
+}
+
+void ax_sort_int(int64_t* data, int64_t len) {
+    if (len <= 1) return;
+    qsort(data, (size_t)len, sizeof(int64_t), ax_sort_int_cmp);
+}
+
+static int ax_sort_str_cmp(const void* a_, const void* b_) {
+    return ax_str_cmp(*(const ax_str*)a_, *(const ax_str*)b_);
+}
+
+void ax_sort_str(ax_str* data, int64_t len) {
+    if (len <= 1) return;
+    qsort(data, (size_t)len, sizeof(ax_str), ax_sort_str_cmp);
+}
+
 /* ---------------- filepath 模块（对标 Go path/filepath） ---------------- */
 
 static int ax_filepath_has_sep(ax_str s) {

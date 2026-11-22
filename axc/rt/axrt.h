@@ -304,6 +304,11 @@ int64_t ax_rand_int(int64_t n);
 /* [0, 1) 范围内的随机浮点数 */
 double  ax_rand_float(void);
 
+/* ---------------- sort 模块（对标 Go sort） ---------------- */
+/* 原地升序排序（标准 C qsort）；data 指向 ax_arr.data，len 为元素个数 */
+void    ax_sort_int(int64_t* data, int64_t len);
+void    ax_sort_str(ax_str* data, int64_t len);
+
 /* ---------------- filepath 模块（对标 Go path/filepath） ---------------- */
 /* 平台路径分隔符：Unix "/"，Windows "\\" */
 #if defined(_WIN32)
