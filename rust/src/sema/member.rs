@@ -892,7 +892,7 @@ impl<'a> Sema<'a> {
     ///   这是 C 风格 `printf` 在 axlang 里唯一被允许的形态：类型和个数都在编译期堵死，
     ///   `%n`/`%x` 等危险或歧义占位符根本不开放（E4044）。
     fn check_fmt_call(&mut self, e: &ast::EPtr, args: &[ast::N<ast::Arg>], name: &str) -> Ty {
-        const MEMBERS: [&str; 3] = ["Print", "Println", "Printf"];
+        const MEMBERS: [&str; 5] = ["Print", "Println", "Printf", "Sprint", "Sprintf"];
         if !MEMBERS.contains(&name) {
             let pascal = crate::sema::expr::pascal_member(name);
             if pascal != name && MEMBERS.contains(&pascal.as_str()) {
@@ -908,7 +908,7 @@ impl<'a> Sema<'a> {
                     "E3003",
                     &e.tok,
                     "文稿 11.2",
-                    "模块 `fmt` 没有符号 `{0}`（可选 Print / Println / Printf）",
+                    "模块 `fmt` 没有符号 `{0}`（可选 Print / Println / Printf / Sprint / Sprintf）",
                     &[&name],
                 );
             }
@@ -919,17 +919,26 @@ impl<'a> Sema<'a> {
             self.sl(e.id).mkind = Some("module");
             return self.call_print(e, args, &format!("fmt.{}", name));
         }
-        // ---- fmt.Printf ----
-        self.sl(e.id).mkind = Some("module");
-        if args.is_empty() {
-            self.err(
-                "E4031",
-                &e.tok,
-                "文稿 11.2",
-                "`fmt.Printf` 至少需要 1 个实参（格式字符串）",
-                &[],
-            );
-            return t_void();
+        // ---- fmt.Sprint ----
+        if name == "Sprint" {
+            // 与 Print 同款实参校验，但返回 string 而非 void
+            self.sl(e.id).mkind = Some("module");
+            self.call_print(e, args, &format!("fmt.{}", name));
+            return t_string();
+        }
+        // ---- fmt.Printf / fmt.Sprintf ----
+        if name == "Printf" || name == "Sprintf" {
+            self.sl(e.id).mkind = Some("module");
+            if args.is_empty() {
+                self.err(
+                    "E4031",
+                    &e.tok,
+                    "文稿 11.2",
+                    "`fmt.{0}` 至少需要 1 个实参（格式字符串）",
+                    &[&name],
+                );
+                return if name == "Sprintf" { t_string() } else { t_void() };
+            }
         }
         let fexpr = &args[0].k.expr;
         let fmt_str: String = match &fexpr.k {
@@ -945,11 +954,11 @@ impl<'a> Sema<'a> {
                     "E4032",
                     &fexpr.tok,
                     "文稿 11.2",
-                    "`fmt.Printf` 的格式串必须是纯字符串字面量（不含 `{...}` 插值），才能在编译期核对占位符；得到 {0}",
-                    &[&self.ts(&self.ty_of(fexpr.id).unwrap_or_else(t_object))],
+                    "`fmt.{0}` 的格式串必须是纯字符串字面量（不含 `{...}` 插值），才能在编译期核对占位符；得到 {1}",
+                    &[&name, &self.ts(&self.ty_of(fexpr.id).unwrap_or_else(t_object))],
                 );
                 // 格式串都不是字面量，后面的个数/类型核对没有意义——一处误用只报一条
-                return t_void();
+                return if name == "Sprintf" { t_string() } else { t_void() };
             }
         };
         let specs = match crate::fmt_spec::parse(&fmt_str) {
@@ -962,7 +971,7 @@ impl<'a> Sema<'a> {
                     "不支持的格式占位符 `%{0}`（格式串中第 {1} 个字符处）；支持 `%%` `%d` `%f` `%.Nf` `%s` `%t` `%v`——`%n` / `%x` 等危险或歧义占位符一律不开放",
                     &[&ch.to_string(), &(pos + 1).to_string()],
                 );
-                return t_void();
+                return if name == "Sprintf" { t_string() } else { t_void() };
             }
         };
         let need = specs
@@ -1021,7 +1030,7 @@ impl<'a> Sema<'a> {
                 self.sl(a.k.expr.id).interp_arg = true;
             }
         }
-        t_void()
+        if name == "Sprintf" { t_string() } else { t_void() }
     }
 
     // ------------------------------------------------------ 用户模块（文稿 9.2）

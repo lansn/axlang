@@ -1771,6 +1771,14 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             self.emit_print(args, name == "Println");
             return "0".to_string();
         }
+        // fmt.Sprint：与 Print 同款实参拼串，但返回 ax_str 而非写 stdout
+        if module == "fmt" && name == "Sprint" {
+            return self.fmt_sprint(args);
+        }
+        // fmt.Sprintf：与 Printf 同款格式解析，但返回 ax_str 而非写 stdout
+        if module == "fmt" && name == "Sprintf" {
+            return self.fmt_sprintf(e);
+        }
         let mut a: Vec<String> = Vec::new();
         // 实参按模块签名声明的形参类型转换（map → object 要装箱，等等）——
         // 与用户函数调用走同一套 coerce 规则
@@ -2040,6 +2048,86 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
         self.emit(format!("ax_str {} = ax_sb_finish(&{});", t, sb));
         self.emit(format!("ax_write_stdout({});", t));
         "0".to_string()
+    }
+
+    /// `fmt.Sprint(args...)`：与 `emit_print` 同款空格分隔拼串，但返回 `ax_str` 而非写 stdout。
+    fn fmt_sprint(&mut self, args: &'a [ast::N<ast::Arg>]) -> String {
+        let sb = self.tmpn();
+        self.emit(format!("ax_sb {}; ax_sb_init(&{});", sb, sb));
+        for (i, arg) in args.iter().enumerate() {
+            if i > 0 {
+                self.emit(format!("ax_sb_push(&{}, AX_S(\" \"));", sb));
+            }
+            let interp = self
+                .cg
+                .slot(&arg.k.expr.id)
+                .map(|s| s.interp_arg)
+                .unwrap_or(false);
+            if interp {
+                let aty = self.ty_or_int(arg.k.expr.id);
+                let av = self.gen(&arg.k.expr, None, false, false);
+                self.push_interp(&sb, &av, &aty, None, &arg.k.expr);
+            } else {
+                let av = self.gen(&arg.k.expr, Some(&t_string()), false, false);
+                self.emit(format!("ax_sb_push(&{}, {});", sb, av));
+            }
+        }
+        let t = self.tmpn();
+        self.emit(format!("ax_str {} = ax_sb_finish(&{});", t, sb));
+        t
+    }
+
+    /// `fmt.Sprintf(fmt, args...)`：与 `fmt_printf` 同款格式解析，但返回 `ax_str` 而非写 stdout。
+    fn fmt_sprintf(&mut self, e: &'a ast::EPtr) -> String {
+        let args: &'a [ast::N<ast::Arg>] = match &e.k {
+            Expr::MethodCall { args, .. } => args,
+            _ => return "AX_S(\"\")".to_string(),
+        };
+        if args.is_empty() {
+            return "AX_S(\"\")".to_string();
+        }
+        let parts: &'a [SPart] = match &args[0].k.expr.k {
+            Expr::StrLit { parts } => parts,
+            _ => return "AX_S(\"\")".to_string(),
+        };
+        let fmt_str: String = parts
+            .iter()
+            .filter_map(|p| match p {
+                SPart::Text(t) => Some(t.as_str()),
+                _ => None,
+            })
+            .collect();
+        let specs = crate::fmt_spec::parse(&fmt_str).unwrap_or_default();
+        let sb = self.tmpn();
+        self.emit(format!("ax_sb {}; ax_sb_init(&{});", sb, sb));
+        let mut ai = 1;
+        for sp in &specs {
+            match sp {
+                crate::fmt_spec::FmtPart::Text(t) => {
+                    if !t.is_empty() {
+                        let lit = format!("AX_S({})", cstr(t));
+                        self.emit(format!("ax_sb_push(&{}, {});", sb, lit));
+                    }
+                }
+                crate::fmt_spec::FmtPart::Pct => {
+                    self.emit(format!("ax_sb_push(&{}, AX_S(\"%\"));", sb));
+                }
+                crate::fmt_spec::FmtPart::Arg { spec, prec } => {
+                    if ai >= args.len() {
+                        break;
+                    }
+                    let arg = &args[ai];
+                    ai += 1;
+                    let aty = self.ty_or_int(arg.k.expr.id);
+                    let v = self.gen(&arg.k.expr, None, false, false);
+                    let f = if *spec == 'f' { *prec } else { None };
+                    self.push_interp(&sb, &v, &aty, f, &arg.k.expr);
+                }
+            }
+        }
+        let t = self.tmpn();
+        self.emit(format!("ax_str {} = ax_sb_finish(&{});", t, sb));
+        t
     }
 
     fn intrinsic(&mut self, e: &'a ast::EPtr) -> String {

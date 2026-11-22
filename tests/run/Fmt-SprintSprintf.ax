@@ -1,0 +1,34 @@
+// fmt 模块（文稿 11.2，0.0.28）：fmt.Sprint / fmt.Sprintf 将结果以 ax_str 返回，
+// 可赋值给变量并再次打印；Print/Println 等价于 print/println（写 stdout）。
+// fmt.Sprint 在每个实参之间插入一个空格（如 Go 的 fmt.Sprint）。
+import fmt
+
+int main() {
+    int n = 3
+    decimal total = 59.97d
+    float ratio = 0.5
+    string name = "阿蓝"
+    bool ok = true
+    int? maybe = null
+
+    // fmt.Sprint：多实参空格分隔，返回字符串
+    string a = fmt.Sprint("items", n)
+    string b = fmt.Sprint("ok=", ok, "price=", total)
+    string c = fmt.Sprint("maybe=", maybe)
+    println(a)
+    println(b)
+    println(c)
+
+    // fmt.Sprintf：格式串编译期核对，返回字符串
+    string s1 = fmt.Sprintf("%d 件，共 %.2f 元", n, total)
+    string s2 = fmt.Sprintf("name=%s ok=%t ratio=%.1f 100%% done", name, ok, ratio)
+    string s3 = fmt.Sprintf("%v %v %d", maybe, n, n)
+    println(s1)
+    println(s2)
+    println(s3)
+
+    // 直接作为实参传入 println
+    println(fmt.Sprint("direct:", 42))
+    println(fmt.Sprintf("num: %d", 255))
+    return 0
+}
