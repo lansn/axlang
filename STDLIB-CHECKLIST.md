@@ -177,9 +177,9 @@
 |------|------|------|------|
 | `filepath.Ext` | `(path: string) -> string` | Go `filepath.Ext` | ✅ 已落地（2026-11-22） |
 | `filepath.Split` | `(path: string) -> string[2]` | Go `filepath.Split` | ✅ 已落地（2026-11-22） |
-| `filepath.Clean` | `(path: string) -> string` | Go `filepath.Clean` | 🔄 下一项 |
-| `filepath.Abs` | `(path: string) -> string` | Go `filepath.Abs` | ⬜ |
-| `filepath.IsAbs` | `(path: string) -> bool` | Go `filepath.IsAbs` | ⬜ |
+| `filepath.Clean` | `(path: string) -> string` | Go `filepath.Clean` | ✅ 已落地（2026-11-22） |
+| `filepath.Abs` | `(path: string) -> string` | Go `filepath.Abs` | 🔄 下一项 |
+| `filepath.IsAbs` | `(path: string) -> bool` | Go `filepath.IsAbs` | 🔄 下一项 |
 
 ### P1
 

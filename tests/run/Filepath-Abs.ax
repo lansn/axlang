@@ -1,0 +1,14 @@
+// filepath 模块：Abs / IsAbs（对标 Go filepath.Abs / IsAbs）
+import filepath
+
+int main() {
+    println("isabs-drive={filepath.IsAbs("C:\\Users")}")
+    println("isabs-root={filepath.IsAbs("\\foo")}")
+    println("isabs-rel={filepath.IsAbs("foo")}")
+    println("isabs-dotdot={filepath.IsAbs("../foo")}")
+    println("abs-root={filepath.Abs("\\foo")}")
+    println("abs-drive={filepath.Abs("C:\\foo")}")
+    println("abs-rel={filepath.Abs("foo")}")
+    println("abs-empty={filepath.Abs("")}")
+    return 0
+}

@@ -88,6 +88,8 @@ pub fn module_sig(mod_: &str, name: &str) -> Option<(Vec<Option<Ty>>, Ty)> {
         ("filepath", "Ext") => (vec![Some(t_string())], t_string()),
         ("filepath", "Split") => (vec![Some(t_string())], t_array(t_string(), None)),
         ("filepath", "Clean") => (vec![Some(t_string())], t_string()),
+        ("filepath", "Abs") => (vec![Some(t_string())], t_string()),
+        ("filepath", "IsAbs") => (vec![Some(t_string())], t_bool()),
         _ => return None,
     })
 }

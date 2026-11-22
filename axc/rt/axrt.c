@@ -2449,6 +2449,47 @@ ax_str ax_filepath_clean(ax_str path) {
     return ax_sb_finish(&sb);
 }
 
+/* 判断是否为绝对路径（Unix 以 / 开头，Windows 以 \ 或 盘符: 开头） */
+int ax_filepath_is_abs(ax_str path) {
+    if (path.len == 0) return 0;
+    if (path.p[0] == (uint8_t)AX_FILEPATH_SEP[0]) return 1;
+#if defined(_WIN32)
+    /* Windows 盘符：C: 或 C:\ */
+    if (path.len >= 2 && path.p[1] == (uint8_t)':' &&
+        ((path.p[0] >= (uint8_t)'a' && path.p[0] <= (uint8_t)'z') ||
+         (path.p[0] >= (uint8_t)'A' && path.p[0] <= (uint8_t)'Z'))) {
+        if (path.len == 2 || path.p[2] == (uint8_t)AX_FILEPATH_SEP[0] || path.p[2] == (uint8_t)'/') return 1;
+    }
+#endif
+    return 0;
+}
+
+/* 转为绝对路径（对标 Go filepath.Abs）。已是绝对路径则 Clean 后返回；
+ * 否则用当前工作目录拼接后 Clean。 */
+ax_str ax_filepath_abs(ax_str path) {
+    if (ax_filepath_is_abs(path)) return ax_filepath_clean(path);
+
+    /* 获取当前工作目录 */
+    char cwd[4096];
+#if defined(_WIN32)
+    if (!_getcwd(cwd, (int)sizeof cwd)) return ax_filepath_clean(path);
+#else
+    if (!getcwd(cwd, (size_t)sizeof cwd)) return ax_filepath_clean(path);
+#endif
+    ax_str cwd_str = ax_str_from_cstr(cwd);
+
+    /* 拼接 cwd + sep + path */
+    ax_sb sb;
+    ax_sb_init(&sb);
+    ax_sb_push(&sb, cwd_str);
+    if (cwd_str.len > 0 && cwd_str.p[cwd_str.len - 1] != (uint8_t)AX_FILEPATH_SEP[0]) {
+        ax_sb_push_cstr(&sb, AX_FILEPATH_SEP);
+    }
+    ax_sb_push(&sb, path);
+    ax_str joined = ax_sb_finish(&sb);
+    return ax_filepath_clean(joined);
+}
+
 /* ---------------- arena（区域分配器） ---------------- */
 struct ax_arena {
     void**  items;

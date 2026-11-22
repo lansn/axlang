@@ -1,0 +1,8 @@
+isabs-drive=true
+isabs-root=true
+isabs-rel=false
+isabs-dotdot=false
+abs-root=\foo
+abs-drive=C:\foo
+abs-rel=D:\Project\axlang\foo
+abs-empty=D:\Project\axlang
