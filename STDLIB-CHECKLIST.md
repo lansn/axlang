@@ -84,8 +84,8 @@
 | `math.Mod` | `(x: float, y: float) -> float` | Go `math.Mod` / C `fmod` | ✅ | 取模 |
 | `math.Equals` | `(a: float, b: float, eps: float) -> bool` | — | ✅ | `fabs(a-b) <= eps` |
 | `math.Compare` | `(a: float, b: float) -> int` | — | ✅ | -1/0/1 |
-| `math.Exp2` | `(x: float) -> float` | Go `math.Exp2` | ⬜ | 未落地 |
-| `math.Log10` | `(x: float) -> float` | Go `math.Log10` / C `log10` | ⬜ | 未落地 |
+| `math.Exp2` | `(x: float) -> float` | Go `math.Exp2` / C `exp2` | ✅ | 已落地（C11 exp2，对标 Go math.Exp2） |
+| `math.Log10` | `(x: float) -> float` | Go `math.Log10` / C `log10` | ✅ | 已落地（C11 log10，对标 Go math.Log10） |
 | `math.Log2` | `(x: float) -> float` | Go `math.Log2` | ⬜ | 未落地 |
 | `math.Log1p` | `(x: float) -> float` | Go `math.Log1p` / C `log1p` | ⬜ | 未落地 |
 | `math.Sinh` | `(x: float) -> float` | Go `math.Sinh` / C `sinh` | ⬜ | 未落地 |
@@ -100,8 +100,8 @@
 | `math.Trunc` | `(x: float) -> float` | Go `math.Trunc` / C `trunc` | ⬜ | 未落地 |
 | `math.Frexp` | `(f: float) -> (frac: float, exp: int)` | Go `math.Frexp` / C `frexp` | ⬜ | 未落地 |
 | `math.Ldexp` | `(frac: float, exp: int) -> float` | Go `math.Ldexp` / C `ldexp` | ⬜ | 未落地 |
-| `math.IsNaN` | `(f: float) -> bool` | Go `math.IsNaN` / C `isnan` | ⬜ | 未落地 |
-| `math.IsInf` | `(f: float, sign: int) -> bool` | Go `math.IsInf` / C `isinf` | ⬜ | 未落地 |
+| `math.IsNaN` | `(f: float) -> bool` | Go `math.IsNaN` / C `isnan` | ✅ | 已落地（C11 isnan，axrt 封装 ax_math_isnan，对标 Go math.IsNaN） |
+| `math.IsInf` | `(f: float, sign: int) -> bool` | Go `math.IsInf` / C `isinf` | ✅ | 已落地（C11 isinf，axrt 封装 ax_math_isinf，对标 Go math.IsInf） |
 | `math.Signbit` | `(f: float) -> bool` | Go `math.Signbit` | ⬜ | 未落地 |
 | `math.Copysign` | `(f: float, sign: float) -> float` | Go `math.Copysign` / C `copysign` | ⬜ | 未落地 |
 | `math.Dim` | `(x: float, y: float) -> float` | Go `math.Dim` | ⬜ | 未落地 |

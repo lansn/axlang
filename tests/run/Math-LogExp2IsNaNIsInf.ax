@@ -1,0 +1,24 @@
+// math.Log10 / math.Exp2 / math.IsNaN / math.IsInf（P1 第 2 项）
+import math
+
+int main() {
+    println("{math.Log10(100.0)}")
+    println("{math.Log10(1000.0)}")
+    println("{math.Log10(10.0)}")
+    println("{math.Exp2(1.0)}")
+    println("{math.Exp2(10.0)}")
+    println("{math.Exp2(0.0)}")
+    println("{math.Exp2(3.0)}")
+    println("{math.IsNaN(math.Log(-1.0))}")
+    println("{math.IsNaN(math.Sqrt(-1.0))}")
+    println("{math.IsNaN(1.0)}")
+    println("{math.IsNaN(math.Log(10.0))}")
+    println("{math.IsInf(math.Log(0.0), 1)}")
+    println("{math.IsInf(math.Log(0.0), -1)}")
+    println("{math.IsInf(math.Log(0.0), 0)}")
+    println("{math.IsInf(math.Exp(1000.0), 1)}")
+    println("{math.IsInf(math.Exp(1000.0), -1)}")
+    println("{math.IsInf(math.Exp(1000.0), 0)}")
+    println("{math.IsInf(1.0, 0)}")
+    return 0
+}

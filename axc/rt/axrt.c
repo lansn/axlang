@@ -585,6 +585,19 @@ double ax_math_mod(double x, double y) {
     return fmod(x, y);
 }
 
+/* math.IsNaN：C11 isnan 宏，x 为 NaN 返回 1，否则 0 */
+int ax_math_isnan(double x) {
+    return isnan(x) ? 1 : 0;
+}
+
+/* math.IsInf：C11 isinf 宏。sign>0 只判 +Inf，sign<0 只判 -Inf，sign==0 判任意无穷 */
+int ax_math_isinf(double x, int sign) {
+    if (!isinf(x)) return 0;
+    if (sign > 0) return x > 0.0 ? 1 : 0;
+    if (sign < 0) return x < 0.0 ? 1 : 0;
+    return 1;
+}
+
 /* ---------------- 大小写转换（仅 ASCII，UTF-8 多字节原样保留） ---------------- */
 
 static int u8_is_ascii_lower(uint8_t c) { return c >= 'a' && c <= 'z'; }

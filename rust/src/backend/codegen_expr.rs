@@ -1833,6 +1833,10 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             ("math", "Round") => format!("(round({}))", a[0]),
             ("math", "Sign") => format!("ax_math_sign({})", a[0]),
             ("math", "Mod") => format!("ax_math_mod({}, {})", a[0], a[1]),
+            ("math", "Exp2") => format!("(exp2({}))", a[0]),
+            ("math", "Log10") => format!("(log10({}))", a[0]),
+            ("math", "IsNaN") => format!("ax_math_isnan({})", a[0]),
+            ("math", "IsInf") => format!("ax_math_isinf({}, {})", a[0], a[1]),
             ("db", "Query") => {
                 let arg = if a.len() > 1 {
                     a[1].clone()

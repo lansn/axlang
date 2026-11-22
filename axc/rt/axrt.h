@@ -159,6 +159,10 @@ ax_arr ax_str_fields(ax_str s);
 /* math 扩展（对标 Go math.Sign / math.Mod，纯 C11，无 GNU/Clang 扩展） */
 int   ax_math_sign(double x);   /* x>0→1，x<0→-1，否则（含 0/NaN）→0 */
 double ax_math_mod(double x, double y); /* 浮点余数，语义同 C fmod：符号同 x，幅值 < |y| */
+/* math.Log10 / math.Exp2 直接映射到 C11 log10/exp2，无需运行时封装；
+ * math.IsNaN / math.IsInf 需布尔/符号判断，以下给 C11 封装。 */
+int   ax_math_isnan(double x);   /* C11 isnan：x 为 NaN 返回 1，否则 0 */
+int   ax_math_isinf(double x, int sign); /* C11 isinf：sign>0 只判 +Inf，sign<0 只判 -Inf，sign==0 判任意无穷 */
 
 /* ---------------- map（Rt-8，插入序） ---------------- */
 typedef struct { uint64_t hash; void* k; void* v; } ax_mentry;
