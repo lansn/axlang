@@ -1,0 +1,5 @@
+unix-zero=1970-01-01 08:00:00
+unixmilli-zero=1970-01-01 08:00:00
+unixmilli-1000=1970-01-01 08:00:01
+since-zero-gt0=true
+since-now-small=true

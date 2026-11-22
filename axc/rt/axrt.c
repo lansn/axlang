@@ -1989,6 +1989,21 @@ void ax_time_sleep(int64_t ms) {
 #endif
 }
 
+/* time.Unix：sec 秒 + nsec 纳秒 -> Unix 毫秒 */
+int64_t ax_time_from_unix(int64_t sec, int64_t nsec) {
+    return sec * 1000 + nsec / 1000000;
+}
+
+/* time.UnixMilli：毫秒 -> Unix 毫秒（与 FromUnixMs 同义） */
+int64_t ax_time_from_unix_ms(int64_t ms) {
+    return ms;
+}
+
+/* time.Since：当前 Unix 毫秒 - t */
+int64_t ax_time_since(int64_t t) {
+    return ax_now_ms() - t;
+}
+
 ax_res_time ax_time_parse_result(ax_str s, ax_str fmt) {
     ax_res_time r;
     int year = 1970, month = 1, day = 1, hour = 0, min = 0, sec = 0;

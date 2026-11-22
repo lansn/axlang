@@ -243,6 +243,11 @@ ax_str ax_time_format(int64_t ms, const char* fmt);
 /* 毫秒睡眠（对标 C <unistd.h> usleep / Windows Sleep） */
 void ax_time_sleep(int64_t ms);
 
+/* time.Unix / UnixMilli / Since（对标 Go time，time 为 Unix 毫秒，标准 C11 实现）： */
+int64_t ax_time_from_unix(int64_t sec, int64_t nsec);   /* sec 秒 + nsec 纳秒 -> Unix 毫秒 */
+int64_t ax_time_from_unix_ms(int64_t ms);               /* 毫秒 -> Unix 毫秒（与 FromUnixMs 同义） */
+int64_t ax_time_since(int64_t t);                       /* 当前 Unix 毫秒 - t */
+
 /* 时间解析（对标 Go time.Parse / C strptime，标准 C11 实现）：
  * 解析字符串 s 按格式 fmt（%Y %m %d %H %M %S 等），返回 Unix 毫秒；
  * 失败时 tag=0 + error（code=1，msg="bad time format"）。 */

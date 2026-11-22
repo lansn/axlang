@@ -1,0 +1,26 @@
+// time 模块新增函数：Unix / UnixMilli / Since（对标 Go time.Unix/time.UnixMilli/time.Since）
+// axlang time 为 Unix 毫秒（int64）。
+import time
+
+int main() {
+    // Unix(0, 0) = Unix 纪元
+    time t = time.Unix(0, 0)
+    println("unix-zero={t.ToString()}")
+
+    // UnixMilli(0) = Unix 纪元
+    time t2 = time.UnixMilli(0)
+    println("unixmilli-zero={t2.ToString()}")
+
+    // UnixMilli(1000) = 1970-01-01 00:00:01
+    time t3 = time.UnixMilli(1000)
+    println("unixmilli-1000={t3.ToString()}")
+
+    // Since(0) = 当前毫秒数，肯定大于 0
+    println("since-zero-gt0={time.Since(time.FromUnixMs(0)) > 0}")
+
+    // Since(Now()) 应为 0 或极小值（< 1000 ms）
+    time now = time.Now()
+    println("since-now-small={time.Since(now) < 1000}")
+
+    return 0
+}

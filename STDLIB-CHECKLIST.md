@@ -87,6 +87,9 @@
 | `time.Parse` | 模块 | `(s: string, fmt: string) -> result<time>` | ✅ | 解析时间字符串 |
 | `time.ToString` | 实例 | `() -> string` | ✅ | 格式化为 YYYY-MM-DD HH:MM:SS |
 | `time.Format` | 实例 | `(fmt: string) -> string` | ✅ | strftime 风格格式化 |
+| `time.Unix` | 模块 | `(sec: int, nsec: int) -> time` | ✅ | 秒+纳秒转 time（对标 Go time.Unix） |
+| `time.UnixMilli` | 模块 | `(ms: int) -> time` | ✅ | 毫秒转 time（对标 Go time.UnixMilli） |
+| `time.Since` | 模块 | `(t: time) -> int` | ✅ | 与给定时间的差值毫秒（对标 Go time.Since） |
 
 ### decimal
 | 函数 | 类型 | 签名 | 状态 | 说明 |
@@ -243,9 +246,9 @@
 #### time 扩展
 | 函数 | 签名 | 对标 | 状态 |
 |------|------|------|------|
-| `time.Unix` | `(sec: int, nsec: int) -> time` | Go `time.Unix` | ⬜ |
-| `time.UnixMilli` | `(ms: int) -> time` | Go `time.UnixMilli` | ⬜ |
-| `time.Since` | `(t: time) -> int` | Go `time.Since` | ⬜ |
+| `time.Unix` | `(sec: int, nsec: int) -> time` | Go `time.Unix` | ✅ 已落地（2026-11-22） |
+| `time.UnixMilli` | `(ms: int) -> time` | Go `time.UnixMilli` | ✅ 已落地（2026-11-22） |
+| `time.Since` | `(t: time) -> int` | Go `time.Since` | ✅ 已落地（2026-11-22） |
 
 ---
 
