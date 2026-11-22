@@ -147,6 +147,10 @@ int   ax_arr_eq(const ax_arr* a, const ax_arr* b, int64_t esz);
 /* 字符串分割（对标 Go strings.Fields，按空白符分割，返回 ax_arr，元素为 ax_str） */
 ax_arr ax_str_fields(ax_str s);
 
+/* math 扩展（对标 Go math.Sign / math.Mod，纯 C11，无 GNU/Clang 扩展） */
+int   ax_math_sign(double x);   /* x>0→1，x<0→-1，否则（含 0/NaN）→0 */
+double ax_math_mod(double x, double y); /* 浮点余数，语义同 C fmod：符号同 x，幅值 < |y| */
+
 /* ---------------- map（Rt-8，插入序） ---------------- */
 typedef struct { uint64_t hash; void* k; void* v; } ax_mentry;
 

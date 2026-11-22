@@ -192,8 +192,8 @@
 #### math 扩展
 | 函数 | 签名 | 对标 | 状态 |
 |------|------|------|------|
-| `math.Sign` | `(x: float) -> int` | Go `math.Sign` | ⬜ |
-| `math.Mod` | `(x: float, y: float) -> float` | Go `math.Mod` | ⬜ |
+| `math.Sign` | `(x: float) -> int` | Go `math.Sign` | ✅ 已落地（2026-11-22） |
+| `math.Mod` | `(x: float, y: float) -> float` | Go `math.Mod` | ✅ 已落地（2026-11-22） |
 
 #### os 扩展
 | 函数 | 签名 | 对标 | 状态 |
@@ -245,7 +245,7 @@
 |------|--------|--------|
 | 已落地模块 | io, math, json, file, db, string, time, decimal, Int/Float/Bool/Enum, Array, Map, Range, thread/queue, os, strconv, filepath | — |
 | P0 待落地 | — | strconv.ParseInt/FormatInt, ParseBool/FormatBool; filepath.Ext/Split/Clean/Abs/IsAbs |
-| P1 待落地 | — | math.Sign/Mod; os.Getwd/Chdir; file.ReadAll/WriteAll |
+| P1 待落地 | — | os.Getwd/Chdir; file.ReadAll/WriteAll |
 | P2 待落地 | — | rand.Int/Float/Seed; sort.Ints/Strings |
 
 *更新于 2026-11-22*

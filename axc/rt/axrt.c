@@ -567,6 +567,20 @@ ax_arr ax_str_fields(ax_str s) {
     return arr;
 }
 
+/* ---------------- math 扩展（对标 Go math.Sign / math.Mod） ---------------- */
+
+/* 符号函数：x>0→1，x<0→-1，否则（含 0 / NaN）→0 */
+int ax_math_sign(double x) {
+    if (x > 0.0) return 1;
+    if (x < 0.0) return -1;
+    return 0;
+}
+
+/* 浮点余数（语义同 C fmod）：结果符号同被除数 x，幅值 < |y|；y 为 0 时返回 NaN */
+double ax_math_mod(double x, double y) {
+    return fmod(x, y);
+}
+
 /* ---------------- 大小写转换（仅 ASCII，UTF-8 多字节原样保留） ---------------- */
 
 static int u8_is_ascii_lower(uint8_t c) { return c >= 'a' && c <= 'z'; }

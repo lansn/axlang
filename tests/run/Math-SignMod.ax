@@ -1,0 +1,28 @@
+// math 模块新增函数：Sign / Mod（float，对标 Go math.Sign / math.Mod）
+import math
+
+int main() {
+    // Sign：正数
+    println("sign-pos={math.Sign(5.0)}")
+    // Sign：负数
+    println("sign-neg={math.Sign(-3.0)}")
+    // Sign：零
+    println("sign-zero={math.Sign(0.0)}")
+    // Sign：负零（C 中 -0.0 既不大于也不小于 0，返回 0）
+    println("sign-negzero={math.Sign(-0.0)}")
+
+    // Mod：正/正
+    println("mod-7-3={math.Mod(7.0, 3.0)}")
+    // Mod：负被除数，符号同被除数
+    println("mod-neg7-3={math.Mod(-7.0, 3.0)}")
+    // Mod：负除数，符号仍同被除数（7 为正，结果为正）
+    println("mod-7-neg3={math.Mod(7.0, -3.0)}")
+    // Mod：负/负
+    println("mod-neg7-neg3={math.Mod(-7.0, -3.0)}")
+    // Mod：整除
+    println("mod-6-3={math.Mod(6.0, 3.0)}")
+    // Mod：小数
+    println("mod-5.5-2={math.Mod(5.5, 2.0)}")
+
+    return 0
+}
