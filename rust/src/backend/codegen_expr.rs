@@ -1876,6 +1876,13 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             ("os", "Args") => "ax_os_args()".to_string(),
             ("os", "Getwd") => "ax_os_getwd()".to_string(),
             ("os", "Chdir") => format!("ax_os_chdir({})", a[0]),
+            /* ---------------- rand 模块 ---------------- */
+            ("rand", "Int") => format!("ax_rand_int({})", a[0]),
+            ("rand", "Float") => "ax_rand_float()".to_string(),
+            ("rand", "Seed") => {
+                self.emit(format!("ax_rand_seed({});", a[0]));
+                "0".to_string()
+            }
             /* ---------------- strconv 模块 ---------------- */
             ("strconv", "Atoi") => {
                 format!("({{ int64_t v_; ax_parse_i64({}, &v_) ? v_ : 0; }})", a[0])

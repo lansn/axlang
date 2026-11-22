@@ -2369,6 +2369,22 @@ int ax_os_chdir(ax_str path) {
 #endif
 }
 
+/* ---------------- rand 模块（对标 Go math/rand） ---------------- */
+
+void ax_rand_seed(int64_t seed) {
+    srand((unsigned int)seed);
+}
+
+int64_t ax_rand_int(int64_t n) {
+    if (n <= 0) return 0;
+    /* 双倍数缩放避免取模偏差，结果落在 [0, n) */
+    return (int64_t)((double)rand() / ((double)RAND_MAX + 1.0) * (double)n);
+}
+
+double ax_rand_float(void) {
+    return (double)rand() / ((double)RAND_MAX + 1.0);
+}
+
 /* ---------------- filepath 模块（对标 Go path/filepath） ---------------- */
 
 static int ax_filepath_has_sep(ax_str s) {

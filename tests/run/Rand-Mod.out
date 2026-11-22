@@ -1,0 +1,7 @@
+int-zero=0
+int-neg=0
+seed-deterministic=true
+int-ge0=true
+int-lt1000=true
+float-ge0=true
+float-lt1=true

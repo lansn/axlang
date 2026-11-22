@@ -212,9 +212,9 @@
 #### rand（对标 Go math/rand）
 | 函数 | 签名 | 对标 | 状态 |
 |------|------|------|------|
-| `rand.Int` | `(n: int) -> int` | Go `rand.Intn` | ⬜ |
-| `rand.Float` | `() -> float` | Go `rand.Float64` | ⬜ |
-| `rand.Seed` | `(seed: int) -> void` | Go `rand.Seed` | ⬜ |
+| `rand.Int` | `(n: int) -> int` | Go `rand.Intn` | ✅ 已落地（2026-11-22） |
+| `rand.Float` | `() -> float` | Go `rand.Float64` | ✅ 已落地（2026-11-22） |
+| `rand.Seed` | `(seed: int) -> void` | Go `rand.Seed` | ✅ 已落地（2026-11-22） |
 
 #### sort（对标 Go sort）
 | 函数 | 签名 | 对标 | 状态 |
@@ -246,6 +246,6 @@
 | 已落地模块 | io, math, json, file, db, string, time, decimal, Int/Float/Bool/Enum, Array, Map, Range, thread/queue, os, strconv, filepath | — |
 | P0 待落地 | — | strconv.ParseInt/FormatInt, ParseBool/FormatBool; filepath.Ext/Split/Clean/Abs/IsAbs |
 | P1 待落地 | — | — |
-| P2 待落地 | — | rand.Int/Float/Seed; sort.Ints/Strings |
+| P2 待落地 | — | sort.Ints/Strings |
 
 *更新于 2026-11-22*

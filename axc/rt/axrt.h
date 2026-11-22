@@ -296,6 +296,14 @@ ax_str  ax_os_getwd(void);
 /* 改变当前工作目录：0=成功，1=失败 */
 int     ax_os_chdir(ax_str path);
 
+/* ---------------- rand 模块（对标 Go math/rand）------------ */
+/* 设置随机种子 */
+void    ax_rand_seed(int64_t seed);
+/* [0, n) 范围内的随机整数；n<=0 时返回 0 */
+int64_t ax_rand_int(int64_t n);
+/* [0, 1) 范围内的随机浮点数 */
+double  ax_rand_float(void);
+
 /* ---------------- filepath 模块（对标 Go path/filepath） ---------------- */
 /* 平台路径分隔符：Unix "/"，Windows "\\" */
 #if defined(_WIN32)
