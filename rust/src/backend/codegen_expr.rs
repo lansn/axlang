@@ -1859,6 +1859,16 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 format!("({{ double v_; ax_parse_f64({}, &v_) ? v_ : 0.0; }})", a[0])
             }
             ("strconv", "FormatFloat") => format!("ax_str_of_f64({})", a[0]),
+            /* ---------------- filepath 模块 ---------------- */
+            ("filepath", "Join") => {
+                let arr = &a[0];
+                format!(
+                    "ax_filepath_join({arr})",
+                    arr = arr
+                )
+            }
+            ("filepath", "Dir") => format!("ax_filepath_dir({})", a[0]),
+            ("filepath", "Base") => format!("ax_filepath_base({})", a[0]),
             _ => "0".to_string(),
         }
     }

@@ -278,6 +278,21 @@ void    ax_os_exit(int code);
 void    ax_os_set_args(ax_arr* args);
 ax_arr  ax_os_args(void);
 
+/* ---------------- filepath 模块（对标 Go path/filepath） ---------------- */
+/* 平台路径分隔符：Unix "/"，Windows "\\" */
+#if defined(_WIN32)
+#define AX_FILEPATH_SEP "\\"
+#else
+#define AX_FILEPATH_SEP "/"
+#endif
+
+/* 将多个路径元素用平台分隔符连接（按值传 ax_arr，函数内部取地址） */
+ax_str  ax_filepath_join(ax_arr parts);    /* parts 元素为 ax_str，esz = sizeof(ax_str) */
+/* 返回目录部分（去掉最后一个分隔符及其后的内容；无分隔符返回 "."） */
+ax_str  ax_filepath_dir(ax_str path);
+/* 返回最后一个分隔符后的内容（无分隔符返回原字符串） */
+ax_str  ax_filepath_base(ax_str path);
+
 int   ax_parse_i64(ax_str s, int64_t* out);
 int   ax_parse_f64(ax_str s, double* out);
 int64_t str_to_i64(ax_str s);

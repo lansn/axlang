@@ -2167,6 +2167,64 @@ ax_arr ax_os_args(void) {
     return g_os_args;
 }
 
+/* ---------------- filepath 模块（对标 Go path/filepath） ---------------- */
+
+static int ax_filepath_has_sep(ax_str s) {
+    int64_t i;
+    for (i = 0; i < s.len; i++) {
+        if (s.p[i] == (uint8_t)AX_FILEPATH_SEP[0]) return 1;
+    }
+    return 0;
+}
+
+static int64_t ax_filepath_last_sep(ax_str s) {
+    int64_t i;
+    for (i = s.len - 1; i >= 0; i--) {
+        if (s.p[i] == (uint8_t)AX_FILEPATH_SEP[0]) return i;
+    }
+    return -1;
+}
+
+ax_str ax_filepath_join(ax_arr parts) {
+    ax_sb sb;
+    ax_sb_init(&sb);
+    int64_t n = parts.len;
+    int64_t i;
+    for (i = 0; i < n; i++) {
+        ax_str* e = (ax_str*)ax_arr_at(&parts, i, (int64_t)sizeof(ax_str), __FILE__, __LINE__, 0);
+        if (i > 0) {
+            ax_sb_push_cstr(&sb, AX_FILEPATH_SEP);
+        }
+        ax_sb_push(&sb, *e);
+    }
+    return ax_sb_finish(&sb);
+}
+
+ax_str ax_filepath_dir(ax_str path) {
+    int64_t pos = ax_filepath_last_sep(path);
+    if (pos < 0) {
+        /* 无分隔符：返回当前目录 "." */
+        return ax_str_from_cstr(".");
+    }
+    if (pos == 0) {
+        /* 路径以分隔符开头且只有该分隔符：返回 "/" 或 "\\" */
+        return ax_str_from_cstr(AX_FILEPATH_SEP);
+    }
+    return ax_str_slice_cp(path, 0, pos);
+}
+
+ax_str ax_filepath_base(ax_str path) {
+    int64_t pos = ax_filepath_last_sep(path);
+    if (pos < 0) {
+        return path;
+    }
+    if (pos == path.len - 1) {
+        /* 以分隔符结尾：返回空字符串 */
+        return ax_str_empty();
+    }
+    return ax_str_slice_cp(path, pos + 1, path.len);
+}
+
 /* ---------------- arena（区域分配器） ---------------- */
 struct ax_arena {
     void**  items;

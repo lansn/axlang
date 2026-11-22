@@ -1,0 +1,16 @@
+// filepath 模块：Join / Dir / Base
+import filepath
+
+int main() {
+    string p = filepath.Join(["usr", "local", "bin"])
+    println(p)
+    string d = filepath.Dir(p)
+    println(d)
+    string b = filepath.Base(p)
+    println(b)
+    string d2 = filepath.Dir("foo.txt")
+    println(d2)
+    string b2 = filepath.Base("foo.txt")
+    println(b2)
+    return 0
+}
