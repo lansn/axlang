@@ -5,8 +5,7 @@ cb-empty=true
 q-hello="hello"
 q-dquote="he\"llo"
 q-backslash="he\\llo"
-q-newline="he
-llo"
+q-newline="he\nllo"
 q-empty=""
 uq-simple=hello
 uq-dquote=he"llo

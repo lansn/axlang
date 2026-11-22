@@ -1,0 +1,31 @@
+// file 模块新增函数：Size / ModTime（对标 Go os.Stat+FileInfo.Size/ModTime）
+// axlang 无 uint 类型，Size 返回 int（int64），失败返回 -1；ModTime 返回 Unix 毫秒，失败返回 -1。
+import file
+
+int main() {
+    string f = "__ax_sizemodtime_test.txt"
+    string missing = "__ax_no_such_path_xyz"
+
+    // 清理可能残留的测试文件
+    file.Remove(f)
+
+    // 写入文件（11 字节 "hello world"）
+    int w = file.WriteAll(f, "hello world")
+    println("write={w}")
+
+    // Size 应返回文件字节数（非负），ModTime 应返回非负的 Unix 毫秒
+    int s = file.Size(f)
+    int mt = file.ModTime(f)
+    println("size-file={s}")
+    println("size-ok={s >= 0}")
+    println("modtime-ok={mt >= 0}")
+
+    // 不存在的路径：Size 返回 -1，ModTime 返回 -1
+    println("size-missing={file.Size(missing)}")
+    println("modtime-missing={file.ModTime(missing)}")
+
+    // 清理测试文件
+    file.Remove(f)
+
+    return 0
+}

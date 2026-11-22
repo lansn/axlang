@@ -63,6 +63,8 @@ pub fn module_sig(mod_: &str, name: &str) -> Option<(Vec<Option<Ty>>, Ty)> {
         ("file", "Mkdir") => (vec![Some(t_string())], t_int()),
         ("file", "IsDir") => (vec![Some(t_string())], t_int()),
         ("file", "IsFile") => (vec![Some(t_string())], t_int()),
+        ("file", "Size") => (vec![Some(t_string())], t_int()),
+        ("file", "ModTime") => (vec![Some(t_string())], t_int()),
         ("file", "ReadAll") => (vec![Some(t_string())], t_result(t_string())),
         ("file", "WriteAll") => (vec![Some(t_string()), Some(t_string())], t_int()),
         ("string", "FromCodepoint") => (vec![Some(t_int())], t_result(t_string())),

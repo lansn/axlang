@@ -1852,6 +1852,8 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             ("file", "Mkdir") => format!("ax_dir_create({})", a[0]),
             ("file", "IsDir") => format!("ax_file_is_dir({})", a[0]),
             ("file", "IsFile") => format!("ax_file_is_file({})", a[0]),
+            ("file", "Size") => format!("ax_file_size({})", a[0]),
+            ("file", "ModTime") => format!("ax_file_modtime({})", a[0]),
             ("file", "ReadAll") => {
                 let tyc = self.cg.ct(&self.ty_or_int(e.id));
                 format!(

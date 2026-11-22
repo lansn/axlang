@@ -2605,6 +2605,40 @@ int ax_file_is_file(ax_str path) {
 #endif
 }
 
+/* 文件大小（字节），对标 Go os.Stat+FileInfo.Size；失败返回 -1。 */
+int64_t ax_file_size(ax_str path) {
+    char name[1024];
+    int64_t n = path.len < 1023 ? path.len : 1023;
+    memcpy(name, path.p, (size_t)n);
+    name[n] = 0;
+#if defined(_WIN32)
+    struct _stat st;
+    if (_stat(name, &st) != 0) return -1;
+    return (int64_t)st.st_size;
+#else
+    struct stat st;
+    if (stat(name, &st) != 0) return -1;
+    return (int64_t)st.st_size;
+#endif
+}
+
+/* 最后修改时间（Unix 毫秒），对标 Go os.Stat+FileInfo.ModTime；失败返回 -1。 */
+int64_t ax_file_modtime(ax_str path) {
+    char name[1024];
+    int64_t n = path.len < 1023 ? path.len : 1023;
+    memcpy(name, path.p, (size_t)n);
+    name[n] = 0;
+#if defined(_WIN32)
+    struct _stat st;
+    if (_stat(name, &st) != 0) return -1;
+    return (int64_t)st.st_mtime * 1000;
+#else
+    struct stat st;
+    if (stat(name, &st) != 0) return -1;
+    return (int64_t)st.st_mtime * 1000;
+#endif
+}
+
 /* 将整个字符串写入文件（创建/截断），0=成功 1=失败 */
 int ax_file_write_all(ax_str path, ax_str s) {
     char name[1024];
