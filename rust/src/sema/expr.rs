@@ -77,6 +77,8 @@ pub fn module_sig(mod_: &str, name: &str) -> Option<(Vec<Option<Ty>>, Ty)> {
         ("strconv", "Itoa") => (vec![Some(t_int())], t_string()),
         ("strconv", "ParseFloat") => (vec![Some(t_string())], t_float()),
         ("strconv", "FormatFloat") => (vec![Some(t_float())], t_string()),
+        ("strconv", "ParseInt") => (vec![Some(t_string()), Some(t_int())], t_int()),
+        ("strconv", "FormatInt") => (vec![Some(t_int()), Some(t_int())], t_string()),
         /* filepath 模块 */
         ("filepath", "Join") => (vec![Some(t_array(t_string(), None))], t_string()),
         ("filepath", "Dir") => (vec![Some(t_string())], t_string()),

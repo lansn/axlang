@@ -1,0 +1,62 @@
+// strconv 模块：ParseInt / FormatInt（对标 Go strconv.ParseInt/FormatInt）
+import strconv
+
+int main() {
+    // ParseInt：10 进制
+    int a = strconv.ParseInt("123", 10)
+    println("parse-int-10={a}")
+
+    // ParseInt：16 进制
+    int b = strconv.ParseInt("1a", 16)
+    println("parse-int-16={b}")
+
+    // ParseInt：8 进制
+    int c = strconv.ParseInt("17", 8)
+    println("parse-int-8={c}")
+
+    // ParseInt：2 进制
+    int d = strconv.ParseInt("1010", 2)
+    println("parse-int-2={d}")
+
+    // ParseInt：base=0 自动判断前缀 0x
+    int e = strconv.ParseInt("0xff", 0)
+    println("parse-int-auto-hex={e}")
+
+    // ParseInt：base=0 自动判断前缀 0
+    int f = strconv.ParseInt("017", 0)
+    println("parse-int-auto-oct={f}")
+
+    // ParseInt：负数
+    int g = strconv.ParseInt("-42", 10)
+    println("parse-int-neg={g}")
+
+    // ParseInt：无效输入（返回 0）
+    int h = strconv.ParseInt("abc", 10)
+    println("parse-int-invalid={h}")
+
+    // FormatInt：10 进制
+    string s1 = strconv.FormatInt(255, 10)
+    println("format-int-10={s1}")
+
+    // FormatInt：16 进制
+    string s2 = strconv.FormatInt(255, 16)
+    println("format-int-16={s2}")
+
+    // FormatInt：8 进制
+    string s3 = strconv.FormatInt(255, 8)
+    println("format-int-8={s3}")
+
+    // FormatInt：2 进制
+    string s4 = strconv.FormatInt(255, 2)
+    println("format-int-2={s4}")
+
+    // FormatInt：负数
+    string s5 = strconv.FormatInt(-42, 10)
+    println("format-int-neg={s5}")
+
+    // FormatInt：base<=0 按 10 进制
+    string s6 = strconv.FormatInt(123, 0)
+    println("format-int-base0={s6}")
+
+    return 0
+}

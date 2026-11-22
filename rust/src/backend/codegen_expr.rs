@@ -1860,6 +1860,8 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 format!("({{ double v_; ax_parse_f64({}, &v_) ? v_ : 0.0; }})", a[0])
             }
             ("strconv", "FormatFloat") => format!("ax_str_of_f64({})", a[0]),
+            ("strconv", "ParseInt") => format!("ax_parse_int_base({}, {})", a[0], a[1]),
+            ("strconv", "FormatInt") => format!("ax_str_of_int_base({}, {})", a[0], a[1]),
             /* ---------------- filepath 模块 ---------------- */
             ("filepath", "Join") => {
                 let arr = &a[0];

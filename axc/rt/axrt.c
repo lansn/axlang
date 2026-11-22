@@ -2086,6 +2086,58 @@ int64_t str_to_i64(ax_str s) {
     return v;
 }
 
+int ax_parse_int_base(ax_str s, int base) {
+    char buf[64];
+    if (s.len <= 0 || s.len >= 63) return 0;
+    memcpy(buf, s.p, (size_t)s.len);
+    buf[s.len] = 0;
+    char* end = NULL;
+    /* base<=0：按前缀自动判断（0x=16, 0=8, 否则=10），与 Go strconv 一致 */
+    int b = base;
+    if (b <= 0) {
+        if (s.len >= 2 && buf[0] == '0' && (buf[1] == 'x' || buf[1] == 'X')) b = 16;
+        else if (buf[0] == '0') b = 8;
+        else b = 10;
+    }
+    long long v = strtoll(buf, &end, b);
+    if (!end || end == buf) return 0;
+    while (*end == ' ' || *end == '\t') end++;
+    if (*end != 0) return 0;
+    return (int)v;
+}
+
+ax_str ax_str_of_int_base(int64_t v, int base) {
+    char buf[64];
+    int n;
+    if (base <= 0 || base == 10) {
+        n = snprintf(buf, sizeof buf, "%lld", (long long)v);
+    } else if (base == 16) {
+        n = snprintf(buf, sizeof buf, "%llx", (unsigned long long)v);
+    } else if (base == 8) {
+        n = snprintf(buf, sizeof buf, "%llo", (unsigned long long)v);
+    } else if (base == 2) {
+        /* 标准 C 无 %b，手动二进制 */
+        char tmp[65];
+        int i = 64;
+        tmp[i--] = 0;
+        unsigned long long u = (unsigned long long)v;
+        if (u == 0) {
+            tmp[i--] = '0';
+        } else {
+            while (u > 0) {
+                tmp[i--] = (char)('0' + (int)(u & 1ULL));
+                u >>= 1;
+            }
+        }
+        n = (int)(64 - i - 1);
+        memcpy(buf, tmp + i + 1, (size_t)n);
+        buf[n] = 0;
+    } else {
+        n = snprintf(buf, sizeof buf, "%lld", (long long)v);
+    }
+    return ax_str_from_bytes((const uint8_t*)buf, n);
+}
+
 /* ---------------- 文件（Rt-13） ---------------- */
 
 /* ax_str → 以 NUL 结尾的栈缓冲；路径过长返回 0（与 ax_read_file 同一上限）。 */
