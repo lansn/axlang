@@ -169,8 +169,8 @@
 |------|------|------|------|
 | `strconv.ParseInt` | `(s: string, base: int) -> int` | Go `strconv.ParseInt` | ✅ 已落地（2026-11-22） |
 | `strconv.FormatInt` | `(v: int, base: int) -> string` | Go `strconv.FormatInt` | ✅ 已落地（2026-11-22） |
-| `strconv.ParseBool` | `(s: string) -> bool` | Go `strconv.ParseBool` | 🔄 下一项 |
-| `strconv.FormatBool` | `(v: bool) -> string` | Go `strconv.FormatBool` | 🔄 下一项 |
+| `strconv.ParseBool` | `(s: string) -> bool` | Go `strconv.ParseBool` | ✅ 已落地（2026-11-22） |
+| `strconv.FormatBool` | `(v: bool) -> string` | Go `strconv.FormatBool` | ✅ 已落地（2026-11-22） |
 
 #### filepath 扩展
 | 函数 | 签名 | 对标 | 状态 |

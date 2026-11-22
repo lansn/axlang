@@ -2355,6 +2355,21 @@ ax_str ax_filepath_base(ax_str path) {
     return ax_str_slice_cp(path, pos + 1, path.len);
 }
 
+/* 返回扩展名（含点，如 ".txt"；无扩展名或以分隔符结尾返回空串） */
+ax_str ax_filepath_ext(ax_str path) {
+    int64_t pos = ax_filepath_last_sep(path);
+    int64_t start = (pos < 0) ? 0 : pos + 1;
+    if (start >= path.len) return ax_str_empty();
+    int64_t dot = -1;
+    for (int64_t i = start; i < path.len; i++) {
+        if (path.p[i] == (uint8_t)'.') dot = i;
+    }
+    if (dot < 0 || dot == start) return ax_str_empty();
+    /* 扩展名不能是 "." 或 ".." */
+    if (dot == start + 1 && path.p[start] == '.') return ax_str_empty();
+    return ax_str_slice_cp(path, dot, path.len);
+}
+
 /* ---------------- arena（区域分配器） ---------------- */
 struct ax_arena {
     void**  items;

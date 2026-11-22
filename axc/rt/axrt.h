@@ -298,6 +298,16 @@ ax_str  ax_filepath_join(ax_arr parts);    /* parts 元素为 ax_str，esz = siz
 ax_str  ax_filepath_dir(ax_str path);
 /* 返回最后一个分隔符后的内容（无分隔符返回原字符串） */
 ax_str  ax_filepath_base(ax_str path);
+/* 返回扩展名（含点，如 ".txt"；无扩展名或以分隔符结尾返回空串） */
+ax_str  ax_filepath_ext(ax_str path);
+/* 分割路径为 [dir, base] 数组（对标 Go filepath.Split） */
+ax_arr  ax_filepath_split(ax_str path);
+/* 路径规范化（去除 .、..、重复分隔符） */
+ax_str  ax_filepath_clean(ax_str path);
+/* 是否为绝对路径（Unix 以 / 开头，Windows 以 盘符: 或 \\ 开头） */
+int     ax_filepath_is_abs(ax_str path);
+/* 转为绝对路径（需当前工作目录，失败返回原路径） */
+ax_str  ax_filepath_abs(ax_str path);
 
 int   ax_parse_i64(ax_str s, int64_t* out);
 int   ax_parse_f64(ax_str s, double* out);

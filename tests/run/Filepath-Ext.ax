@@ -1,0 +1,12 @@
+// filepath 模块：Ext（对标 Go filepath.Ext）
+import filepath
+
+int main() {
+    println("ext1={filepath.Ext("foo.txt")}")
+    println("ext2={filepath.Ext("archive.tar.gz")}")
+    println("ext3={filepath.Ext("noext")}")
+    println("ext4={filepath.Ext(".hidden")}")
+    println("ext5={filepath.Ext("dir/")}")
+    println("ext6={filepath.Ext("a/b/c.py")}")
+    return 0
+}
