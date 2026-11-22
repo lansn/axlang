@@ -1523,6 +1523,18 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
         if mk == "FromCodepoint" {
             return self.from_codepoint(e);
         }
+        if mk == "StrCompare" {
+            // `string.Compare(a, b)` 是模块级静态方法，接收者 `string` 仅是命名空间，
+            // 不是 string 值，故直接取两个实参，不使用 recv。
+            let a0 = self.gen(&args[0].k.expr, None, false, false);
+            let a1 = self.gen(&args[1].k.expr, None, false, false);
+            return format!("ax_str_cmp({}, {})", a0, a1);
+        }
+        if mk == "StrFields" {
+            // `string.Fields(s)` 同理，接收者 `string` 仅是命名空间。
+            let a0 = self.gen(&args[0].k.expr, None, false, false);
+            return format!("ax_str_fields({})", a0);
+        }
         if mk == "arena_alloc" {
             // O-17：`ar.Alloc(x)` —— 区域收养对象指针，返回值即 ArenaRef<T>
             //（C 层 T*）。实参在 sema 已按 move 处理。
@@ -1864,6 +1876,9 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             ("strconv", "FormatInt") => format!("ax_str_of_int_base({}, {})", a[0], a[1]),
             ("strconv", "ParseBool") => format!("ax_parse_bool({})", a[0]),
             ("strconv", "FormatBool") => format!("ax_str_of_bool({})", a[0]),
+            /* ---------------- string 模块（模块级函数） ---------------- */
+            ("string", "Compare") => format!("ax_str_cmp({}, {})", a[0], a[1]),
+            ("string", "Fields") => format!("ax_str_fields({})", a[0]),
             /* ---------------- filepath 模块 ---------------- */
             ("filepath", "Join") => {
                 let arr = &a[0];

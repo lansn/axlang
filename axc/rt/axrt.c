@@ -545,6 +545,28 @@ ax_str ax_str_trim(ax_str s) {
     return ax_str_from_bytes(s.p + a, b - a);
 }
 
+static int ax_is_space(uint8_t c) {
+    return c == (uint8_t)' ' || c == (uint8_t)'\t' || c == (uint8_t)'\n' ||
+           c == (uint8_t)'\r' || c == (uint8_t)'\v' || c == (uint8_t)'\f';
+}
+
+/* 字符串分割（对标 Go strings.Fields，按空白符分割，返回 ax_arr，元素为 ax_str） */
+ax_arr ax_str_fields(ax_str s) {
+    ax_arr arr;
+    ax_arr_init(&arr);
+    int64_t i = 0;
+    while (i < s.len) {
+        /* 跳过空白符 */
+        while (i < s.len && ax_is_space(s.p[i])) i++;
+        if (i >= s.len) break;
+        int64_t start = i;
+        while (i < s.len && !ax_is_space(s.p[i])) i++;
+        ax_str field = ax_str_from_bytes(s.p + start, i - start);
+        ax_arr_push(&arr, &field, (int64_t)sizeof(ax_str));
+    }
+    return arr;
+}
+
 /* ---------------- 大小写转换（仅 ASCII，UTF-8 多字节原样保留） ---------------- */
 
 static int u8_is_ascii_lower(uint8_t c) { return c >= 'a' && c <= 'z'; }

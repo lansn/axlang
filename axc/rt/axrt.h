@@ -144,6 +144,8 @@ void  ax_arr_clear(ax_arr* a);
 void  ax_arr_from(void* out, const void* src, int64_t n, int64_t esz);
 ax_arr ax_arr_of(const void* src, int64_t n, int64_t esz);
 int   ax_arr_eq(const ax_arr* a, const ax_arr* b, int64_t esz);
+/* 字符串分割（对标 Go strings.Fields，按空白符分割，返回 ax_arr，元素为 ax_str） */
+ax_arr ax_str_fields(ax_str s);
 
 /* ---------------- map（Rt-8，插入序） ---------------- */
 typedef struct { uint64_t hash; void* k; void* v; } ax_mentry;

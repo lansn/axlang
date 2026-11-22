@@ -807,6 +807,16 @@ impl<'a> Sema<'a> {
             self.sl(e.id).mkind = Some("FromCodepoint");
             return t_result(t_string());
         }
+        if name == "Compare" && type_name == "string" {
+            self.check_call_args(args, Some(&[t_string(), t_string()]), None, e.id);
+            self.sl(e.id).mkind = Some("StrCompare");
+            return t_int();
+        }
+        if name == "Fields" && type_name == "string" {
+            self.check_call_args(args, Some(&[t_string()]), None, e.id);
+            self.sl(e.id).mkind = Some("StrFields");
+            return t_array(t_string(), None);
+        }
         self.err("E3003", &e.tok, "N-17", "`{0}.{1}` 不存在", &[&type_name, &name]);
         t_object()
     }

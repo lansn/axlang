@@ -178,16 +178,16 @@
 | `filepath.Ext` | `(path: string) -> string` | Go `filepath.Ext` | ✅ 已落地（2026-11-22） |
 | `filepath.Split` | `(path: string) -> string[2]` | Go `filepath.Split` | ✅ 已落地（2026-11-22） |
 | `filepath.Clean` | `(path: string) -> string` | Go `filepath.Clean` | ✅ 已落地（2026-11-22） |
-| `filepath.Abs` | `(path: string) -> string` | Go `filepath.Abs` | 🔄 下一项 |
-| `filepath.IsAbs` | `(path: string) -> bool` | Go `filepath.IsAbs` | 🔄 下一项 |
+| `filepath.Abs` | `(path: string) -> string` | Go `filepath.Abs` | ✅ 已落地（2026-11-22） |
+| `filepath.IsAbs` | `(path: string) -> bool` | Go `filepath.IsAbs` | ✅ 已落地（2026-11-22） |
 
 ### P1
 
 #### string 静态方法补充
 | 函数 | 签名 | 对标 | 状态 |
 |------|------|------|------|
-| `string.Compare` | `(a: string, b: string) -> int` | Go `strings.Compare` | ⬜ |
-| `string.Fields` | `(s: string) -> string[]` | Go `strings.Fields` | ⬜ |
+| `string.Compare` | `(a: string, b: string) -> int` | Go `strings.Compare` | ✅ 已落地（2026-11-22） |
+| `string.Fields` | `(s: string) -> string[]` | Go `strings.Fields` | ✅ 已落地（2026-11-22） |
 
 #### math 扩展
 | 函数 | 签名 | 对标 | 状态 |
@@ -245,7 +245,7 @@
 |------|--------|--------|
 | 已落地模块 | io, math, json, file, db, string, time, decimal, Int/Float/Bool/Enum, Array, Map, Range, thread/queue, os, strconv, filepath | — |
 | P0 待落地 | — | strconv.ParseInt/FormatInt, ParseBool/FormatBool; filepath.Ext/Split/Clean/Abs/IsAbs |
-| P1 待落地 | — | string.Compare/Fields; math.Sign/Mod; os.Getwd/Chdir; file.ReadAll/WriteAll |
+| P1 待落地 | — | math.Sign/Mod; os.Getwd/Chdir; file.ReadAll/WriteAll |
 | P2 待落地 | — | rand.Int/Float/Seed; sort.Ints/Strings |
 
 *更新于 2026-11-22*

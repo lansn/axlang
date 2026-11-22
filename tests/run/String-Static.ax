@@ -1,0 +1,55 @@
+// string 模块静态方法：Compare / Fields（对标 Go strings.Compare / strings.Fields）
+import string
+
+int main() {
+    // Compare：相等
+    int c1 = string.Compare("abc", "abc")
+    println("cmp-eq={c1}")
+
+    // Compare：小于
+    int c2 = string.Compare("abc", "abd")
+    println("cmp-lt={c2}")
+
+    // Compare：大于
+    int c3 = string.Compare("abd", "abc")
+    println("cmp-gt={c3}")
+
+    // Compare：空字符串
+    int c4 = string.Compare("", "")
+    println("cmp-empty-empty={c4}")
+
+    int c5 = string.Compare("", "a")
+    println("cmp-empty-a={c5}")
+
+    int c6 = string.Compare("a", "")
+    println("cmp-a-empty={c6}")
+
+    // Fields：普通分割
+    string[] f1 = string.Fields("hello world")
+    println("fields1-len={f1.Len()}")
+    println("fields1-0={f1[0]}")
+    println("fields1-1={f1[1]}")
+
+    // Fields：多个空白符
+    string[] f2 = string.Fields("  hello   world  ")
+    println("fields2-len={f2.Len()}")
+    println("fields2-0={f2[0]}")
+    println("fields2-1={f2[1]}")
+
+    // Fields：tab 和换行
+    string[] f3 = string.Fields("hello\tworld\nfoo")
+    println("fields3-len={f3.Len()}")
+    println("fields3-0={f3[0]}")
+    println("fields3-1={f3[1]}")
+    println("fields3-2={f3[2]}")
+
+    // Fields：空字符串
+    string[] f4 = string.Fields("")
+    println("fields4-len={f4.Len()}")
+
+    // Fields：只有空白符
+    string[] f5 = string.Fields("   ")
+    println("fields5-len={f5.Len()}")
+
+    return 0
+}
