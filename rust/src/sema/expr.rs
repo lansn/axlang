@@ -64,6 +64,10 @@ pub fn module_sig(mod_: &str, name: &str) -> Option<(Vec<Option<Ty>>, Ty)> {
         ("time", "Now") => (vec![], t_named(DefId::Name("time"), Vec::new())),
         ("time", "FromUnixMs") => (vec![Some(t_int())], t_named(DefId::Name("time"), Vec::new())),
         ("time", "Sleep") => (vec![Some(t_int())], t_void()),
+        ("time", "Parse") => (
+            vec![Some(t_string()), Some(t_string())],
+            t_result(t_named(DefId::Name("time"), Vec::new())),
+        ),
         /* os 模块 */
         ("os", "Getenv") => (vec![Some(t_string())], t_string()),
         ("os", "Exit") => (vec![Some(t_int())], t_void()),

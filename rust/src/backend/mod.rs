@@ -492,6 +492,12 @@ impl<'s, 'a> CodeGen<'s, 'a> {
                     self.type_defs.push(format!("typedef ax_res_map {};", name));
                     return;
                 }
+                let time_ = matches!(&**inner, TyS::Named(DefId::Name("time"), args) if args.is_empty());
+                if time_ {
+                    // time.Parse 的返回形态：运行时已定义同形结构（axrt.h 的 ax_res_time）
+                    self.type_defs.push(format!("typedef ax_res_time {};", name));
+                    return;
+                }
                 let it = self.ct(inner);
                 self.type_defs.push(format!(
                     "typedef struct {{ uint8_t tag; union {{ {} ok; ax_err err; }} u; }} {};",

@@ -1843,6 +1843,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 self.emit(format!("ax_time_sleep({});", a[0]));
                 "0".to_string()
             }
+            ("time", "Parse") => format!("ax_time_parse_result({}, {})", a[0], a[1]),
             /* ---------------- os 模块 ---------------- */
             ("os", "Getenv") => format!("ax_os_getenv({})", a[0]),
             ("os", "Exit") => {

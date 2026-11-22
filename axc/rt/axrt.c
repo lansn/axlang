@@ -1949,6 +1949,72 @@ void ax_time_sleep(int64_t ms) {
     if (ms > 0) usleep((useconds_t)(ms * 1000));
 #endif
 }
+
+ax_res_time ax_time_parse_result(ax_str s, ax_str fmt) {
+    ax_res_time r;
+    int year = 1970, month = 1, day = 1, hour = 0, min = 0, sec = 0;
+    const char* sp = (const char*)s.p;
+    const char* fp = (const char*)fmt.p;
+    int64_t slen = s.len, flen = fmt.len;
+    int64_t si = 0, fi = 0;
+    int ok = 1;
+
+    while (fi < flen && si < slen && ok) {
+        if (fp[fi] == '%' && fi + 1 < flen) {
+            char spec = fp[fi + 1];
+            fi += 2;
+            int val = 0;
+            int digits = 0;
+            int max_digits = (spec == 'Y') ? 4 : 2;
+            while (si < slen && sp[si] >= (uint8_t)'0' && sp[si] <= (uint8_t)'9' && digits < max_digits) {
+                val = val * 10 + (sp[si] - (uint8_t)'0');
+                si++;
+                digits++;
+            }
+            if (digits == 0) { ok = 0; break; }
+            switch (spec) {
+                case 'Y': year = val; break;
+                case 'm': month = val; break;
+                case 'd': day = val; break;
+                case 'H': hour = val; break;
+                case 'M': min = val; break;
+                case 'S': sec = val; break;
+                default: ok = 0; break;
+            }
+            /* 跳过格式串中紧跟的非占位符分隔符 */
+            while (fi < flen && fp[fi] != (uint8_t)'%' && fp[fi] >= (uint8_t)'0' && fp[fi] <= (uint8_t)'9') fi++;
+        } else {
+            if (sp[si] == fp[fi]) { si++; fi++; }
+            else { fi++; } /* 宽松匹配：格式字符跳过，不强制输入一一对应 */
+        }
+    }
+
+    if (!ok || year < 1970 || month < 1 || month > 12 || day < 1 || day > 31 ||
+        hour < 0 || hour > 23 || min < 0 || min > 59 || sec < 0 || sec > 59) {
+        r.tag = 0;
+        r.u.err = ax_err_new(1, AX_S("bad time format"));
+        return r;
+    }
+
+    struct tm tm;
+    memset(&tm, 0, sizeof(tm));
+    tm.tm_year = year - 1900;
+    tm.tm_mon = month - 1;
+    tm.tm_mday = day;
+    tm.tm_hour = hour;
+    tm.tm_min = min;
+    tm.tm_sec = sec;
+    time_t t = mktime(&tm);
+    if (t == (time_t)-1) {
+        r.tag = 0;
+        r.u.err = ax_err_new(1, AX_S("bad time format"));
+        return r;
+    }
+    r.tag = 1;
+    r.u.ok = (int64_t)t * 1000;
+    return r;
+}
+
 int ax_read_line(ax_str* out) {
     size_t cap = 128, len = 0;
     char* buf = (char*)ax_alloc((int64_t)cap);

@@ -237,6 +237,12 @@ ax_str ax_time_format(int64_t ms, const char* fmt);
 /* 毫秒睡眠（对标 C <unistd.h> usleep / Windows Sleep） */
 void ax_time_sleep(int64_t ms);
 
+/* 时间解析（对标 Go time.Parse / C strptime，标准 C11 实现）：
+ * 解析字符串 s 按格式 fmt（%Y %m %d %H %M %S 等），返回 Unix 毫秒；
+ * 失败时 tag=0 + error（code=1，msg="bad time format"）。 */
+typedef struct { uint8_t tag; union { int64_t ok; ax_err err; } u; } ax_res_time;
+ax_res_time ax_time_parse_result(ax_str s, ax_str fmt);
+
 /* json.Parse 的 result<map<string, object>> 形态（文稿 11.3）：
    ok 携带 ax_map（string → ax_box*），fail 携带解析错误（code=1 + 位置信息）。 */
 typedef struct { uint8_t tag; union { ax_map ok; ax_err err; } u; } ax_res_map;
