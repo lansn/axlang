@@ -1,0 +1,31 @@
+// file 模块新增函数：IsDir / IsFile（对标 Go os.Stat + FileInfo.IsDir）
+import file
+
+int main() {
+    string dir = "__ax_isdir_test_dir"
+    string f = "__ax_isfile_test.txt"
+    string missing = "__ax_no_such_path_xyz"
+
+    // 清理可能残留的测试文件（目录留给 Mkdir 处理）
+    file.Remove(f)
+
+    // 创建目录并判断类型（Mkdir 若目录已存在会返回 1，不影响 IsDir 判断）
+    file.Mkdir(dir)
+    println("isdir-dir={file.IsDir(dir)}")
+    println("isfile-dir={file.IsFile(dir)}")
+
+    // 创建文件并判断类型
+    int w = file.WriteAll(f, "hello")
+    println("write={w}")
+    println("isdir-file={file.IsDir(f)}")
+    println("isfile-file={file.IsFile(f)}")
+
+    // 不存在的路径
+    println("isdir-missing={file.IsDir(missing)}")
+    println("isfile-missing={file.IsFile(missing)}")
+
+    // 清理测试文件
+    file.Remove(f)
+
+    return 0
+}

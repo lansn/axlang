@@ -284,6 +284,9 @@ int     ax_file_remove(ax_str path);                 /* 0=成功 1=失败 */
 int     ax_file_rename(ax_str old_path, ax_str new_path); /* 0=成功 1=失败 */
 int     ax_file_exists(ax_str path);                 /* 1=存在 0=不存在 */
 int     ax_dir_create(ax_str path);                  /* 0=成功 1=失败 */
+/* 文件/目录类型判断（对标 Go os.Stat+FileInfo.IsDir）：1=是 0=否 */
+int     ax_file_is_dir(ax_str path);                 /* 1=目录 0=否或不存在 */
+int     ax_file_is_file(ax_str path);                /* 1=常规文件 0=否或不存在 */
 /* 将整个字符串写入文件（创建/截断），0=成功 1=失败 */
 int     ax_file_write_all(ax_str path, ax_str s);
 

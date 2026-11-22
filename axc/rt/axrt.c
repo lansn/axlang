@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <sys/stat.h>   /* stat/_stat, S_ISDIR/S_ISREG/_S_IFDIR/_S_IFREG（标准 C 库头，非编译器扩展） */
 
 #ifdef _WIN32
 #ifndef _WIN32_WINNT
@@ -2372,6 +2373,38 @@ int ax_dir_create(ax_str path) {
     return _mkdir((const char*)path.p) == 0 ? 0 : 1;
 #else
     return mkdir((const char*)path.p, 0755) == 0 ? 0 : 1;
+#endif
+}
+
+int ax_file_is_dir(ax_str path) {
+    char name[1024];
+    int64_t n = path.len < 1023 ? path.len : 1023;
+    memcpy(name, path.p, (size_t)n);
+    name[n] = 0;
+#if defined(_WIN32)
+    struct _stat st;
+    if (_stat(name, &st) != 0) return 0;
+    return (st.st_mode & _S_IFDIR) != 0 ? 1 : 0;
+#else
+    struct stat st;
+    if (stat(name, &st) != 0) return 0;
+    return S_ISDIR(st.st_mode) ? 1 : 0;
+#endif
+}
+
+int ax_file_is_file(ax_str path) {
+    char name[1024];
+    int64_t n = path.len < 1023 ? path.len : 1023;
+    memcpy(name, path.p, (size_t)n);
+    name[n] = 0;
+#if defined(_WIN32)
+    struct _stat st;
+    if (_stat(name, &st) != 0) return 0;
+    return (st.st_mode & _S_IFREG) != 0 ? 1 : 0;
+#else
+    struct stat st;
+    if (stat(name, &st) != 0) return 0;
+    return S_ISREG(st.st_mode) ? 1 : 0;
 #endif
 }
 

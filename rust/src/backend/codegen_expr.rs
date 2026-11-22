@@ -1850,6 +1850,8 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             ("file", "Rename") => format!("ax_file_rename({}, {})", a[0], a[1]),
             ("file", "Exists") => format!("ax_file_exists({})", a[0]),
             ("file", "Mkdir") => format!("ax_dir_create({})", a[0]),
+            ("file", "IsDir") => format!("ax_file_is_dir({})", a[0]),
+            ("file", "IsFile") => format!("ax_file_is_file({})", a[0]),
             ("file", "ReadAll") => {
                 let tyc = self.cg.ct(&self.ty_or_int(e.id));
                 format!(

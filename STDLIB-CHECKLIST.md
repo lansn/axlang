@@ -54,6 +54,8 @@
 | `file.Rename` | `(old: string, new: string) -> int` | ✅ | 0=成功 1=失败 |
 | `file.Exists` | `(path: string) -> int` | ✅ | 1=存在 0=不存在 |
 | `file.Mkdir` | `(path: string) -> int` | ✅ | 0=成功 1=失败 |
+| `file.IsDir` | `(path: string) -> int` | ✅ | 1=目录 0=否或不存在（2026-11-22） |
+| `file.IsFile` | `(path: string) -> int` | ✅ | 1=常规文件 0=否或不存在（2026-11-22） |
 
 ### db
 | 函数 | 签名 | 状态 | 说明 |
