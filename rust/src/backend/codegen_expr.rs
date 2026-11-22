@@ -1918,6 +1918,9 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             ("strconv", "FormatBool") => format!("ax_str_of_bool({})", a[0]),
             ("strconv", "ParseUint") => format!("ax_parse_uint_base({}, {})", a[0], a[1]),
             ("strconv", "FormatUint") => format!("ax_str_of_uint_base({}, {})", a[0], a[1]),
+            ("strconv", "CanBackquote") => format!("ax_str_can_backquote({})", a[0]),
+            ("strconv", "Quote") => format!("ax_str_quote({})", a[0]),
+            ("strconv", "Unquote") => format!("ax_str_unquote({})", a[0]),
             /* ---------------- string 模块（模块级函数） ---------------- */
             ("string", "Compare") => format!("ax_str_cmp({}, {})", a[0], a[1]),
             ("string", "Fields") => format!("ax_str_fields({})", a[0]),

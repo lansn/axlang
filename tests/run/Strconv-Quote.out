@@ -1,0 +1,17 @@
+cb-hello=true
+cb-tab=true
+cb-newline=false
+cb-empty=true
+q-hello="hello"
+q-dquote="he\"llo"
+q-backslash="he\\llo"
+q-newline="he
+llo"
+q-empty=""
+uq-simple=hello
+uq-dquote=he"llo
+uq-backslash=he\llo
+uq-newline=he
+llo
+uq-empty=
+uq-bad=

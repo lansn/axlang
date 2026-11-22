@@ -376,6 +376,14 @@ ax_str ax_str_of_int_base(int64_t v, int base); /* base<=0 时按 10 进制输�
 int64_t ax_parse_uint_base(ax_str s, int base); /* 失败或超出 int64 范围返回 0 */
 ax_str  ax_str_of_uint_base(int64_t v, int base); /* v 按无符号解释并格式化 */
 
+/* strconv 字符串引用处理（对标 Go strconv.Quote/Unquote/CanBackquote，标准 C11 实现）：
+ * Quote 返回双引号括起来的 Go 字符串字面量，使用 Go 转义序列；
+ * Unquote 解释双引号括起来的 Go 字符串字面量，失败返回空串；
+ * CanBackquote 报告字符串能否作为单行反引号字符串表示（不含除 tab 外的控制字符）。 */
+int     ax_str_can_backquote(ax_str s);   /* 1=可作为反引号字符串 0=不可 */
+ax_str  ax_str_quote(ax_str s);           /* 双引号括起来的 Go 字符串字面量 */
+ax_str  ax_str_unquote(ax_str s);         /* 解释双引号字符串字面量，失败返回空串 */
+
 
 /* ---------------- arena（区域分配器，规格书 8.4 / O-17…O-20） ----------------
  * 整块同生共死：adopt 只登记指针（所有权移交区域），free 一次性释放

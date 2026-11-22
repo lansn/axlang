@@ -258,9 +258,9 @@
 
 | 函数 | 签名 | 对标 | 状态 |
 |------|------|------|------|
-| `strconv.CanBackquote` | `(s: string) -> bool` | Go `strconv.CanBackquote` | ⬜ |
-| `strconv.Quote` | `(s: string) -> string` | Go `strconv.Quote` | ⬜ |
-| `strconv.Unquote` | `(s: string) -> string` | Go `strconv.Unquote` | ⬜ |
+| `strconv.CanBackquote` | `(s: string) -> bool` | Go `strconv.CanBackquote` | ✅ 已落地（2026-11-22） |
+| `strconv.Quote` | `(s: string) -> string` | Go `strconv.Quote` | ✅ 已落地（2026-11-22） |
+| `strconv.Unquote` | `(s: string) -> string` | Go `strconv.Unquote` | ✅ 已落地（2026-11-22） |
 
 #### 字符分类与转换（对标 C ctype.h）
 

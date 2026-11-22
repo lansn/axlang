@@ -1,0 +1,27 @@
+// strconv 模块：CanBackquote / Quote / Unquote（对标 Go strconv）
+import strconv
+
+int main() {
+    // CanBackquote：能否作为单行反引号字符串
+    println("cb-hello={strconv.CanBackquote("hello")}")
+    println("cb-tab={strconv.CanBackquote("hello\tworld")}")
+    println("cb-newline={strconv.CanBackquote("hello\nworld")}")
+    println("cb-empty={strconv.CanBackquote("")}")
+
+    // Quote：双引号括起来的 Go 字符串字面量
+    println("q-hello={strconv.Quote("hello")}")
+    println("q-dquote={strconv.Quote("he\"llo")}")
+    println("q-backslash={strconv.Quote("he\\llo")}")
+    println("q-newline={strconv.Quote("he\nllo")}")
+    println("q-empty={strconv.Quote("")}")
+
+    // Unquote：解释双引号字符串字面量
+    println("uq-simple={strconv.Unquote("\"hello\"")}")
+    println("uq-dquote={strconv.Unquote("\"he\\\"llo\"")}")
+    println("uq-backslash={strconv.Unquote("\"he\\\\llo\"")}")
+    println("uq-newline={strconv.Unquote("\"he\nllo\"")}")
+    println("uq-empty={strconv.Unquote("\"\"")}")
+    println("uq-bad={strconv.Unquote("hello")}")
+
+    return 0
+}

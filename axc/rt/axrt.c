@@ -2327,6 +2327,139 @@ ax_str ax_str_of_uint_base(int64_t v, int base) {
     return ax_str_from_bytes((const uint8_t*)buf, n);
 }
 
+/* ---------------- strconv 字符串引用处理（对标 Go strconv.Quote/Unquote/CanBackquote） ----------------
+ * 标准 C11 实现，无编译器扩展。 */
+
+/* 检查字符是否为可打印字符（Go 的 IsPrint 语义：0x20~0x7E，以及 tab 0x09 在反引号中允许） */
+static int ax_u8_is_printable(uint8_t c) {
+    return c >= (uint8_t)0x20 && c <= (uint8_t)0x7e;
+}
+
+int ax_str_can_backquote(ax_str s) {
+    /* 单行反引号字符串：不含换行符，不含除 tab 外的控制字符 */
+    for (int64_t i = 0; i < s.len; i++) {
+        uint8_t c = s.p[i];
+        if (c == (uint8_t)'\n' || c == (uint8_t)'\r') return 0;
+        if (c != (uint8_t)'\t' && (c < (uint8_t)0x20 || c == (uint8_t)0x7f)) return 0;
+    }
+    return 1;
+}
+
+/* 将一个字节写入 Go 转义序列，返回写入的字符数（不含 NUL）。
+ * buf 必须至少有 6 字节空间（\UXXXXXXXX 最长 10 字节，这里保守按 6 足够）。 */
+static int ax_quote_escape(uint8_t c, char* out) {
+    switch (c) {
+        case (uint8_t)'\\':  out[0]='\\'; out[1]='\\'; return 2;
+        case (uint8_t)'\"':  out[0]='\\'; out[1]='"';  return 2;
+        case (uint8_t)'\a':  out[0]='\\'; out[1]='a';  return 2;
+        case (uint8_t)'\b':  out[0]='\\'; out[1]='b';  return 2;
+        case (uint8_t)'\f':  out[0]='\\'; out[1]='f';  return 2;
+        case (uint8_t)'\n':  out[0]='\\'; out[1]='n';  return 2;
+        case (uint8_t)'\r':  out[0]='\\'; out[1]='r';  return 2;
+        case (uint8_t)'\t':  out[0]='\\'; out[1]='t';  return 2;
+        case (uint8_t)'\v':  out[0]='\\'; out[1]='v';  return 2;
+        default:
+            if (!ax_u8_is_printable(c)) {
+                /* 不可打印字符：使用 \xHH */
+                out[0]='\\'; out[1]='x';
+                static const char hex[] = "0123456789abcdef";
+                out[2] = hex[(c >> 4) & 0xF];
+                out[3] = hex[c & 0xF];
+                return 4;
+            }
+            out[0] = (char)c;
+            return 1;
+    }
+}
+
+ax_str ax_str_quote(ax_str s) {
+    /* 最坏情况：每个字节都转义为 \xHH（4 字节），加首尾引号和 NUL */
+    int64_t cap = s.len * 4 + 3;
+    uint8_t* buf = (uint8_t*)ax_alloc(cap);
+    int64_t pos = 0;
+    buf[pos++] = '"';
+    for (int64_t i = 0; i < s.len; i++) {
+        char esc[8];
+        int n = ax_quote_escape(s.p[i], esc);
+        if (pos + n > cap - 2) break;  /* 保留空间给结尾引号和 NUL */
+        memcpy(buf + pos, esc, (size_t)n);
+        pos += n;
+    }
+    buf[pos++] = '"';
+    buf[pos] = 0;
+    return ax_str_from_bytes(buf, pos);
+}
+
+/* 十六进制字符转数值，失败返回 -1（前向声明，供 ax_unquote_escape 调用） */
+static int hexval(uint8_t c);
+
+/* 解析一个转义序列，从 *p 指向反斜杠之后的字符开始。
+ * 成功返回写入的字节数（1），并将 *p 前进；失败返回 -1。 */
+static int ax_unquote_escape(const uint8_t** p, const uint8_t* end, uint8_t* out) {
+    if (*p >= end) return -1;
+    uint8_t c = **p;
+    (*p)++;
+    switch (c) {
+        case (uint8_t)'\\': *out = '\\'; return 1;
+        case (uint8_t)'"':  *out = '"';  return 1;
+        case (uint8_t)'a':  *out = '\a'; return 1;
+        case (uint8_t)'b':  *out = '\b'; return 1;
+        case (uint8_t)'f':  *out = '\f'; return 1;
+        case (uint8_t)'n':  *out = '\n'; return 1;
+        case (uint8_t)'r':  *out = '\r'; return 1;
+        case (uint8_t)'t':  *out = '\t'; return 1;
+        case (uint8_t)'v':  *out = '\v'; return 1;
+        case (uint8_t)'x': {
+            /* \xHH：两个十六进制字符 */
+            if (*p + 2 > end) return -1;
+            uint8_t hi = **p; (*p)++;
+            uint8_t lo = **p; (*p)++;
+            int v1 = hexval(hi), v2 = hexval(lo);
+            if (v1 < 0 || v2 < 0) return -1;
+            *out = (uint8_t)((v1 << 4) | v2);
+            return 1;
+        }
+        default:
+            return -1;
+    }
+}
+
+/* 十六进制字符转数值，失败返回 -1 */
+static int hexval(uint8_t c) {
+    if (c >= (uint8_t)'0' && c <= (uint8_t)'9') return (int)(c - '0');
+    if (c >= (uint8_t)'a' && c <= (uint8_t)'f') return (int)(c - 'a' + 10);
+    if (c >= (uint8_t)'A' && c <= (uint8_t)'F') return (int)(c - 'A' + 10);
+    return -1;
+}
+
+ax_str ax_str_unquote(ax_str s) {
+    /* 必须以双引号开始和结束，且长度至少 2 */
+    if (s.len < 2 || s.p[0] != (uint8_t)'"' || s.p[s.len - 1] != (uint8_t)'"')
+        return ax_str_empty();
+
+    const uint8_t* p = s.p + 1;       /* 跳过首引号 */
+    const uint8_t* end = s.p + s.len - 1;  /* 不含尾引号 */
+    int64_t cap = s.len;              /* 最多不超过原长度（去掉引号后） */
+    uint8_t* buf = (uint8_t*)ax_alloc(cap <= 0 ? 1 : cap);
+    int64_t pos = 0;
+
+    while (p < end) {
+        if (*p == (uint8_t)'\\') {
+            p++;  /* 跳过反斜杠 */
+            uint8_t ch;
+            if (ax_unquote_escape(&p, end, &ch) < 0) {
+                /* 转义序列非法，返回空串 */
+                return ax_str_empty();
+            }
+            buf[pos++] = ch;
+        } else {
+            buf[pos++] = *p;
+            p++;
+        }
+    }
+    return ax_str_from_bytes(buf, pos);
+}
+
 /* ---------------- 文件（Rt-13） ---------------- */
 
 /* ax_str → 以 NUL 结尾的栈缓冲；路径过长返回 0（与 ax_read_file 同一上限）。 */

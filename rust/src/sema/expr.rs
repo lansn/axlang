@@ -109,6 +109,9 @@ pub fn module_sig(mod_: &str, name: &str) -> Option<(Vec<Option<Ty>>, Ty)> {
         ("strconv", "FormatBool") => (vec![Some(t_bool())], t_string()),
         ("strconv", "ParseUint") => (vec![Some(t_string()), Some(t_int())], t_int()),
         ("strconv", "FormatUint") => (vec![Some(t_int()), Some(t_int())], t_string()),
+        ("strconv", "CanBackquote") => (vec![Some(t_string())], t_bool()),
+        ("strconv", "Quote") => (vec![Some(t_string())], t_string()),
+        ("strconv", "Unquote") => (vec![Some(t_string())], t_string()),
         /* filepath 模块 */
         ("filepath", "Join") => (vec![Some(t_array(t_string(), None))], t_string()),
         ("filepath", "Dir") => (vec![Some(t_string())], t_string()),
