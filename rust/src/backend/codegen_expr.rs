@@ -1862,6 +1862,8 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             ("strconv", "FormatFloat") => format!("ax_str_of_f64({})", a[0]),
             ("strconv", "ParseInt") => format!("ax_parse_int_base({}, {})", a[0], a[1]),
             ("strconv", "FormatInt") => format!("ax_str_of_int_base({}, {})", a[0], a[1]),
+            ("strconv", "ParseBool") => format!("ax_parse_bool({})", a[0]),
+            ("strconv", "FormatBool") => format!("ax_str_of_bool({})", a[0]),
             /* ---------------- filepath 模块 ---------------- */
             ("filepath", "Join") => {
                 let arr = &a[0];

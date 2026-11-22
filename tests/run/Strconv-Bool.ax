@@ -1,0 +1,35 @@
+// strconv 模块：ParseBool / FormatBool（对标 Go strconv.ParseBool/FormatBool）
+import strconv
+
+int main() {
+    // ParseBool：true / false
+    bool a = strconv.ParseBool("true")
+    println("parse-bool-true={a}")
+
+    bool b = strconv.ParseBool("false")
+    println("parse-bool-false={b}")
+
+    // ParseBool：1 / 0
+    bool c = strconv.ParseBool("1")
+    println("parse-bool-1={c}")
+
+    bool d = strconv.ParseBool("0")
+    println("parse-bool-0={d}")
+
+    // ParseBool：无效输入（返回 false）
+    bool e = strconv.ParseBool("yes")
+    println("parse-bool-invalid={e}")
+
+    // ParseBool：空字符串
+    bool f = strconv.ParseBool("")
+    println("parse-bool-empty={f}")
+
+    // FormatBool：true / false
+    string g = strconv.FormatBool(true)
+    println("format-bool-true={g}")
+
+    string h = strconv.FormatBool(false)
+    println("format-bool-false={h}")
+
+    return 0
+}

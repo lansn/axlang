@@ -2066,6 +2066,18 @@ int ax_parse_i64(ax_str s, int64_t* out) {
     return 1;
 }
 
+int ax_parse_bool(ax_str s) {
+    if (s.len == 4) {
+        if (memcmp(s.p, "true", 4) == 0) return 1;
+    } else if (s.len == 5) {
+        if (memcmp(s.p, "false", 5) == 0) return 0;
+    } else if (s.len == 1) {
+        if (s.p[0] == (uint8_t)'1') return 1;
+        if (s.p[0] == (uint8_t)'0') return 0;
+    }
+    return 0;
+}
+
 int ax_parse_f64(ax_str s, double* out) {
     char buf[64];
     if (s.len <= 0 || s.len >= 63) return 0;

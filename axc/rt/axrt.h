@@ -301,6 +301,7 @@ ax_str  ax_filepath_base(ax_str path);
 
 int   ax_parse_i64(ax_str s, int64_t* out);
 int   ax_parse_f64(ax_str s, double* out);
+int   ax_parse_bool(ax_str s);          /* "true"/"1" → 1，"false"/"0" → 0，否则 0 */
 int64_t str_to_i64(ax_str s);
 
 /* strconv 进制解析/格式化（对标 Go strconv.ParseInt/FormatInt，标准 C11 实现）：
