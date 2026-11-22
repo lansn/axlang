@@ -224,6 +224,31 @@
 
 ---
 
+### P3（持续丰富，对标 C / Go 标准库）
+
+#### strconv 扩展
+| 函数 | 签名 | 对标 | 状态 |
+|------|------|------|------|
+| `strconv.ParseUint` | `(s: string, base: int) -> int` | Go `strconv.ParseUint` | ✅ 已落地（2026-11-22） |
+| `strconv.FormatUint` | `(v: int, base: int) -> string` | Go `strconv.FormatUint` | ✅ 已落地（2026-11-22） |
+
+#### os 扩展
+| 函数 | 签名 | 对标 | 状态 |
+|------|------|------|------|
+| `os.Getpid` | `() -> int` | Go `os.Getpid` | ⬜ |
+| `os.Getppid` | `() -> int` | Go `os.Getppid` | ⬜ |
+| `os.Hostname` | `() -> string` | Go `os.Hostname` | ⬜ |
+| `os.Environ` | `() -> string[]` | Go `os.Environ` | ⬜ |
+
+#### time 扩展
+| 函数 | 签名 | 对标 | 状态 |
+|------|------|------|------|
+| `time.Unix` | `(sec: int, nsec: int) -> time` | Go `time.Unix` | ⬜ |
+| `time.UnixMilli` | `(ms: int) -> time` | Go `time.UnixMilli` | ⬜ |
+| `time.Since` | `(t: time) -> int` | Go `time.Since` | ⬜ |
+
+---
+
 ## 落地规范（每项必须完成）
 
 1. **axrt.h**：新增 C 函数声明（标准 C11，无 GNU/Clang 扩展）

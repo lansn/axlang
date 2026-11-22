@@ -6,6 +6,7 @@
 #include <time.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 #ifdef _WIN32
 #ifndef _WIN32_WINNT
@@ -2182,6 +2183,64 @@ ax_str ax_str_of_int_base(int64_t v, int base) {
         buf[n] = 0;
     } else {
         n = snprintf(buf, sizeof buf, "%lld", (long long)v);
+    }
+    return ax_str_from_bytes((const uint8_t*)buf, n);
+}
+
+/* strconv 无符号进制解析（对标 Go strconv.ParseUint，标准 C11 实现）：
+ * axlang 无 uint 类型，故返回 int（int64）；失败或超出 int64 范围返回 0。
+ * base 支持 2、8、10、16；base<=0 时按字符串前缀自动判断。 */
+int64_t ax_parse_uint_base(ax_str s, int base) {
+    char buf[64];
+    if (s.len <= 0 || s.len >= 63) return 0;
+    memcpy(buf, s.p, (size_t)s.len);
+    buf[s.len] = 0;
+    char* end = NULL;
+    int b = base;
+    if (b <= 0) {
+        if (s.len >= 2 && buf[0] == '0' && (buf[1] == 'x' || buf[1] == 'X')) b = 16;
+        else if (buf[0] == '0') b = 8;
+        else b = 10;
+    }
+    errno = 0;
+    unsigned long long u = strtoull(buf, &end, b);
+    if (errno != 0 || !end || end == buf) return 0;
+    while (*end == ' ' || *end == '\t') end++;
+    if (*end != 0) return 0;
+    if (u > (unsigned long long)INT64_MAX) return 0;  /* 超出 int64 范围 */
+    return (int64_t)u;
+}
+
+/* strconv 无符号进制格式化（对标 Go strconv.FormatUint，标准 C11 实现）：
+ * v 按无符号解释并格式化；base 支持 2、8、10、16；base<=0 时按 10 进制输出。 */
+ax_str ax_str_of_uint_base(int64_t v, int base) {
+    char buf[64];
+    int n;
+    unsigned long long u = (unsigned long long)v;  /* 按无符号解释 */
+    if (base <= 0 || base == 10) {
+        n = snprintf(buf, sizeof buf, "%llu", u);
+    } else if (base == 16) {
+        n = snprintf(buf, sizeof buf, "%llx", u);
+    } else if (base == 8) {
+        n = snprintf(buf, sizeof buf, "%llo", u);
+    } else if (base == 2) {
+        /* 标准 C 无 %b，手动二进制 */
+        char tmp[65];
+        int i = 64;
+        tmp[i--] = 0;
+        if (u == 0) {
+            tmp[i--] = '0';
+        } else {
+            while (u > 0) {
+                tmp[i--] = (char)('0' + (int)(u & 1ULL));
+                u >>= 1;
+            }
+        }
+        n = (int)(64 - i - 1);
+        memcpy(buf, tmp + i + 1, (size_t)n);
+        buf[n] = 0;
+    } else {
+        n = snprintf(buf, sizeof buf, "%llu", u);
     }
     return ax_str_from_bytes((const uint8_t*)buf, n);
 }

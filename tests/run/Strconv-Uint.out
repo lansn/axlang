@@ -1,0 +1,13 @@
+parse-uint-10=123
+parse-uint-16=255
+parse-uint-8=15
+parse-uint-2=10
+parse-uint-auto-hex=255
+parse-uint-auto-oct=15
+parse-uint-invalid=0
+parse-uint-overflow=0
+format-uint-10=255
+format-uint-16=ff
+format-uint-8=377
+format-uint-2=11111111
+format-uint-auto=255

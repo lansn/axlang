@@ -344,6 +344,12 @@ int64_t str_to_i64(ax_str s);
 int   ax_parse_int_base(ax_str s, int base);   /* 失败返回 0，不设置错误码（与 Atoi 保持一致） */
 ax_str ax_str_of_int_base(int64_t v, int base); /* base<=0 时按 10 进制输出 */
 
+/* strconv 无符号进制解析/格式化（对标 Go strconv.ParseUint/FormatUint，标准 C11 实现）：
+ * axlang 无 uint 类型，故返回/接收 int（int64），值范围受 int64 限制；
+ * base 支持 2、8、10、16；base<=0 时按字符串前缀自动判断。 */
+int64_t ax_parse_uint_base(ax_str s, int base); /* 失败或超出 int64 范围返回 0 */
+ax_str  ax_str_of_uint_base(int64_t v, int base); /* v 按无符号解释并格式化 */
+
 
 /* ---------------- arena（区域分配器，规格书 8.4 / O-17…O-20） ----------------
  * 整块同生共死：adopt 只登记指针（所有权移交区域），free 一次性释放
