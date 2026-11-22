@@ -1,0 +1,10 @@
+// os 模块新增函数：Getpid / Getppid / Hostname / Environ（对标 Go os）
+import os
+
+int main() {
+    println("getpid-gt0={os.Getpid() > 0}")
+    println("getppid-ge0={os.Getppid() >= 0}")
+    println("hostname-nonempty={os.Hostname().Len() > 0}")
+    println("environ-len-gt0={os.Environ().Len() > 0}")
+    return 0
+}

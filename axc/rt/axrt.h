@@ -296,6 +296,12 @@ ax_str  ax_os_getwd(void);
 /* 改变当前工作目录：0=成功，1=失败 */
 int     ax_os_chdir(ax_str path);
 
+/* os 进程/环境扩展（对标 Go os）： */
+int     ax_os_getpid(void);     /* 当前进程 ID */
+int     ax_os_getppid(void);    /* 父进程 ID（Windows 下返回 0） */
+ax_str  ax_os_hostname(void);   /* 主机名，失败返回空串 */
+ax_arr  ax_os_environ(void);    /* 环境变量列表 "KEY=VALUE"，元素为 ax_str */
+
 /* ---------------- rand 模块（对标 Go math/rand）------------ */
 /* 设置随机种子 */
 void    ax_rand_seed(int64_t seed);

@@ -15,9 +15,11 @@
 #include <windows.h>
 #include <io.h>
 #include <direct.h>
+#include <process.h>   /* _environ */
 #else
 #include <sys/time.h>
 #include <pthread.h>
+#include <unistd.h>    /* getpid/getppid/gethostname/environ */
 #endif
 
 /* ================================================================
@@ -2426,6 +2428,53 @@ int ax_os_chdir(ax_str path) {
 #else
     return chdir(buf) == 0 ? 0 : 1;
 #endif
+}
+
+/* ---------------- os 进程/环境扩展（对标 Go os） ---------------- */
+
+int ax_os_getpid(void) {
+#if defined(_WIN32)
+    return (int)GetCurrentProcessId();
+#else
+    return (int)getpid();
+#endif
+}
+
+int ax_os_getppid(void) {
+#if defined(_WIN32)
+    return 0;  /* Windows 暂不提供父进程 ID */
+#else
+    return (int)getppid();
+#endif
+}
+
+ax_str ax_os_hostname(void) {
+    char buf[256];
+#if defined(_WIN32)
+    DWORD n = (DWORD)sizeof buf;
+    if (!GetComputerNameA(buf, &n)) return ax_str_empty();
+    return ax_str_from_cstr(buf);
+#else
+    if (gethostname(buf, sizeof buf) != 0) return ax_str_empty();
+    return ax_str_from_cstr(buf);
+#endif
+}
+
+ax_arr ax_os_environ(void) {
+    ax_arr arr;
+    ax_arr_init(&arr);
+#if defined(_WIN32)
+    /* <process.h> 已声明 _environ（dllimport），此处直接引用，避免重复声明属性冲突 */
+    char **env = _environ;
+#else
+    extern char **environ;
+    char **env = environ;
+#endif
+    for (char **p = env; p && *p; p++) {
+        ax_str s = ax_str_from_cstr(*p);
+        ax_arr_push(&arr, &s, (int64_t)sizeof(ax_str));
+    }
+    return arr;
 }
 
 /* ---------------- rand 模块（对标 Go math/rand） ---------------- */

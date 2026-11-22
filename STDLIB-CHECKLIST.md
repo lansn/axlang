@@ -235,10 +235,10 @@
 #### os 扩展
 | 函数 | 签名 | 对标 | 状态 |
 |------|------|------|------|
-| `os.Getpid` | `() -> int` | Go `os.Getpid` | ⬜ |
-| `os.Getppid` | `() -> int` | Go `os.Getppid` | ⬜ |
-| `os.Hostname` | `() -> string` | Go `os.Hostname` | ⬜ |
-| `os.Environ` | `() -> string[]` | Go `os.Environ` | ⬜ |
+| `os.Getpid` | `() -> int` | Go `os.Getpid` | ✅ 已落地（2026-11-22） |
+| `os.Getppid` | `() -> int` | Go `os.Getppid` | ✅ 已落地（2026-11-22） |
+| `os.Hostname` | `() -> string` | Go `os.Hostname` | ✅ 已落地（2026-11-22） |
+| `os.Environ` | `() -> string[]` | Go `os.Environ` | ✅ 已落地（2026-11-22） |
 
 #### time 扩展
 | 函数 | 签名 | 对标 | 状态 |

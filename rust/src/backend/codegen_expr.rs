@@ -1876,6 +1876,10 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             ("os", "Args") => "ax_os_args()".to_string(),
             ("os", "Getwd") => "ax_os_getwd()".to_string(),
             ("os", "Chdir") => format!("ax_os_chdir({})", a[0]),
+            ("os", "Getpid") => "ax_os_getpid()".to_string(),
+            ("os", "Getppid") => "ax_os_getppid()".to_string(),
+            ("os", "Hostname") => "ax_os_hostname()".to_string(),
+            ("os", "Environ") => "ax_os_environ()".to_string(),
             /* ---------------- rand 模块 ---------------- */
             ("rand", "Int") => format!("ax_rand_int({})", a[0]),
             ("rand", "Float") => "ax_rand_float()".to_string(),

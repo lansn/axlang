@@ -1,0 +1,4 @@
+getpid-gt0=true
+getppid-ge0=true
+hostname-nonempty=true
+environ-len-gt0=true
