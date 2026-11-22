@@ -1,0 +1,28 @@
+// time 模块新增函数：Date / Until / After / Before（对标 Go time，P1 第 3 项）
+// axlang time 为 Unix 毫秒（int64）。
+import time
+
+int main() {
+    // time.Date 按 UTC 组装年月日时分秒纳秒 -> time（Unix 毫秒），.ToString() 按本地时区显示
+    time t0 = time.Date(1970, 1, 1, 0, 0, 0, 0)
+    println("date-epoch={t0.ToString()}")
+
+    time t1 = time.Date(1970, 1, 2, 0, 0, 0, 0)
+    println("date-nextday={t1.ToString()}")
+
+    // time.Until(t) = t - now；time.Since(t) = now - t；二者互为相反数（确定性断言）
+    time t = time.Date(2026, 1, 1, 0, 0, 0, 0)
+    println("until-neg-since={time.Until(t) == -time.Since(t)}")
+
+    // time.After / time.Before（实例方法，按 Unix 毫秒比较）
+    time a = time.Date(2026, 1, 1, 0, 0, 0, 0)
+    time b = time.Date(2026, 12, 31, 0, 0, 0, 0)
+    println("a-before-b={a.Before(b)}")
+    println("b-after-a={b.After(a)}")
+    println("a-after-b={a.After(b)}")
+    println("b-before-a={b.Before(a)}")
+    println("a-before-a={a.Before(a)}")
+    println("a-after-a={a.After(a)}")
+
+    return 0
+}

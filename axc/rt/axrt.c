@@ -2082,6 +2082,32 @@ int64_t ax_time_since(int64_t t) {
     return ax_now_ms() - t;
 }
 
+/* time.Date：按 UTC 组装年月日时分秒纳秒 -> Unix 毫秒（标准 C11，纯手工计算，无时区/闰秒） */
+static int ax_time_is_leap(int64_t y) {
+    return (y % 4 == 0 && y % 100 != 0) || (y % 400 == 0) ? 1 : 0;
+}
+
+int64_t ax_time_date(int64_t year, int64_t month, int64_t day,
+                     int64_t hour, int64_t min, int64_t sec, int64_t nsec) {
+    static const int64_t mdays[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+    int64_t days = 0;
+    int64_t y;
+    for (y = 1970; y < year; y++) days += ax_time_is_leap(y) ? 366 : 365;
+    for (int64_t m = 1; m < month; m++) {
+        days += mdays[m - 1];
+        if (m == 2 && ax_time_is_leap(year)) days += 1;
+    }
+    days += (day - 1);
+    return days * 86400000 +
+           (hour * 3600 + min * 60 + sec) * 1000 +
+           nsec / 1000000;
+}
+
+/* time.Until：t - 当前 Unix 毫秒（t 在将来为正，已过去为负） */
+int64_t ax_time_until(int64_t t) {
+    return t - ax_now_ms();
+}
+
 ax_res_time ax_time_parse_result(ax_str s, ax_str fmt) {
     ax_res_time r;
     int year = 1970, month = 1, day = 1, hour = 0, min = 0, sec = 0;

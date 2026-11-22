@@ -205,12 +205,12 @@
 | `time.Unix` | 模块 | `(sec: int, nsec: int) -> time` | Go `time.Unix` | ✅ | 秒+纳秒转 time |
 | `time.UnixMilli` | 模块 | `(ms: int) -> time` | Go `time.UnixMilli` | ✅ | 毫秒转 time |
 | `time.Since` | 模块 | `(t: time) -> int` | Go `time.Since` | ✅ | 与给定时间的差值毫秒 |
-| `time.Date` | 模块 | `(year, month, day, hour, min, sec, nsec: int) -> time` | Go `time.Date` | ⬜ | 未落地 |
+| `time.Date` | 模块 | `(year, month, day, hour, min, sec, nsec: int) -> time` | Go `time.Date` / C 手工日历计算 | ✅ | 已落地（ax_time_date，UTC 组装，标准 C11） |
 | `time.UnixMicro` | 模块 | `(us: int) -> time` | Go `time.UnixMicro` | ⬜ | 未落地 |
 | `time.UnixNano` | 模块 | `(nsec: int) -> time` | Go `time.UnixNano` | ⬜ | 未落地 |
-| `time.Until` | 模块 | `(t: time) -> int` | Go `time.Until` | ⬜ | 未落地 |
-| `time.After` | 实例 | `(u: time) -> bool` | Go `time.After` | ⬜ | 未落地 |
-| `time.Before` | 实例 | `(u: time) -> bool` | Go `time.Before` | ⬜ | 未落地 |
+| `time.Until` | 模块 | `(t: time) -> int` | Go `time.Until` / C `t - now` | ✅ | 已落地（ax_time_until，t - 当前毫秒） |
+| `time.After` | 实例 | `(u: time) -> bool` | Go `time.After` / C `t > u` | ✅ | 已落地（实例方法，时间比较） |
+| `time.Before` | 实例 | `(u: time) -> bool` | Go `time.Before` / C `t < u` | ✅ | 已落地（实例方法，时间比较） |
 | `time.Equal` | 实例 | `(u: time) -> bool` | Go `time.Equal` | ⬜ | 未落地 |
 | `time.Compare` | 实例 | `(u: time) -> int` | Go `time.Compare` | ⬜ | 未落地 |
 | `time.Sub` | 实例 | `(u: time) -> int` | Go `time.Sub` | ⬜ | 未落地 |

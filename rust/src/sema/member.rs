@@ -1246,6 +1246,8 @@ impl<'a> Sema<'a> {
                 ("UnixMs", vec![], t_int()),
                 ("ToString", vec![], t_string()),
                 ("Format", vec![t_string()], t_string()),
+                ("After", vec![t_named(DefId::Name("time"), Vec::new())], t_bool()),
+                ("Before", vec![t_named(DefId::Name("time"), Vec::new())], t_bool()),
             ]),
             TyS::Named(DefId::Name("thread"), _) => Some(vec![
                 ("Join", vec![], t_void()),

@@ -267,6 +267,13 @@ int64_t ax_time_since(int64_t t);                       /* 当前 Unix 毫秒 - 
 typedef struct { uint8_t tag; union { int64_t ok; ax_err err; } u; } ax_res_time;
 ax_res_time ax_time_parse_result(ax_str s, ax_str fmt);
 
+/* time.Date / time.Until（对标 Go time，标准 C11 实现，time 为 Unix 毫秒）：
+ * ax_time_date 按 UTC 组装年月日时分秒纳秒 -> Unix 毫秒；
+ * ax_time_until 返回 t - 当前 Unix 毫秒（t 在将来为正，已过去为负）。 */
+int64_t ax_time_date(int64_t year, int64_t month, int64_t day,
+                     int64_t hour, int64_t min, int64_t sec, int64_t nsec);
+int64_t ax_time_until(int64_t t);   /* t - now */
+
 /* json.Parse 的 result<map<string, object>> 形态（文稿 11.3）：
    ok 携带 ax_map（string → ax_box*），fail 携带解析错误（code=1 + 位置信息）。 */
 typedef struct { uint8_t tag; union { ax_map ok; ax_err err; } u; } ax_res_map;
