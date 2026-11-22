@@ -1,0 +1,4 @@
+write-ok=0
+read-content=hello axlang
+write-bad-dir=1
+read-missing-fail=true

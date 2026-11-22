@@ -2299,6 +2299,22 @@ int ax_dir_create(ax_str path) {
 #endif
 }
 
+/* 将整个字符串写入文件（创建/截断），0=成功 1=失败 */
+int ax_file_write_all(ax_str path, ax_str s) {
+    char name[1024];
+    int64_t n = path.len < 1023 ? path.len : 1023;
+    memcpy(name, path.p, (size_t)n);
+    name[n] = 0;
+    FILE* fp = fopen(name, "wb");
+    if (!fp) return 1;
+    if (s.len > 0 && fwrite(s.p, 1, (size_t)s.len, fp) != (size_t)s.len) {
+        fclose(fp);
+        return 1;
+    }
+    fclose(fp);
+    return 0;
+}
+
 /* ---------------- os 模块 ---------------- */
 
 static int ax_os_path_cstr(ax_str s, char* out, int cap) {

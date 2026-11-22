@@ -204,8 +204,8 @@
 #### file 便捷读写
 | 函数 | 签名 | 对标 | 状态 |
 |------|------|------|------|
-| `file.ReadAll` | `(path: string) -> result<string>` | — | ⬜ |
-| `file.WriteAll` | `(path: string, s: string) -> int` | — | ⬜ |
+| `file.ReadAll` | `(path: string) -> result<string>` | — | ✅ 已落地（2026-11-22） |
+| `file.WriteAll` | `(path: string, s: string) -> int` | — | ✅ 已落地（2026-11-22） |
 
 ### P2
 
@@ -245,7 +245,7 @@
 |------|--------|--------|
 | 已落地模块 | io, math, json, file, db, string, time, decimal, Int/Float/Bool/Enum, Array, Map, Range, thread/queue, os, strconv, filepath | — |
 | P0 待落地 | — | strconv.ParseInt/FormatInt, ParseBool/FormatBool; filepath.Ext/Split/Clean/Abs/IsAbs |
-| P1 待落地 | — | file.ReadAll/WriteAll |
+| P1 待落地 | — | — |
 | P2 待落地 | — | rand.Int/Float/Seed; sort.Ints/Strings |
 
 *更新于 2026-11-22*

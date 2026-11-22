@@ -279,6 +279,8 @@ int     ax_file_remove(ax_str path);                 /* 0=成功 1=失败 */
 int     ax_file_rename(ax_str old_path, ax_str new_path); /* 0=成功 1=失败 */
 int     ax_file_exists(ax_str path);                 /* 1=存在 0=不存在 */
 int     ax_dir_create(ax_str path);                  /* 0=成功 1=失败 */
+/* 将整个字符串写入文件（创建/截断），0=成功 1=失败 */
+int     ax_file_write_all(ax_str path, ax_str s);
 
 /* ---------------- os 模块（对标 Go os/stdLib stdlib） ---------------- */
 /* 读环境变量，未设置返回空字符串 */

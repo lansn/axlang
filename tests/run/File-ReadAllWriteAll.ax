@@ -1,0 +1,33 @@
+// file 模块新增函数：ReadAll / WriteAll（便捷全文件读写）
+import file
+
+int main() {
+    string path = "__ax_rw_test.txt"
+
+    // WriteAll 成功写入
+    int w1 = file.WriteAll(path, "hello axlang")
+    println("write-ok={w1}")
+
+    // ReadAll 读回，内容应与写入一致
+    result<string> c = file.ReadAll(path)
+    match c {
+        ok(s) => println("read-content={s}"),
+        fail(e) => println("read-fail={e.msg.Len() > 0}")
+    }
+
+    // WriteAll 到不存在的目录应失败
+    int w2 = file.WriteAll("__ax_no_dir__/x.txt", "x")
+    println("write-bad-dir={w2}")
+
+    // ReadAll 不存在的文件应失败
+    result<string> c2 = file.ReadAll("__ax_no_such_file.txt")
+    match c2 {
+        ok(s) => println("read-missing-ok={s}"),
+        fail(e) => println("read-missing-fail={e.msg.Len() > 0}")
+    }
+
+    // 清理测试文件
+    file.Remove(path)
+
+    return 0
+}

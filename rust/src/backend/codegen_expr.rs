@@ -1850,6 +1850,15 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             ("file", "Rename") => format!("ax_file_rename({}, {})", a[0], a[1]),
             ("file", "Exists") => format!("ax_file_exists({})", a[0]),
             ("file", "Mkdir") => format!("ax_dir_create({})", a[0]),
+            ("file", "ReadAll") => {
+                let tyc = self.cg.ct(&self.ty_or_int(e.id));
+                format!(
+                    "({{ {tyc} r_; ax_str o_; if (ax_read_file({p}, &o_) == 0) {{ r_.tag = 1; r_.u.ok = o_; }} else {{ r_.tag = 0; r_.u.err = ax_err_new(4, AX_S(\"read failed\")); }} r_; }})",
+                    tyc = tyc,
+                    p = a[0]
+                )
+            }
+            ("file", "WriteAll") => format!("ax_file_write_all({}, {})", a[0], a[1]),
             ("time", "NowMs") => "ax_now_ms()".to_string(),
             ("time", "Now") => "ax_now_ms()".to_string(),
             ("time", "FromUnixMs") => a[0].clone(),
