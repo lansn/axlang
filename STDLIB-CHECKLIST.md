@@ -484,18 +484,19 @@
 | `sort.Slice` | `(a: any[], less: func(i, j int) bool) -> void` | Go `sort.Slice` | ⬜ |
 | `sort.SliceStable` | `(a: any[], less: func(i, j int) bool) -> void` | Go `sort.SliceStable` | ⬜ |
 
-#### slices（对标 Go slices，Go 1.21+）
+#### slices（对标 Go slices，Go 1.21+，axlang 作为数组实例方法）
 | 函数 | 签名 | 对标 | 状态 |
 |------|------|------|------|
-| `slices.Contains` | `(a: int[]/string[], x: same) -> bool` | Go `slices.Contains` | ✅ | 已落地（ContainsInt/ContainsString） |
-| `slices.Index` | `(a: int[]/string[], x: same) -> int` | Go `slices.Index` | ✅ | 已落地（IndexInt/IndexString） |
-| `slices.Sort` | `(a: int[]/string[]) -> void` | Go `slices.Sort` | ✅ | 已落地（SortInt/SortString，复用 ax_sort_int/ax_sort_str） |
-| `slices.SortStable` | `(a: T[]) -> void` | Go `slices.SortStable` | ⬜ |
-| `slices.Reverse` | `(a: T[]) -> void` | Go `slices.Reverse` | ⬜ |
-| `slices.Clone` | `(a: T[]) -> T[]` | Go `slices.Clone` | ⬜ |
-| `slices.Concat` | `(a: T[]...) -> T[]` | Go `slices.Concat` | ⬜ |
-| `slices.Insert` | `(a: T[], index: int, x: T...) -> T[]` | Go `slices.Insert` | ⬜ |
-| `slices.Delete` | `(a: T[], i: int, j: int) -> T[]` | Go `slices.Delete` | ⬜ |
+| `arr.Contains(x)` | `(a: T[], x: T) -> bool` | Go `slices.Contains` | ✅ | 已落地（int[]/string[] 数组实例方法） |
+| `arr.Index(x)` | `(a: T[], x: T) -> int` | Go `slices.Index` | ✅ | 已落地（int[]/string[] 数组实例方法） |
+| `arr.Sort()` | `(a: T[]) -> void` | Go `slices.Sort` | ✅ | 已落地（int[]/string[] 默认升序，数组实例方法） |
+| `arr.Sort(cmp)` | `(a: T[], less: func(T,T) int) -> void` | Go `sort.Slice` | ✅ | 已落地（带比较函数，GAP #10） |
+| `slices.SortStable` | `(a: T[]) -> void` | Go `slices.SortStable` | ⬜ | |
+| `slices.Reverse` | `(a: T[]) -> void` | Go `slices.Reverse` | ⬜ | |
+| `slices.Clone` | `(a: T[]) -> T[]` | Go `slices.Clone` | ⬜ | |
+| `slices.Concat` | `(a: T[]...) -> T[]` | Go `slices.Concat` | ⬜ | |
+| `slices.Insert` | `(a: T[], index: int, x: T...) -> T[]` | Go `slices.Insert` | ⬜ | |
+| `slices.Delete` | `(a: T[], i: int, j: int) -> T[]` | Go `slices.Delete` | ⬜ | |
 
 #### maps（对标 Go maps，Go 1.21+）
 | 函数 | 签名 | 对标 | 状态 |

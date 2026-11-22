@@ -1912,31 +1912,6 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 let arr = self.declare(&t_array(t_string(), None), &a[0]);
                 format!("ax_sort_str((ax_str*){}.data, {}.len)", arr, arr)
             }
-            /* ---------------- slices 模块 ---------------- */
-            ("slices", "ContainsInt") => {
-                let arr = self.declare(&t_array(t_int(), None), &a[0]);
-                format!("ax_slice_contains_int((const int64_t*){}.data, {}.len, {})", arr, arr, a[1])
-            }
-            ("slices", "ContainsString") => {
-                let arr = self.declare(&t_array(t_string(), None), &a[0]);
-                format!("ax_slice_contains_string((const ax_str*){}.data, {}.len, {})", arr, arr, a[1])
-            }
-            ("slices", "IndexInt") => {
-                let arr = self.declare(&t_array(t_int(), None), &a[0]);
-                format!("ax_slice_index_int((const int64_t*){}.data, {}.len, {})", arr, arr, a[1])
-            }
-            ("slices", "IndexString") => {
-                let arr = self.declare(&t_array(t_string(), None), &a[0]);
-                format!("ax_slice_index_string((const ax_str*){}.data, {}.len, {})", arr, arr, a[1])
-            }
-            ("slices", "SortInt") => {
-                let arr = self.declare(&t_array(t_int(), None), &a[0]);
-                format!("ax_sort_int((int64_t*){}.data, {}.len)", arr, arr)
-            }
-            ("slices", "SortString") => {
-                let arr = self.declare(&t_array(t_string(), None), &a[0]);
-                format!("ax_sort_str((ax_str*){}.data, {}.len)", arr, arr)
-            }
             /* ---------------- strconv 模块 ---------------- */
             ("strconv", "Atoi") => {
                 format!("({{ int64_t v_; ax_parse_i64({}, &v_) ? v_ : 0; }})", a[0])
@@ -2273,44 +2248,68 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                         self.emit(format!("ax_arr_clear(&{});", tv));
                         "0".to_string()
                     }
+                    "Contains" => {
+                        let x = &a[0];
+                        if matches!(&*et, TyS::Int(..)) {
+                            format!("ax_slice_contains_int((const int64_t*){}.data, {}.len, {})", tv, tv, x)
+                        } else if matches!(&*et, TyS::Str) {
+                            format!("ax_slice_contains_string((const ax_str*){}.data, {}.len, {})", tv, tv, x)
+                        } else {
+                            "0".to_string()
+                        }
+                    }
+                    "Index" => {
+                        let x = &a[0];
+                        if matches!(&*et, TyS::Int(..)) {
+                            format!("ax_slice_index_int((const int64_t*){}.data, {}.len, {})", tv, tv, x)
+                        } else if matches!(&*et, TyS::Str) {
+                            format!("ax_slice_index_string((const ax_str*){}.data, {}.len, {})", tv, tv, x)
+                        } else {
+                            "-1".to_string()
+                        }
+                    }
                     "Sort" => {
-                        // GAP #10：qsort + 文件级适配器。比较器是函数值（C 函数指针，
-                        // 值语义 func(T,T) int 返回 int64_t），qsort 要 (const void*, const void*)
-                        // 指针对——每个 Sort 调用点派生一个文件级适配器 + 比较器暂存变量。
-                        let et = et.clone();
-                        let etc = self.cg.ct(&et);
-                        let uid = self.tmpn();
-                        let ctx = format!("axsort_ctx_{}", uid);
-                        let cmpfn = format!("axsort_cmp_{}", uid);
-                        let fnty_ty = t_fn(vec![et.clone(), et.clone()], t_int());
-                        self.cg.need(&fnty_ty);
-                        let fnty = format!("axfn_{}", self.cg.cn(&fnty_ty));
-                        // 声明（qsort 调用点在函数体里，C 要求先声明；引用 axfn_
-                        // 类型定义，所以进 fn_decls——type_defs 之后、fns 之前）
-                        self.cg
-                            .fn_decls
-                            .push(format!("static int {}(const void*, const void*);", cmpfn));
-                        self.cg
-                            .fn_decls
-                            .push(format!("static {} {};", fnty, ctx));
-                        // 定义排在 fns 之后（引用 axfn_ 与元素类型定义，均在 type_defs）。
-                        // memcpy 取元素：值/指针元素统一，且不与比较器的非 const 形参冲突
-                        self.cg.extra_fns.push(format!(
-                            "static int {cmpfn}(const void* a_, const void* b_) {{\n  {etc} va_; {etc} vb_;\n  memcpy(&va_, a_, sizeof({etc}));\n  memcpy(&vb_, b_, sizeof({etc}));\n  return (int){ctx}(va_, vb_);\n}}",
-                            cmpfn = cmpfn,
-                            ctx = ctx,
-                            etc = etc
-                        ));
-                        self.emit(format!(
-                            "{ctx} = {cmp};",
-                            ctx = ctx,
-                            cmp = a[0]
-                        ));
-                        self.emit(format!(
-                            "qsort({0}.data, (size_t){0}.len, (size_t)sizeof({1}), {2});",
-                            tv, etc, cmpfn
-                        ));
-                        "0".to_string()
+                        if args.is_empty() {
+                            // 无参数：默认升序排序（仅对 int[] / string[] 有默认序）
+                            if matches!(&*et, TyS::Int(..)) {
+                                self.emit(format!("ax_sort_int((int64_t*){}.data, {}.len);", tv, tv));
+                            } else if matches!(&*et, TyS::Str) {
+                                self.emit(format!("ax_sort_str((ax_str*){}.data, {}.len);", tv, tv));
+                            }
+                            "0".to_string()
+                        } else {
+                            // 带比较函数：GAP #10，qsort + 文件级适配器
+                            let et = et.clone();
+                            let etc = self.cg.ct(&et);
+                            let uid = self.tmpn();
+                            let ctx = format!("axsort_ctx_{}", uid);
+                            let cmpfn = format!("axsort_cmp_{}", uid);
+                            let fnty_ty = t_fn(vec![et.clone(), et.clone()], t_int());
+                            self.cg.need(&fnty_ty);
+                            let fnty = format!("axfn_{}", self.cg.cn(&fnty_ty));
+                            self.cg
+                                .fn_decls
+                                .push(format!("static int {}(const void*, const void*);", cmpfn));
+                            self.cg
+                                .fn_decls
+                                .push(format!("static {} {};", fnty, ctx));
+                            self.cg.extra_fns.push(format!(
+                                "static int {cmpfn}(const void* a_, const void* b_) {{\n  {etc} va_; {etc} vb_;\n  memcpy(&va_, a_, sizeof({etc}));\n  memcpy(&vb_, b_, sizeof({etc}));\n  return (int){ctx}(va_, vb_);\n}}",
+                                cmpfn = cmpfn,
+                                ctx = ctx,
+                                etc = etc
+                            ));
+                            self.emit(format!(
+                                "{ctx} = {cmp};",
+                                ctx = ctx,
+                                cmp = a[0]
+                            ));
+                            self.emit(format!(
+                                "qsort({0}.data, (size_t){0}.len, (size_t)sizeof({1}), {2});",
+                                tv, etc, cmpfn
+                            ));
+                            "0".to_string()
+                        }
                     }
                     "At" => {
                         let n = self.tmpn();

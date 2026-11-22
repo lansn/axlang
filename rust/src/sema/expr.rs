@@ -109,13 +109,6 @@ pub fn module_sig(mod_: &str, name: &str) -> Option<(Vec<Option<Ty>>, Ty)> {
         /* sort 模块 */
         ("sort", "Ints") => (vec![Some(t_array(t_int(), None))], t_void()),
         ("sort", "Strings") => (vec![Some(t_array(t_string(), None))], t_void()),
-        /* slices 模块（对标 Go slices；module_sig 不支持泛型，故按元素类型拆分） */
-        ("slices", "ContainsInt") => (vec![Some(t_array(t_int(), None)), Some(t_int())], t_bool()),
-        ("slices", "ContainsString") => (vec![Some(t_array(t_string(), None)), Some(t_string())], t_bool()),
-        ("slices", "IndexInt") => (vec![Some(t_array(t_int(), None)), Some(t_int())], t_int()),
-        ("slices", "IndexString") => (vec![Some(t_array(t_string(), None)), Some(t_string())], t_int()),
-        ("slices", "SortInt") => (vec![Some(t_array(t_int(), None))], t_void()),
-        ("slices", "SortString") => (vec![Some(t_array(t_string(), None))], t_void()),
         /* strconv 模块 */
         ("strconv", "Atoi") => (vec![Some(t_string())], t_int()),
         ("strconv", "Itoa") => (vec![Some(t_int())], t_string()),

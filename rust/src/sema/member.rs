@@ -1186,11 +1186,14 @@ impl<'a> Sema<'a> {
                     ("Remove", vec![t_int()], t_void()),
                     ("Clear", vec![], t_void()),
                     ("At", vec![t_int()], t_nullable(el.clone())),
+                    ("Contains", vec![el.clone()], t_bool()),
+                    ("Index", vec![el.clone()], t_int()),
                     (
                         "Sort",
                         vec![t_fn(vec![el.clone(), el.clone()], t_int())],
                         t_void(),
                     ),
+                    ("Sort", vec![], t_void()),
                     ("ToString", vec![], t_string()),
                 ])
             }
@@ -1267,7 +1270,8 @@ impl<'a> Sema<'a> {
             Some(t) => t,
             None => return None,
         };
-        let sig = table.into_iter().find(|(n, _, _)| *n == name);
+        let sig = table.into_iter()
+            .find(|(n, ptypes, _)| *n == name && ptypes.len() == args.len());
         let (_, ptypes, ret) = match sig {
             Some(s) => s,
             None => return None,
