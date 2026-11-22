@@ -559,14 +559,46 @@
 | `reflect.NumField` | `(v: any) -> int` | Go `reflect.NumField` | ⬜ |
 
 ### P3（持续丰富，对标 Go/C 标准库边缘函数）
-- `crypto/*`：md5, sha1, sha256, sha512, sha3, hmac, ...（对标 Go crypto/*）
-- `hash/*`：adler32, crc32, crc64, fnv, maphash（对标 Go hash/*）
-- `unicode/utf8` / `unicode/utf16`：UTF-8/UTF-16 编解码（对标 Go unicode/*）
-- `container/*`：heap, list, ring（对标 Go container/*）
-- `net/*`：url, ...（对标 Go net/*）
-- `text/template` / `html/template`：模板引擎（对标 Go template/*）
-- `regexp`：正则表达式（对标 Go regexp）
-- `path`：斜杠分隔路径操作（对标 Go path）
+
+以下为 `go_lib.txt`（Go 1.25.1 标准库）中尚未列入 axlang P0/P1/P2 待落地清单的顶层包，均标记为 ⬜ 未落地，作为后续持续丰富的候选。已在 P0/P1/P2 中列出的包（`errors`、`html/template`、`io/fs`、`log/slog`、`reflect`、`sync/atomic`、`unique`、`template/parse`）此处不再重复。
+
+| Go 包 (go_lib.txt) | 代表子包 | 对标 axlang 计划 | 状态 | 说明 |
+|---|---|---|---|---|
+| `archive` | `tar`, `zip` | `archive` | ⬜ | 归档文件读写 |
+| `compress` | `bzip2`, `flate`, `gzip`, `lzw`, `zlib`, `zstd` | `compress` | ⬜ | 压缩/解压缩 |
+| `container` | `heap`, `list`, `ring` | `container` | ⬜ | 堆/链表/环形列表 |
+| `context` | — | `context` | ⬜ | 上下文传递（与线程/队列配合） |
+| `crypto` | `aes`, `cipher`, `des`, `ecdsa`, `ed25519`, `hmac`, `md5`, `sha1`, `sha256`, `sha3`, `sha512`, `subtle`, `tls`, `x509` | `crypto` | ⬜ | 对称/非对称加密、哈希、TLS、证书 |
+| `debug` | `buildinfo`, `dwarf`, `elf`, `pe`, `macho` | `debug` | ⬜ | 二进制文件调试信息 |
+| `embed` | — | `embed` | ⬜ | 文件嵌入 |
+| `encoding` | `ascii85`, `asn1`, `base32`, `base64`, `binary`, `gob`, `hex`, `pem`, `xml` | `encoding` | ⬜ | 各类编解码（json/csv 已单独规划） |
+| `expvar` | — | — | ⬜ | 公开变量接口 |
+| `flag` | — | — | ⬜ | 命令行标志解析 |
+| `go` | `ast`, `build`, `constant`, `doc`, `format`, `parser`, `printer`, `scanner`, `token`, `types`, `version` | `go` | ⬜ | Go 源码工具链（axlang 自用，低优先级） |
+| `hash` | `adler32`, `crc32`, `crc64`, `fnv`, `maphash` | `hash` | ⬜ | 哈希校验和 |
+| `image` | `color`, `draw`, `gif`, `jpeg`, `png` | `image` | ⬜ | 2D 图像编解码 |
+| `index` | `suffixarray` | — | ⬜ | 后缀数组子串查找 |
+| `iter` | — | — | ⬜ | 迭代器序列（Go 1.23+） |
+| `math/big` | — | `math` | ⬜ | 任意精度算术 |
+| `math/bits` | — | `math` | ⬜ | 位操作 |
+| `math/cmplx` | — | `math` | ⬜ | 复数数学函数 |
+| `mime` | `multipart`, `quotedprintable` | `mime` | ⬜ | MIME 协议支持 |
+| `net` | `http`, `mail`, `netip`, `rpc`, `smtp`, `textproto`, `url` | `net` | ⬜ | 网络 I/O（URL/HTTP/SMTP 等） |
+| `os/exec` | — | `os` | ⬜ | 外部命令执行 |
+| `os/signal` | — | `os` | ⬜ | 信号处理 |
+| `os/user` | — | `os` | ⬜ | 用户账户查询 |
+| `path` | — | `path` | ⬜ | 斜杠分隔路径操作 |
+| `plugin` | — | — | ⬜ | 插件加载 |
+| `regexp` / `syntax` | — | `regexp` | ⬜ | 正则表达式 |
+| `runtime` | — | — | ⬜ | 运行时交互 |
+| `syscall` | — | `syscall` | ⬜ | 低级操作系统原语 |
+| `testing` | `cryptotest`, `fstest`, `iotest`, `quick`, `slogtest` | `testing` | ⬜ | 自动化测试辅助 |
+| `text` | `scanner`, `tabwriter` | `text` | ⬜ | 文本扫描与表格对齐 |
+| `time/tzdata` | — | `time` | ⬜ | 时区数据库嵌入 |
+| `unicode` / `utf8` / `utf16` | — | `unicode` | ⬜ | Unicode 码点属性与 UTF 编解码 |
+| `unsafe` | — | — | ⬜ | 绕过类型安全 |
+| `uuid` | — | — | ⬜ | UUID 生成与操作 |
+| `weak` | — | — | ⬜ | 弱引用 |
 
 ---
 
