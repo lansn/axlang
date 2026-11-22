@@ -2391,6 +2391,64 @@ ax_arr ax_filepath_split(ax_str path) {
     return arr;
 }
 
+/* 路径规范化（去除 .、..、重复分隔符，对标 Go filepath.Clean） */
+ax_str ax_filepath_clean(ax_str path) {
+    int is_abs = (path.len > 0 && path.p[0] == (uint8_t)AX_FILEPATH_SEP[0]);
+
+    /* 按分隔符分割为段 */
+    ax_arr parts;
+    ax_arr_init(&parts);
+    int64_t start = 0;
+    for (int64_t i = 0; i <= path.len; i++) {
+        if (i == path.len || path.p[i] == (uint8_t)AX_FILEPATH_SEP[0]) {
+            if (i > start) {
+                ax_str seg = ax_str_slice_cp(path, start, i);
+                ax_arr_push(&parts, &seg, (int64_t)sizeof(ax_str));
+            }
+            start = i + 1;
+        }
+    }
+
+    /* 处理段：跳过空段和 "."，处理 ".." */
+    ax_arr stack;
+    ax_arr_init(&stack);
+    int64_t n = parts.len;
+    for (int64_t i = 0; i < n; i++) {
+        ax_str* seg = (ax_str*)ax_arr_at(&parts, i, (int64_t)sizeof(ax_str), __FILE__, __LINE__, 0);
+        if (seg->len == 0) continue;
+        if (seg->len == 1 && seg->p[0] == (uint8_t)'.') continue;
+        if (seg->len == 2 && seg->p[0] == (uint8_t)'.' && seg->p[1] == (uint8_t)'.') {
+            int64_t sn = stack.len;
+            if (sn > 0) {
+                ax_str* top = (ax_str*)ax_arr_at(&stack, sn - 1, (int64_t)sizeof(ax_str), __FILE__, __LINE__, 0);
+                if (!(top->len == 2 && top->p[0] == (uint8_t)'.' && top->p[1] == (uint8_t)'.')) {
+                    stack.len--; /* 弹出栈顶，抵消 ".." */
+                    continue;
+                }
+            }
+            ax_arr_push(&stack, seg, (int64_t)sizeof(ax_str));
+        } else {
+            ax_arr_push(&stack, seg, (int64_t)sizeof(ax_str));
+        }
+    }
+
+    /* 构建结果 */
+    ax_sb sb;
+    ax_sb_init(&sb);
+    if (is_abs) ax_sb_push_cstr(&sb, AX_FILEPATH_SEP);
+    int64_t sn = stack.len;
+    for (int64_t i = 0; i < sn; i++) {
+        if (i > 0) ax_sb_push_cstr(&sb, AX_FILEPATH_SEP);
+        ax_str* seg = (ax_str*)ax_arr_at(&stack, i, (int64_t)sizeof(ax_str), __FILE__, __LINE__, 0);
+        ax_sb_push(&sb, *seg);
+    }
+    if (sn == 0) {
+        if (is_abs) ax_sb_push_cstr(&sb, AX_FILEPATH_SEP);
+        else ax_sb_push_cstr(&sb, ".");
+    }
+    return ax_sb_finish(&sb);
+}
+
 /* ---------------- arena（区域分配器） ---------------- */
 struct ax_arena {
     void**  items;

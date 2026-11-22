@@ -1876,6 +1876,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             ("filepath", "Base") => format!("ax_filepath_base({})", a[0]),
             ("filepath", "Ext") => format!("ax_filepath_ext({})", a[0]),
             ("filepath", "Split") => format!("ax_filepath_split({})", a[0]),
+            ("filepath", "Clean") => format!("ax_filepath_clean({})", a[0]),
             _ => "0".to_string(),
         }
     }

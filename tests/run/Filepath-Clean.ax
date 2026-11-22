@@ -1,0 +1,15 @@
+// filepath 模块：Clean（对标 Go filepath.Clean，路径规范化）
+import filepath
+
+int main() {
+    println("clean1={filepath.Clean("foo\\bar")}")
+    println("clean2={filepath.Clean("foo\\\\bar")}")
+    println("clean3={filepath.Clean("foo\\.\\bar")}")
+    println("clean4={filepath.Clean("foo\\..\\bar")}")
+    println("clean5={filepath.Clean("..\\foo")}")
+    println("clean6={filepath.Clean("\\foo\\..\\bar")}")
+    println("clean7={filepath.Clean("")}")
+    println("clean8={filepath.Clean(".")}")
+    println("clean9={filepath.Clean(".\\")}")
+    return 0
+}

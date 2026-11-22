@@ -176,8 +176,8 @@
 | 函数 | 签名 | 对标 | 状态 |
 |------|------|------|------|
 | `filepath.Ext` | `(path: string) -> string` | Go `filepath.Ext` | ✅ 已落地（2026-11-22） |
-| `filepath.Split` | `(path: string) -> string[2]` | Go `filepath.Split` | 🔄 下一项 |
-| `filepath.Clean` | `(path: string) -> string` | Go `filepath.Clean` | ⬜ |
+| `filepath.Split` | `(path: string) -> string[2]` | Go `filepath.Split` | ✅ 已落地（2026-11-22） |
+| `filepath.Clean` | `(path: string) -> string` | Go `filepath.Clean` | 🔄 下一项 |
 | `filepath.Abs` | `(path: string) -> string` | Go `filepath.Abs` | ⬜ |
 | `filepath.IsAbs` | `(path: string) -> bool` | Go `filepath.IsAbs` | ⬜ |
 

@@ -1,0 +1,9 @@
+clean1=foo\bar
+clean2=foo\bar
+clean3=foo\bar
+clean4=bar
+clean5=..\foo
+clean6=\bar
+clean7=.
+clean8=.
+clean9=.
