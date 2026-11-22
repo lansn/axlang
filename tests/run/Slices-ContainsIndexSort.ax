@@ -1,0 +1,44 @@
+// slices 模块：Contains / Index / Sort（对标 Go slices，针对 int[] 和 string[]）
+import slices
+
+int main() {
+    int[] a = [3, 1, 4, 1, 5]
+    int ai = slices.IndexInt(a, 1)
+    bool ac = slices.ContainsInt(a, 3)
+    bool ac2 = slices.ContainsInt(a, 9)
+    int ai2 = slices.IndexInt(a, 9)
+    println("index-int-1={ai}")
+    println("contains-int-3={ac}")
+    println("contains-int-9={ac2}")
+    println("index-int-9={ai2}")
+    slices.SortInt(a)
+    println("sorted-int={a[0]} {a[1]} {a[2]} {a[3]} {a[4]}")
+
+    string[] b = ["banana", "apple", "cherry", "date"]
+    int bi = slices.IndexString(b, "cherry")
+    bool bc = slices.ContainsString(b, "apple")
+    bool bc2 = slices.ContainsString(b, "mango")
+    int bi2 = slices.IndexString(b, "mango")
+    println("index-str-cherry={bi}")
+    println("contains-str-apple={bc}")
+    println("contains-str-mango={bc2}")
+    println("index-str-mango={bi2}")
+    slices.SortString(b)
+    println("sorted-str={b[0]} {b[1]} {b[2]} {b[3]}")
+
+    int[] c = []
+    bool cc = slices.ContainsInt(c, 1)
+    int ci = slices.IndexInt(c, 1)
+    println("empty-contains={cc}")
+    println("empty-index={ci}")
+    slices.SortInt(c)
+    println("empty-sort-ok=true")
+
+    string[] d = []
+    bool dc = slices.ContainsString(d, "x")
+    int di = slices.IndexString(d, "x")
+    println("empty-str-contains={dc}")
+    println("empty-str-index={di}")
+
+    return 0
+}

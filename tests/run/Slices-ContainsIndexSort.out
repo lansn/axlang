@@ -1,0 +1,15 @@
+index-int-1=1
+contains-int-3=true
+contains-int-9=false
+index-int-9=-1
+sorted-int=1 1 3 4 5
+index-str-cherry=2
+contains-str-apple=true
+contains-str-mango=false
+index-str-mango=-1
+sorted-str=apple banana cherry date
+empty-contains=false
+empty-index=-1
+empty-sort-ok=true
+empty-str-contains=false
+empty-str-index=-1

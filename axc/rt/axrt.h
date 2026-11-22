@@ -350,6 +350,16 @@ double  ax_rand_float(void);
 void    ax_sort_int(int64_t* data, int64_t len);
 void    ax_sort_str(ax_str* data, int64_t len);
 
+/* ---------------- slices 模块（对标 Go slices） ---------------- */
+/* 在 int[] 中查找 x：找到返回 1，否则 0 */
+int     ax_slice_contains_int(const int64_t* data, int64_t len, int64_t x);
+/* 在 string[] 中查找 x：找到返回 1，否则 0（按 ax_str_cmp 字节序比较） */
+int     ax_slice_contains_string(const ax_str* data, int64_t len, ax_str x);
+/* 在 int[] 中查找 x：返回下标，未找到返回 -1 */
+int64_t ax_slice_index_int(const int64_t* data, int64_t len, int64_t x);
+/* 在 string[] 中查找 x：返回下标，未找到返回 -1（按 ax_str_cmp 字节序比较） */
+int64_t ax_slice_index_string(const ax_str* data, int64_t len, ax_str x);
+
 /* ---------------- filepath 模块（对标 Go path/filepath） ---------------- */
 /* 平台路径分隔符：Unix "/"，Windows "\\" */
 #if defined(_WIN32)

@@ -487,9 +487,9 @@
 #### slices（对标 Go slices，Go 1.21+）
 | 函数 | 签名 | 对标 | 状态 |
 |------|------|------|------|
-| `slices.Contains` | `(a: T[], x: T) -> bool` | Go `slices.Contains` | ⬜ |
-| `slices.Index` | `(a: T[], x: T) -> int` | Go `slices.Index` | ⬜ |
-| `slices.Sort` | `(a: T[]) -> void` | Go `slices.Sort` | ⬜ |
+| `slices.Contains` | `(a: int[]/string[], x: same) -> bool` | Go `slices.Contains` | ✅ | 已落地（ContainsInt/ContainsString） |
+| `slices.Index` | `(a: int[]/string[], x: same) -> int` | Go `slices.Index` | ✅ | 已落地（IndexInt/IndexString） |
+| `slices.Sort` | `(a: int[]/string[]) -> void` | Go `slices.Sort` | ✅ | 已落地（SortInt/SortString，复用 ax_sort_int/ax_sort_str） |
 | `slices.SortStable` | `(a: T[]) -> void` | Go `slices.SortStable` | ⬜ |
 | `slices.Reverse` | `(a: T[]) -> void` | Go `slices.Reverse` | ⬜ |
 | `slices.Clone` | `(a: T[]) -> T[]` | Go `slices.Clone` | ⬜ |
@@ -606,10 +606,10 @@
 
 | 阶段 | 已完成 | 待完成 |
 |------|--------|--------|
-| 已落地模块 | io, math, json, file, db, string, time, decimal, Int/Float/Bool/Enum, Array, Map, Range, thread/queue, os, strconv, filepath, rand, sort | 共 18 个模块 |
+| 已落地模块 | io, math, json, file, db, string, time, decimal, Int/Float/Bool/Enum, Array, Map, Range, thread/queue, os, strconv, filepath, rand, sort, slices | 共 19 个模块 |
 | P0 已落地 | strconv 13 个函数；string 6 个 ctype 判断函数 | string.ToUpperRune/ToLowerRune |
 | P1 待落地 | — | file.Chmod/Chtimes/TempFile；os.UserHomeDir/…；string.ContainsAny/Count/IndexAny/…；math.Exp2/Log10/…；time.Date/Until/… |
-| P2 待落地 | — | fmt.Sprintf/Fprintf/…；json.MarshalIndent/Valid；csv.ReadAll/Write；sort.Float64s/…；slices.*；maps.*；unique.*；bytes/bufio；log/errors；sync/atomic；reflect |
+| P2 待落地 | — | fmt.Sprintf/Fprintf/…；json.MarshalIndent/Valid；csv.ReadAll/Write；sort.Float64s/…；maps.*；unique.*；bytes/bufio；log/errors；sync/atomic；reflect |
 | P3 待落地 | — | crypto/*；hash/*；unicode/utf8/utf16；container/*；net/*；template/*；regexp |
 
 ---
@@ -619,7 +619,7 @@
 1. ✅ `file.Size` / `file.ModTime`（对标 Go `os.Stat`，文件元信息，P1，已落地 2026-11-22）
 2. `math.Log10` / `math.Exp2` / `math.IsNaN` / `math.IsInf`（对标 C `math.h` / Go `math`，数学能力补齐，P1）
 3. `time.Date` / `time.Until` / `time.After` / `time.Before`（对标 Go `time`，时间能力补齐，P1）
-4. `slices.Contains` / `slices.Index` / `slices.Sort`（对标 Go `slices`，泛型切片工具，P2）
+4. ✅ `slices.Contains` / `slices.Index` / `slices.Sort`（对标 Go `slices`，泛型切片工具，P2，已落地 2026-11-22）
 5. `fmt.Sprintf` / `fmt.Sprint`（对标 Go `fmt`，格式化字符串，P2）
 
 每项完成后同步更新本清单、`MEMORY.md`、工作日志，并 commit/push 到 GitHub/Gitee。

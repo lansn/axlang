@@ -2874,6 +2874,40 @@ void ax_sort_str(ax_str* data, int64_t len) {
     qsort(data, (size_t)len, sizeof(ax_str), ax_sort_str_cmp);
 }
 
+/* ---------------- slices 模块（对标 Go slices） ---------------- */
+
+int ax_slice_contains_int(const int64_t* data, int64_t len, int64_t x) {
+    int64_t i;
+    for (i = 0; i < len; i++) {
+        if (data[i] == x) return 1;
+    }
+    return 0;
+}
+
+int ax_slice_contains_string(const ax_str* data, int64_t len, ax_str x) {
+    int64_t i;
+    for (i = 0; i < len; i++) {
+        if (ax_str_eq(data[i], x)) return 1;
+    }
+    return 0;
+}
+
+int64_t ax_slice_index_int(const int64_t* data, int64_t len, int64_t x) {
+    int64_t i;
+    for (i = 0; i < len; i++) {
+        if (data[i] == x) return i;
+    }
+    return -1;
+}
+
+int64_t ax_slice_index_string(const ax_str* data, int64_t len, ax_str x) {
+    int64_t i;
+    for (i = 0; i < len; i++) {
+        if (ax_str_eq(data[i], x)) return i;
+    }
+    return -1;
+}
+
 /* ---------------- filepath 模块（对标 Go path/filepath） ---------------- */
 
 static int ax_filepath_has_sep(ax_str s) {

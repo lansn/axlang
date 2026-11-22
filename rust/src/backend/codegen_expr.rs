@@ -1912,6 +1912,31 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 let arr = self.declare(&t_array(t_string(), None), &a[0]);
                 format!("ax_sort_str((ax_str*){}.data, {}.len)", arr, arr)
             }
+            /* ---------------- slices 模块 ---------------- */
+            ("slices", "ContainsInt") => {
+                let arr = self.declare(&t_array(t_int(), None), &a[0]);
+                format!("ax_slice_contains_int((const int64_t*){}.data, {}.len, {})", arr, arr, a[1])
+            }
+            ("slices", "ContainsString") => {
+                let arr = self.declare(&t_array(t_string(), None), &a[0]);
+                format!("ax_slice_contains_string((const ax_str*){}.data, {}.len, {})", arr, arr, a[1])
+            }
+            ("slices", "IndexInt") => {
+                let arr = self.declare(&t_array(t_int(), None), &a[0]);
+                format!("ax_slice_index_int((const int64_t*){}.data, {}.len, {})", arr, arr, a[1])
+            }
+            ("slices", "IndexString") => {
+                let arr = self.declare(&t_array(t_string(), None), &a[0]);
+                format!("ax_slice_index_string((const ax_str*){}.data, {}.len, {})", arr, arr, a[1])
+            }
+            ("slices", "SortInt") => {
+                let arr = self.declare(&t_array(t_int(), None), &a[0]);
+                format!("ax_sort_int((int64_t*){}.data, {}.len)", arr, arr)
+            }
+            ("slices", "SortString") => {
+                let arr = self.declare(&t_array(t_string(), None), &a[0]);
+                format!("ax_sort_str((ax_str*){}.data, {}.len)", arr, arr)
+            }
             /* ---------------- strconv 模块 ---------------- */
             ("strconv", "Atoi") => {
                 format!("({{ int64_t v_; ax_parse_i64({}, &v_) ? v_ : 0; }})", a[0])
