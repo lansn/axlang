@@ -142,17 +142,31 @@
 ### os（对标 C stdlib / Go os）
 | 函数 | 签名 | 状态 | 说明 |
 |------|------|------|------|
-| `os.Getenv` | `(name: string) -> string` | ✅ | 读环境变量，未设置返回空串 |
-| `os.Exit` | `(code: int) -> void` | ✅ | 终止进程（C exit） |
 | `os.Args` | `() -> string[]` | ✅ | 命令行参数（argv[1..]） |
+| `os.Chdir` | `(path: string) -> int` | ✅ | 改变当前工作目录 |
+| `os.Environ` | `() -> string[]` | ✅ | 环境变量列表 "KEY=VALUE" |
+| `os.Exit` | `(code: int) -> void` | ✅ | 终止进程（C exit） |
+| `os.Getenv` | `(name: string) -> string` | ✅ | 读环境变量，未设置返回空串 |
+| `os.Getpid` | `() -> int` | ✅ | 当前进程 ID |
+| `os.Getppid` | `() -> int` | ✅ | 父进程 ID（Windows 下返回 0） |
+| `os.Getwd` | `() -> string` | ✅ | 当前工作目录 |
+| `os.Hostname` | `() -> string` | ✅ | 主机名，失败返回空串 |
+| `os.Setenv` | `(name: string, value: string) -> int` | ✅ | 设置环境变量，0=成功 1=失败 |
+| `os.Unsetenv` | `(name: string) -> int` | ✅ | 删除环境变量，0=成功 1=失败 |
 
 ### strconv（对标 Go strconv）
 | 函数 | 签名 | 状态 | 说明 |
 |------|------|------|------|
 | `strconv.Atoi` | `(s: string) -> int` | ✅ | 字符串转 int（失败返回 0） |
-| `strconv.Itoa` | `(v: int) -> string` | ✅ | int 转字符串 |
-| `strconv.ParseFloat` | `(s: string) -> float` | ✅ | 字符串转 float（失败返回 0.0） |
+| `strconv.FormatBool` | `(v: bool) -> string` | ✅ | bool 转字符串 |
 | `strconv.FormatFloat` | `(v: float) -> string` | ✅ | float 转字符串 |
+| `strconv.FormatInt` | `(v: int, base: int) -> string` | ✅ | int 转指定进制字符串 |
+| `strconv.FormatUint` | `(v: int, base: int) -> string` | ✅ | 无符号 int 转指定进制字符串 |
+| `strconv.Itoa` | `(v: int) -> string` | ✅ | int 转字符串 |
+| `strconv.ParseBool` | `(s: string) -> bool` | ✅ | 字符串转 bool（失败返回 false） |
+| `strconv.ParseFloat` | `(s: string) -> float` | ✅ | 字符串转 float（失败返回 0.0） |
+| `strconv.ParseInt` | `(s: string, base: int) -> int` | ✅ | 字符串转 int（指定进制，失败返回 0） |
+| `strconv.ParseUint` | `(s: string, base: int) -> int` | ✅ | 字符串转无符号 int（指定进制，失败返回 0） |
 
 ### filepath（对标 Go path/filepath）
 | 函数 | 签名 | 状态 | 说明 |
@@ -242,6 +256,8 @@
 | `os.Getppid` | `() -> int` | Go `os.Getppid` | ✅ 已落地（2026-11-22） |
 | `os.Hostname` | `() -> string` | Go `os.Hostname` | ✅ 已落地（2026-11-22） |
 | `os.Environ` | `() -> string[]` | Go `os.Environ` | ✅ 已落地（2026-11-22） |
+| `os.Setenv` | `(name: string, value: string) -> int` | Go `os.Setenv` | ✅ 已落地（2026-11-22） |
+| `os.Unsetenv` | `(name: string) -> int` | Go `os.Unsetenv` | ✅ 已落地（2026-11-22） |
 
 #### time 扩展
 | 函数 | 签名 | 对标 | 状态 |

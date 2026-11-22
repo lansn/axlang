@@ -2492,6 +2492,45 @@ ax_arr ax_os_environ(void) {
     return arr;
 }
 
+int ax_os_setenv(ax_str name, ax_str value) {
+    char buf[512];
+    if (!ax_os_path_cstr(name, buf, (int)sizeof buf)) return 1;
+    int n = (int)strlen(buf);
+    if (value.len > 0) {
+        if (n + 1 + (int)value.len >= (int)sizeof buf) return 1;
+        buf[n] = '=';
+        memcpy(buf + n + 1, value.p, (size_t)value.len);
+        buf[n + 1 + (int)value.len] = 0;
+    } else {
+        buf[n] = '=';
+        buf[n + 1] = 0;
+    }
+#if defined(_WIN32)
+    return _putenv(buf) == 0 ? 0 : 1;
+#else
+    char *eq = strchr(buf, '=');
+    if (!eq) return 1;
+    *eq = 0;
+    int rc = setenv(buf, eq + 1, 1);
+    *eq = '=';
+    return rc == 0 ? 0 : 1;
+#endif
+}
+
+int ax_os_unsetenv(ax_str name) {
+    char buf[256];
+    if (!ax_os_path_cstr(name, buf, (int)sizeof buf)) return 1;
+#if defined(_WIN32)
+    /* Windows 无 unsetenv，把值置空以模拟删除 */
+    int n = (int)strlen(buf);
+    buf[n] = '=';
+    buf[n + 1] = 0;
+    return _putenv(buf) == 0 ? 0 : 1;
+#else
+    return unsetenv(buf) == 0 ? 0 : 1;
+#endif
+}
+
 /* ---------------- rand 模块（对标 Go math/rand） ---------------- */
 
 void ax_rand_seed(int64_t seed) {

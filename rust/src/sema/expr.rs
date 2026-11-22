@@ -87,6 +87,8 @@ pub fn module_sig(mod_: &str, name: &str) -> Option<(Vec<Option<Ty>>, Ty)> {
         ("os", "Getppid") => (vec![], t_int()),
         ("os", "Hostname") => (vec![], t_string()),
         ("os", "Environ") => (vec![], t_array(t_string(), None)),
+        ("os", "Setenv") => (vec![Some(t_string()), Some(t_string())], t_int()),
+        ("os", "Unsetenv") => (vec![Some(t_string())], t_int()),
         /* rand 模块 */
         ("rand", "Int") => (vec![Some(t_int())], t_int()),
         ("rand", "Float") => (vec![], t_float()),

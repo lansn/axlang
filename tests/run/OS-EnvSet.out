@@ -1,0 +1,9 @@
+unset_missing=0
+set=0
+get=abc
+set2=0
+get2=xyz
+unset=0
+get_after_unset=
+set_empty=0
+get_empty=

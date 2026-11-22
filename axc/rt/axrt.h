@@ -306,6 +306,9 @@ int     ax_os_getpid(void);     /* 当前进程 ID */
 int     ax_os_getppid(void);    /* 父进程 ID（Windows 下返回 0） */
 ax_str  ax_os_hostname(void);   /* 主机名，失败返回空串 */
 ax_arr  ax_os_environ(void);    /* 环境变量列表 "KEY=VALUE"，元素为 ax_str */
+/* 环境变量读写（对标 Go os.Setenv/os.Unsetenv）：0=成功，1=失败 */
+int     ax_os_setenv(ax_str name, ax_str value);  /* 设置环境变量 */
+int     ax_os_unsetenv(ax_str name);              /* 删除环境变量 */
 
 /* ---------------- rand 模块（对标 Go math/rand）------------ */
 /* 设置随机种子 */
