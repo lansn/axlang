@@ -1,0 +1,3 @@
+getwd-nonempty=true
+chdir-self=0
+chdir-bad=1

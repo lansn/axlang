@@ -1865,6 +1865,8 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 "0".to_string()
             }
             ("os", "Args") => "ax_os_args()".to_string(),
+            ("os", "Getwd") => "ax_os_getwd()".to_string(),
+            ("os", "Chdir") => format!("ax_os_chdir({})", a[0]),
             /* ---------------- strconv 模块 ---------------- */
             ("strconv", "Atoi") => {
                 format!("({{ int64_t v_; ax_parse_i64({}, &v_) ? v_ : 0; }})", a[0])

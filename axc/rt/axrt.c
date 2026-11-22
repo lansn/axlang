@@ -2333,6 +2333,26 @@ ax_arr ax_os_args(void) {
     return g_os_args;
 }
 
+ax_str ax_os_getwd(void) {
+    char cwd[4096];
+#if defined(_WIN32)
+    if (!_getcwd(cwd, (int)sizeof cwd)) return ax_str_empty();
+#else
+    if (!getcwd(cwd, (size_t)sizeof cwd)) return ax_str_empty();
+#endif
+    return ax_str_from_cstr(cwd);
+}
+
+int ax_os_chdir(ax_str path) {
+    char buf[4096];
+    if (!ax_os_path_cstr(path, buf, (int)sizeof buf)) return 1;
+#if defined(_WIN32)
+    return _chdir(buf) == 0 ? 0 : 1;
+#else
+    return chdir(buf) == 0 ? 0 : 1;
+#endif
+}
+
 /* ---------------- filepath 模块（对标 Go path/filepath） ---------------- */
 
 static int ax_filepath_has_sep(ax_str s) {

@@ -289,6 +289,10 @@ void    ax_os_exit(int code);
  * ax_os_args 返回 argv[1..] 组成的 ax_arr（元素为 ax_str，浅拷贝）。 */
 void    ax_os_set_args(ax_arr* args);
 ax_arr  ax_os_args(void);
+/* 当前工作目录：失败返回空字符串 */
+ax_str  ax_os_getwd(void);
+/* 改变当前工作目录：0=成功，1=失败 */
+int     ax_os_chdir(ax_str path);
 
 /* ---------------- filepath 模块（对标 Go path/filepath） ---------------- */
 /* 平台路径分隔符：Unix "/"，Windows "\\" */

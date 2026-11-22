@@ -76,6 +76,8 @@ pub fn module_sig(mod_: &str, name: &str) -> Option<(Vec<Option<Ty>>, Ty)> {
         ("os", "Getenv") => (vec![Some(t_string())], t_string()),
         ("os", "Exit") => (vec![Some(t_int())], t_void()),
         ("os", "Args") => (vec![], t_array(t_string(), None)),
+        ("os", "Getwd") => (vec![], t_string()),
+        ("os", "Chdir") => (vec![Some(t_string())], t_int()),
         /* strconv 模块 */
         ("strconv", "Atoi") => (vec![Some(t_string())], t_int()),
         ("strconv", "Itoa") => (vec![Some(t_int())], t_string()),

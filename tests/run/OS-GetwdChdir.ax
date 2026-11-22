@@ -1,0 +1,12 @@
+// os 模块新增函数：Getwd / Chdir（对标 Go os.Getwd / os.Chdir）
+import os
+
+int main() {
+    string d1 = os.Getwd()
+    println("getwd-nonempty={d1.Len() > 0}")
+    int r1 = os.Chdir(d1)
+    println("chdir-self={r1}")
+    int r2 = os.Chdir("__ax_nonexistent_dir__")
+    println("chdir-bad={r2}")
+    return 0
+}
