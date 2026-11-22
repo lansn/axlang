@@ -2127,6 +2127,13 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                     "Replace" => format!("ax_str_replace({}, {}, {})", tv, a[0], a[1]),
                     // 重复 n 次
                     "Repeat" => format!("ax_str_repeat({}, {})", tv, a[0]),
+                    // 字符属性判断（对标 C <ctype.h>）
+                    "IsDigit" => format!("ax_str_is_digit({})", tv),
+                    "IsAlpha" => format!("ax_str_is_alpha({})", tv),
+                    "IsSpace" => format!("ax_str_is_space({})", tv),
+                    "IsLower" => format!("ax_str_is_lower({})", tv),
+                    "IsUpper" => format!("ax_str_is_upper({})", tv),
+                    "IsAlnum" => format!("ax_str_is_alnum({})", tv),
                     "At" => {
                         let n = self.tmpn();
                         let tmp = self.tmpn();

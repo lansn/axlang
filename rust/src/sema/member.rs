@@ -1169,6 +1169,13 @@ impl<'a> Sema<'a> {
                 ("Join", vec![t_array(t_string(), None)], t_string()),
                 ("Replace", vec![t_string(), t_string()], t_string()),
                 ("Repeat", vec![t_int()], t_string()),
+                // 字符属性判断（对标 C <ctype.h>）
+                ("IsDigit", vec![], t_bool()),
+                ("IsAlpha", vec![], t_bool()),
+                ("IsSpace", vec![], t_bool()),
+                ("IsLower", vec![], t_bool()),
+                ("IsUpper", vec![], t_bool()),
+                ("IsAlnum", vec![], t_bool()),
             ]),
             TyS::Array(elem, _) => {
                 let el = elem.clone();

@@ -618,6 +618,70 @@ int ax_str_ends_with(ax_str s, ax_str suffix) {
     return memcmp(s.p + s.len - suffix.len, suffix.p, (size_t)suffix.len) == 0 ? 1 : 0;
 }
 
+/* ---------------- 字符属性判断（对标 C <ctype.h>） ----------------
+ * 作用于整个字符串：所有字符均满足返回 1，否则返回 0；空字符串返回 0。
+ * 仅处理 ASCII 字符，UTF-8 多字节字符均视为不匹配。 */
+
+static int ax_u8_is_digit(uint8_t c) { return c >= (uint8_t)'0' && c <= (uint8_t)'9'; }
+static int ax_u8_is_alpha(uint8_t c) {
+    return (c >= (uint8_t)'a' && c <= (uint8_t)'z') || (c >= (uint8_t)'A' && c <= (uint8_t)'Z');
+}
+static int ax_u8_is_space(uint8_t c) {
+    return c == (uint8_t)' ' || c == (uint8_t)'\t' || c == (uint8_t)'\n' ||
+           c == (uint8_t)'\r' || c == (uint8_t)'\v' || c == (uint8_t)'\f';
+}
+static int ax_u8_is_lower(uint8_t c) { return c >= (uint8_t)'a' && c <= (uint8_t)'z'; }
+static int ax_u8_is_upper(uint8_t c) { return c >= (uint8_t)'A' && c <= (uint8_t)'Z'; }
+static int ax_u8_is_alnum(uint8_t c) { return ax_u8_is_digit(c) || ax_u8_is_alpha(c); }
+
+int ax_str_is_digit(ax_str s) {
+    if (s.len == 0) return 0;
+    for (int64_t i = 0; i < s.len; i++) {
+        if (!ax_u8_is_digit(s.p[i])) return 0;
+    }
+    return 1;
+}
+
+int ax_str_is_alpha(ax_str s) {
+    if (s.len == 0) return 0;
+    for (int64_t i = 0; i < s.len; i++) {
+        if (!ax_u8_is_alpha(s.p[i])) return 0;
+    }
+    return 1;
+}
+
+int ax_str_is_space(ax_str s) {
+    if (s.len == 0) return 0;
+    for (int64_t i = 0; i < s.len; i++) {
+        if (!ax_u8_is_space(s.p[i])) return 0;
+    }
+    return 1;
+}
+
+int ax_str_is_lower(ax_str s) {
+    if (s.len == 0) return 0;
+    for (int64_t i = 0; i < s.len; i++) {
+        if (!ax_u8_is_lower(s.p[i])) return 0;
+    }
+    return 1;
+}
+
+int ax_str_is_upper(ax_str s) {
+    if (s.len == 0) return 0;
+    for (int64_t i = 0; i < s.len; i++) {
+        if (!ax_u8_is_upper(s.p[i])) return 0;
+    }
+    return 1;
+}
+
+int ax_str_is_alnum(ax_str s) {
+    if (s.len == 0) return 0;
+    for (int64_t i = 0; i < s.len; i++) {
+        if (!ax_u8_is_alnum(s.p[i])) return 0;
+    }
+    return 1;
+}
+
 /* ---------------- 连接数组（sep 作为分隔符） ---------------- */
 
 ax_str ax_str_join(ax_str sep, ax_str* parts, int64_t n) {

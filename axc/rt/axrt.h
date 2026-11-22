@@ -84,6 +84,15 @@ ax_str  ax_str_to_lower(ax_str s);
 int     ax_str_starts_with(ax_str s, ax_str prefix);
 int     ax_str_ends_with(ax_str s, ax_str suffix);
 
+/* 字符属性判断（对标 C <ctype.h> isdigit/isalpha/isspace/islower/isupper/isalnum，
+ * 作用于整个字符串：所有字符均满足返回 1，否则返回 0；空字符串返回 0） */
+int     ax_str_is_digit(ax_str s);
+int     ax_str_is_alpha(ax_str s);
+int     ax_str_is_space(ax_str s);
+int     ax_str_is_lower(ax_str s);
+int     ax_str_is_upper(ax_str s);
+int     ax_str_is_alnum(ax_str s);
+
 /* 连接数组（用 s 作为分隔符） */
 ax_str  ax_str_join(ax_str sep, ax_str* parts, int64_t n);
 
