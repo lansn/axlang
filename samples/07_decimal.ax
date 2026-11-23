@@ -31,7 +31,7 @@ int main() {
 
     // ---- round 直接对已有值取位数 ----
     decimal r = 123.456d.Round(2, Rounding.HalfUp)
-    println("123.456 → {r}")
+    println("直接对已有值取位数（四舍五入） 123.456 → {r}")
 
     // ---- 折扣计算：全程 decimal，最后一步才舍入 ----
     decimal total = price * count * 0.9d
