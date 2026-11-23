@@ -2088,6 +2088,106 @@ ax_str ax_json_stringify(ax_box* v) {
     return ax_sb_finish(&sb);
 }
 
+/* ---------- json.MarshalIndent：带缩进序列化 ---------- */
+/* 写出当前层级的前缀+缩进 */
+static void jpush_indent(ax_sb* out, ax_str prefix, ax_str indent,
+                         int64_t level) {
+    ax_sb_push(out, ax_str_from_bytes(prefix.p, prefix.len));
+    for (int64_t i = 0; i < level; i++) ax_sb_push(out, ax_str_from_bytes(indent.p, indent.len));
+}
+
+static void jstringify_indent_box(const ax_box* b, ax_sb* out,
+                                  ax_str prefix, ax_str indent,
+                                  int64_t level) {
+    if (b == NULL) { jpush_indent(out, prefix, indent, level); ax_sb_push_cstr(out, "null"); return; }
+    if (b->tag == AX_TAG_BOOL) {
+        int v = *(const int*)b->payload;
+        jpush_indent(out, prefix, indent, level);
+        ax_sb_push_cstr(out, v ? "true" : "false");
+        return;
+    }
+    if (b->tag == AX_TAG_INT) {
+        jpush_indent(out, prefix, indent, level);
+        ax_sb_push_int(out, *(const int64_t*)b->payload);
+        return;
+    }
+    if (b->tag == AX_TAG_FLOAT) {
+        jpush_indent(out, prefix, indent, level);
+        ax_sb_push_f64(out, *(const double*)b->payload);
+        return;
+    }
+    if (b->tag == AX_TAG_STRING) {
+        jpush_indent(out, prefix, indent, level);
+        jstr_escape(*(const ax_str*)b->payload, out);
+        return;
+    }
+    if (b->size == (int64_t)sizeof(ax_map)) {
+        const ax_map* m = (const ax_map*)b->payload;
+        jpush_indent(out, prefix, indent, level);
+        ax_sb_push_cstr(out, "{");
+        if (m->len > 0) {
+            ax_sb_push_cstr(out, "\n");
+            for (int64_t i = 0; i < m->len; i++) {
+                jpush_indent(out, prefix, indent, level + 1);
+                jstr_escape(*(const ax_str*)m->entries[i].k, out);
+                ax_sb_push_cstr(out, ": ");
+                jstringify_indent_box(*(ax_box* const*)m->entries[i].v, out, prefix, indent, level + 1);
+                if (i < m->len - 1) ax_sb_push_cstr(out, ",");
+                ax_sb_push_cstr(out, "\n");
+            }
+            jpush_indent(out, prefix, indent, level);
+        }
+        ax_sb_push_cstr(out, "}");
+        return;
+    }
+    if (b->size == (int64_t)sizeof(ax_arr)) {
+        const ax_arr* a = (const ax_arr*)b->payload;
+        jpush_indent(out, prefix, indent, level);
+        ax_sb_push_cstr(out, "[");
+        if (a->len > 0) {
+            ax_sb_push_cstr(out, "\n");
+            for (int64_t i = 0; i < a->len; i++) {
+                jpush_indent(out, prefix, indent, level + 1);
+                jstringify_indent_box(*(ax_box* const*)((const uint8_t*)a->data
+                    + (size_t)i * sizeof(ax_box*)), out, prefix, indent, level + 1);
+                if (i < a->len - 1) ax_sb_push_cstr(out, ",");
+                ax_sb_push_cstr(out, "\n");
+            }
+            jpush_indent(out, prefix, indent, level);
+        }
+        ax_sb_push_cstr(out, "]");
+        return;
+    }
+    jpush_indent(out, prefix, indent, level);
+    ax_sb_push_cstr(out, "null");
+}
+
+ax_str ax_json_marshal_indent(ax_box* v, ax_str prefix, ax_str indent) {
+    ax_sb sb;
+    ax_sb_init(&sb);
+    jstringify_indent_box(v, &sb, prefix, indent, 0);
+    return ax_sb_finish(&sb);
+}
+
+/* ---------- json.Valid：判断 JSON 是否合法 ---------- */
+static int jjson_valid(const char* p, int64_t n) {
+    jparse j;
+    j.p = p;
+    j.n = n;
+    j.i = 0;
+    j.emsg = ax_str_empty();
+    j.epos = 0;
+    (void)jvalue(&j);
+    if (j.emsg.len != 0) return 0;
+    jskip_ws(&j);
+    if (j.i != j.n) return 0;
+    return 1;
+}
+
+int ax_json_valid(ax_str s) {
+    return jjson_valid((const char*)s.p, s.len);
+}
+
 int64_t ax_now_ms(void) {
 #ifdef _WIN32
     FILETIME ft;

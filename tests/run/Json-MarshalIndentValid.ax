@@ -1,0 +1,20 @@
+// json.MarshalIndent / json.Valid：对标 Go encoding/json。
+import json
+
+int main() {
+    // json.MarshalIndent：嵌套对象
+    string s = "{\"a\":1,\"c\":{\"d\":\"y\"},\"b\":2}"
+    result<map<string, object>> r = json.Parse(s)
+    match r {
+        ok(m) => println(json.MarshalIndent(m, "", "  ")),
+        fail(e) => println("parse-fail={e.msg.Len() > 0}"),
+    }
+
+    // json.Valid
+    string good = "{\"a\":1,\"b\":[1,2.5,true,\"x\"]}"
+    string bad = "{\"name\":}"
+    println("valid-good={json.Valid(good)}")
+    println("valid-bad={json.Valid(bad)}")
+
+    return 0
+}

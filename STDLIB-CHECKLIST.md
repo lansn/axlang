@@ -112,8 +112,8 @@
 | -------------------- | ------------------------------------------------------- | ----------------------- | -------- | -- | --------- |
 | `json.Parse`         | `(s: string) -> result<map<string, object>>`            | Go `json.Unmarshal`     | 解析 JSON  | ✅  | 标准 C11 实现 |
 | `json.Stringify`     | `(v: object) -> string`                                 | Go `json.Marshal`       | 序列化 JSON | ✅  | 标准 C11 实现 |
-| `json.MarshalIndent` | `(v: object, prefix: string, indent: string) -> string` | Go `json.MarshalIndent` | 未落地      | ⬜  | 计划中       |
-| `json.Valid`         | `(s: string) -> bool`                                   | Go `json.Valid`         | 未落地      | ⬜  | 计划中       |
+| `json.MarshalIndent` | `(v: object, prefix: string, indent: string) -> string` | Go `json.MarshalIndent` | 带缩进序列化 JSON，对标 Go json.MarshalIndent；编译期核对实参类型 | ✅  | 标准 C11 实现 |
+| `json.Valid`         | `(s: string) -> bool`                                   | Go `json.Valid`         | 判断 JSON 是否合法，对标 Go json.Valid；编译期核对实参类型 | ✅  | 标准 C11 实现 |
 
 ### 5. file（对标 Go os / C stdio/stdlib）
 
@@ -707,7 +707,7 @@
 | 已落地模块 | io, math, json, file, db, string, time, decimal, Int/Float/Bool/Enum, Array, Map, Range, thread/queue, os, strconv, filepath, rand, sort, slices | 共 19 个模块 |
 | P0 已落地 | strconv 13 个函数；string 6 个 ctype 判断函数 | string.ToUpperRune/ToLowerRune |
 | P1 待落地 | — | — |
-| P2 待落地 | — | json.MarshalIndent/Valid；csv.ReadAll/Write；sort.Float64s/…；maps.*；unique.*；bytes/bufio；log/errors；sync/atomic；reflect |
+| P2 待落地 | — | csv.ReadAll/Write；sort.Float64s/…；maps.*；unique.*；bytes/bufio；log/errors；sync/atomic；reflect |
 | P3 待落地 | — | crypto/*；hash/*；unicode/utf8/utf16；container/*；net/*；template/*；regexp |
 
 
@@ -732,6 +732,8 @@
 6. ✅ `fmt.Fprintf`（对标 Go `fmt` / C `fprintf`，格式化写入 File，P2，已落地 2026-11-23）
 7. ✅ `fmt.Errorf`（对标 Go `fmt`，按格式构造 error，P2，已落地 2026-11-23）
 8. ✅ `fmt.Scanf`（对标 Go `fmt` / C `scanf`，从 stdin 格式化读取，P2，已落地 2026-11-23）
+9. ✅ `json.MarshalIndent`（对标 Go `encoding/json`，带缩进序列化 JSON，P2，已落地 2026-11-23）
+10. ✅ `json.Valid`（对标 Go `encoding/json`，判断 JSON 合法性，P2，已落地 2026-11-23）
 
 7. `file.Chmod` / `file.Chtimes` / `file.TempFile`（对标 Go `os`，文件权限/时间/临时文件，P1）
 

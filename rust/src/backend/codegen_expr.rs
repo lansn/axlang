@@ -1869,6 +1869,8 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             }
             ("json", "Parse") => format!("ax_json_parse_result({})", a[0]),
             ("json", "Stringify") => format!("ax_json_stringify({})", a[0]),
+            ("json", "MarshalIndent") => format!("ax_json_marshal_indent({}, {}, {})", a[0], a[1], a[2]),
+            ("json", "Valid") => format!("ax_json_valid({})", a[0]),
             ("file", "Open") => format!("ax_file_open_result({}, 0)", a[0]),
             ("file", "Create") => format!("ax_file_open_result({}, 1)", a[0]),
             ("file", "Append") => format!("ax_file_open_result({}, 2)", a[0]),

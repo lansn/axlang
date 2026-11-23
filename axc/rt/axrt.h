@@ -250,6 +250,12 @@ ax_str  ax_row_get(ax_row r, ax_str key);
 ax_dec  ax_dec_parse_or(ax_str s, ax_dec fallback);
 ax_str  ax_json_stringify(ax_box* v);
 
+/* json.MarshalIndent / json.Valid（对标 Go encoding/json，标准 C11 实现）：
+ * ax_json_marshal_indent：带缩进序列化 JSON（prefix/indent 可为空串）；
+ * ax_json_valid：判断 JSON 是否合法，1=合法 0=非法。 */
+ax_str  ax_json_marshal_indent(ax_box* v, ax_str prefix, ax_str indent);
+int     ax_json_valid(ax_str s);
+
 int64_t ax_now_ms(void);
 
 /* 时间（time 类型，Unix 毫秒）：

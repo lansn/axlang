@@ -47,6 +47,11 @@ pub fn module_sig(mod_: &str, name: &str) -> Option<(Vec<Option<Ty>>, Ty)> {
             t_result(t_map(t_string(), t_object())),
         ),
         ("json", "Stringify") => (vec![Some(t_object())], t_string()),
+        ("json", "MarshalIndent") => (
+            vec![Some(t_object()), Some(t_string()), Some(t_string())],
+            t_string(),
+        ),
+        ("json", "Valid") => (vec![Some(t_string())], t_bool()),
         ("db", "Query") => (
             vec![Some(t_string())],
             t_result(t_named(DefId::Name("Row"), Vec::new())),
