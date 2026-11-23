@@ -45,6 +45,13 @@ pub fn module_sig(mod_: &str, name: &str) -> Option<(Vec<Option<Ty>>, Ty)> {
         ("math", "Sinh") => (vec![Some(t_float())], t_float()),
         ("math", "Cosh") => (vec![Some(t_float())], t_float()),
         ("math", "Tanh") => (vec![Some(t_float())], t_float()),
+        ("math", "Asin") => (vec![Some(t_float())], t_float()),
+        ("math", "Acos") => (vec![Some(t_float())], t_float()),
+        ("math", "Atan") => (vec![Some(t_float())], t_float()),
+        ("math", "Atan2") => (vec![Some(t_float()), Some(t_float())], t_float()),
+        ("math", "Hypot") => (vec![Some(t_float()), Some(t_float())], t_float()),
+        ("math", "Cbrt") => (vec![Some(t_float())], t_float()),
+        ("math", "Trunc") => (vec![Some(t_float())], t_float()),
         ("json", "Parse") => (
             vec![Some(t_string())],
             t_result(t_map(t_string(), t_object())),

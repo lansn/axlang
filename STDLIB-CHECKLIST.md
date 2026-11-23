@@ -91,13 +91,13 @@
 | `math.Sinh`    | `(x: float) -> float`                      | Go `math.Sinh` / C `sinh`   | 双曲正弦，对标 Go math.Sinh / C sinh；标准 C11 直接映射 | ✅ | 标准 C11 实现 |
 | `math.Cosh`    | `(x: float) -> float`                      | Go `math.Cosh` / C `cosh`   | 双曲余弦，对标 Go math.Cosh / C cosh；标准 C11 直接映射 | ✅ | 标准 C11 实现 |
 | `math.Tanh`    | `(x: float) -> float`                      | Go `math.Tanh` / C `tanh`   | 双曲正切，对标 Go math.Tanh / C tanh；标准 C11 直接映射 | ✅ | 标准 C11 实现 |
-| `math.Asin`     | `(x: float) -> float`                   | Go `math.Asin` / C `asin`         | 未落地                        | ⬜  | 计划中       |
-| `math.Acos`     | `(x: float) -> float`                   | Go `math.Acos` / C `acos`         | 未落地                        | ⬜  | 计划中       |
-| `math.Atan`     | `(x: float) -> float`                   | Go `math.Atan` / C `atan`         | 未落地                        | ⬜  | 计划中       |
-| `math.Atan2`    | `(y: float, x: float) -> float`         | Go `math.Atan2` / C `atan2`       | 未落地                        | ⬜  | 计划中       |
-| `math.Hypot`    | `(p: float, q: float) -> float`         | Go `math.Hypot` / C `hypot`       | 未落地                        | ⬜  | 计划中       |
-| `math.Cbrt`     | `(x: float) -> float`                   | Go `math.Cbrt`                    | 未落地                        | ⬜  | 计划中       |
-| `math.Trunc`    | `(x: float) -> float`                   | Go `math.Trunc` / C `trunc`       | 未落地                        | ⬜  | 计划中       |
+| `math.Asin`     | `(x: float) -> float`                   | Go `math.Asin` / C `asin`         | 反正弦，对标 Go math.Asin / C asin；标准 C11 直接映射 | ✅ | 标准 C11 实现 |
+| `math.Acos`     | `(x: float) -> float`                   | Go `math.Acos` / C `acos`         | 反余弦，对标 Go math.Acos / C acos；标准 C11 直接映射 | ✅ | 标准 C11 实现 |
+| `math.Atan`     | `(x: float) -> float`                   | Go `math.Atan` / C `atan`         | 反正切，对标 Go math.Atan / C atan；标准 C11 直接映射 | ✅ | 标准 C11 实现 |
+| `math.Atan2`    | `(y: float, x: float) -> float`         | Go `math.Atan2` / C `atan2`       | 反正切（带符号商），对标 Go math.Atan2 / C atan2；标准 C11 直接映射 | ✅ | 标准 C11 实现 |
+| `math.Hypot`    | `(p: float, q: float) -> float`         | Go `math.Hypot` / C `hypot`       | 平方和开方，对标 Go math.Hypot / C hypot；标准 C11 直接映射 | ✅ | 标准 C11 实现 |
+| `math.Cbrt`     | `(x: float) -> float`                   | Go `math.Cbrt`                    | 立方根，对标 Go math.Cbrt；标准 C11 直接映射            | ✅ | 标准 C11 实现 |
+| `math.Trunc`    | `(x: float) -> float`                   | Go `math.Trunc` / C `trunc`       | 向零取整，对标 Go math.Trunc / C trunc；标准 C11 直接映射 | ✅ | 标准 C11 实现 |
 | `math.Frexp`    | `(f: float) -> (frac: float, exp: int)` | Go `math.Frexp` / C `frexp`       | 未落地                        | ⬜  | 计划中       |
 | `math.Ldexp`    | `(frac: float, exp: int) -> float`      | Go `math.Ldexp` / C `ldexp`       | 未落地                        | ⬜  | 计划中       |
 | `math.IsNaN`    | `(f: float) -> bool`                    | Go `math.IsNaN` / C `isnan`       | C11 isnan，对标 Go math.IsNaN | ✅  | 标准 C11 实现 |
@@ -480,13 +480,13 @@
 | `math.Sinh` | `(x: float) -> float` | Go `math.Sinh` / C `sinh` | 双曲正弦，对标 Go math.Sinh / C sinh | ✅ | 标准 C11 实现 |
 | `math.Cosh` | `(x: float) -> float` | Go `math.Cosh` / C `cosh` | 双曲余弦，对标 Go math.Cosh / C cosh | ✅ | 标准 C11 实现 |
 | `math.Tanh` | `(x: float) -> float` | Go `math.Tanh` / C `tanh` | 双曲正切，对标 Go math.Tanh / C tanh | ✅ | 标准 C11 实现 |
-| `math.Asin` | `(x: float) -> float` | Go `math.Asin` / C `asin` | 反正弦，对标 Go math.Asin / C asin | ⬜ |
-| `math.Acos` | `(x: float) -> float` | Go `math.Acos` / C `acos` | 反余弦，对标 Go math.Acos / C acos | ⬜ |
-| `math.Atan` | `(x: float) -> float` | Go `math.Atan` / C `atan` | 反正切，对标 Go math.Atan / C atan | ⬜ |
-| `math.Atan2` | `(y: float, x: float) -> float` | Go `math.Atan2` / C `atan2` | 反正切（带符号的商），对标 Go math.Atan2 / C atan2 | ⬜ |
-| `math.Hypot` | `(p: float, q: float) -> float` | Go `math.Hypot` / C `hypot` | 平方和开方，对标 Go math.Hypot / C hypot | ⬜ |
-| `math.Cbrt` | `(x: float) -> float` | Go `math.Cbrt` | 立方根，对标 Go math.Cbrt | ⬜ |
-| `math.Trunc` | `(x: float) -> float` | Go `math.Trunc` / C `trunc` | 向零取整，对标 Go math.Trunc / C trunc | ⬜ |
+| `math.Asin` | `(x: float) -> float` | Go `math.Asin` / C `asin` | 反正弦，对标 Go math.Asin / C asin | ✅ | 标准 C11 实现 |
+| `math.Acos` | `(x: float) -> float` | Go `math.Acos` / C `acos` | 反余弦，对标 Go math.Acos / C acos | ✅ | 标准 C11 实现 |
+| `math.Atan` | `(x: float) -> float` | Go `math.Atan` / C `atan` | 反正切，对标 Go math.Atan / C atan | ✅ | 标准 C11 实现 |
+| `math.Atan2` | `(y: float, x: float) -> float` | Go `math.Atan2` / C `atan2` | 反正切（带符号的商），对标 Go math.Atan2 / C atan2 | ✅ | 标准 C11 实现 |
+| `math.Hypot` | `(p: float, q: float) -> float` | Go `math.Hypot` / C `hypot` | 平方和开方，对标 Go math.Hypot / C hypot | ✅ | 标准 C11 实现 |
+| `math.Cbrt` | `(x: float) -> float` | Go `math.Cbrt` | 立方根，对标 Go math.Cbrt | ✅ | 标准 C11 实现 |
+| `math.Trunc` | `(x: float) -> float` | Go `math.Trunc` / C `trunc` | 向零取整，对标 Go math.Trunc / C trunc | ✅ | 标准 C11 实现 |
 | `math.Frexp` | `(f: float) -> (frac: float, exp: int)` | Go `math.Frexp` / C `frexp` | 分解尾数与指数，对标 Go math.Frexp / C frexp | ⬜ |
 | `math.Ldexp` | `(frac: float, exp: int) -> float` | Go `math.Ldexp` / C `ldexp` | 尾数乘 2 的指数次方，对标 Go math.Ldexp / C ldexp | ⬜ |
 | `math.IsNaN` | `(f: float) -> bool` | Go `math.IsNaN` / C `isnan` | 判断是否为 NaN，对标 Go math.IsNaN / C11 isnan | ✅ |
@@ -740,6 +740,8 @@
 8. ✅ `fmt.Scanf`（对标 Go `fmt` / C `scanf`，从 stdin 格式化读取，P2，已落地 2026-11-23）
 9. ✅ `json.MarshalIndent`（对标 Go `encoding/json`，带缩进序列化 JSON，P2，已落地 2026-11-23）
 10. ✅ `json.Valid`（对标 Go `encoding/json`，判断 JSON 合法性，P2，已落地 2026-11-23）
+
+11. ✅ `math.Asin` / `math.Acos` / `math.Atan` / `math.Atan2` / `math.Hypot` / `math.Cbrt` / `math.Trunc`（对标 Go `math` / C `math.h`，反三角与取整，P1，已落地 2026-11-23，见 tests/run/Math-AcosAsinAtan.ax/.out）
 
 7. `file.Chmod` / `file.Chtimes` / `file.TempFile`（对标 Go `os`，文件权限/时间/临时文件，P1）
 
