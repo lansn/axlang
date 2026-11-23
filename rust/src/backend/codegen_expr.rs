@@ -1859,6 +1859,9 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             ("math", "Log1p") => format!("(log1p({}))", a[0]),
             ("math", "IsNaN") => format!("ax_math_isnan({})", a[0]),
             ("math", "IsInf") => format!("ax_math_isinf({}, {})", a[0], a[1]),
+            ("math", "Sinh") => format!("(sinh({}))", a[0]),
+            ("math", "Cosh") => format!("(cosh({}))", a[0]),
+            ("math", "Tanh") => format!("(tanh({}))", a[0]),
             ("db", "Query") => {
                 let arg = if a.len() > 1 {
                     a[1].clone()

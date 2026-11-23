@@ -88,9 +88,9 @@
 | `math.Log10`   | `(x: float) -> float`                      | Go `math.Log10` / C `log10` | C11 log10，对标 Go math.Log10                      | ✅  | 标准 C11 实现 |
 | `math.Log2`    | `(x: float) -> float`                      | Go `math.Log2` / C `log2`   | 二进制对数，对标 Go math.Log2 / C log2；标准 C11 直接映射      | ✅  | 标准 C11 实现 |
 | `math.Log1p`   | `(x: float) -> float`                      | Go `math.Log1p` / C `log1p` | log(1+x)，对标 Go math.Log1p / C log1p；标准 C11 直接映射 | ✅  | 标准 C11 实现 |
-| `math.Sinh`    | `(x: float) -> float`                      | Go `math.Sinh` / C `sinh`   | 未落地                                             | ⬜  | 计划中       |
-| `math.Cosh`    | `(x: float) -> float`                      | Go `math.Cosh` / C `cosh`   | 未落地                                             | ⬜  | 计划中       |
-| `math.Tanh`    | `(x: float) -> float`                      | Go `math.Tanh` / C `tanh`   | 未落地                                             | ⬜  | 计划中       |
+| `math.Sinh`    | `(x: float) -> float`                      | Go `math.Sinh` / C `sinh`   | 双曲正弦，对标 Go math.Sinh / C sinh；标准 C11 直接映射 | ✅ | 标准 C11 实现 |
+| `math.Cosh`    | `(x: float) -> float`                      | Go `math.Cosh` / C `cosh`   | 双曲余弦，对标 Go math.Cosh / C cosh；标准 C11 直接映射 | ✅ | 标准 C11 实现 |
+| `math.Tanh`    | `(x: float) -> float`                      | Go `math.Tanh` / C `tanh`   | 双曲正切，对标 Go math.Tanh / C tanh；标准 C11 直接映射 | ✅ | 标准 C11 实现 |
 | `math.Asin`     | `(x: float) -> float`                   | Go `math.Asin` / C `asin`         | 未落地                        | ⬜  | 计划中       |
 | `math.Acos`     | `(x: float) -> float`                   | Go `math.Acos` / C `acos`         | 未落地                        | ⬜  | 计划中       |
 | `math.Atan`     | `(x: float) -> float`                   | Go `math.Atan` / C `atan`         | 未落地                        | ⬜  | 计划中       |
@@ -477,9 +477,9 @@
 | `math.Log10` | `(x: float) -> float` | Go `math.Log10` / C `log10` | 以 10 为底对数，对标 Go math.Log10 / C11 log10 | ✅ |
 | `math.Log2` | `(x: float) -> float` | Go `math.Log2` / C `log2` | 以 2 为底对数，对标 Go math.Log2 / C log2 | ✅ |
 | `math.Log1p` | `(x: float) -> float` | Go `math.Log1p` / C `log1p` | log(1+x)，对标 Go math.Log1p / C11 log1p | ✅ |
-| `math.Sinh` | `(x: float) -> float` | Go `math.Sinh` / C `sinh` | 双曲正弦，对标 Go math.Sinh / C sinh | ⬜ |
-| `math.Cosh` | `(x: float) -> float` | Go `math.Cosh` / C `cosh` | 双曲余弦，对标 Go math.Cosh / C cosh | ⬜ |
-| `math.Tanh` | `(x: float) -> float` | Go `math.Tanh` / C `tanh` | 双曲正切，对标 Go math.Tanh / C tanh | ⬜ |
+| `math.Sinh` | `(x: float) -> float` | Go `math.Sinh` / C `sinh` | 双曲正弦，对标 Go math.Sinh / C sinh | ✅ | 标准 C11 实现 |
+| `math.Cosh` | `(x: float) -> float` | Go `math.Cosh` / C `cosh` | 双曲余弦，对标 Go math.Cosh / C cosh | ✅ | 标准 C11 实现 |
+| `math.Tanh` | `(x: float) -> float` | Go `math.Tanh` / C `tanh` | 双曲正切，对标 Go math.Tanh / C tanh | ✅ | 标准 C11 实现 |
 | `math.Asin` | `(x: float) -> float` | Go `math.Asin` / C `asin` | 反正弦，对标 Go math.Asin / C asin | ⬜ |
 | `math.Acos` | `(x: float) -> float` | Go `math.Acos` / C `acos` | 反余弦，对标 Go math.Acos / C acos | ⬜ |
 | `math.Atan` | `(x: float) -> float` | Go `math.Atan` / C `atan` | 反正切，对标 Go math.Atan / C atan | ⬜ |
