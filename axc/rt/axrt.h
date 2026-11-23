@@ -378,6 +378,10 @@ void    ax_sort_float(double* data, int64_t len);
  * 返回 1=已排序 0=未排序；空/单元素切片返回 1。标准 C11 实现。 */
 int     ax_sort_ints_are_sorted(const int64_t* data, int64_t len);
 int     ax_sort_strings_are_sorted(const ax_str* data, int64_t len);
+/* 二分查找：在已升序排列的整数/字符串切片中查找 x，对标 Go sort.SearchInts / sort.SearchStrings；
+ * 找到返回下标，未找到返回 -1。要求输入切片已按升序排序，否则结果未定义。标准 C11 实现。 */
+int64_t ax_sort_search_ints(const int64_t* data, int64_t len, int64_t x);
+int64_t ax_sort_search_strings(const ax_str* data, int64_t len, ax_str x);
 
 /* ---------------- slices 模块（对标 Go slices） ---------------- */
 /* 在 int[] 中查找 x：找到返回 1，否则 0 */

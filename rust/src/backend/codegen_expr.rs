@@ -1954,6 +1954,14 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 let arr = self.declare(&t_array(t_string(), None), &a[0]);
                 format!("ax_sort_strings_are_sorted((ax_str*){}.data, {}.len)", arr, arr)
             }
+            ("sort", "SearchInts") => {
+                let arr = self.declare(&t_array(t_int(), None), &a[0]);
+                format!("ax_sort_search_ints((int64_t*){}.data, {}.len, {})", arr, arr, a[1])
+            }
+            ("sort", "SearchStrings") => {
+                let arr = self.declare(&t_array(t_string(), None), &a[0]);
+                format!("ax_sort_search_strings((ax_str*){}.data, {}.len, {})", arr, arr, a[1])
+            }
             /* ---------------- strconv 模块 ---------------- */
             ("strconv", "Atoi") => {
                 format!("({{ int64_t v_; ax_parse_i64({}, &v_) ? v_ : 0; }})", a[0])

@@ -3159,6 +3159,28 @@ int ax_sort_strings_are_sorted(const ax_str* data, int64_t len) {
     return 1;
 }
 
+int64_t ax_sort_search_ints(const int64_t* data, int64_t len, int64_t x) {
+    int64_t lo = 0, hi = len;
+    while (lo < hi) {
+        int64_t mid = lo + (hi - lo) / 2;
+        if (data[mid] < x) lo = mid + 1;
+        else hi = mid;
+    }
+    if (lo < len && data[lo] == x) return lo;
+    return -1;
+}
+
+int64_t ax_sort_search_strings(const ax_str* data, int64_t len, ax_str x) {
+    int64_t lo = 0, hi = len;
+    while (lo < hi) {
+        int64_t mid = lo + (hi - lo) / 2;
+        if (ax_str_cmp(data[mid], x) < 0) lo = mid + 1;
+        else hi = mid;
+    }
+    if (lo < len && ax_str_eq(data[lo], x)) return lo;
+    return -1;
+}
+
 /* ---------------- slices 模块（对标 Go slices） ---------------- */
 
 int ax_slice_contains_int(const int64_t* data, int64_t len, int64_t x) {

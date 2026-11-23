@@ -1,0 +1,30 @@
+// sort 模块：SearchInts / SearchStrings（对标 Go sort.SearchInts / sort.SearchStrings，二分查找）
+import sort
+
+int main() {
+    int[] a = [1, 3, 5, 7, 9]
+    println("search-int-5={sort.SearchInts(a, 5)}")
+    println("search-int-4={sort.SearchInts(a, 4)}")
+    println("search-int-1={sort.SearchInts(a, 1)}")
+    println("search-int-9={sort.SearchInts(a, 9)}")
+    println("search-int-10={sort.SearchInts(a, 10)}")
+
+    int[] b = []
+    println("search-int-empty={sort.SearchInts(b, 1)}")
+
+    string[] c = ["apple", "banana", "cherry", "date"]
+    string target1 = "banana"
+    println("search-str-banana={sort.SearchStrings(c, target1)}")
+    string target2 = "fig"
+    println("search-str-fig={sort.SearchStrings(c, target2)}")
+    string target3 = "apple"
+    println("search-str-apple={sort.SearchStrings(c, target3)}")
+    string target4 = "date"
+    println("search-str-date={sort.SearchStrings(c, target4)}")
+
+    string[] d = []
+    string target5 = "x"
+    println("search-str-empty={sort.SearchStrings(d, target5)}")
+
+    return 0
+}
