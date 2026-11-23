@@ -1,0 +1,49 @@
+// csv 模块：ReadAll / Write（对标 Go encoding/csv，Reader/Writer 为 File）
+import file
+import csv
+
+int main() {
+    string path = "__ax_csv_test.txt"
+
+    // 写入测试数据
+    var f = file.Create(path) try
+    string[] header = ["name", "age", "city"]
+    csv.Write(f, header)
+    string[] row1 = ["阿蓝", "30", "北京"]
+    csv.Write(f, row1)
+    string[] row2 = ["Bob", "25", "上海"]
+    csv.Write(f, row2)
+    f.Close()
+
+    // 读取并验证
+    var g = file.Open(path) try
+    var rows = csv.ReadAll(g)
+    g.Close()
+
+    println("r00={rows[0][0]}")
+    println("r01={rows[0][1]}")
+    println("r02={rows[0][2]}")
+    println("r10={rows[1][0]}")
+    println("r11={rows[1][1]}")
+    println("r12={rows[1][2]}")
+    println("r20={rows[2][0]}")
+    println("r21={rows[2][1]}")
+    println("r22={rows[2][2]}")
+
+    // 再追加一行
+    var h = file.Append(path) try
+    string[] row3 = ["Carol", "35", "广州"]
+    csv.Write(h, row3)
+    h.Close()
+
+    var i = file.Open(path) try
+    var rows2 = csv.ReadAll(i)
+    i.Close()
+
+    println("r30={rows2[3][0]}")
+    println("r31={rows2[3][1]}")
+    println("r32={rows2[3][2]}")
+
+    file.Remove(path)
+    return 0
+}

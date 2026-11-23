@@ -180,7 +180,6 @@
 | `string.IndexAny`     | `(chars: string) -> int`               | Go `strings.IndexAny`              | 未落地         | ⬜  | 计划中       |
 | `string.LastIndexAny` | `(chars: string) -> int`               | Go `strings.LastIndexAny`          | 未落地         | ⬜  | 计划中       |
 | `string.EqualFold`    | `(t: string) -> bool`                  | Go `strings.EqualFold`             | 未落地         | ⬜  | 计划中       |
-
 | `string.TrimLeft` | `(cutset: string) -> string` | Go `strings.TrimLeft` | 未落地 | ⬜ | 计划中 |
 | `string.TrimRight` | `(cutset: string) -> string` | Go `strings.TrimRight` | 未落地 | ⬜ | 计划中 |
 | `string.TrimPrefix` | `(prefix: string) -> string` | Go `strings.TrimPrefix` | 未落地 | ⬜ | 计划中 |
@@ -543,8 +542,8 @@
 
 | ax.函数 | 签名 | 对标 | 函数功能/用途 | 状态 |
 | ------ | ------ | ------ | ------ | ------ |
-| `csv.ReadAll` | `(r: Reader) -> string[][]` | Go `csv.NewReader`+`ReadAll` | csv.ReadAll 函数 | ⬜ |
-| `csv.Write` | `(w: Writer, record: string[]) -> int` | Go `csv.Writer.Write` | csv.Write 函数 | ⬜ |
+| `csv.ReadAll` | `(r: Reader) -> string[][]` | Go `csv.NewReader`+`ReadAll` | 读取整个 CSV 为 string[][]，Reader 为 File 句柄 | ✅ | 标准 C11 实现 |
+| `csv.Write` | `(w: Writer, record: string[]) -> int` | Go `csv.Writer.Write` | 将 string[] 记录按逗号连接写入一行，Writer 为 File 句柄 | ✅ | 标准 C11 实现 |
 
 
 #### sort 扩展（对标 Go sort）
@@ -707,7 +706,7 @@
 | 已落地模块 | io, math, json, file, db, string, time, decimal, Int/Float/Bool/Enum, Array, Map, Range, thread/queue, os, strconv, filepath, rand, sort, slices | 共 19 个模块 |
 | P0 已落地 | strconv 13 个函数；string 6 个 ctype 判断函数 | string.ToUpperRune/ToLowerRune |
 | P1 待落地 | — | — |
-| P2 待落地 | — | csv.ReadAll/Write；sort.Slice/SliceStable；maps.*；unique.*；bytes/bufio；log/errors；sync/atomic；reflect |
+| P2 待落地 | — | sort.Slice/SliceStable；maps.*；unique.*；bytes/bufio；log/errors；sync/atomic；reflect |
 | P3 待落地 | — | crypto/*；hash/*；unicode/utf8/utf16；container/*；net/*；template/*；regexp |
 
 

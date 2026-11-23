@@ -383,6 +383,13 @@ int     ax_sort_strings_are_sorted(const ax_str* data, int64_t len);
 int64_t ax_sort_search_ints(const int64_t* data, int64_t len, int64_t x);
 int64_t ax_sort_search_strings(const ax_str* data, int64_t len, ax_str x);
 
+/* ---------------- csv 模块（对标 Go encoding/csv） ----------------
+ * Reader/Writer 对标 Go io.Reader/io.Writer，在 axlang 中均为 File 句柄（ax_file*）。
+ * ax_csv_read_all：读取整个 CSV 文件，返回 string[][]（ax_arr 的 ax_arr，内层元素为 ax_str）。
+ * ax_csv_write：将 string[] 记录按逗号连接并写入一行，返回写入字节数。 */
+ax_arr  ax_csv_read_all(ax_file* f);              /* 外层 ax_arr，每个元素为 ax_arr（内层 ax_str） */
+int64_t ax_csv_write(ax_file* f, ax_arr record);  /* record 元素为 ax_str，返回写入字节数 */
+
 /* ---------------- slices 模块（对标 Go slices） ---------------- */
 /* 在 int[] 中查找 x：找到返回 1，否则 0 */
 int     ax_slice_contains_int(const int64_t* data, int64_t len, int64_t x);
