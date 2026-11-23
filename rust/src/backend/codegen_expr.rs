@@ -1964,6 +1964,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             }
             ("csv", "ReadAll") => format!("ax_csv_read_all({})", a[0]),
             ("csv", "Write") => format!("ax_csv_write({}, {})", a[0], a[1]),
+            ("errors", "New") => format!("ax_err_new(1, {})", a[0]),
             /* ---------------- strconv 模块 ---------------- */
             ("strconv", "Atoi") => {
                 format!("({{ int64_t v_; ax_parse_i64({}, &v_) ? v_ : 0; }})", a[0])

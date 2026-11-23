@@ -619,7 +619,7 @@
 | `log.Print` | `(v: any...) -> void` | Go `log.Print` | 打印日志，对标 Go log.Print | ⬜ |
 | `log.Printf` | `(format: string, v: any...) -> void` | Go `log.Printf` | 按格式打印日志，对标 Go log.Printf | ⬜ |
 | `log.Fatal` | `(v: any...) -> void` | Go `log.Fatal` | 打印致命日志并退出，对标 Go log.Fatal | ⬜ |
-| `errors.New` | `(msg: string) -> error` | Go `errors.New` | 创建错误值，对标 Go errors.New | ⬜ |
+| `errors.New` | `(msg: string) -> error` | Go `errors.New` | 创建错误值，对标 Go errors.New；code=1，msg 为错误消息；标准 C11 实现 | ✅ | 标准 C11 实现 |
 | `errors.Is` | `(err: error, target: error) -> bool` | Go `errors.Is` | 判断错误是否匹配目标，对标 Go errors.Is | ⬜ |
 | `errors.As` | `(err: error, target: any) -> bool` | Go `errors.As` | 将错误转换为目标类型，对标 Go errors.As | ⬜ |
 
@@ -706,7 +706,7 @@
 | 已落地模块 | io, math, json, file, db, string, time, decimal, Int/Float/Bool/Enum, Array, Map, Range, thread/queue, os, strconv, filepath, rand, sort, slices | 共 19 个模块 |
 | P0 已落地 | strconv 13 个函数；string 6 个 ctype 判断函数 | string.ToUpperRune/ToLowerRune |
 | P1 待落地 | — | — |
-| P2 待落地 | — | sort.Slice/SliceStable；maps.*；unique.*；bytes/bufio；log/errors；sync/atomic；reflect |
+| P2 待落地 | — | sort.Slice/SliceStable；maps.*；unique.*；bytes/bufio；log；errors.Is/As；sync/atomic；reflect |
 | P3 待落地 | — | crypto/*；hash/*；unicode/utf8/utf16；container/*；net/*；template/*；regexp |
 
 

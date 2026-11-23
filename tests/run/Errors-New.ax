@@ -1,0 +1,22 @@
+// errors 模块：errors.New（对标 Go errors.New，创建错误值）
+import errors
+
+int main() {
+    var e1 = errors.New("not found")
+    print("e1-code=")
+    println(e1.code)
+
+    print("e1-msg=[")
+    print(e1.msg)
+    println("]")
+
+    var e2 = errors.New("user 阿蓝 not found")
+    print("e2-code=")
+    println(e2.code)
+
+    print("e2-msg=[")
+    print(e2.msg)
+    println("]")
+
+    return 0
+}

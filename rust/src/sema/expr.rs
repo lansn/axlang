@@ -129,6 +129,7 @@ pub fn module_sig(mod_: &str, name: &str) -> Option<(Vec<Option<Ty>>, Ty)> {
         ("sort", "SearchStrings") => (vec![Some(t_array(t_string(), None)), Some(t_string())], t_int()),
         ("csv", "ReadAll") => (vec![Some(t_named(DefId::Name("File"), Vec::new()))], t_array(t_array(t_string(), None), None)),
         ("csv", "Write") => (vec![Some(t_named(DefId::Name("File"), Vec::new())), Some(t_array(t_string(), None))], t_int()),
+        ("errors", "New") => (vec![Some(t_string())], t_error()),
         /* strconv 模块 */
         ("strconv", "Atoi") => (vec![Some(t_string())], t_int()),
         ("strconv", "Itoa") => (vec![Some(t_int())], t_string()),
