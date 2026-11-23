@@ -2666,6 +2666,15 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                             "0".to_string()
                         }
                     }
+                    "Reverse" => {
+                        // 原地反转：对标 Go slices.Reverse，任意元素类型均可
+                        let etc = self.cg.ct(&et);
+                        self.emit(format!(
+                            "ax_arr_reverse({}.data, (int64_t){}.len, (int64_t)sizeof({}));",
+                            tv, tv, etc
+                        ));
+                        "0".to_string()
+                    }
                     "At" => {
                         let n = self.tmpn();
                         let ety = self.ty_or_int(e.id);

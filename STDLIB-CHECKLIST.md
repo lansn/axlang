@@ -568,7 +568,7 @@
 | `arr.Sort()` | `(a: T[]) -> void` | Go `slices.Sort` | 数组默认升序排序，对标 Go slices.Sort | ✅ | 标准 C11 实现 |
 | `arr.Sort(cmp)` | `(a: T[], less: func(T,T) int) -> void` | Go `sort.Slice` | 数组带比较函数排序，对标 Go sort.Slice，GAP #10 | ✅ | 标准 C11 实现 |
 | `slices.SortStable` | `(a: T[]) -> void` | Go `slices.SortStable` | 稳定数组排序，对标 Go slices.SortStable | ⬜ | 计划中 |
-| `slices.Reverse` | `(a: T[]) -> void` | Go `slices.Reverse` | 数组反转，对标 Go slices.Reverse | ⬜ | 计划中 |
+| `slices.Reverse` | `(a: T[]) -> void` | Go `slices.Reverse` | 数组反转，对标 Go slices.Reverse | ✅ | 标准 C11 实现 |
 | `slices.Clone` | `(a: T[]) -> T[]` | Go `slices.Clone` | 数组克隆，对标 Go slices.Clone | ⬜ | 计划中 |
 | `slices.Concat` | `(a: T[]...) -> T[]` | Go `slices.Concat` | 数组拼接，对标 Go slices.Concat | ⬜ | 计划中 |
 | `slices.Insert` | `(a: T[], index: int, x: T...) -> T[]` | Go `slices.Insert` | 在指定位置插入元素，对标 Go slices.Insert | ⬜ | 计划中 |
@@ -726,6 +726,7 @@
 3. ✅ `time.Date` / `time.Until` / `time.After` / `time.Before`（对标 Go `time`，时间能力补齐，P1，已落地 2026-11-22）
 
 4. ✅ `slices.Contains` / `slices.Index` / `slices.Sort`（对标 Go `slices`，泛型切片工具，P2，已落地 2026-11-22）
+5. ✅ `slices.Reverse`（对标 Go `slices.Reverse`，数组原地反转，P2，已落地 2026-11-23，见 tests/run/Slices-Reverse.ax/.out）
 
 5. ✅ `fmt.Sprintf` / `fmt.Sprint`（对标 Go `fmt`，格式化字符串，P2，已落地 2026-11-22）
 6. ✅ `fmt.Fprintf`（对标 Go `fmt` / C `fprintf`，格式化写入 File，P2，已落地 2026-11-23）

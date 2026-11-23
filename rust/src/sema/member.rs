@@ -1476,6 +1476,7 @@ impl<'a> Sema<'a> {
                         t_void(),
                     ),
                     ("Sort", vec![], t_void()),
+                    ("Reverse", vec![], t_void()),
                     ("ToString", vec![], t_string()),
                 ])
             }

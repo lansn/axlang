@@ -3195,6 +3195,22 @@ int64_t ax_sort_search_strings(const ax_str* data, int64_t len, ax_str x) {
     return -1;
 }
 
+/* 数组原地反转，对标 Go slices.Reverse。data 指向 ax_arr.data，len 为元素个数，esz 为元素字节大小。 */
+void ax_arr_reverse(void* data, int64_t len, int64_t esz) {
+    if (len <= 1) return;
+    char* d = (char*)data;
+    int64_t i = 0, j = len - 1;
+    while (i < j) {
+        for (int64_t k = 0; k < esz; k++) {
+            char tmp = d[i * esz + k];
+            d[i * esz + k] = d[j * esz + k];
+            d[j * esz + k] = tmp;
+        }
+        i++;
+        j--;
+    }
+}
+
 /* ---------------- csv 模块（对标 Go encoding/csv） ----------------
  * Reader/Writer 对标 Go io.Reader/io.Writer，在 axlang 中均为 File 句柄（ax_file*）。
  * 简化实现：按 '\n' 分行，每行按 ',' 分字段；不处理引号转义与换行字段。 */
