@@ -569,10 +569,15 @@
 | `arr.Sort(cmp)` | `(a: T[], less: func(T,T) int) -> void` | Go `sort.Slice` | 数组带比较函数排序，对标 Go sort.Slice，GAP #10 | ✅ | 标准 C11 实现 |
 | `slices.SortStable` | `(a: T[]) -> void` | Go `slices.SortStable` | 稳定数组排序，对标 Go slices.SortStable | ⬜ | 计划中 |
 | `slices.Reverse` | `(a: T[]) -> void` | Go `slices.Reverse` | 数组反转，对标 Go slices.Reverse | ✅ | 标准 C11 实现 |
-| `slices.Clone` | `(a: T[]) -> T[]` | Go `slices.Clone` | 数组克隆，对标 Go slices.Clone | ⬜ | 计划中 |
-| `slices.Concat` | `(a: T[]...) -> T[]` | Go `slices.Concat` | 数组拼接，对标 Go slices.Concat | ⬜ | 计划中 |
-| `slices.Insert` | `(a: T[], index: int, x: T...) -> T[]` | Go `slices.Insert` | 在指定位置插入元素，对标 Go slices.Insert | ⬜ | 计划中 |
-| `slices.Delete` | `(a: T[], i: int, j: int) -> T[]` | Go `slices.Delete` | 删除指定范围元素，对标 Go slices.Delete | ⬜ | 计划中 |
+| `arr.Clone()` | `(a: T[]) -> T[]` | Go `slices.Clone` | 数组深拷贝，返回独立副本，原数组不受影响 | ✅ | 标准 C11 实现，见 tests/run/Array-Ext.ax |
+| `arr.Insert(i, x)` | `(a: T[], i: int, x: T) -> void` | Go `slices.Insert` | 在指定索引插入元素，后续元素后移 | ✅ | 标准 C11 实现，见 tests/run/Array-Ext.ax |
+| `arr.Merge(other)` | `(a: T[], b: T[]) -> void` | Go `slices.Concat` | 将另一数组全部元素追加到末尾（合并） | ✅ | 标准 C11 实现，见 tests/run/Array-Ext.ax |
+| `arr.Fill(x)` | `(a: T[], x: T) -> void` | Go `slices.Fill` | 用指定值填充所有元素 | ✅ | 标准 C11 实现，见 tests/run/Array-Ext.ax |
+| `arr.Resize(n)` | `(a: T[], n: int) -> void` | — | 调整数组长度，不足零初始化，超出截断 | ✅ | 标准 C11 实现，见 tests/run/Array-Ext.ax |
+| `arr.Min()` | `(a: int[]|float[]) -> int|float` | — | 求数组最小值，空数组返回 0 | ✅ | 标准 C11 实现，见 tests/run/Array-Ext.ax |
+| `arr.Max()` | `(a: int[]|float[]) -> int|float` | — | 求数组最大值，空数组返回 0 | ✅ | 标准 C11 实现，见 tests/run/Array-Ext.ax |
+| `arr.Sum()` | `(a: int[]|float[]) -> int|float` | — | 求数组元素和，空数组返回 0 | ✅ | 标准 C11 实现，见 tests/run/Array-Ext.ax |
+| `slices.Delete` | `(a: T[], i: int, j: int) -> T[]` | Go `slices.Delete` | 删除指定范围元素，与 `arr.Remove(i)` 语义重复 | ⬜ | 暂不落地，使用 `arr.Remove` |
 
 
 #### maps（对标 Go maps，Go 1.21+）
@@ -727,6 +732,7 @@
 
 4. ✅ `slices.Contains` / `slices.Index` / `slices.Sort`（对标 Go `slices`，泛型切片工具，P2，已落地 2026-11-22）
 5. ✅ `slices.Reverse`（对标 Go `slices.Reverse`，数组原地反转，P2，已落地 2026-11-23，见 tests/run/Slices-Reverse.ax/.out）
+6. ✅ `arr.Clone()` / `arr.Insert()` / `arr.Merge()` / `arr.Fill()` / `arr.Resize()` / `arr.Min()` / `arr.Max()` / `arr.Sum()`（数组扩展方法，已落地 2026-11-23，见 tests/run/Array-Ext.ax）
 
 5. ✅ `fmt.Sprintf` / `fmt.Sprint`（对标 Go `fmt`，格式化字符串，P2，已落地 2026-11-22）
 6. ✅ `fmt.Fprintf`（对标 Go `fmt` / C `fprintf`，格式化写入 File，P2，已落地 2026-11-23）

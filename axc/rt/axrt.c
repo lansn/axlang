@@ -3211,6 +3211,120 @@ void ax_arr_reverse(void* data, int64_t len, int64_t esz) {
     }
 }
 
+/* 数组深拷贝，返回独立副本（对标 clone 语义，原数组不受影响） */
+ax_arr ax_arr_clone(const ax_arr* a, int64_t esz) {
+    ax_arr r;
+    r.len = a->len;
+    r.cap = a->len;
+    if (a->len <= 0) { r.data = NULL; return r; }
+    r.data = ax_alloc((size_t)(a->len * esz));
+    if (a->data != NULL) memcpy(r.data, a->data, (size_t)(a->len * esz));
+    return r;
+}
+
+/* 在索引 i 处插入元素 v，后续元素后移（对标 slices.Insert） */
+void ax_arr_insert(ax_arr* a, int64_t i, const void* v, int64_t esz, const char* f, int l, int c) {
+    if (i < 0 || i > a->len)
+        ax_trap(R_INDEX, f, l, c, "insert index %" PRId64 ", len %" PRId64, i, a->len);
+    if (a->len >= a->cap) {
+        int64_t cap = a->cap ? a->cap * 2 : 4;
+        void* nd = ax_alloc(cap * esz);
+        if (a->len > 0) memcpy(nd, a->data, (size_t)(a->len * esz));
+        a->data = nd;
+        a->cap = cap;
+    }
+    if (i < a->len)
+        memmove((uint8_t*)a->data + (i + 1) * esz,
+                (uint8_t*)a->data + i * esz,
+                (size_t)((a->len - i) * esz));
+    memcpy((uint8_t*)a->data + i * esz, v, (size_t)esz);
+    a->len++;
+}
+
+/* 用指定值 v 填充所有元素 */
+void ax_arr_fill(ax_arr* a, const void* v, int64_t esz) {
+    for (int64_t i = 0; i < a->len; i++)
+        memcpy((uint8_t*)a->data + i * esz, v, (size_t)esz);
+}
+
+/* 调整长度为 n，不足时零初始化新增元素，超出时截断 */
+void ax_arr_resize(ax_arr* a, int64_t n, int64_t esz) {
+    if (n < 0) n = 0;
+    if (n > a->cap) {
+        int64_t cap = a->cap ? a->cap * 2 : 4;
+        while (cap < n) cap *= 2;
+        void* nd = ax_alloc(cap * esz);
+        if (a->len > 0 && a->data != NULL) memcpy(nd, a->data, (size_t)(a->len * esz));
+        a->data = nd;
+        a->cap = cap;
+    }
+    if (n > a->len && a->data != NULL)
+        memset((uint8_t*)a->data + a->len * esz, 0, (size_t)((n - a->len) * esz));
+    a->len = n;
+}
+
+/* 数组合并：将 b 的所有元素追加到 a 末尾 */
+void ax_arr_merge(ax_arr* a, const ax_arr* b, int64_t esz) {
+    if (b->len <= 0) return;
+    int64_t need = a->len + b->len;
+    if (need > a->cap) {
+        int64_t cap = a->cap ? a->cap * 2 : 4;
+        while (cap < need) cap *= 2;
+        void* nd = ax_alloc(cap * esz);
+        if (a->len > 0 && a->data != NULL) memcpy(nd, a->data, (size_t)(a->len * esz));
+        a->data = nd;
+        a->cap = cap;
+    }
+    memcpy((uint8_t*)a->data + a->len * esz, b->data, (size_t)(b->len * esz));
+    a->len = need;
+}
+
+/* int[] 聚合：求最小值，空数组返回 0 */
+int64_t ax_arr_min_int(const int64_t* data, int64_t len) {
+    if (len <= 0) return 0;
+    int64_t m = data[0];
+    for (int64_t i = 1; i < len; i++) if (data[i] < m) m = data[i];
+    return m;
+}
+
+/* int[] 聚合：求最大值，空数组返回 0 */
+int64_t ax_arr_max_int(const int64_t* data, int64_t len) {
+    if (len <= 0) return 0;
+    int64_t m = data[0];
+    for (int64_t i = 1; i < len; i++) if (data[i] > m) m = data[i];
+    return m;
+}
+
+/* int[] 聚合：求和，空数组返回 0 */
+int64_t ax_arr_sum_int(const int64_t* data, int64_t len) {
+    int64_t s = 0;
+    for (int64_t i = 0; i < len; i++) s += data[i];
+    return s;
+}
+
+/* float[] 聚合：求最小值，空数组返回 0 */
+double ax_arr_min_float(const double* data, int64_t len) {
+    if (len <= 0) return 0.0;
+    double m = data[0];
+    for (int64_t i = 1; i < len; i++) if (data[i] < m) m = data[i];
+    return m;
+}
+
+/* float[] 聚合：求最大值，空数组返回 0 */
+double ax_arr_max_float(const double* data, int64_t len) {
+    if (len <= 0) return 0.0;
+    double m = data[0];
+    for (int64_t i = 1; i < len; i++) if (data[i] > m) m = data[i];
+    return m;
+}
+
+/* float[] 聚合：求和，空数组返回 0 */
+double ax_arr_sum_float(const double* data, int64_t len) {
+    double s = 0.0;
+    for (int64_t i = 0; i < len; i++) s += data[i];
+    return s;
+}
+
 /* ---------------- csv 模块（对标 Go encoding/csv） ----------------
  * Reader/Writer 对标 Go io.Reader/io.Writer，在 axlang 中均为 File 句柄（ax_file*）。
  * 简化实现：按 '\n' 分行，每行按 ',' 分字段；不处理引号转义与换行字段。 */

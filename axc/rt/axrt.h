@@ -387,6 +387,25 @@ int64_t ax_sort_search_strings(const ax_str* data, int64_t len, ax_str x);
 /* 数组原地反转，对标 Go slices.Reverse。data 指向 ax_arr.data，len 为元素个数，esz 为元素字节大小。 */
 void    ax_arr_reverse(void* data, int64_t len, int64_t esz);
 
+/* 数组深拷贝，返回独立副本（对标 clone 语义，原数组不受影响） */
+ax_arr  ax_arr_clone(const ax_arr* a, int64_t esz);
+/* 在索引 i 处插入元素 v，后续元素后移（对标 slices.Insert） */
+void    ax_arr_insert(ax_arr* a, int64_t i, const void* v, int64_t esz, const char* f, int l, int c);
+/* 用指定值 v 填充所有元素（对标 slices.Fill 语义） */
+void    ax_arr_fill(ax_arr* a, const void* v, int64_t esz);
+/* 调整长度为 n，不足时零初始化新增元素，超出时截断 */
+void    ax_arr_resize(ax_arr* a, int64_t n, int64_t esz);
+/* 数组合并：将 b 的所有元素追加到 a 末尾 */
+void    ax_arr_merge(ax_arr* a, const ax_arr* b, int64_t esz);
+/* int[] 聚合：求最小/最大/求和，空数组分别返回 0/0/0 */
+int64_t ax_arr_min_int(const int64_t* data, int64_t len);
+int64_t ax_arr_max_int(const int64_t* data, int64_t len);
+int64_t ax_arr_sum_int(const int64_t* data, int64_t len);
+/* float[] 聚合：求最小/最大/求和，空数组分别返回 0/0/0 */
+double  ax_arr_min_float(const double* data, int64_t len);
+double  ax_arr_max_float(const double* data, int64_t len);
+double  ax_arr_sum_float(const double* data, int64_t len);
+
 /* ---------------- csv 模块（对标 Go encoding/csv） ----------------
  * Reader/Writer 对标 Go io.Reader/io.Writer，在 axlang 中均为 File 句柄（ax_file*）。
  * ax_csv_read_all：读取整个 CSV 文件，返回 string[][]（ax_arr 的 ax_arr，内层元素为 ax_str）。

@@ -1,0 +1,92 @@
+// 数组扩展方法综合测试：Clone / Insert / Fill / Resize / Merge / Min / Max / Sum
+// 对标 Go slices 等语义，看见即知用途
+
+int main() {
+    // ---------- Clone ----------
+    int[] a = [1, 2, 3]
+    int[] b = a.Clone()
+    b[0] = 99
+    println("clone-a0={a[0]}")
+    println("clone-b0={b[0]}")
+
+    string[] s = ["x", "y"]
+    string[] t = s.Clone()
+    t[0] = "z"
+    println("clone-s0={s[0]}")
+    println("clone-t0={t[0]}")
+
+    // ---------- Insert ----------
+    int[] c = [10, 20, 30]
+    c.Insert(1, 15)
+    println("insert-0={c[0]}")
+    println("insert-1={c[1]}")
+    println("insert-2={c[2]}")
+    println("insert-3={c[3]}")
+
+    // 尾部插入
+    int[] d = [1, 2]
+    d.Insert(2, 3)
+    println("insert-tail={d[2]}")
+
+    // ---------- Fill ----------
+    int[] e = [1, 2, 3, 4]
+    e.Fill(7)
+    println("fill-0={e[0]}")
+    println("fill-1={e[1]}")
+    println("fill-2={e[2]}")
+    println("fill-3={e[3]}")
+
+    string[] f = ["a", "b"]
+    f.Fill("hi")
+    println("fill-s0={f[0]}")
+    println("fill-s1={f[1]}")
+
+    // ---------- Resize ----------
+    int[] g = [1, 2, 3]
+    g.Resize(5)
+    println("resize-len={g.Len()}")
+    println("resize-3={g[3]}")
+    println("resize-4={g[4]}")
+
+    int[] h = [1, 2, 3, 4, 5]
+    h.Resize(2)
+    println("resize-trunc-len={h.Len()}")
+    println("resize-trunc-0={h[0]}")
+    println("resize-trunc-1={h[1]}")
+
+    // ---------- Merge ----------
+    int[] i1 = [1, 2]
+    int[] i2 = [3, 4, 5]
+    i1.Merge(i2)
+    println("merge-0={i1[0]}")
+    println("merge-1={i1[1]}")
+    println("merge-2={i1[2]}")
+    println("merge-3={i1[3]}")
+    println("merge-4={i1[4]}")
+
+    string[] j1 = ["a", "b"]
+    string[] j2 = ["c"]
+    j1.Merge(j2)
+    println("merge-s0={j1[0]}")
+    println("merge-s1={j1[1]}")
+    println("merge-s2={j1[2]}")
+
+    // ---------- Min / Max / Sum (int[]) ----------
+    int[] k = [5, 2, 9, 1, 7]
+    println("min-int={k.Min()}")
+    println("max-int={k.Max()}")
+    println("sum-int={k.Sum()}")
+
+    int[] empty = []
+    println("min-empty={empty.Min()}")
+    println("max-empty={empty.Max()}")
+    println("sum-empty={empty.Sum()}")
+
+    // ---------- Min / Max / Sum (float[]) ----------
+    float[] m = [1.5, 3.2, 0.8, 2.7]
+    println("min-float={m.Min()}")
+    println("max-float={m.Max()}")
+    println("sum-float={m.Sum()}")
+
+    return 0
+}

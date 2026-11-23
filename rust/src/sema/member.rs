@@ -1477,6 +1477,22 @@ impl<'a> Sema<'a> {
                     ),
                     ("Sort", vec![], t_void()),
                     ("Reverse", vec![], t_void()),
+                    /* 深拷贝返回独立副本（对标 clone 语义，原数组不受影响） */
+                    ("Clone", vec![], t_array(el.clone(), None)),
+                    /* 在索引 i 处插入元素 v，后续元素后移 */
+                    ("Insert", vec![t_int(), el.clone()], t_void()),
+                    /* 用指定值 v 填充所有元素 */
+                    ("Fill", vec![el.clone()], t_void()),
+                    /* 调整长度为 n，不足时零初始化，超出时截断 */
+                    ("Resize", vec![t_int()], t_void()),
+                    /* 数组合并：将另一个同类型数组的所有元素追加到末尾 */
+                    ("Merge", vec![t_array(el.clone(), None)], t_void()),
+                    /* int[]/float[] 聚合：求最小值 */
+                    ("Min", vec![], el.clone()),
+                    /* int[]/float[] 聚合：求最大值 */
+                    ("Max", vec![], el.clone()),
+                    /* int[]/float[] 聚合：求和 */
+                    ("Sum", vec![], el.clone()),
                     ("ToString", vec![], t_string()),
                 ])
             }

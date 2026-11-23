@@ -2557,7 +2557,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 // （ax_arr 按值赋，改副本不影响原变量），表现为 push/pop 静默失效。
                 let tv = if matches!(
                     name.as_str(),
-                    "Push" | "Pop" | "Remove" | "Clear" | "Sort"
+                    "Push" | "Pop" | "Remove" | "Clear" | "Sort" | "Insert" | "Fill" | "Resize" | "Merge"
                 ) && Self::is_lvalue(recv)
                 {
                     format!("({})", rv)
@@ -2674,6 +2674,86 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                             tv, tv, etc
                         ));
                         "0".to_string()
+                    }
+                    "Clone" => {
+                        // 深拷贝返回独立副本（对标 clone 语义，原数组不受影响）
+                        let etc = self.cg.ct(&et);
+                        let n = self.tmpn();
+                        self.emit(format!(
+                            "ax_arr {} = ax_arr_clone(&{}, (int64_t)sizeof({}));",
+                            n, tv, etc
+                        ));
+                        n
+                    }
+                    "Insert" => {
+                        // 在索引 i 处插入元素 v，后续元素后移
+                        let etc = self.cg.ct(&et);
+                        let pa = self.pos_args(&e.tok);
+                        let v = self.declare(&et, &a[1]);
+                        self.emit(format!(
+                            "ax_arr_insert(&{}, {}, &{}, (int64_t)sizeof({}), {});",
+                            tv, a[0], v, etc, pa
+                        ));
+                        "0".to_string()
+                    }
+                    "Fill" => {
+                        // 用指定值 v 填充所有元素
+                        let etc = self.cg.ct(&et);
+                        let v = self.declare(&et, &a[0]);
+                        self.emit(format!(
+                            "ax_arr_fill(&{}, &{}, (int64_t)sizeof({}));",
+                            tv, v, etc
+                        ));
+                        "0".to_string()
+                    }
+                    "Resize" => {
+                        // 调整长度为 n，不足时零初始化，超出时截断
+                        let etc = self.cg.ct(&et);
+                        self.emit(format!(
+                            "ax_arr_resize(&{}, {}, (int64_t)sizeof({}));",
+                            tv, a[0], etc
+                        ));
+                        "0".to_string()
+                    }
+                    "Merge" => {
+                        // 数组合并：将另一个同类型数组的所有元素追加到末尾
+                        let etc = self.cg.ct(&et);
+                        let b = self.declare(&rt, &a[0]);
+                        self.emit(format!(
+                            "ax_arr_merge(&{}, &{}, (int64_t)sizeof({}));",
+                            tv, b, etc
+                        ));
+                        "0".to_string()
+                    }
+                    "Min" => {
+                        // int[]/float[] 聚合：求最小值，空数组返回 0
+                        if matches!(&*et, TyS::Int(..)) {
+                            format!("ax_arr_min_int((const int64_t*){}.data, {}.len)", tv, tv)
+                        } else if matches!(&*et, TyS::Float) {
+                            format!("ax_arr_min_float((const double*){}.data, {}.len)", tv, tv)
+                        } else {
+                            "0".to_string()
+                        }
+                    }
+                    "Max" => {
+                        // int[]/float[] 聚合：求最大值，空数组返回 0
+                        if matches!(&*et, TyS::Int(..)) {
+                            format!("ax_arr_max_int((const int64_t*){}.data, {}.len)", tv, tv)
+                        } else if matches!(&*et, TyS::Float) {
+                            format!("ax_arr_max_float((const double*){}.data, {}.len)", tv, tv)
+                        } else {
+                            "0".to_string()
+                        }
+                    }
+                    "Sum" => {
+                        // int[]/float[] 聚合：求和，空数组返回 0
+                        if matches!(&*et, TyS::Int(..)) {
+                            format!("ax_arr_sum_int((const int64_t*){}.data, {}.len)", tv, tv)
+                        } else if matches!(&*et, TyS::Float) {
+                            format!("ax_arr_sum_float((const double*){}.data, {}.len)", tv, tv)
+                        } else {
+                            "0".to_string()
+                        }
                     }
                     "At" => {
                         let n = self.tmpn();
