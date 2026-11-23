@@ -1,0 +1,14 @@
+has_H=true
+has_h=false
+has_space=true
+has_excl=true
+has_Z=false
+has_0=false
+has_lower_z=false
+has_shi=true
+has_jie=true
+has_han=false
+empty_has_a=false
+empty_has_0=false
+single_A=true
+single_B=false

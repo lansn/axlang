@@ -70,6 +70,8 @@ int     ax_str_at(ax_str s, int64_t i, ax_str* out);
 int     ax_str_codepoint_at(ax_str s, int64_t i, int32_t* out);
 int     ax_str_from_codepoint(int32_t cp, ax_str* out);
 int     ax_str_contains(ax_str s, ax_str sub);
+/* string.ContainsRune：判断 s 是否包含码点 cp，对标 Go strings.ContainsRune，按 UTF-8 码点比较 */
+int     ax_str_contains_rune(ax_str s, int32_t cp);
 /* 字符集查找（对标 Go strings.ContainsAny / IndexAny，按 UTF-8 码点） */
 int     ax_str_contains_any(ax_str s, ax_str chars);  /* s 是否包含 chars 中任意字符，1=是 0=否 */
 int64_t ax_str_index_any(ax_str s, ax_str chars);     /* 首次出现 chars 中任意字符的码点索引，未找到返回 -1 */

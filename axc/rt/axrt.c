@@ -472,6 +472,20 @@ int ax_str_contains(ax_str s, ax_str sub) {
     return 0;
 }
 
+/* string.ContainsRune：判断 s 是否包含码点 cp，对标 Go strings.ContainsRune，
+ * 按 UTF-8 码点比较，找到返回 1，否则返回 0。标准 C11 实现。 */
+int ax_str_contains_rune(ax_str s, int32_t cp) {
+    int64_t i = 0;
+    while (i < s.len) {
+        int32_t ccp;
+        int k = u8_decode(s.p + i, s.len - i, &ccp);
+        if (k <= 0) k = 1;
+        if (ccp == cp) return 1;
+        i += k;
+    }
+    return 0;
+}
+
 /* 判断码点 cp 是否在字符集 chars 中（按 UTF-8 码点比较） */
 static int ax_str_char_in_set(int32_t cp, ax_str chars) {
     int64_t i = 0;

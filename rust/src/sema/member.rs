@@ -1429,6 +1429,7 @@ impl<'a> Sema<'a> {
                 ("Chars", vec![], t_array(t_string(), None)),
                 ("CodepointAt", vec![t_int()], t_nullable(t_int())),
                 ("Contains", vec![t_string()], t_bool()),
+                ("ContainsRune", vec![t_int()], t_bool()),
                 ("ContainsAny", vec![t_string()], t_bool()),
                 ("Split", vec![t_string()], t_array(t_string(), None)),
                 // 子串查找：按 UTF-8 码点索引返回，未找到返回 -1

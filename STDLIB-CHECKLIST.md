@@ -454,7 +454,7 @@
 | ax.函数 | 类型 | 签名 | 对标 | 函数功能/用途 | 状态 |
 | ------ | ------ | ------ | ------ | ------ | ------ |
 | `string.ContainsAny` | 实例 | `(chars: string) -> bool` | Go `strings.ContainsAny` | 判断是否包含任意字符，对标 Go strings.ContainsAny | ✅ |
-| `string.ContainsRune` | 实例 | `(r: int) -> bool` | Go `strings.ContainsRune` | 判断是否包含字符，对标 Go strings.ContainsRune | ⬜ |
+| `string.ContainsRune` | 实例 | `(r: int) -> bool` | Go `strings.ContainsRune` | 判断是否包含字符，对标 Go strings.ContainsRune | ✅ | 标准 C11 实现 |
 | `string.Count` | 实例 | `(substr: string) -> int` | Go `strings.Count` | 统计子串出现次数，对标 Go strings.Count | ✅ |
 | `string.IndexAny` | 实例 | `(chars: string) -> int` | Go `strings.IndexAny` | 首次出现任意字符的索引，对标 Go strings.IndexAny | ✅ |
 | `string.LastIndexAny` | 实例 | `(chars: string) -> int` | Go `strings.LastIndexAny` | 最后出现任意字符的索引，对标 Go strings.LastIndexAny | ⬜ |

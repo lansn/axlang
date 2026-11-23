@@ -2412,6 +2412,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                     "ToString" => tv,
                     "Trim" => format!("ax_str_trim({})", tv),
                     "Contains" => format!("ax_str_contains({}, {})", tv, a[0]),
+                    "ContainsRune" => format!("ax_str_contains_rune({}, {})", tv, a[0]),
                     "ContainsAny" => format!("ax_str_contains_any({}, {})", tv, a[0]),
                     // 子串查找：按 UTF-8 码点索引返回，未找到返回 -1
                     "IndexOf" => format!("ax_str_index_of({}, {})", tv, a[0]),

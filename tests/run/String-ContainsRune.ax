@@ -1,0 +1,34 @@
+// string.ContainsRune(r: int) -> bool（对标 Go strings.ContainsRune）
+// 判断字符串是否包含指定 Unicode 码点，按 UTF-8 码点比较，标准 C11 实现。
+
+int main() {
+    string s = "Hello, 世界!"
+    string empty = ""
+
+    // ASCII 字符存在
+    println("has_H={s.ContainsRune(72)}")      // true ('H' = U+0048 = 72)
+    println("has_h={s.ContainsRune(104)}")     // true ('h' = U+0068 = 104)
+    println("has_space={s.ContainsRune(32)}")  // true (' ' = U+0020 = 32)
+    println("has_excl={s.ContainsRune(33)}")   // true ('!' = U+0021 = 33)
+
+    // ASCII 字符不存在
+    println("has_Z={s.ContainsRune(90)}")      // false ('Z' = U+005A = 90)
+    println("has_0={s.ContainsRune(48)}")      // false ('0' = U+0030 = 48)
+    println("has_lower_z={s.ContainsRune(122)}") // false ('z' = U+007A = 122)
+
+    // 中文字符（多字节 UTF-8，码点 U+4E16 = 19990，U+754C = 30028）
+    println("has_shi={s.ContainsRune(19990)}") // true ('世' = U+4E16 = 19990)
+    println("has_jie={s.ContainsRune(30028)}") // true ('界' = U+754C = 30028)
+    println("has_han={s.ContainsRune(20013)}") // false ('汉' = U+6C49 = 20013，不在字符串中)
+
+    // 空字符串
+    println("empty_has_a={empty.ContainsRune(97)}") // false
+    println("empty_has_0={empty.ContainsRune(0)}")   // false
+
+    // 仅含该码点的单字符字符串
+    string a = "A"
+    println("single_A={a.ContainsRune(65)}")   // true ('A' = U+0041 = 65)
+    println("single_B={a.ContainsRune(66)}")   // false ('B' = U+0042 = 66)
+
+    return 0
+}
