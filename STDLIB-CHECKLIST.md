@@ -13,7 +13,7 @@
 > 1. **rust/src/backend/mod.rs**：如需新增 result 类型 C typedef
 > 1. **tests/run/*.ax + .out**：新增测试用例，覆盖正例和负例
 > 1. **回归验证**：`python tests/runtests.py` 零新增回归
-> 1. **提交推送**：Git commit + GitHub/Gitee 推送
+> 1. **提交推送**：Git commit + **GitHub 推 `main` 分支**、**Gitee 推 `master` 分支**（两者不可混淆；分别执行 `git push github main` 和 `git push origin main:master`）
 > 1. **更新文档**：本清单状态标记，`MEMORY.md` 同步更新，追加工作日志
 
 ---
