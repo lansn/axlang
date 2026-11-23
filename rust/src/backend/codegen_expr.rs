@@ -1889,6 +1889,8 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             }
             ("time", "Unix") => format!("ax_time_from_unix({}, {})", a[0], a[1]),
             ("time", "UnixMilli") => format!("ax_time_from_unix_ms({})", a[0]),
+            ("time", "UnixMicro") => format!("ax_time_from_unix_us({})", a[0]),
+            ("time", "UnixNano") => format!("ax_time_from_unix_ns({})", a[0]),
             ("time", "Since") => format!("ax_time_since({})", a[0]),
             ("time", "Date") => format!("ax_time_date({}, {}, {}, {}, {}, {}, {})",
                                         a[0], a[1], a[2], a[3], a[4], a[5], a[6]),

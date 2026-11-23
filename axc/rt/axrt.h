@@ -259,6 +259,9 @@ void ax_time_sleep(int64_t ms);
 /* time.Unix / UnixMilli / Since（对标 Go time，time 为 Unix 毫秒，标准 C11 实现）： */
 int64_t ax_time_from_unix(int64_t sec, int64_t nsec);   /* sec 秒 + nsec 纳秒 -> Unix 毫秒 */
 int64_t ax_time_from_unix_ms(int64_t ms);               /* 毫秒 -> Unix 毫秒（与 FromUnixMs 同义） */
+/* time.UnixMicro / time.UnixNano：微秒/纳秒 -> Unix 毫秒（整数除法，向零截断） */
+int64_t ax_time_from_unix_us(int64_t us);               /* 微秒 -> Unix 毫秒 */
+int64_t ax_time_from_unix_ns(int64_t nsec);             /* 纳秒 -> Unix 毫秒 */
 int64_t ax_time_since(int64_t t);                       /* 当前 Unix 毫秒 - t */
 
 /* 时间解析（对标 Go time.Parse / C strptime，标准 C11 实现）：

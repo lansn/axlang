@@ -85,6 +85,8 @@ pub fn module_sig(mod_: &str, name: &str) -> Option<(Vec<Option<Ty>>, Ty)> {
         ("time", "Sleep") => (vec![Some(t_int())], t_void()),
         ("time", "Unix") => (vec![Some(t_int()), Some(t_int())], t_named(DefId::Name("time"), Vec::new())),
         ("time", "UnixMilli") => (vec![Some(t_int())], t_named(DefId::Name("time"), Vec::new())),
+        ("time", "UnixMicro") => (vec![Some(t_int())], t_named(DefId::Name("time"), Vec::new())),
+        ("time", "UnixNano") => (vec![Some(t_int())], t_named(DefId::Name("time"), Vec::new())),
         ("time", "Since") => (vec![Some(t_named(DefId::Name("time"), Vec::new()))], t_int()),
         ("time", "Date") => (vec![
             Some(t_int()), Some(t_int()), Some(t_int()),

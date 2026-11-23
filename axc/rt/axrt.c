@@ -2078,6 +2078,16 @@ int64_t ax_time_from_unix_ms(int64_t ms) {
     return ms;
 }
 
+/* time.UnixMicro：微秒 -> Unix 毫秒 */
+int64_t ax_time_from_unix_us(int64_t us) {
+    return us / 1000;
+}
+
+/* time.UnixNano：纳秒 -> Unix 毫秒 */
+int64_t ax_time_from_unix_ns(int64_t nsec) {
+    return nsec / 1000000;
+}
+
 /* time.Since：当前 Unix 毫秒 - t */
 int64_t ax_time_since(int64_t t) {
     return ax_now_ms() - t;

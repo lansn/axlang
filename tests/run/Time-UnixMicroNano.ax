@@ -1,0 +1,30 @@
+// time.UnixMicro / time.UnixNano（对标 Go time.UnixMicro/time.UnixNano）
+// axlang time 为 Unix 毫秒（int64）。
+import time
+
+int main() {
+    // UnixMicro(0) 和 UnixNano(0) 都等于 Unix 纪元
+    time t1 = time.UnixMicro(0)
+    time t2 = time.UnixNano(0)
+    println("zero-eq={t1 == t2}")
+
+    // UnixMicro(1000000) = 1 秒 = 1000 毫秒，等于 UnixMilli(1000)
+    time t3 = time.UnixMicro(1000000)
+    time t4 = time.UnixMilli(1000)
+    println("micro-1s-eq-milli={t3 == t4}")
+
+    // UnixNano(1000000000) = 1 秒 = 1000 毫秒，等于 UnixMilli(1000)
+    time t5 = time.UnixNano(1000000000)
+    println("nano-1s-eq-milli={t5 == t4}")
+
+    // UnixMicro(1500000) = 1500 毫秒，等于 UnixMilli(1500)
+    time t6 = time.UnixMicro(1500000)
+    time t7 = time.UnixMilli(1500)
+    println("micro-1.5s-eq-milli={t6 == t7}")
+
+    // UnixNano(1500000000) = 1500 毫秒，等于 UnixMilli(1500)
+    time t8 = time.UnixNano(1500000000)
+    println("nano-1.5s-eq-milli={t8 == t7}")
+
+    return 0
+}

@@ -502,8 +502,8 @@
 | ax.函数 | 类型 | 签名 | 对标 | 函数功能/用途 | 状态 |
 | ------ | ------ | ------ | ------ | ------ | ------ |
 | `time.Date` | 模块 | `(year, month, day, hour, min, sec, nsec: int) -> time` | Go `time.Date` | 按年月日时分秒纳秒组装 time，UTC，对标 Go time.Date / C 手工日历计算 | ⬜ |
-| `time.UnixMicro` | 模块 | `(us: int) -> time` | Go `time.UnixMicro` | 微秒转 time，对标 Go time.UnixMicro | ⬜ |
-| `time.UnixNano` | 模块 | `(nsec: int) -> time` | Go `time.UnixNano` | 纳秒转 time，对标 Go time.UnixNano | ⬜ |
+| `time.UnixMicro` | 模块 | `(us: int) -> time` | Go `time.UnixMicro` | 微秒转 time，对标 Go time.UnixMicro | ✅ |
+| `time.UnixNano` | 模块 | `(nsec: int) -> time` | Go `time.UnixNano` | 纳秒转 time，对标 Go time.UnixNano | ✅ |
 | `time.Until` | 模块 | `(t: time) -> int` | Go `time.Until` | 到给定时间的差值毫秒，对标 Go time.Until | ⬜ |
 | `time.After` | 实例 | `(u: time) -> bool` | Go `time.After` | 判断是否在给定时间之后，对标 Go time.After | ⬜ |
 | `time.Before` | 实例 | `(u: time) -> bool` | Go `time.Before` | 判断是否在给定时间之前，对标 Go time.Before | ⬜ |
@@ -718,7 +718,7 @@
 | --- | --- | --- |
 | 已落地模块 | io, math, json, file, db, string, time, decimal, Int/Float/Bool/Enum, Array, Map, Range, thread/queue, os, strconv, filepath, rand, sort, slices | 共 19 个模块 |
 | P0 已落地 | strconv 13 个函数；string 6 个 ctype 判断函数 | string.ToUpperRune/ToLowerRune |
-| P1 待落地 | — | string.ContainsAny/Count/IndexAny/…；time.UnixMicro/UnixNano |
+| P1 待落地 | — | string.ContainsAny/Count/IndexAny/… |
 | P2 待落地 | — | fmt.Sprintf/Fprintf/…；json.MarshalIndent/Valid；csv.ReadAll/Write；sort.Float64s/…；maps.*；unique.*；bytes/bufio；log/errors；sync/atomic；reflect |
 | P3 待落地 | — | crypto/*；hash/*；unicode/utf8/utf16；container/*；net/*；template/*；regexp |
 
