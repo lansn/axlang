@@ -372,6 +372,8 @@ double  ax_rand_float(void);
 /* 原地升序排序（标准 C qsort）；data 指向 ax_arr.data，len 为元素个数 */
 void    ax_sort_int(int64_t* data, int64_t len);
 void    ax_sort_str(ax_str* data, int64_t len);
+/* 浮点数切片升序排序，对标 Go sort.Float64s；标准 C qsort，NaN 位置未指定（与 Go 一致）。 */
+void    ax_sort_float(double* data, int64_t len);
 
 /* ---------------- slices 模块（对标 Go slices） ---------------- */
 /* 在 int[] 中查找 x：找到返回 1，否则 0 */

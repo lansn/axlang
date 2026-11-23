@@ -1942,6 +1942,10 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 let arr = self.declare(&t_array(t_string(), None), &a[0]);
                 format!("ax_sort_str((ax_str*){}.data, {}.len)", arr, arr)
             }
+            ("sort", "Float64s") => {
+                let arr = self.declare(&t_array(t_float(), None), &a[0]);
+                format!("ax_sort_float((double*){}.data, {}.len)", arr, arr)
+            }
             /* ---------------- strconv 模块 ---------------- */
             ("strconv", "Atoi") => {
                 format!("({{ int64_t v_; ax_parse_i64({}, &v_) ? v_ : 0; }})", a[0])

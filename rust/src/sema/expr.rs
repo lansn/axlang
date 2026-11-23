@@ -122,6 +122,7 @@ pub fn module_sig(mod_: &str, name: &str) -> Option<(Vec<Option<Ty>>, Ty)> {
         /* sort 模块 */
         ("sort", "Ints") => (vec![Some(t_array(t_int(), None))], t_void()),
         ("sort", "Strings") => (vec![Some(t_array(t_string(), None))], t_void()),
+        ("sort", "Float64s") => (vec![Some(t_array(t_float(), None))], t_void()),
         /* strconv 模块 */
         ("strconv", "Atoi") => (vec![Some(t_string())], t_int()),
         ("strconv", "Itoa") => (vec![Some(t_int())], t_string()),
