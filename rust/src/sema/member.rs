@@ -1440,6 +1440,8 @@ impl<'a> Sema<'a> {
                 ("Count", vec![t_string()], t_int()),
                 ("ToString", vec![], t_string()),
                 ("Trim", vec![], t_string()),
+                ("TrimLeft", vec![t_string()], t_string()),
+                ("TrimRight", vec![t_string()], t_string()),
                 // C# 风格字符串截取（按码点，安全处理越界）
                 ("Left", vec![t_int()], t_string()),
                 ("Right", vec![t_int()], t_string()),

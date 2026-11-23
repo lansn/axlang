@@ -2421,6 +2421,8 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                     "ByteLen" => format!("({}).len", tv),
                     "ToString" => tv,
                     "Trim" => format!("ax_str_trim({})", tv),
+                    "TrimLeft" => format!("ax_str_trim_left({}, {})", tv, a[0]),
+                    "TrimRight" => format!("ax_str_trim_right({}, {})", tv, a[0]),
                     "Contains" => format!("ax_str_contains({}, {})", tv, a[0]),
                     "ContainsRune" => format!("ax_str_contains_rune({}, {})", tv, a[0]),
                     "ContainsAny" => format!("ax_str_contains_any({}, {})", tv, a[0]),

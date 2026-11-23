@@ -84,6 +84,11 @@ int64_t ax_str_last_index_of(ax_str s, ax_str sub);
 ax_str* ax_str_split(ax_str s, ax_str sep, int64_t* n);
 ax_str  ax_str_trim(ax_str s);
 
+/* 去除左侧/右侧字符集中的字符（对标 Go strings.TrimLeft/TrimRight，
+ * 按 UTF-8 码点遍历，cutset 中任意字符会被去除；返回新字符串） */
+ax_str  ax_str_trim_left(ax_str s, ax_str cutset);
+ax_str  ax_str_trim_right(ax_str s, ax_str cutset);
+
 /* 大小写转换 */
 ax_str  ax_str_to_upper(ax_str s);
 ax_str  ax_str_to_lower(ax_str s);

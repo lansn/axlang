@@ -1,0 +1,44 @@
+// string.TrimLeft / string.TrimRight（P1，对标 Go strings.TrimLeft/TrimRight，按 UTF-8 码点）
+// 去除左侧/右侧 cutset 中任意字符，返回剩余部分。
+
+import string
+
+int main() {
+    string s = "   hello   "
+    string cutset = " "
+    string star = "*"
+    string a = "a"
+    string empty = ""
+
+    // 基本情况
+    println("l1={s.TrimLeft(cutset)}")        // "hello   "
+    println("r1={s.TrimRight(cutset)}")       // "   hello"
+    println("lr={s.TrimLeft(cutset).TrimRight(cutset)}")  // "hello"
+
+    // 字符集包含多个字符
+    string s2 = "***hello***"
+    println("l2={s2.TrimLeft(star)}")         // "hello***"
+    println("r2={s2.TrimRight(star)}")        // "***hello"
+    println("lr2={s2.TrimLeft(star).TrimRight(star)}")  // "hello"
+
+    // 中文字符集
+    string s3 = "***你好***"
+    println("l3={s3.TrimLeft(star)}")         // "你好***"
+    println("r3={s3.TrimRight(star)}")        // "***你好"
+
+    // 空字符集，不修改
+    string s4 = "hello"
+    println("l4={s4.TrimLeft(empty)}")        // "hello"
+    println("r4={s4.TrimRight(empty)}")       // "hello"
+
+    // 全部被去除
+    string s5 = "aaaa"
+    println("l5={s5.TrimLeft(a)}")            // ""
+    println("r5={s5.TrimRight(a)}")           // ""
+
+    // 空字符串
+    println("l6={empty.TrimLeft(star)}")      // ""
+    println("r6={empty.TrimRight(star)}")     // ""
+
+    return 0
+}

@@ -641,6 +641,34 @@ ax_str ax_str_trim(ax_str s) {
     return ax_str_from_bytes(s.p + a, b - a);
 }
 
+/* string.TrimLeft：去除左侧 cutset 中任意字符，按 UTF-8 码点返回剩余部分 */
+ax_str ax_str_trim_left(ax_str s, ax_str cutset) {
+    int64_t a = 0;
+    while (a < s.len) {
+        int32_t cp;
+        int k = u8_decode(s.p + a, s.len - a, &cp);
+        if (k <= 0) k = 1;
+        if (!ax_str_char_in_set(cp, cutset)) break;
+        a += k;
+    }
+    return ax_str_from_bytes(s.p + a, s.len - a);
+}
+
+/* string.TrimRight：去除右侧 cutset 中任意字符，按 UTF-8 码点返回剩余部分 */
+ax_str ax_str_trim_right(ax_str s, ax_str cutset) {
+    int64_t b = s.len;
+    while (b > 0) {
+        int64_t i = b - 1;
+        while (i > 0 && (s.p[i] & 0xC0) == 0x80) i--;
+        int32_t cp;
+        int k = u8_decode(s.p + i, b - i, &cp);
+        if (k <= 0) k = 1;
+        if (!ax_str_char_in_set(cp, cutset)) break;
+        b = i;
+    }
+    return ax_str_from_bytes(s.p, b);
+}
+
 static int ax_is_space(uint8_t c) {
     return c == (uint8_t)' ' || c == (uint8_t)'\t' || c == (uint8_t)'\n' ||
            c == (uint8_t)'\r' || c == (uint8_t)'\v' || c == (uint8_t)'\f';

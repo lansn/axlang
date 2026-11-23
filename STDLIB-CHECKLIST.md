@@ -180,8 +180,8 @@
 | `string.IndexAny`     | `(chars: string) -> int`               | Go `strings.IndexAny`              | 未落地         | ⬜  | 计划中       |
 | `string.LastIndexAny` | `(chars: string) -> int`               | Go `strings.LastIndexAny`          | 最后出现任意字符的码点索引，对标 Go strings.LastIndexAny；标准 C11 直接映射 | ✅ | 标准 C11 实现 |
 | `string.EqualFold`    | `(t: string) -> bool`                  | Go `strings.EqualFold`             | 忽略大小写比较，对标 Go strings.EqualFold；标准 C11 直接映射 | ✅ | 标准 C11 实现 |
-| `string.TrimLeft` | `(cutset: string) -> string` | Go `strings.TrimLeft` | 未落地 | ⬜ | 计划中 |
-| `string.TrimRight` | `(cutset: string) -> string` | Go `strings.TrimRight` | 未落地 | ⬜ | 计划中 |
+| `string.TrimLeft` | `(cutset: string) -> string` | Go `strings.TrimLeft` | 去除左侧字符集，对标 Go strings.TrimLeft；标准 C11 直接映射 | ✅ | 标准 C11 实现 |
+| `string.TrimRight` | `(cutset: string) -> string` | Go `strings.TrimRight` | 去除右侧字符集，对标 Go strings.TrimRight；标准 C11 直接映射 | ✅ | 标准 C11 实现 |
 | `string.TrimPrefix` | `(prefix: string) -> string` | Go `strings.TrimPrefix` | 未落地 | ⬜ | 计划中 |
 | `string.TrimSuffix` | `(suffix: string) -> string` | Go `strings.TrimSuffix` | 未落地 | ⬜ | 计划中 |
 | `string.SplitN` | `(sep: string, n: int) -> string[]` | Go `strings.SplitN` | 未落地 | ⬜ | 计划中 |
@@ -459,8 +459,8 @@
 | `string.IndexAny` | 实例 | `(chars: string) -> int` | Go `strings.IndexAny` | 首次出现任意字符的索引，对标 Go strings.IndexAny | ✅ |
 | `string.LastIndexAny` | 实例 | `(chars: string) -> int` | Go `strings.LastIndexAny` | 最后出现任意字符的索引，对标 Go strings.LastIndexAny | ✅ | 标准 C11 实现 |
 | `string.EqualFold` | 实例 | `(t: string) -> bool` | Go `strings.EqualFold` | 忽略大小写比较，对标 Go strings.EqualFold | ✅ | 标准 C11 实现 |
-| `string.TrimLeft` | 实例 | `(cutset: string) -> string` | Go `strings.TrimLeft` | 去除左侧字符集，对标 Go strings.TrimLeft | ⬜ |
-| `string.TrimRight` | 实例 | `(cutset: string) -> string` | Go `strings.TrimRight` | 去除右侧字符集，对标 Go strings.TrimRight | ⬜ |
+| `string.TrimLeft` | 实例 | `(cutset: string) -> string` | Go `strings.TrimLeft` | 去除左侧字符集，对标 Go strings.TrimLeft | ✅ | 标准 C11 实现 |
+| `string.TrimRight` | 实例 | `(cutset: string) -> string` | Go `strings.TrimRight` | 去除右侧字符集，对标 Go strings.TrimRight | ✅ | 标准 C11 实现 |
 | `string.TrimPrefix` | 实例 | `(prefix: string) -> string` | Go `strings.TrimPrefix` | 去除前缀，对标 Go strings.TrimPrefix | ⬜ |
 | `string.TrimSuffix` | 实例 | `(suffix: string) -> string` | Go `strings.TrimSuffix` | 去除后缀，对标 Go strings.TrimSuffix | ⬜ |
 | `string.SplitN` | 实例 | `(sep: string, n: int) -> string[]` | Go `strings.SplitN` | 按分隔符分割最多 n 份，对标 Go strings.SplitN | ⬜ |
