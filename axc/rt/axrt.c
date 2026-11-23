@@ -2786,6 +2786,15 @@ ax_str ax_os_getenv(ax_str name) {
     return ax_env_utf8(buf);
 }
 
+/* 用户主目录：Windows 读 USERPROFILE，Unix 读 HOME；未设置返回空串 */
+ax_str ax_os_user_home_dir(void) {
+#if defined(_WIN32)
+    return ax_os_getenv(AX_S("USERPROFILE"));
+#else
+    return ax_os_getenv(AX_S("HOME"));
+#endif
+}
+
 void ax_os_exit(int code) {
     exit(code);
 }

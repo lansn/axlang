@@ -324,6 +324,8 @@ ax_res_file ax_file_tempfile(ax_str dir, ax_str prefix);
 /* ---------------- os 模块（对标 Go os/stdLib stdlib） ---------------- */
 /* 读环境变量，未设置返回空字符串 */
 ax_str  ax_os_getenv(ax_str name);
+/* 用户主目录，对标 Go os.UserHomeDir：Windows 读 USERPROFILE，Unix 读 HOME；未设置返回空串 */
+ax_str  ax_os_user_home_dir(void);
 /* 终止进程，对标 C exit() */
 void    ax_os_exit(int code);
 /* 命令行参数：main 包装器会在进入 main 前调用 ax_os_set_args 设置；

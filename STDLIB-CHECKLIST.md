@@ -1,253 +1,186 @@
 # axlang 标准库清单（对标 Go 标准库 pkg.go.dev/std）
 
-
-
-本文档列出 axlang 内建模块与 Go 标准库（基于 https://pkg.go.dev/std，Go 1.25.1）及 C 标准库的对标关系，作为标准库落地进度的检视参考。目标：像 Go/C 标准库一样丰富，最大限度满足开发需要。
-
-
+本文档列出 axlang 内建模块与 Go 标准库（基于 <https://pkg.go.dev/std，Go> 1.25.1）及 C 标准库的对标关系，作为标准库落地进度的检视参考。目标：像 Go/C 标准库一样丰富，最大限度满足开发需要。
 
 > **跨项目铁律**：所有涉及及生成的 C 代码 / GCC 源码，均必须使用标准 C（C11），不得使用任何 GNU/Clang 扩展（如 `__int128`、`__builtin_*_overflow`、`__attribute__((unused))` 等），以便跨平台编译。
 
-
-
 > **落地规范（每项必须完成）**：
-
 > 1. **axrt.h**：新增 C 函数声明（标准 C11，无 GNU/Clang 扩展）
-
-> 2. **axrt.c**：新增 C 函数实现
-
-> 3. **rust/src/sema/mod.rs**：`BUILTIN_MODULES` 新增模块名（若新模块）
-
-> 4. **rust/src/sema/expr.rs**：`module_sig` 新增签名（模块级函数）；或 `rust/src/sema/member.rs` `intrinsic()` 表新增签名（类型级/实例方法）
-
-> 5. **rust/src/backend/codegen_expr.rs**：`module_call` / `method_call` 新增代码生成分支
-
-> 6. **rust/src/backend/mod.rs**：如需新增 result 类型 C typedef
-
-> 7. **tests/run/*.ax + .out**：新增测试用例，覆盖正例和负例
-
-> 8. **回归验证**：`python tests/runtests.py` 零新增回归
-
-> 9. **提交推送**：Git commit + GitHub/Gitee 推送
-
-> 10. **更新文档**：本清单状态标记，`MEMORY.md` 同步更新，追加工作日志
-
-
+> 1. **axrt.c**：新增 C 函数实现
+> 1. **rust/src/sema/mod.rs**：`BUILTIN_MODULES` 新增模块名（若新模块）
+> 1. **rust/src/sema/expr.rs**：`module_sig` 新增签名（模块级函数）；或 `rust/src/sema/member.rs` `intrinsic()` 表新增签名（类型级/实例方法）
+> 1. **rust/src/backend/codegen_expr.rs**：`module_call` / `method_call` 新增代码生成分支
+> 1. **rust/src/backend/mod.rs**：如需新增 result 类型 C typedef
+> 1. **tests/run/*.ax + .out**：新增测试用例，覆盖正例和负例
+> 1. **回归验证**：`python tests/runtests.py` 零新增回归
+> 1. **提交推送**：Git commit + GitHub/Gitee 推送
+> 1. **更新文档**：本清单状态标记，`MEMORY.md` 同步更新，追加工作日志
 
 ---
-
-
 
 ## 状态图例
 
-
-
-| 标记 | 含义 |
-
-| ------ | ------ |
-
-| `✅ 已落地` | axrt.h/axrt.c 实现 + sema/codegen 绑定 + 测试用例齐备 + 回归通过 |
-
-| `🔄 部分落地` | 核心函数已有，部分扩展函数待补 |
-
-| `⬜ 未落地` | 尚未开始 |
-
-
+| 标记 | 含义 |                                             |
+| --------- | -------------------------------------------------- |
+| `✅ 已落地`   | axrt.h/axrt.c 实现 + sema/codegen 绑定 + 测试用例齐备 + 回归通过 |
+| `🔄 部分落地` | 核心函数已有，部分扩展函数待补                                    |
+| `⬜ 未落地`   | 尚未开始                                               |
 
 ---
-
-
 
 ## 优先级说明
 
-
-
-| 优先级 | 含义 |
-
-| -------- | ------ |
-
+| 优先级 | 含义 |                                      |
+| ----------- | ---------------------------------------- |
 | **P0 核心基础** | 程序能跑、能做基本 I/O、字符串、数学、文件操作；axlang 最小可用标准库 |
-
-| **P1 常用扩展** | 日常开发常用功能，与已落地模块形成闭环 |
-
-| **P2 进阶功能** | 并发、排序、编解码、更多数学、更多类型工具 |
-
-| **P3 持续丰富** | 补充完善、边缘场景、对标更多 Go/C 函数 |
-
-
+| **P1 常用扩展** | 日常开发常用功能，与已落地模块形成闭环                      |
+| **P2 进阶功能** | 并发、排序、编解码、更多数学、更多类型工具                    |
+| **P3 持续丰富** | 补充完善、边缘场景、对标更多 Go/C 函数                   |
 
 ---
 
-
-
 ## 一、已落地模块（按模块逐函数清点）
-
-
 
 ### 1. io（对标 Go io / C stdio）
 
-
-
-| ax.函数 | 签名 | 对标 | 函数功能/用途 | 状态 | 说明 |
-| ------ | ------ | ------ | ------ | ------ | ------ |
-| `io.ReadLine` | `() -> string?` | Go `bufio.Reader.ReadString` / C `fgets` | 读取一行，EOF 时返回 null | ✅ | 标准 C11 实现 |
-| `io.ReadFile` | `(path: string) -> result<string>` | Go `os.ReadFile` / C `fopen`+`fread` | 读取整个文件 | ✅ | 标准 C11 实现 |
-| `io.Write` | `(s: string) -> void` | Go `fmt.Print` / C `fputs` | 写 stdout | ✅ | 标准 C11 实现 |
-| `io.WriteLine` | `(s: string) -> void` | Go `fmt.Println` / C `puts` | 写 stdout 并换行 | ✅ | 标准 C11 实现 |
-
+| ax.函数          | 签名                                 | 对标                                       | 函数功能/用途           | 状态 | 说明        |
+| -------------- | ---------------------------------- | ---------------------------------------- | ----------------- | -- | --------- |
+| `io.ReadLine`  | `() -> string?`                    | Go `bufio.Reader.ReadString` / C `fgets` | 读取一行，EOF 时返回 null | ✅  | 标准 C11 实现 |
+| `io.ReadFile`  | `(path: string) -> result<string>` | Go `os.ReadFile` / C `fopen`+`fread`     | 读取整个文件            | ✅  | 标准 C11 实现 |
+| `io.Write`     | `(s: string) -> void`              | Go `fmt.Print` / C `fputs`               | 写 stdout          | ✅  | 标准 C11 实现 |
+| `io.WriteLine` | `(s: string) -> void`              | Go `fmt.Println` / C `puts`              | 写 stdout 并换行      | ✅  | 标准 C11 实现 |
 
 ### 2. fmt（对标 Go fmt / C stdio 格式化）
 
-
-
-| ax.函数 | 签名 | 对标 | 函数功能/用途 | 状态 | 说明 |
-| ------ | ------ | ------ | ------ | ------ | ------ |
-| `fmt.Print` | `(args: any...) -> void` | Go `fmt.Print` | 已通过 `print/println` 部分实现，fmt 模块函数待补 | 🔄 | 部分落地 |
-| `fmt.Println` | `(args: any...) -> void` | Go `fmt.Println` | 同上 | 🔄 | 部分落地 |
-| `fmt.Printf` | `(format: string, args: any...) -> void` | Go `fmt.Printf` / C `printf` | fmt 模块已有 Printf/Print/Println，编译期核对占位符 | 🔄 | 部分落地 |
-| `fmt.Sprintf` | `(format: string, args: any...) -> string` | Go `fmt.Sprintf` / C `snprintf` | 按格式字符串生成字符串，对标 Go fmt.Sprintf / C snprintf；编译期核对占位符 | ✅ | 标准 C11 实现 |
-| `fmt.Sprint` | `(args: any...) -> string` | Go `fmt.Sprint` | 将任意参数拼接为字符串，空格分隔，对标 Go fmt.Sprint | ✅ | 标准 C11 实现 |
-| `fmt.Fprintf` | `(w: Writer, format: string, args: any...) -> int` | Go `fmt.Fprintf` / C `fprintf` | 未落地 | ⬜ | 计划中 |
-| `fmt.Errorf` | `(format: string, args: any...) -> error` | Go `fmt.Errorf` | 未落地 | ⬜ | 计划中 |
-| `fmt.Scanf` | `(format: string, args: any...) -> int` | Go `fmt.Scanf` / C `scanf` | 未落地 | ⬜ | 计划中 |
-
+| ax.函数         | 签名                                                 | 对标                              | 函数功能/用途                                             | 状态 | 说明        |
+| ------------- | -------------------------------------------------- | ------------------------------- | --------------------------------------------------- | -- | --------- |
+| `fmt.Print`   | `(args: any...) -> void`                           | Go `fmt.Print`                  | 已通过 `print/println` 部分实现，fmt 模块函数待补                 | 🔄 | 部分落地      |
+| `fmt.Println` | `(args: any...) -> void`                           | Go `fmt.Println`                | 同上                                                  | 🔄 | 部分落地      |
+| `fmt.Printf`  | `(format: string, args: any...) -> void`           | Go `fmt.Printf` / C `printf`    | fmt 模块已有 Printf/Print/Println，编译期核对占位符              | 🔄 | 部分落地      |
+| `fmt.Sprintf` | `(format: string, args: any...) -> string`         | Go `fmt.Sprintf` / C `snprintf` | 按格式字符串生成字符串，对标 Go fmt.Sprintf / C snprintf；编译期核对占位符 | ✅  | 标准 C11 实现 |
+| `fmt.Sprint`  | `(args: any...) -> string`                         | Go `fmt.Sprint`                 | 将任意参数拼接为字符串，空格分隔，对标 Go fmt.Sprint                   | ✅  | 标准 C11 实现 |
+| `fmt.Fprintf` | `(w: Writer, format: string, args: any...) -> int` | Go `fmt.Fprintf` / C `fprintf`  | 未落地                                                 | ⬜  | 计划中       |
+| `fmt.Errorf`  | `(format: string, args: any...) -> error`          | Go `fmt.Errorf`                 | 未落地                                                 | ⬜  | 计划中       |
+| `fmt.Scanf`   | `(format: string, args: any...) -> int`            | Go `fmt.Scanf` / C `scanf`      | 未落地                                                 | ⬜  | 计划中       |
 
 ### 3. math（对标 Go math / C math.h）
 
-
-
-| ax.函数 | 签名 | 对标 | 函数功能/用途 | 状态 | 说明 |
-| ------ | ------ | ------ | ------ | ------ | ------ |
-| `math.Abs` | `(x: float) -> float` | Go `math.Abs` / C `fabs` | 绝对值 | ✅ | 标准 C11 实现 |
-| `math.Max` | `(a: float, b: float) -> float` | Go `math.Max` / C `fmax` | 最大值 | ✅ | 标准 C11 实现 |
-| `math.Min` | `(a: float, b: float) -> float` | Go `math.Min` / C `fmin` | 最小值 | ✅ | 标准 C11 实现 |
-| `math.Sqrt` | `(x: float) -> float` | Go `math.Sqrt` / C `sqrt` | 平方根 | ✅ | 标准 C11 实现 |
-| `math.Pow` | `(a: float, b: float) -> float` | Go `math.Pow` / C `pow` | 幂 | ✅ | 标准 C11 实现 |
-| `math.Exp` | `(x: float) -> float` | Go `math.Exp` / C `exp` | 指数 | ✅ | 标准 C11 实现 |
-| `math.Log` | `(x: float) -> float` | Go `math.Log` / C `log` | 自然对数 | ✅ | 标准 C11 实现 |
-| `math.Sin` | `(x: float) -> float` | Go `math.Sin` / C `sin` | 正弦 | ✅ | 标准 C11 实现 |
-| `math.Cos` | `(x: float) -> float` | Go `math.Cos` / C `cos` | 余弦 | ✅ | 标准 C11 实现 |
-| `math.Tan` | `(x: float) -> float` | Go `math.Tan` / C `tan` | 正切 | ✅ | 标准 C11 实现 |
-| `math.Ceil` | `(x: float) -> float` | Go `math.Ceil` / C `ceil` | 向上取整 | ✅ | 标准 C11 实现 |
-| `math.Floor` | `(x: float) -> float` | Go `math.Floor` / C `floor` | 向下取整 | ✅ | 标准 C11 实现 |
-| `math.Round` | `(x: float) -> float` | Go `math.Round` / C `round` | 四舍五入 | ✅ | 标准 C11 实现 |
-| `math.Sign` | `(x: float) -> int` | Go `math.Sign` | 符号：-1/0/1 | ✅ | 标准 C11 实现 |
-| `math.Mod` | `(x: float, y: float) -> float` | Go `math.Mod` / C `fmod` | 取模 | ✅ | 标准 C11 实现 |
-| `math.Equals` | `(a: float, b: float, eps: float) -> bool` | — | fabs(a-b) <= eps | ✅ | 标准 C11 实现 |
-| `math.Compare` | `(a: float, b: float) -> int` | — | -1/0/1 | ✅ | 标准 C11 实现 |
-| `math.Exp2` | `(x: float) -> float` | Go `math.Exp2` / C `exp2` | C11 exp2，对标 Go math.Exp2 | ✅ | 标准 C11 实现 |
-| `math.Log10` | `(x: float) -> float` | Go `math.Log10` / C `log10` | C11 log10，对标 Go math.Log10 | ✅ | 标准 C11 实现 |
-| `math.Log2` | `(x: float) -> float` | Go `math.Log2` / C `log2` | 二进制对数，对标 Go math.Log2 / C log2；标准 C11 直接映射 | ✅ | 标准 C11 实现 |
-| `math.Log1p` | `(x: float) -> float` | Go `math.Log1p` / C `log1p` | log(1+x)，对标 Go math.Log1p / C log1p；标准 C11 直接映射 | ✅ | 标准 C11 实现 |
-| `math.Sinh` | `(x: float) -> float` | Go `math.Sinh` / C `sinh` | 未落地 | ⬜ | 计划中 |
-| `math.Cosh` | `(x: float) -> float` | Go `math.Cosh` / C `cosh` | 未落地 | ⬜ | 计划中 |
-| `math.Tanh` | `(x: float) -> float` | Go `math.Tanh` / C `tanh` | 未落地 | ⬜ | 计划中 |
-| `math.Asin` | `(x: float) -> float` | Go `math.Asin` / C `asin` | 未落地 | ⬜ | 计划中 |
-| `math.Acos` | `(x: float) -> float` | Go `math.Acos` / C `acos` | 未落地 | ⬜ | 计划中 |
-| `math.Atan` | `(x: float) -> float` | Go `math.Atan` / C `atan` | 未落地 | ⬜ | 计划中 |
-| `math.Atan2` | `(y: float, x: float) -> float` | Go `math.Atan2` / C `atan2` | 未落地 | ⬜ | 计划中 |
-| `math.Hypot` | `(p: float, q: float) -> float` | Go `math.Hypot` / C `hypot` | 未落地 | ⬜ | 计划中 |
-| `math.Cbrt` | `(x: float) -> float` | Go `math.Cbrt` | 未落地 | ⬜ | 计划中 |
-| `math.Trunc` | `(x: float) -> float` | Go `math.Trunc` / C `trunc` | 未落地 | ⬜ | 计划中 |
-| `math.Frexp` | `(f: float) -> (frac: float, exp: int)` | Go `math.Frexp` / C `frexp` | 未落地 | ⬜ | 计划中 |
-| `math.Ldexp` | `(frac: float, exp: int) -> float` | Go `math.Ldexp` / C `ldexp` | 未落地 | ⬜ | 计划中 |
-| `math.IsNaN` | `(f: float) -> bool` | Go `math.IsNaN` / C `isnan` | C11 isnan，对标 Go math.IsNaN | ✅ | 标准 C11 实现 |
-| `math.IsInf` | `(f: float, sign: int) -> bool` | Go `math.IsInf` / C `isinf` | C11 isinf，对标 Go math.IsInf | ✅ | 标准 C11 实现 |
-| `math.Signbit` | `(f: float) -> bool` | Go `math.Signbit` | 未落地 | ⬜ | 计划中 |
-| `math.Copysign` | `(f: float, sign: float) -> float` | Go `math.Copysign` / C `copysign` | 未落地 | ⬜ | 计划中 |
-| `math.Dim` | `(x: float, y: float) -> float` | Go `math.Dim` | 未落地 | ⬜ | 计划中 |
-
+| ax.函数          | 签名                                         | 对标                          | 函数功能/用途                                         | 状态 | 说明        |
+| -------------- | ------------------------------------------ | --------------------------- | ----------------------------------------------- | -- | --------- |
+| `math.Abs`     | `(x: float) -> float`                      | Go `math.Abs` / C `fabs`    | 绝对值                                             | ✅  | 标准 C11 实现 |
+| `math.Max`     | `(a: float, b: float) -> float`            | Go `math.Max` / C `fmax`    | 最大值                                             | ✅  | 标准 C11 实现 |
+| `math.Min`     | `(a: float, b: float) -> float`            | Go `math.Min` / C `fmin`    | 最小值                                             | ✅  | 标准 C11 实现 |
+| `math.Sqrt`    | `(x: float) -> float`                      | Go `math.Sqrt` / C `sqrt`   | 平方根                                             | ✅  | 标准 C11 实现 |
+| `math.Pow`     | `(a: float, b: float) -> float`            | Go `math.Pow` / C `pow`     | 幂                                               | ✅  | 标准 C11 实现 |
+| `math.Exp`     | `(x: float) -> float`                      | Go `math.Exp` / C `exp`     | 指数                                              | ✅  | 标准 C11 实现 |
+| `math.Log`     | `(x: float) -> float`                      | Go `math.Log` / C `log`     | 自然对数                                            | ✅  | 标准 C11 实现 |
+| `math.Sin`     | `(x: float) -> float`                      | Go `math.Sin` / C `sin`     | 正弦                                              | ✅  | 标准 C11 实现 |
+| `math.Cos`     | `(x: float) -> float`                      | Go `math.Cos` / C `cos`     | 余弦                                              | ✅  | 标准 C11 实现 |
+| `math.Tan`     | `(x: float) -> float`                      | Go `math.Tan` / C `tan`     | 正切                                              | ✅  | 标准 C11 实现 |
+| `math.Ceil`    | `(x: float) -> float`                      | Go `math.Ceil` / C `ceil`   | 向上取整                                            | ✅  | 标准 C11 实现 |
+| `math.Floor`   | `(x: float) -> float`                      | Go `math.Floor` / C `floor` | 向下取整                                            | ✅  | 标准 C11 实现 |
+| `math.Round`   | `(x: float) -> float`                      | Go `math.Round` / C `round` | 四舍五入                                            | ✅  | 标准 C11 实现 |
+| `math.Sign`    | `(x: float) -> int`                        | Go `math.Sign`              | 符号：-1/0/1                                       | ✅  | 标准 C11 实现 |
+| `math.Mod`     | `(x: float, y: float) -> float`            | Go `math.Mod` / C `fmod`    | 取模                                              | ✅  | 标准 C11 实现 |
+| `math.Equals`  | `(a: float, b: float, eps: float) -> bool` | —                           | fabs(a-b) <= eps                                | ✅  | 标准 C11 实现 |
+| `math.Compare` | `(a: float, b: float) -> int`              | —                           | -1/0/1                                          | ✅  | 标准 C11 实现 |
+| `math.Exp2`    | `(x: float) -> float`                      | Go `math.Exp2` / C `exp2`   | C11 exp2，对标 Go math.Exp2                        | ✅  | 标准 C11 实现 |
+| `math.Log10`   | `(x: float) -> float`                      | Go `math.Log10` / C `log10` | C11 log10，对标 Go math.Log10                      | ✅  | 标准 C11 实现 |
+| `math.Log2`    | `(x: float) -> float`                      | Go `math.Log2` / C `log2`   | 二进制对数，对标 Go math.Log2 / C log2；标准 C11 直接映射      | ✅  | 标准 C11 实现 |
+| `math.Log1p`   | `(x: float) -> float`                      | Go `math.Log1p` / C `log1p` | log(1+x)，对标 Go math.Log1p / C log1p；标准 C11 直接映射 | ✅  | 标准 C11 实现 |
+| `math.Sinh`    | `(x: float) -> float`                      | Go `math.Sinh` / C `sinh`   | 未落地                                             | ⬜  | 计划中       |
+| `math.Cosh`    | `(x: float) -> float`                      | Go `math.Cosh` / C `cosh`   | 未落地                                             | ⬜  | 计划中       |
+| `math.Tanh`    | `(x: float) -> float`                      | Go `math.Tanh` / C `tanh`   | 未落地                                             | ⬜  | 计划中       |
+| `math.Asin`     | `(x: float) -> float`                   | Go `math.Asin` / C `asin`         | 未落地                        | ⬜  | 计划中       |
+| `math.Acos`     | `(x: float) -> float`                   | Go `math.Acos` / C `acos`         | 未落地                        | ⬜  | 计划中       |
+| `math.Atan`     | `(x: float) -> float`                   | Go `math.Atan` / C `atan`         | 未落地                        | ⬜  | 计划中       |
+| `math.Atan2`    | `(y: float, x: float) -> float`         | Go `math.Atan2` / C `atan2`       | 未落地                        | ⬜  | 计划中       |
+| `math.Hypot`    | `(p: float, q: float) -> float`         | Go `math.Hypot` / C `hypot`       | 未落地                        | ⬜  | 计划中       |
+| `math.Cbrt`     | `(x: float) -> float`                   | Go `math.Cbrt`                    | 未落地                        | ⬜  | 计划中       |
+| `math.Trunc`    | `(x: float) -> float`                   | Go `math.Trunc` / C `trunc`       | 未落地                        | ⬜  | 计划中       |
+| `math.Frexp`    | `(f: float) -> (frac: float, exp: int)` | Go `math.Frexp` / C `frexp`       | 未落地                        | ⬜  | 计划中       |
+| `math.Ldexp`    | `(frac: float, exp: int) -> float`      | Go `math.Ldexp` / C `ldexp`       | 未落地                        | ⬜  | 计划中       |
+| `math.IsNaN`    | `(f: float) -> bool`                    | Go `math.IsNaN` / C `isnan`       | C11 isnan，对标 Go math.IsNaN | ✅  | 标准 C11 实现 |
+| `math.IsInf`    | `(f: float, sign: int) -> bool`         | Go `math.IsInf` / C `isinf`       | C11 isinf，对标 Go math.IsInf | ✅  | 标准 C11 实现 |
+| `math.Signbit`  | `(f: float) -> bool`                    | Go `math.Signbit`                 | 未落地                        | ⬜  | 计划中       |
+| `math.Copysign` | `(f: float, sign: float) -> float`      | Go `math.Copysign` / C `copysign` | 未落地                        | ⬜  | 计划中       |
+| `math.Dim`      | `(x: float, y: float) -> float`         | Go `math.Dim`                     | 未落地                        | ⬜  | 计划中       |
 
 ### 4. json（对标 Go encoding/json）
 
-
-
-| ax.函数 | 签名 | 对标 | 函数功能/用途 | 状态 | 说明 |
-| ------ | ------ | ------ | ------ | ------ | ------ |
-| `json.Parse` | `(s: string) -> result<map<string, object>>` | Go `json.Unmarshal` | 解析 JSON | ✅ | 标准 C11 实现 |
-| `json.Stringify` | `(v: object) -> string` | Go `json.Marshal` | 序列化 JSON | ✅ | 标准 C11 实现 |
-| `json.MarshalIndent` | `(v: object, prefix: string, indent: string) -> string` | Go `json.MarshalIndent` | 未落地 | ⬜ | 计划中 |
-| `json.Valid` | `(s: string) -> bool` | Go `json.Valid` | 未落地 | ⬜ | 计划中 |
-
+| ax.函数                | 签名                                                      | 对标                      | 函数功能/用途  | 状态 | 说明        |
+| -------------------- | ------------------------------------------------------- | ----------------------- | -------- | -- | --------- |
+| `json.Parse`         | `(s: string) -> result<map<string, object>>`            | Go `json.Unmarshal`     | 解析 JSON  | ✅  | 标准 C11 实现 |
+| `json.Stringify`     | `(v: object) -> string`                                 | Go `json.Marshal`       | 序列化 JSON | ✅  | 标准 C11 实现 |
+| `json.MarshalIndent` | `(v: object, prefix: string, indent: string) -> string` | Go `json.MarshalIndent` | 未落地      | ⬜  | 计划中       |
+| `json.Valid`         | `(s: string) -> bool`                                   | Go `json.Valid`         | 未落地      | ⬜  | 计划中       |
 
 ### 5. file（对标 Go os / C stdio/stdlib）
 
-
-
-| ax.函数 | 签名 | 对标 | 函数功能/用途 | 状态 | 说明 |
-| ------ | ------ | ------ | ------ | ------ | ------ |
-| `file.Open` | `(path: string) -> result<File>` | Go `os.Open` / C `fopen` | 模式 0=只读 | ✅ | 标准 C11 实现 |
-| `file.Create` | `(path: string) -> result<File>` | Go `os.Create` / C `fopen("wb")` | 模式 1=写/截断 | ✅ | 标准 C11 实现 |
-| `file.Append` | `(path: string) -> result<File>` | Go `os.OpenFile` 追加 / C `fopen("ab")` | 模式 2=追加 | ✅ | 标准 C11 实现 |
-| `file.Remove` | `(path: string) -> int` | Go `os.Remove` / C `remove` | 0=成功 1=失败 | ✅ | 标准 C11 实现 |
-| `file.Rename` | `(old: string, new: string) -> int` | Go `os.Rename` / C `rename` | 0=成功 1=失败 | ✅ | 标准 C11 实现 |
-| `file.Exists` | `(path: string) -> int` | Go `os.Stat` / C `fopen` 试探 | 1=存在 0=不存在 | ✅ | 标准 C11 实现 |
-| `file.Mkdir` | `(path: string) -> int` | Go `os.Mkdir` / C `mkdir` | 0=成功 1=失败 | ✅ | 标准 C11 实现 |
-| `file.ReadAll` | `(path: string) -> result<string>` | Go `os.ReadFile` | 便捷全文件读 | ✅ | 标准 C11 实现 |
-| `file.WriteAll` | `(path: string, s: string) -> int` | — | 便捷全文件写，0=成功 1=失败 | ✅ | 标准 C11 实现 |
-| `file.IsDir` | `(path: string) -> int` | Go `os.Stat`+`IsDir` | 1=目录 0=否或不存在 | ✅ | 标准 C11 实现 |
-| `file.IsFile` | `(path: string) -> int` | Go `os.Stat`+`Mode().IsRegular()` | 1=常规文件 0=否或不存在 | ✅ | 标准 C11 实现 |
-| `file.Size` | `(path: string) -> int` | Go `os.Stat`+`Size()` | 字节数，失败返回 -1 | ✅ | 标准 C11 实现 |
-| `file.ModTime` | `(path: string) -> int` | Go `os.Stat`+`ModTime()` | Unix 毫秒，失败返回 -1 | ✅ | 标准 C11 实现 |
-| `file.Chmod` | `(path: string, mode: int) -> int` | Go `os.Chmod` / C `chmod` | 修改文件权限，0=成功 1=失败 | ✅ | 标准 C11 实现 |
-| `file.Chtimes` | `(path: string, atime: int, mtime: int) -> int` | Go `os.Chtimes` | 修改访问/修改时间，0=成功 1=失败 | ✅ | 标准 C11 实现 |
-| `file.TempFile` | `(dir: string, prefix: string) -> result<File>` | Go `os.CreateTemp` | 创建临时文件，返回 result<File> | ✅ | 标准 C11 实现 |
-
+| ax.函数           | 签名                                              | 对标                                    | 函数功能/用途                | 状态 | 说明        |
+| --------------- | ----------------------------------------------- | ------------------------------------- | ---------------------- | -- | --------- |
+| `file.Open`     | `(path: string) -> result<File>`                | Go `os.Open` / C `fopen`              | 模式 0=只读                | ✅  | 标准 C11 实现 |
+| `file.Create`   | `(path: string) -> result<File>`                | Go `os.Create` / C `fopen("wb")`      | 模式 1=写/截断              | ✅  | 标准 C11 实现 |
+| `file.Append`   | `(path: string) -> result<File>`                | Go `os.OpenFile` 追加 / C `fopen("ab")` | 模式 2=追加                | ✅  | 标准 C11 实现 |
+| `file.Remove`   | `(path: string) -> int`                         | Go `os.Remove` / C `remove`           | 0=成功 1=失败              | ✅  | 标准 C11 实现 |
+| `file.Rename`   | `(old: string, new: string) -> int`             | Go `os.Rename` / C `rename`           | 0=成功 1=失败              | ✅  | 标准 C11 实现 |
+| `file.Exists`   | `(path: string) -> int`                         | Go `os.Stat` / C `fopen` 试探           | 1=存在 0=不存在             | ✅  | 标准 C11 实现 |
+| `file.Mkdir`    | `(path: string) -> int`                         | Go `os.Mkdir` / C `mkdir`             | 0=成功 1=失败              | ✅  | 标准 C11 实现 |
+| `file.ReadAll`  | `(path: string) -> result<string>`              | Go `os.ReadFile`                      | 便捷全文件读                 | ✅  | 标准 C11 实现 |
+| `file.WriteAll` | `(path: string, s: string) -> int`              | —                                     | 便捷全文件写，0=成功 1=失败       | ✅  | 标准 C11 实现 |
+| `file.IsDir`    | `(path: string) -> int`                         | Go `os.Stat`+`IsDir`                  | 1=目录 0=否或不存在           | ✅  | 标准 C11 实现 |
+| `file.IsFile`   | `(path: string) -> int`                         | Go `os.Stat`+`Mode().IsRegular()`     | 1=常规文件 0=否或不存在         | ✅  | 标准 C11 实现 |
+| `file.Size`     | `(path: string) -> int`                         | Go `os.Stat`+`Size()`                 | 字节数，失败返回 -1            | ✅  | 标准 C11 实现 |
+| `file.ModTime`  | `(path: string) -> int`                         | Go `os.Stat`+`ModTime()`              | Unix 毫秒，失败返回 -1        | ✅  | 标准 C11 实现 |
+| `file.Chmod`    | `(path: string, mode: int) -> int`              | Go `os.Chmod` / C `chmod`             | 修改文件权限，0=成功 1=失败       | ✅  | 标准 C11 实现 |
+| `file.Chtimes`  | `(path: string, atime: int, mtime: int) -> int` | Go `os.Chtimes`                       | 修改访问/修改时间，0=成功 1=失败    | ✅  | 标准 C11 实现 |
+| `file.TempFile` | `(dir: string, prefix: string) -> result<File>` | Go `os.CreateTemp`                    | 创建临时文件，返回 result<File> | ✅  | 标准 C11 实现 |
 
 ### 6. db（axlang 特有，无直接 Go 对标）
 
-
-
-| ax.函数 | 签名 | 对标 | 函数功能/用途 | 状态 | 说明 |
-| ------ | ------ | ------ | ------ | ------ | ------ |
-| `db.Query` | `(sql: string) -> result<Row>` | — | 数据库查询 | ✅ | 标准 C11 实现 |
-
+| ax.函数      | 签名                             | 对标 | 函数功能/用途 | 状态 | 说明        |
+| ---------- | ------------------------------ | -- | ------- | -- | --------- |
+| `db.Query` | `(sql: string) -> result<Row>` | —  | 数据库查询   | ✅  | 标准 C11 实现 |
 
 ### 7. string（对标 Go strings / C string.h / C ctype.h）
 
-
-
 **静态方法：**
 
-
-
-| ax.函数 | 签名 | 对标 | 函数功能/用途 | 状态 | 说明 |
-| ------ | ------ | ------ | ------ | ------ | ------ |
-| `string.FromCodepoint` | `(cp: int) -> result<string>` | — | 码点转字符串 | ✅ | 标准 C11 实现 |
-| `string.Compare` | `(a: string, b: string) -> int` | Go `strings.Compare` | 字典序比较 | ✅ | 标准 C11 实现 |
-| `string.Fields` | `(s: string) -> string[]` | Go `strings.Fields` | 按空白分割 | ✅ | 标准 C11 实现 |
-
+| ax.函数                  | 签名                              | 对标                   | 函数功能/用途 | 状态 | 说明        |
+| ---------------------- | ------------------------------- | -------------------- | ------- | -- | --------- |
+| `string.FromCodepoint` | `(cp: int) -> result<string>`   | —                    | 码点转字符串  | ✅  | 标准 C11 实现 |
+| `string.Compare`       | `(a: string, b: string) -> int` | Go `strings.Compare` | 字典序比较   | ✅  | 标准 C11 实现 |
+| `string.Fields`        | `(s: string) -> string[]`       | Go `strings.Fields`  | 按空白分割   | ✅  | 标准 C11 实现 |
 
 **实例方法（已落地 26 个）：**
 
+| ax.函数                 | 签名                                     | 对标                                 | 函数功能/用途     | 状态 | 说明        |
+| --------------------- | -------------------------------------- | ---------------------------------- | ----------- | -- | --------- |
+| `string.ToUpper`      | `() -> string`                         | Go `strings.ToUpper` / C `toupper` | 大写转换        | ✅  | 标准 C11 实现 |
+| `string.ToLower`      | `() -> string`                         | Go `strings.ToLower` / C `tolower` | 小写转换        | ✅  | 标准 C11 实现 |
+| `string.Contains`     | `(sub: string) -> bool`                | Go `strings.Contains`              | 包含子串        | ✅  | 标准 C11 实现 |
+| `string.IndexOf`      | `(sub: string) -> int`                 | Go `strings.Index`                 | 首次出现索引      | ✅  | 标准 C11 实现 |
+| `string.LastIndexOf`  | `(sub: string) -> int`                 | Go `strings.LastIndex`             | 最后出现索引      | ✅  | 标准 C11 实现 |
+| `string.Split`        | `(sep: string) -> string[]`            | Go `strings.Split`                 | 分割          | ✅  | 标准 C11 实现 |
+| `string.Trim`         | `() -> string`                         | Go `strings.TrimSpace`             | 去首尾空白       | ✅  | 标准 C11 实现 |
+| `string.Replace`      | `(old: string, new: string) -> string` | Go `strings.ReplaceAll`            | 替换所有        | ✅  | 标准 C11 实现 |
+| `string.Repeat`       | `(n: int) -> string`                   | Go `strings.Repeat`                | 重复 n 次      | ✅  | 标准 C11 实现 |
+| `string.StartsWith`   | `(prefix: string) -> bool`             | Go `strings.HasPrefix`             | 前缀判断        | ✅  | 标准 C11 实现 |
+| `string.EndsWith`     | `(suffix: string) -> bool`             | Go `strings.HasSuffix`             | 后缀判断        | ✅  | 标准 C11 实现 |
+| `string.Len`          | `() -> int`                            | Go `len(s)` / C `strlen`           | 字符串长度       | ✅  | 标准 C11 实现 |
+| `string.IsDigit`      | `() -> bool`                           | C `isdigit`                        | 所有字符均为数字    | ✅  | 标准 C11 实现 |
+| `string.IsAlpha`      | `() -> bool`                           | C `isalpha`                        | 所有字符均为字母    | ✅  | 标准 C11 实现 |
+| `string.IsSpace`      | `() -> bool`                           | C `isspace`                        | 所有字符均为空白    | ✅  | 标准 C11 实现 |
+| `string.IsLower`      | `() -> bool`                           | C `islower`                        | 所有字符均为小写    | ✅  | 标准 C11 实现 |
+| `string.IsUpper`      | `() -> bool`                           | C `isupper`                        | 所有字符均为大写    | ✅  | 标准 C11 实现 |
+| `string.IsAlnum`      | `() -> bool`                           | C `isalnum`                        | 所有字符均为字母或数字 | ✅  | 标准 C11 实现 |
+| `string.ContainsAny`  | `(chars: string) -> bool`              | Go `strings.ContainsAny`           | 未落地         | ⬜  | 计划中       |
+| `string.ContainsRune` | `(r: int) -> bool`                     | Go `strings.ContainsRune`          | 未落地         | ⬜  | 计划中       |
+| `string.Count`        | `(substr: string) -> int`              | Go `strings.Count`                 | 未落地         | ⬜  | 计划中       |
+| `string.IndexAny`     | `(chars: string) -> int`               | Go `strings.IndexAny`              | 未落地         | ⬜  | 计划中       |
+| `string.LastIndexAny` | `(chars: string) -> int`               | Go `strings.LastIndexAny`          | 未落地         | ⬜  | 计划中       |
+| `string.EqualFold`    | `(t: string) -> bool`                  | Go `strings.EqualFold`             | 未落地         | ⬜  | 计划中       |
 
-
-| ax.函数 | 签名 | 对标 | 函数功能/用途 | 状态 | 说明 |
-| ------ | ------ | ------ | ------ | ------ | ------ |
-| `string.ToUpper` | `() -> string` | Go `strings.ToUpper` / C `toupper` | 大写转换 | ✅ | 标准 C11 实现 |
-| `string.ToLower` | `() -> string` | Go `strings.ToLower` / C `tolower` | 小写转换 | ✅ | 标准 C11 实现 |
-| `string.Contains` | `(sub: string) -> bool` | Go `strings.Contains` | 包含子串 | ✅ | 标准 C11 实现 |
-| `string.IndexOf` | `(sub: string) -> int` | Go `strings.Index` | 首次出现索引 | ✅ | 标准 C11 实现 |
-| `string.LastIndexOf` | `(sub: string) -> int` | Go `strings.LastIndex` | 最后出现索引 | ✅ | 标准 C11 实现 |
-| `string.Split` | `(sep: string) -> string[]` | Go `strings.Split` | 分割 | ✅ | 标准 C11 实现 |
-| `string.Trim` | `() -> string` | Go `strings.TrimSpace` | 去首尾空白 | ✅ | 标准 C11 实现 |
-| `string.Replace` | `(old: string, new: string) -> string` | Go `strings.ReplaceAll` | 替换所有 | ✅ | 标准 C11 实现 |
-| `string.Repeat` | `(n: int) -> string` | Go `strings.Repeat` | 重复 n 次 | ✅ | 标准 C11 实现 |
-| `string.StartsWith` | `(prefix: string) -> bool` | Go `strings.HasPrefix` | 前缀判断 | ✅ | 标准 C11 实现 |
-| `string.EndsWith` | `(suffix: string) -> bool` | Go `strings.HasSuffix` | 后缀判断 | ✅ | 标准 C11 实现 |
-| `string.Len` | `() -> int` | Go `len(s)` / C `strlen` | 字符串长度 | ✅ | 标准 C11 实现 |
-| `string.IsDigit` | `() -> bool` | C `isdigit` | 所有字符均为数字 | ✅ | 标准 C11 实现 |
-| `string.IsAlpha` | `() -> bool` | C `isalpha` | 所有字符均为字母 | ✅ | 标准 C11 实现 |
-| `string.IsSpace` | `() -> bool` | C `isspace` | 所有字符均为空白 | ✅ | 标准 C11 实现 |
-| `string.IsLower` | `() -> bool` | C `islower` | 所有字符均为小写 | ✅ | 标准 C11 实现 |
-| `string.IsUpper` | `() -> bool` | C `isupper` | 所有字符均为大写 | ✅ | 标准 C11 实现 |
-| `string.IsAlnum` | `() -> bool` | C `isalnum` | 所有字符均为字母或数字 | ✅ | 标准 C11 实现 |
-| `string.ContainsAny` | `(chars: string) -> bool` | Go `strings.ContainsAny` | 未落地 | ⬜ | 计划中 |
-| `string.ContainsRune` | `(r: int) -> bool` | Go `strings.ContainsRune` | 未落地 | ⬜ | 计划中 |
-| `string.Count` | `(substr: string) -> int` | Go `strings.Count` | 未落地 | ⬜ | 计划中 |
-| `string.IndexAny` | `(chars: string) -> int` | Go `strings.IndexAny` | 未落地 | ⬜ | 计划中 |
-| `string.LastIndexAny` | `(chars: string) -> int` | Go `strings.LastIndexAny` | 未落地 | ⬜ | 计划中 |
-| `string.EqualFold` | `(t: string) -> bool` | Go `strings.EqualFold` | 未落地 | ⬜ | 计划中 |
 | `string.TrimLeft` | `(cutset: string) -> string` | Go `strings.TrimLeft` | 未落地 | ⬜ | 计划中 |
 | `string.TrimRight` | `(cutset: string) -> string` | Go `strings.TrimRight` | 未落地 | ⬜ | 计划中 |
 | `string.TrimPrefix` | `(prefix: string) -> string` | Go `strings.TrimPrefix` | 未落地 | ⬜ | 计划中 |
@@ -486,6 +419,7 @@
 
 
 
+
 ### P1（常用扩展）
 
 
@@ -505,7 +439,7 @@
 
 | ax.函数 | 签名 | 对标 | 函数功能/用途 | 状态 |
 | ------ | ------ | ------ | ------ | ------ |
-| `os.UserHomeDir` | `() -> string` | Go `os.UserHomeDir` | 用户主目录，对标 Go os.UserHomeDir | ⬜ |
+| `os.UserHomeDir` | `() -> string` | Go `os.UserHomeDir` | 用户主目录，对标 Go os.UserHomeDir | ✅ |
 | `os.UserCacheDir` | `() -> string` | Go `os.UserCacheDir` | 用户缓存目录，对标 Go os.UserCacheDir | ⬜ |
 | `os.Getpagesize` | `() -> int` | Go `os.Getpagesize` | 系统页面大小，对标 Go os.Getpagesize | ⬜ |
 | `os.Getuid` | `() -> int` | Go `os.Getuid` | 当前用户 ID，对标 Go os.Getuid | ⬜ |
@@ -579,6 +513,7 @@
 | `time.Add` | 实例 | `(d: int) -> time` | Go `time.Add` | 时间加毫秒，对标 Go time.Add | ⬜ |
 | `time.Round` | 实例 | `(d: int) -> time` | Go `time.Round` | 时间四舍五入到给定精度，对标 Go time.Round | ⬜ |
 | `time.Truncate` | 实例 | `(d: int) -> time` | Go `time.Truncate` | 时间截断到给定精度，对标 Go time.Truncate | ⬜ |
+
 
 
 ### P2（进阶功能）
@@ -725,74 +660,42 @@
 | Go 包 (go_lib.txt) | 代表子包 | 对标 axlang 计划 | 函数功能/用途 | 状态 | 说明 |
 | --- | --- | --- | --- | --- | ------ |
 
+|  |  |  |  |  |  |
+| --- | --- | --- | --- | --- | --- |
 | `archive` | `tar`, `zip` | `archive` | 归档文件读写 | ⬜ | 计划中 |
-
 | `compress` | `bzip2`, `flate`, `gzip`, `lzw`, `zlib`, `zstd` | `compress` | 压缩/解压缩 | ⬜ | 计划中 |
-
 | `container` | `heap`, `list`, `ring` | `container` | 堆/链表/环形列表 | ⬜ | 计划中 |
-
 | `context` | — | `context` | 上下文传递（与线程/队列配合） | ⬜ | 计划中 |
-
 | `crypto` | `aes`, `cipher`, `des`, `ecdsa`, `ed25519`, `hmac`, `md5`, `sha1`, `sha256`, `sha3`, `sha512`, `subtle`, `tls`, `x509` | `crypto` | 对称/非对称加密、哈希、TLS、证书 | ⬜ | 计划中 |
-
 | `debug` | `buildinfo`, `dwarf`, `elf`, `pe`, `macho` | `debug` | 二进制文件调试信息 | ⬜ | 计划中 |
-
 | `embed` | — | `embed` | 文件嵌入 | ⬜ | 计划中 |
-
 | `encoding` | `ascii85`, `asn1`, `base32`, `base64`, `binary`, `gob`, `hex`, `pem`, `xml` | `encoding` | 各类编解码（json/csv 已单独规划） | ⬜ | 计划中 |
-
 | `expvar` | — | — | 公开变量接口 | ⬜ | 计划中 |
-
 | `flag` | — | — | 命令行标志解析 | ⬜ | 计划中 |
-
 | `go` | `ast`, `build`, `constant`, `doc`, `format`, `parser`, `printer`, `scanner`, `token`, `types`, `version` | `go` | Go 源码工具链（axlang 自用，低优先级） | ⬜ | 计划中 |
-
 | `hash` | `adler32`, `crc32`, `crc64`, `fnv`, `maphash` | `hash` | 哈希校验和 | ⬜ | 计划中 |
-
 | `image` | `color`, `draw`, `gif`, `jpeg`, `png` | `image` | 2D 图像编解码 | ⬜ | 计划中 |
-
 | `index` | `suffixarray` | — | 后缀数组子串查找 | ⬜ | 计划中 |
-
 | `iter` | — | — | 迭代器序列（Go 1.23+） | ⬜ | 计划中 |
-
 | `math/big` | — | `math` | 任意精度算术 | ⬜ | 计划中 |
-
 | `math/bits` | — | `math` | 位操作 | ⬜ | 计划中 |
-
 | `math/cmplx` | — | `math` | 复数数学函数，对标 Go math/cmplx | ⬜ | 计划中 |
-
 | `mime` | `multipart`, `quotedprintable` | `mime` | MIME 协议支持 | ⬜ | 计划中 |
-
 | `net` | `http`, `mail`, `netip`, `rpc`, `smtp`, `textproto`, `url` | `net` | 网络 I/O（URL/HTTP/SMTP 等） | ⬜ | 计划中 |
-
 | `os/exec` | — | `os` | 外部命令执行 | ⬜ | 计划中 |
-
 | `os/signal` | — | `os` | 信号处理 | ⬜ | 计划中 |
-
 | `os/user` | — | `os` | 用户账户查询 | ⬜ | 计划中 |
-
 | `path` | — | `path` | 斜杠分隔路径操作 | ⬜ | 计划中 |
-
 | `plugin` | — | — | 插件加载 | ⬜ | 计划中 |
-
 | `regexp` / `syntax` | — | `regexp` | 正则表达式，对标 Go regexp / syntax | ⬜ | 计划中 |
-
 | `runtime` | — | — | 运行时交互 | ⬜ | 计划中 |
-
 | `syscall` | — | `syscall` | 低级操作系统原语 | ⬜ | 计划中 |
-
 | `testing` | `cryptotest`, `fstest`, `iotest`, `quick`, `slogtest` | `testing` | 自动化测试辅助 | ⬜ | 计划中 |
-
 | `text` | `scanner`, `tabwriter` | `text` | 文本扫描与表格对齐 | ⬜ | 计划中 |
-
 | `time/tzdata` | — | `time` | 时区数据库嵌入 | ⬜ | 计划中 |
-
 | `unicode` / `utf8` / `utf16` | — | `unicode` | Unicode 码点属性与 UTF 编解码，对标 Go unicode/utf8/utf16 | ⬜ | 计划中 |
-
 | `unsafe` | — | — | 绕过类型安全 | ⬜ | 计划中 |
-
 | `uuid` | — | — | UUID 生成与操作 | ⬜ | 计划中 |
-
 | `weak` | — | — | 弱引用 | ⬜ | 计划中 |
 
 
@@ -805,18 +708,18 @@
 
 
 
+|  |  |  |
+| --- | --- | --- |
 | 阶段 | 已完成 | 待完成 |
 
 | ------ | -------- | -------- |
 
+|  |  |  |
+| --- | --- | --- |
 | 已落地模块 | io, math, json, file, db, string, time, decimal, Int/Float/Bool/Enum, Array, Map, Range, thread/queue, os, strconv, filepath, rand, sort, slices | 共 19 个模块 |
-
 | P0 已落地 | strconv 13 个函数；string 6 个 ctype 判断函数 | string.ToUpperRune/ToLowerRune |
-
-| P1 待落地 | — | os.UserHomeDir/…；string.ContainsAny/Count/IndexAny/…；time.UnixMicro/UnixNano |
-
+| P1 待落地 | — | string.ContainsAny/Count/IndexAny/…；time.UnixMicro/UnixNano |
 | P2 待落地 | — | fmt.Sprintf/Fprintf/…；json.MarshalIndent/Valid；csv.ReadAll/Write；sort.Float64s/…；maps.*；unique.*；bytes/bufio；log/errors；sync/atomic；reflect |
-
 | P3 待落地 | — | crypto/*；hash/*；unicode/utf8/utf16；container/*；net/*；template/*；regexp |
 
 

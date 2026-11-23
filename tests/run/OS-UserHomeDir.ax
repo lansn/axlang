@@ -1,0 +1,12 @@
+// os.UserHomeDir（对标 Go os.UserHomeDir）
+import os
+
+int main() {
+    string home = os.UserHomeDir()
+    string h1 = os.Getenv("HOME")
+    string h2 = os.Getenv("USERPROFILE")
+    println("{home}")
+    println("{h1}")
+    println("{h2}")
+    return 0
+}
