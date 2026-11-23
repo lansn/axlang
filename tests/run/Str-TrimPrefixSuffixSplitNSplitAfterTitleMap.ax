@@ -1,0 +1,95 @@
+// string.TrimPrefix / TrimSuffix / SplitN / SplitAfter / Title / Map（P1，对标 Go strings）
+
+import string
+
+// Map 测试用的映射函数：字符转大写（a-z -> A-Z，按 ASCII 码）
+int to_upper(int c) {
+    if (c >= 97 && c <= 122) { return c - 32 }
+    return c
+}
+
+int main() {
+    // ---------- TrimPrefix ----------
+    string tp1 = "hello world"
+    string tp2 = "world"
+    string tp3 = "hello"
+
+    println("trimprefix_hello={tp1.TrimPrefix("hello ")}")   // "world"
+    println("trimprefix_world={tp1.TrimPrefix("world")}")   // "hello world"（不匹配）
+    println("trimprefix_empty={tp1.TrimPrefix("")}")        // "hello world"
+    println("trimprefix_nomatch={tp2.TrimPrefix("hello")}") // "world"
+    println("trimprefix_self={tp3.TrimPrefix("hello")}")    // ""
+
+    // ---------- TrimSuffix ----------
+    string ts1 = "hello world"
+    string ts2 = "world"
+    string ts3 = "hello"
+
+    println("trimsuffix_world={ts1.TrimSuffix(" world")}")   // "hello"
+    println("trimsuffix_hello={ts1.TrimSuffix("hello")}")   // "hello world"（不匹配）
+    println("trimsuffix_empty={ts1.TrimSuffix("")}")        // "hello world"
+    println("trimsuffix_nomatch={ts2.TrimSuffix("hello")}") // "world"
+    println("trimsuffix_self={ts3.TrimSuffix("hello")}")    // ""
+
+    // ---------- SplitN ----------
+    string sn1 = "a,b,c,d,e"
+    string sn2 = "a,b,c"
+    string sn3 = "a,,b"
+    string sn4 = "hello"
+
+    string[] r1 = sn1.SplitN(",", 2)
+    println("splitn_2={r1[0]}|{r1[1]}")   // "a|b,c,d,e"
+
+    string[] r2 = sn1.SplitN(",", 5)
+    println("splitn_5={r2[0]}|{r2[1]}|{r2[2]}|{r2[3]}|{r2[4]}")   // "a|b|c|d|e"
+
+    string[] r3 = sn2.SplitN(",", 10)
+    println("splitn_10={r3[0]}|{r3[1]}|{r3[2]}")   // "a|b|c"
+
+    string[] r4 = sn3.SplitN(",", 2)
+    println("splitn_empty={r4[0]}|{r4[1]}")   // "a|,b"
+
+    string[] r5 = sn4.SplitN(",", 3)
+    println("splitn_nosep={r5[0]}")   // "hello"
+
+    // ---------- SplitAfter ----------
+    string sa1 = "a,b,c,d"
+    string sa2 = "a,b"
+    string sa3 = "hello,world"
+
+    string[] s1 = sa1.SplitAfter(",")
+    println("splitafter_a={s1[0]}|{s1[1]}|{s1[2]}")   // "a,|b,|c,"
+
+    string[] s2 = sa2.SplitAfter(",")
+    println("splitafter_b={s2[0]}|{s2[1]}")   // "a,|b"
+
+    string[] s3 = sa3.SplitAfter(",")
+    println("splitafter_c={s3[0]}|{s3[1]}")   // "hello,|world"
+
+    string[] s4 = "hello".SplitAfter(",")
+    println("splitafter_nosep={s4[0]}")   // "hello"
+
+    // ---------- Title ----------
+    string t1 = "hello world"
+    string t2 = "GOOD morning"
+    string t3 = "a b c"
+    string t4 = ""
+
+    println("title_1={t1.Title()}")   // "Hello World"
+    println("title_2={t2.Title()}")   // "GOOD Morning"
+    println("title_3={t3.Title()}")   // "A B C"
+    println("title_4={t4.Title()}")   // ""
+
+    // ---------- Map ----------
+    string m1 = "hello"
+    string m2 = "Hello, World!"
+    string m3 = "abc123"
+    string m4 = ""
+
+    println("map_upper={m1.Map(to_upper)}")   // "HELLO"
+    println("map_mixed={m2.Map(to_upper)}")   // "HELLO, WORLD!"
+    println("map_digits={m3.Map(to_upper)}")  // "ABC123"
+    println("map_empty={m4.Map(to_upper)}")   // ""
+
+    return 0
+}

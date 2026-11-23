@@ -89,6 +89,22 @@ ax_str  ax_str_trim(ax_str s);
 ax_str  ax_str_trim_left(ax_str s, ax_str cutset);
 ax_str  ax_str_trim_right(ax_str s, ax_str cutset);
 
+/* 去除前缀/后缀（对标 Go strings.TrimPrefix/TrimSuffix，按字节匹配，
+ * 去除后返回剩余部分；不匹配则返回原字符串副本） */
+ax_str  ax_str_trim_prefix(ax_str s, ax_str prefix);
+ax_str  ax_str_trim_suffix(ax_str s, ax_str suffix);
+
+/* 分割（返回 ax_arr，元素为 ax_str） */
+ax_str* ax_str_split_n(ax_str s, ax_str sep, int64_t n, int64_t* out_n);
+ax_str* ax_str_split_after(ax_str s, ax_str sep, int64_t* n);
+
+/* 标题大写：每个单词首字母大写（对标 Go strings.Title，仅处理 ASCII） */
+ax_str  ax_str_title(ax_str s);
+
+/* 字符映射：对每个字符调用 mapping 函数（对标 Go strings.Map，
+ * mapping 为 int->int 的 C 函数指针；axlang int 映射为 int64_t） */
+ax_str  ax_str_map(ax_str s, int64_t (*mapping)(int64_t));
+
 /* 大小写转换 */
 ax_str  ax_str_to_upper(ax_str s);
 ax_str  ax_str_to_lower(ax_str s);

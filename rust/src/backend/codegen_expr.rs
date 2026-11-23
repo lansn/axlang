@@ -2423,6 +2423,8 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                     "Trim" => format!("ax_str_trim({})", tv),
                     "TrimLeft" => format!("ax_str_trim_left({}, {})", tv, a[0]),
                     "TrimRight" => format!("ax_str_trim_right({}, {})", tv, a[0]),
+                    "TrimPrefix" => format!("ax_str_trim_prefix({}, {})", tv, a[0]),
+                    "TrimSuffix" => format!("ax_str_trim_suffix({}, {})", tv, a[0]),
                     "Contains" => format!("ax_str_contains({}, {})", tv, a[0]),
                     "ContainsRune" => format!("ax_str_contains_rune({}, {})", tv, a[0]),
                     "ContainsAny" => format!("ax_str_contains_any({}, {})", tv, a[0]),
@@ -2490,6 +2492,40 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                     "StartsWith" => format!("ax_str_starts_with({}, {})", tv, a[0]),
                     "EndsWith" => format!("ax_str_ends_with({}, {})", tv, a[0]),
                     "EqualFold" => format!("ax_str_equal_fold({}, {})", tv, a[0]),
+                    // 按分隔符分割最多 n 份
+                    "SplitN" => {
+                        let n = self.tmpn();
+                        let cnt = self.tmpn();
+                        self.emit(format!("int64_t {} = 0;", cnt));
+                        self.emit(format!(
+                            "ax_str* {0}_raw = ax_str_split_n({1}, {2}, {3}, &{4});",
+                            n, tv, a[0], a[1], cnt
+                        ));
+                        self.emit(format!(
+                            "ax_arr {0}; ax_arr_from(&{0}, {0}_raw, {1}, (int64_t)sizeof(ax_str));",
+                            n, cnt
+                        ));
+                        n
+                    }
+                    // 分割并保留分隔符
+                    "SplitAfter" => {
+                        let n = self.tmpn();
+                        let cnt = self.tmpn();
+                        self.emit(format!("int64_t {} = 0;", cnt));
+                        self.emit(format!(
+                            "ax_str* {0}_raw = ax_str_split_after({1}, {2}, &{3});",
+                            n, tv, a[0], cnt
+                        ));
+                        self.emit(format!(
+                            "ax_arr {0}; ax_arr_from(&{0}, {0}_raw, {1}, (int64_t)sizeof(ax_str));",
+                            n, cnt
+                        ));
+                        n
+                    }
+                    // 每个单词首字母大写
+                    "Title" => format!("ax_str_title({})", tv),
+                    // 字符映射
+                    "Map" => format!("ax_str_map({}, {})", tv, a[0]),
                     // 用 s 作为分隔符连接字符串数组
                     "Join" => {
                         let arr_ty = t_array(t_string(), None);

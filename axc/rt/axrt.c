@@ -634,6 +634,73 @@ ax_str* ax_str_split(ax_str s, ax_str sep, int64_t* n) {
     return out;
 }
 
+/* string.SplitN：按 sep 分割，最多分 n 份，达到 n 后停止，剩余部分作为最后一份 */
+ax_str* ax_str_split_n(ax_str s, ax_str sep, int64_t n, int64_t* out_n) {
+    int64_t cap = 8, cnt = 0;
+    ax_str* out = (ax_str*)ax_alloc((int64_t)sizeof(ax_str) * cap);
+    if (n <= 0) { *out_n = 0; return out; }
+    if (sep.len == 0) {
+        out[0] = s; *out_n = 1; return out;
+    }
+    int64_t start = 0;
+    int64_t i = 0;
+    while (cnt + 1 < n && i + sep.len <= s.len) {
+        if (memcmp(s.p + i, sep.p, (size_t)sep.len) == 0) {
+            if (cnt + 1 >= cap) {
+                cap *= 2;
+                ax_str* nout = (ax_str*)ax_alloc((int64_t)sizeof(ax_str) * cap);
+                memcpy(nout, out, (size_t)cnt * sizeof(ax_str));
+                out = nout;
+            }
+            out[cnt++] = ax_str_from_bytes(s.p + start, i - start);
+            i += sep.len;
+            start = i;
+        } else {
+            i++;
+        }
+    }
+    out[cnt++] = ax_str_from_bytes(s.p + start, s.len - start);
+    *out_n = cnt;
+    return out;
+}
+
+/* string.SplitAfter：按 sep 分割，并将 sep 保留在每一部分的末尾 */
+ax_str* ax_str_split_after(ax_str s, ax_str sep, int64_t* n) {
+    int64_t cap = 8, cnt = 0;
+    ax_str* out = (ax_str*)ax_alloc((int64_t)sizeof(ax_str) * cap);
+    if (sep.len == 0) {
+        out[0] = s; *n = 1; return out;
+    }
+    int64_t start = 0;
+    int64_t i = 0;
+    while (i + sep.len <= s.len) {
+        if (memcmp(s.p + i, sep.p, (size_t)sep.len) == 0) {
+            if (cnt + 1 >= cap) {
+                cap *= 2;
+                ax_str* nout = (ax_str*)ax_alloc((int64_t)sizeof(ax_str) * cap);
+                memcpy(nout, out, (size_t)cnt * sizeof(ax_str));
+                out = nout;
+            }
+            out[cnt++] = ax_str_from_bytes(s.p + start, i + sep.len - start);
+            i += sep.len;
+            start = i;
+        } else {
+            i++;
+        }
+    }
+    if (start < s.len) {
+        if (cnt + 1 > cap) {
+            cap = cnt + 1;
+            ax_str* nout = (ax_str*)ax_alloc((int64_t)sizeof(ax_str) * cap);
+            memcpy(nout, out, (size_t)cnt * sizeof(ax_str));
+            out = nout;
+        }
+        out[cnt++] = ax_str_from_bytes(s.p + start, s.len - start);
+    }
+    *n = cnt;
+    return out;
+}
+
 ax_str ax_str_trim(ax_str s) {
     int64_t a = 0, b = s.len;
     while (a < b && (s.p[a] == ' ' || s.p[a] == '\t' || s.p[a] == '\n' || s.p[a] == '\r')) a++;
@@ -667,6 +734,23 @@ ax_str ax_str_trim_right(ax_str s, ax_str cutset) {
         b = i;
     }
     return ax_str_from_bytes(s.p, b);
+}
+
+/* string.TrimPrefix：去除前缀 prefix（按字节匹配），不匹配返回原串副本 */
+ax_str ax_str_trim_prefix(ax_str s, ax_str prefix) {
+    if (prefix.len == 0) return ax_str_from_bytes(s.p, s.len);
+    if (prefix.len > s.len) return ax_str_from_bytes(s.p, s.len);
+    if (memcmp(s.p, prefix.p, (size_t)prefix.len) != 0) return ax_str_from_bytes(s.p, s.len);
+    return ax_str_from_bytes(s.p + prefix.len, s.len - prefix.len);
+}
+
+/* string.TrimSuffix：去除后缀 suffix（按字节匹配），不匹配返回原串副本 */
+ax_str ax_str_trim_suffix(ax_str s, ax_str suffix) {
+    if (suffix.len == 0) return ax_str_from_bytes(s.p, s.len);
+    if (suffix.len > s.len) return ax_str_from_bytes(s.p, s.len);
+    if (memcmp(s.p + s.len - suffix.len, suffix.p, (size_t)suffix.len) != 0)
+        return ax_str_from_bytes(s.p, s.len);
+    return ax_str_from_bytes(s.p, s.len - suffix.len);
 }
 
 static int ax_is_space(uint8_t c) {
@@ -735,6 +819,49 @@ ax_str ax_str_to_lower(ax_str s) {
     uint8_t* buf = (uint8_t*)ax_alloc(s.len <= 0 ? 1 : s.len);
     for (int64_t i = 0; i < s.len; i++) buf[i] = u8_to_ascii_lower(s.p[i]);
     return ax_str_from_bytes(buf, s.len);
+}
+
+/* string.Title：每个单词首字母大写（对标 Go strings.Title，仅处理 ASCII。
+ * 单词由空白符分隔；非 ASCII 字符不作大小写变换。 */
+ax_str ax_str_title(ax_str s) {
+    uint8_t* buf = (uint8_t*)ax_alloc(s.len <= 0 ? 1 : s.len);
+    int64_t pos = 0;
+    int new_word = 1;
+    for (int64_t i = 0; i < s.len; i++) {
+        uint8_t c = s.p[i];
+        if (ax_is_space(c)) {
+            buf[pos++] = c;
+            new_word = 1;
+        } else if (new_word && u8_is_ascii_lower(c)) {
+            buf[pos++] = (uint8_t)(c - 'a' + 'A');
+            new_word = 0;
+        } else {
+            buf[pos++] = c;
+            new_word = 0;
+        }
+    }
+    return ax_str_from_bytes(buf, pos);
+}
+
+/* string.Map：对每个字符调用 mapping(int) -> int，结果拼接成新字符串。
+ * mapping 返回 0 表示删除该字符；按 UTF-8 码点处理。（axlang int 映射为 int64_t） */
+ax_str ax_str_map(ax_str s, int64_t (*mapping)(int64_t)) {
+    uint8_t* buf = (uint8_t*)ax_alloc(s.len <= 0 ? 1 : s.len * 4);
+    int64_t pos = 0;
+    int64_t i = 0;
+    while (i < s.len) {
+        int32_t cp;
+        int k = u8_decode(s.p + i, s.len - i, &cp);
+        if (k <= 0) { buf[pos++] = s.p[i]; i++; continue; }
+        int r = mapping(cp);
+        if (r > 0) {
+            int kk = u8_encode((int32_t)r, buf + pos);
+            if (kk > 0) pos += kk;
+        }
+        /* r <= 0：删除该字符 */
+        i += k;
+    }
+    return ax_str_from_bytes(buf, pos);
 }
 
 /* string.EqualFold：忽略大小写的字符串相等比较，对标 Go strings.EqualFold。
