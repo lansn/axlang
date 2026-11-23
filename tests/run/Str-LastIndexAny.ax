@@ -1,0 +1,35 @@
+// string.LastIndexAny（P1，对标 Go strings.LastIndexAny，按 UTF-8 码点）
+// 查找 chars 中任意字符在 s 中最后出现的码点索引，未找到返回 -1。
+
+import string
+
+int main() {
+    string s = "hello world"
+    string vowels = "aeiou"
+    string xyz = "xyz"
+    string empty = ""
+    string zh = "你好世界"
+    string zhset = "好世"
+    string all_a = "aaaa"
+    string a = "a"
+    string abc = "abc"
+    string c = "c"
+
+    // 基本情况：找到任意字符最后出现位置
+    println("vowels={s.LastIndexAny(vowels)}")        // 元音，'o' 在索引 7
+    println("xyz={s.LastIndexAny(xyz)}")              // 未找到，-1
+    println("empty_set={s.LastIndexAny(empty)}")      // 空字符集，-1
+    println("empty_str={empty.LastIndexAny(vowels)}") // 空字符串，-1
+
+    // 中文字符
+    println("zh={zh.LastIndexAny(zhset)}")            // '世' 在索引 2
+    println("zh_xyz={zh.LastIndexAny(xyz)}")          // 未找到，-1
+
+    // 整个字符串都在字符集中
+    println("all_a={all_a.LastIndexAny(a)}")          // 最后一个 'a'，索引 3
+
+    // 单字符
+    println("single_c={abc.LastIndexAny(c)}")         // 'c' 在索引 2
+
+    return 0
+}

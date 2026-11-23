@@ -2428,6 +2428,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                     "IndexOf" => format!("ax_str_index_of({}, {})", tv, a[0]),
                     "IndexAny" => format!("ax_str_index_any({}, {})", tv, a[0]),
                     "LastIndexOf" => format!("ax_str_last_index_of({}, {})", tv, a[0]),
+                    "LastIndexAny" => format!("ax_str_last_index_any({}, {})", tv, a[0]),
                     "Count" => format!("ax_str_count({}, {})", tv, a[0]),
                     // C# 风格字符串截取（按码点，安全处理越界，复用 ax_str_slice_cp）
                     "Left" => {

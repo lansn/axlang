@@ -1436,6 +1436,7 @@ impl<'a> Sema<'a> {
                 ("IndexOf", vec![t_string()], t_int()),
                 ("IndexAny", vec![t_string()], t_int()),
                 ("LastIndexOf", vec![t_string()], t_int()),
+                ("LastIndexAny", vec![t_string()], t_int()),
                 ("Count", vec![t_string()], t_int()),
                 ("ToString", vec![], t_string()),
                 ("Trim", vec![], t_string()),

@@ -75,6 +75,7 @@ int     ax_str_contains_rune(ax_str s, int32_t cp);
 /* 字符集查找（对标 Go strings.ContainsAny / IndexAny，按 UTF-8 码点） */
 int     ax_str_contains_any(ax_str s, ax_str chars);  /* s 是否包含 chars 中任意字符，1=是 0=否 */
 int64_t ax_str_index_any(ax_str s, ax_str chars);     /* 首次出现 chars 中任意字符的码点索引，未找到返回 -1 */
+int64_t ax_str_last_index_any(ax_str s, ax_str chars); /* 最后出现 chars 中任意字符的码点索引，未找到返回 -1 */
 /* 子串计数（对标 Go strings.Count，非重叠） */
 int64_t ax_str_count(ax_str s, ax_str substr);        /* 非重叠出现次数 */
 /* 子串查找：按 UTF-8 码点索引返回，未找到返回 -1；空子串匹配索引 0 */

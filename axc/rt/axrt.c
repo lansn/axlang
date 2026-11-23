@@ -529,6 +529,23 @@ int64_t ax_str_index_any(ax_str s, ax_str chars) {
     return -1;
 }
 
+/* string.LastIndexAny：最后出现 chars 中任意字符的码点索引，未找到返回 -1 */
+int64_t ax_str_last_index_any(ax_str s, ax_str chars) {
+    if (chars.len == 0) return -1;
+    int64_t i = 0;
+    int64_t cp_idx = 0;
+    int64_t last = -1;
+    while (i < s.len) {
+        int32_t cp;
+        int k = u8_decode(s.p + i, s.len - i, &cp);
+        if (k <= 0) k = 1;
+        if (ax_str_char_in_set(cp, chars)) last = cp_idx;
+        i += k;
+        cp_idx++;
+    }
+    return last;
+}
+
 /* string.Count：非重叠子串出现次数 */
 int64_t ax_str_count(ax_str s, ax_str substr) {
     if (substr.len == 0) return ax_str_len_cp(s) + 1;
