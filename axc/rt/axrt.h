@@ -226,6 +226,18 @@ void  ax_map_clear(ax_map* m);
 /* 返回所有键的副本组成的 ax_arr（按插入顺序，元素大小为 m->ksz） */
 ax_arr ax_map_keys(ax_map* m);
 
+/* maps 模块（对标 Go maps，标准 C11 实现，Rt-8 续） */
+/* 返回所有值的副本组成的 ax_arr（按插入顺序，元素大小为 m->vsz） */
+ax_arr ax_map_values(ax_map* m);
+/* 深拷贝 map：新建独立的 entries/idx，键值元素按 ax_map_put 浅拷贝，
+ * 返回独立副本（对标 Go maps.Clone）。 */
+ax_map ax_map_clone(const ax_map* m);
+/* 将 src 的全部键值复制到 dst（已存在键被覆盖），对标 Go maps.Copy。 */
+void ax_map_copy_into(ax_map* dst, const ax_map* src);
+/* 判断两个 map 是否相等（同长度、同键且对应值相等），对标 Go maps.Equal。
+ * 值比较：string 走 ax_str_eq，decimal 走 ax_dec_cmp==0，其余按字节 memcmp。 */
+int ax_map_equal(const ax_map* a, const ax_map* b);
+
 /* ---------------- 装箱（Rt-9） ---------------- */
 typedef struct ax_box {
     uint32_t tag;

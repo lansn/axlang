@@ -2037,6 +2037,80 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             ("filepath", "Clean") => format!("ax_filepath_clean({})", a[0]),
             ("filepath", "Abs") => format!("ax_filepath_abs({})", a[0]),
             ("filepath", "IsAbs") => format!("ax_filepath_is_abs({})", a[0]),
+            /* ---------------- maps 模块（对标 Go maps，K/V 由实参 Map 类型推导） ---------------- */
+            // maps.Keys(m) -> K[]：返回键数组（按插入顺序）
+            ("maps", "Keys") => {
+                let map_ty = self.ty_or_int(args[0].k.expr.id);
+                let tv = self.declare(&map_ty, &a[0]);
+                let n = self.tmpn();
+                self.emit(format!("ax_arr {} = ax_map_keys(&{});", n, tv));
+                n
+            }
+            // maps.Values(m) -> V[]：返回值数组（按插入顺序）
+            ("maps", "Values") => {
+                let map_ty = self.ty_or_int(args[0].k.expr.id);
+                let _vt = match &*map_ty {
+                    TyS::Map(_, v) => v.clone(),
+                    _ => t_string(),
+                };
+                let tv = self.declare(&map_ty, &a[0]);
+                let n = self.tmpn();
+                self.emit(format!("ax_arr {} = ax_map_values(&{});", n, tv));
+                n
+            }
+            // maps.Clone(m) -> Map：返回独立副本
+            ("maps", "Clone") => {
+                let map_ty = self.ty_or_int(args[0].k.expr.id);
+                let tv = self.declare(&map_ty, &a[0]);
+                let n = self.tmpn();
+                self.emit(format!("ax_map {} = ax_map_clone(&{});", n, tv));
+                n
+            }
+            // maps.Copy(dst, src) -> void：将 src 复制到 dst（dst 必须是左值才会生效）
+            ("maps", "Copy") => {
+                let dst_ty = self.ty_or_int(args[0].k.expr.id);
+                let src_ty = self.ty_or_int(args[1].k.expr.id);
+                let dstv = if Self::is_lvalue(&args[0].k.expr) {
+                    a[0].clone()
+                } else {
+                    self.declare(&dst_ty, &a[0])
+                };
+                let srcv = self.declare(&src_ty, &a[1]);
+                self.emit(format!("ax_map_copy_into(&{}, &{});", dstv, srcv));
+                "0".to_string()
+            }
+            // maps.Delete(m, key: K) -> void：从 m 中删除 key（m 必须是左值才会生效）
+            ("maps", "Delete") => {
+                let map_ty = self.ty_or_int(args[0].k.expr.id);
+                let kt = match &*map_ty {
+                    TyS::Map(k, _) => k.clone(),
+                    _ => t_int(),
+                };
+                let tv = if Self::is_lvalue(&args[0].k.expr) {
+                    a[0].clone()
+                } else {
+                    self.declare(&map_ty, &a[0])
+                };
+                let kv = self.declare(&kt, &a[1]);
+                self.emit(format!("ax_map_remove(&{}, &{});", tv, kv));
+                "0".to_string()
+            }
+            // maps.Equal(m1, m2) -> bool：判断两个 map 是否相等
+            ("maps", "Equal") => {
+                let map1_ty = self.ty_or_int(args[0].k.expr.id);
+                let map2_ty = self.ty_or_int(args[1].k.expr.id);
+                let tv1 = if Self::is_lvalue(&args[0].k.expr) {
+                    a[0].clone()
+                } else {
+                    self.declare(&map1_ty, &a[0])
+                };
+                let tv2 = if Self::is_lvalue(&args[1].k.expr) {
+                    a[1].clone()
+                } else {
+                    self.declare(&map2_ty, &a[1])
+                };
+                format!("ax_map_equal(&{}, &{})", tv1, tv2)
+            }
             _ => "0".to_string(),
         }
     }

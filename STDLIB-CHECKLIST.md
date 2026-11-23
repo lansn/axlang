@@ -586,7 +586,8 @@
 | `maps.Values` | `(m: Map) -> V[]` | Go `maps.Values` | 获取 map 所有值，对标 Go maps.Values | ✅ |
 | `maps.Clone` | `(m: Map) -> Map` | Go `maps.Clone` | 克隆 map，对标 Go maps.Clone | ✅ |
 | `maps.Copy` | `(dst: Map, src: Map) -> void` | Go `maps.Copy` | 复制 map，对标 Go maps.Copy | ✅ |
-| `maps.DeleteFunc` | `(m: Map, f: func(K) bool) -> void` | Go `maps.DeleteFunc` | 按条件删除 map 键，对标 Go maps.DeleteFunc | ✅ |
+| `maps.Delete` | `(m: Map, key: K) -> void` | Go `maps.Delete` | 从 map 中删除指定键，m 必须是左值 | ✅ | 见 tests/run/Maps-Modules.ax |
+| `maps.DeleteFunc` | `(m: Map, f: func(K) bool) -> void` | Go `maps.DeleteFunc` | 按条件删除 map 键，对标 Go maps.DeleteFunc | ✅ | axlang 不支持闭包，暂不落地（同 sort.Slice） |
 | `maps.Equal` | `(m1: Map, m2: Map) -> bool` | Go `maps.Equal` | 判断两个 map 是否相等，对标 Go maps.Equal | ✅ |
 
 
@@ -709,7 +710,7 @@
 | 已落地模块 | io, math, json, file, db, string, time, decimal, Int/Float/Bool/Enum, Array, Map, Range, thread/queue, os, strconv, filepath, rand, sort, slices | 共 19 个模块 |
 | P0 已落地 | strconv 13 个函数；string 6 个 ctype 判断函数；string.ToUpperRune/ToLowerRune（已落地 2026-11-23） | — |
 | P1 待落地 | — | — |
-| P2 待落地 | — | sort.Slice/SliceStable；maps.*；unique.*；bytes/bufio；errors.Is/As；sync/atomic；reflect |
+| P2 待落地 | — | sort.Slice/SliceStable；unique.*；bytes/bufio；errors.Is/As；sync/atomic；reflect |
 | P3 待落地 | — | crypto/*；hash/*；unicode/utf8/utf16；container/*；net/*；template/*；regexp |
 
 

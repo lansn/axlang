@@ -841,6 +841,10 @@ impl<'a> Sema<'a> {
             Expr::MethodCall { name, .. } => name.clone(),
             _ => unreachable!(),
         };
+        // maps.*：泛型 Map 工具，K/V 由实参 Map 类型推导（无闭包，DeleteFunc 暂不落地）
+        if m == "maps" {
+            return self.check_maps_module_call(e, args, &name);
+        }
         self.check_call_args(args, None, None, e.id);
         // 内建 fmt 模块（文稿 11.2，0.0.27）：Printf 编译期核对占位符，
         // Print/Println 与 print/println 走同一套多实参实现
@@ -891,6 +895,125 @@ impl<'a> Sema<'a> {
         }
         self.sl(e.id).mkind = Some("module");
         ret
+    }
+
+    // ---------------------------------------------------------------- maps 模块
+    //
+    // maps.* 是泛型 Map 工具：module_sig 无法表达「Map<K,V> 由实参类型推导」的签名，
+    // 故在 check_module_call 中提前拦截，由本方法负责类型推导与返回类型计算。
+    // 因 axlang 不支持闭包，maps.DeleteFunc 暂不落地（同 sort.Slice 限制）。
+
+    /// 从实参中解构出 Map 的 (K, V) 类型；若实参不是 Map 则返回 None。
+    fn maps_arg_kv(&mut self, a: &ast::N<ast::Arg>) -> Option<(Ty, Ty)> {
+        let mt = self
+            .ty_of(a.k.expr.id)
+            .unwrap_or_else(|| self.check_expr(&a.k.expr, None));
+        match &*mt {
+            TyS::Map(k, v) => Some((k.clone(), v.clone())),
+            _ => None,
+        }
+    }
+
+    fn check_maps_module_call(
+        &mut self,
+        e: &ast::EPtr,
+        args: &[ast::N<ast::Arg>],
+        name: &str,
+    ) -> Ty {
+        let ret: Ty = match name {
+            // maps.Keys(m: Map<K,V>) -> K[]
+            "Keys" => {
+                if args.is_empty() {
+                    return self.maps_not_map_err(e, name);
+                }
+                let (kt, _vt) = match self.maps_arg_kv(&args[0]) {
+                    Some(kv) => kv,
+                    None => return self.maps_not_map_err(e, name),
+                };
+                self.sl(e.id).mkind = Some("module");
+                t_array(kt, None)
+            }
+            // maps.Values(m: Map<K,V>) -> V[]
+            "Values" => {
+                if args.is_empty() {
+                    return self.maps_not_map_err(e, name);
+                }
+                let (_kt, vt) = match self.maps_arg_kv(&args[0]) {
+                    Some(kv) => kv,
+                    None => return self.maps_not_map_err(e, name),
+                };
+                self.sl(e.id).mkind = Some("module");
+                t_array(vt, None)
+            }
+            // maps.Clone(m: Map<K,V>) -> Map<K,V>
+            "Clone" => {
+                if args.is_empty() {
+                    return self.maps_not_map_err(e, name);
+                }
+                let (kt, vt) = match self.maps_arg_kv(&args[0]) {
+                    Some(kv) => kv,
+                    None => return self.maps_not_map_err(e, name),
+                };
+                self.sl(e.id).mkind = Some("module");
+                t_map(kt, vt)
+            }
+            // maps.Copy(dst: Map<K,V>, src: Map<K,V>) -> void
+            "Copy" => {
+                if args.len() < 2 {
+                    return self.maps_not_map_err(e, name);
+                }
+                let _ = self.maps_arg_kv(&args[0]);
+                let _ = self.maps_arg_kv(&args[1]);
+                self.sl(e.id).mkind = Some("module");
+                t_void()
+            }
+            // maps.Delete(m: Map<K,V>, key: K) -> void
+            "Delete" => {
+                if args.len() < 2 {
+                    return self.maps_not_map_err(e, name);
+                }
+                let (kt, _vt) = match self.maps_arg_kv(&args[0]) {
+                    Some(kv) => kv,
+                    None => return self.maps_not_map_err(e, name),
+                };
+                self.coerce(&args[1].k.expr, &kt, "实参");
+                self.sl(e.id).mkind = Some("module");
+                t_void()
+            }
+            // maps.Equal(m1: Map<K,V>, m2: Map<K,V>) -> bool
+            "Equal" => {
+                if args.len() < 2 {
+                    return self.maps_not_map_err(e, name);
+                }
+                let _ = self.maps_arg_kv(&args[0]);
+                let _ = self.maps_arg_kv(&args[1]);
+                self.sl(e.id).mkind = Some("module");
+                t_bool()
+            }
+            _ => {
+                self.err(
+                    "E3003",
+                    &e.tok,
+                    "文稿 9.2",
+                    "模块 `maps` 没有符号 `{0}`（可用：Keys/Values/Clone/Copy/Delete/Equal）",
+                    &[&name],
+                );
+                return t_object();
+            }
+        };
+        ret
+    }
+
+    /// maps.* 实参非 map 类型时的统一报错（E4001）。
+    fn maps_not_map_err(&mut self, e: &ast::EPtr, name: &str) -> Ty {
+        self.err(
+            "E4001",
+            &e.tok,
+            "T-5",
+            "maps.{0} 的第一个实参必须是 map 类型",
+            &[&name],
+        );
+        t_object()
     }
 
     /// 内建 `fmt` 模块（文稿 11.2，0.0.27）。

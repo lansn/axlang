@@ -1732,6 +1732,65 @@ ax_arr ax_map_keys(ax_map* m) {
     return keys;
 }
 
+/* 返回所有值的副本组成的 ax_arr（按插入顺序，元素大小为 m->vsz） */
+ax_arr ax_map_values(ax_map* m) {
+    ax_arr vals;
+    ax_arr_init(&vals);
+    for (int64_t i = 0; i < m->len; i++) {
+        ax_arr_push(&vals, m->entries[i].v, (int64_t)m->vsz);
+    }
+    return vals;
+}
+
+/* 值相等比较：string 用 ax_str_eq，decimal 用 ax_dec_cmp==0，其余按字节 */
+static int map_value_eq(const void* a, const void* b, int64_t vsz) {
+    if (vsz == (int64_t)sizeof(ax_str)) {
+        ax_str x, y;
+        memcpy(&x, a, sizeof x);
+        memcpy(&y, b, sizeof y);
+        return ax_str_eq(x, y);
+    }
+    if (vsz == (int64_t)sizeof(ax_dec)) {
+        ax_dec x, y;
+        memcpy(&x, a, sizeof x);
+        memcpy(&y, b, sizeof y);
+        return ax_dec_cmp(x, y) == 0;
+    }
+    return memcmp(a, b, (size_t)vsz) == 0;
+}
+
+/* 深拷贝 map：新建独立的 entries/idx，键值元素按 ax_map_put 浅拷贝，
+ * 返回独立副本（对标 Go maps.Clone）。 */
+ax_map ax_map_clone(const ax_map* m) {
+    ax_map n;
+    ax_map_init(&n, m->khash, m->ksz, m->vsz);
+    for (int64_t i = 0; i < m->len; i++) {
+        ax_map_put(&n, m->entries[i].k, m->entries[i].v);
+    }
+    return n;
+}
+
+/* 将 src 的全部键值复制到 dst（已存在键被覆盖），对标 Go maps.Copy。 */
+void ax_map_copy_into(ax_map* dst, const ax_map* src) {
+    for (int64_t i = 0; i < src->len; i++) {
+        ax_map_put(dst, src->entries[i].k, src->entries[i].v);
+    }
+}
+
+/* 判断两个 map 是否相等（同长度、同键且对应值相等），对标 Go maps.Equal。 */
+int ax_map_equal(const ax_map* a, const ax_map* b) {
+    if (a->len != b->len) return 0;
+    if (a->khash != b->khash) return 0;
+    for (int64_t i = 0; i < a->len; i++) {
+        const void* k = a->entries[i].k;
+        const void* v = a->entries[i].v;
+        if (!ax_map_has(b, k)) return 0;
+        void* bv = ax_map_get(b, k);
+        if (!map_value_eq(v, bv, a->vsz)) return 0;
+    }
+    return 1;
+}
+
 /* ================================================================ 装箱 */
 ax_box* ax_box_new(uint32_t tag, const void* payload, int64_t size) {
     ax_box* b = (ax_box*)ax_alloc((int64_t)sizeof(ax_box));
