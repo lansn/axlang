@@ -1,0 +1,24 @@
+// sort 模块：IntsAreSorted / StringsAreSorted（对标 Go sort.IntsAreSorted / sort.StringsAreSorted）
+import sort
+
+int main() {
+    int[] a = [1, 2, 3, 4, 5]
+    println("sorted-int={sort.IntsAreSorted(a)}")
+
+    int[] b = [1, 3, 2, 4, 5]
+    println("unsorted-int={sort.IntsAreSorted(b)}")
+
+    int[] c = []
+    println("empty-int={sort.IntsAreSorted(c)}")
+
+    int[] d = [42]
+    println("single-int={sort.IntsAreSorted(d)}")
+
+    string[] e = ["apple", "banana", "cherry"]
+    println("sorted-str={sort.StringsAreSorted(e)}")
+
+    string[] f = ["banana", "apple", "cherry"]
+    println("unsorted-str={sort.StringsAreSorted(f)}")
+
+    return 0
+}

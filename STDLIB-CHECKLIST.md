@@ -385,8 +385,8 @@
 | `sort.Ints` | `(a: int[]) -> void` | Go `sort.Ints` | 整数切片排序 | ✅ | 标准 C11 实现 |
 | `sort.Strings` | `(a: string[]) -> void` | Go `sort.Strings` | 字符串切片排序 | ✅ | 标准 C11 实现 |
 | `sort.Float64s` | `(a: float[]) -> void` | Go `sort.Float64s` | 浮点数切片排序，对标 Go sort.Float64s；标准 C11 qsort | ✅ | 标准 C11 实现 |
-| `sort.IntsAreSorted` | `(a: int[]) -> bool` | Go `sort.IntsAreSorted` | 未落地 | ⬜ | 计划中 |
-| `sort.StringsAreSorted` | `(a: string[]) -> bool` | Go `sort.StringsAreSorted` | 未落地 | ⬜ | 计划中 |
+| `sort.IntsAreSorted` | `(a: int[]) -> bool` | Go `sort.IntsAreSorted` | 判断整数切片是否已排序，对标 Go sort.IntsAreSorted；标准 C11 实现 | ✅ | 标准 C11 实现 |
+| `sort.StringsAreSorted` | `(a: string[]) -> bool` | Go `sort.StringsAreSorted` | 判断字符串切片是否已排序，对标 Go sort.StringsAreSorted；标准 C11 实现 | ✅ | 标准 C11 实现 |
 | `sort.SearchInts` | `(a: int[], x: int) -> int` | Go `sort.SearchInts` | 未落地 | ⬜ | 计划中 |
 | `sort.SearchStrings` | `(a: string[], x: string) -> int` | Go `sort.SearchStrings` | 未落地 | ⬜ | 计划中 |
 | `sort.Slice` | `(a: any[], less: func(i, j int) bool) -> void` | Go `sort.Slice` | 未落地 | ⬜ | 计划中 |
@@ -552,8 +552,8 @@
 | ax.函数 | 签名 | 对标 | 函数功能/用途 | 状态 |
 | ------ | ------ | ------ | ------ | ------ |
 | `sort.Float64s` | `(a: float[]) -> void` | Go `sort.Float64s` | 浮点数切片排序，对标 Go sort.Float64s | ⬜ |
-| `sort.IntsAreSorted` | `(a: int[]) -> bool` | Go `sort.IntsAreSorted` | 判断整数切片是否已排序，对标 Go sort.IntsAreSorted | ⬜ |
-| `sort.StringsAreSorted` | `(a: string[]) -> bool` | Go `sort.StringsAreSorted` | 判断字符串切片是否已排序，对标 Go sort.StringsAreSorted | ⬜ |
+| `sort.IntsAreSorted` | `(a: int[]) -> bool` | Go `sort.IntsAreSorted` | 判断整数切片是否已排序，对标 Go sort.IntsAreSorted | ✅ | 标准 C11 实现 |
+| `sort.StringsAreSorted` | `(a: string[]) -> bool` | Go `sort.StringsAreSorted` | 判断字符串切片是否已排序，对标 Go sort.StringsAreSorted | ✅ | 标准 C11 实现 |
 | `sort.SearchInts` | `(a: int[], x: int) -> int` | Go `sort.SearchInts` | 二分查找整数，对标 Go sort.SearchInts | ⬜ |
 | `sort.SearchStrings` | `(a: string[], x: string) -> int` | Go `sort.SearchStrings` | 二分查找字符串，对标 Go sort.SearchStrings | ⬜ |
 | `sort.Slice` | `(a: any[], less: func(i, j int) bool) -> void` | Go `sort.Slice` | 通用切片排序（带 less 函数），对标 Go sort.Slice | ⬜ |
@@ -707,7 +707,7 @@
 | 已落地模块 | io, math, json, file, db, string, time, decimal, Int/Float/Bool/Enum, Array, Map, Range, thread/queue, os, strconv, filepath, rand, sort, slices | 共 19 个模块 |
 | P0 已落地 | strconv 13 个函数；string 6 个 ctype 判断函数 | string.ToUpperRune/ToLowerRune |
 | P1 待落地 | — | — |
-| P2 待落地 | — | csv.ReadAll/Write；sort.IntsAreSorted/StringsAreSorted/SearchInts/SearchStrings/Slice/SliceStable；maps.*；unique.*；bytes/bufio；log/errors；sync/atomic；reflect |
+| P2 待落地 | — | csv.ReadAll/Write；sort.SearchInts/SearchStrings/Slice/SliceStable；maps.*；unique.*；bytes/bufio；log/errors；sync/atomic；reflect |
 | P3 待落地 | — | crypto/*；hash/*；unicode/utf8/utf16；container/*；net/*；template/*；regexp |
 
 
