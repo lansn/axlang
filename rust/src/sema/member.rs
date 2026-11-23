@@ -817,6 +817,16 @@ impl<'a> Sema<'a> {
             self.sl(e.id).mkind = Some("StrFields");
             return t_array(t_string(), None);
         }
+        if name == "ToUpperRune" && type_name == "string" {
+            self.check_call_args(args, Some(&[t_int()]), None, e.id);
+            self.sl(e.id).mkind = Some("ToUpperRune");
+            return t_int();
+        }
+        if name == "ToLowerRune" && type_name == "string" {
+            self.check_call_args(args, Some(&[t_int()]), None, e.id);
+            self.sl(e.id).mkind = Some("ToLowerRune");
+            return t_int();
+        }
         self.err("E3003", &e.tok, "N-17", "`{0}.{1}` 不存在", &[&type_name, &name]);
         t_object()
     }

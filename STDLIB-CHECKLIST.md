@@ -188,8 +188,8 @@
 | `string.SplitAfter` | `(sep: string) -> string[]` | Go `strings.SplitAfter` | 未落地 | ✅ | 标准 C11 实现 |
 | `string.Title` | `() -> string` | Go `strings.Title` | 未落地 | ✅ | 标准 C11 实现 |
 | `string.Map` | `(mapping: func(int) int) -> string` | Go `strings.Map` | 未落地 | ✅ | 标准 C11 实现 |
-| `string.ToUpperRune` | `(r: int) -> int` | C `toupper` / Go `unicode.ToUpper` | 未落地 | ✅ | 标准 C11 实现 |
-| `string.ToLowerRune` | `(r: int) -> int` | C `tolower` / Go `unicode.ToLower` | 未落地 | ✅ | 标准 C11 实现 |
+| `string.ToUpperRune` | `(r: int) -> int` | C `toupper` / Go `unicode.ToUpper` | 单字符大小写转换，仅处理 ASCII 范围，对标 C toupper / Go unicode.ToUpper | ✅ | 标准 C11 实现 |
+| `string.ToLowerRune` | `(r: int) -> int` | C `tolower` / Go `unicode.ToLower` | 单字符大小写转换，仅处理 ASCII 范围，对标 C tolower / Go unicode.ToLower | ✅ | 标准 C11 实现 |
 
 
 ### 8. time（对标 Go time / C time.h）
@@ -412,9 +412,7 @@
 
 #### 字符分类与转换（对标 C ctype.h）
 
-已全部落地：IsDigit, IsAlpha, IsSpace, IsLower, IsUpper, IsAlnum
-
-待落地：ToUpperRune, ToLowerRune ⬜
+已全部落地：IsDigit, IsAlpha, IsSpace, IsLower, IsUpper, IsAlnum, ToUpperRune, ToLowerRune
 
 
 
@@ -709,7 +707,7 @@
 | 阶段 | 已完成 | 待完成 |
 | --- | --- | --- |
 | 已落地模块 | io, math, json, file, db, string, time, decimal, Int/Float/Bool/Enum, Array, Map, Range, thread/queue, os, strconv, filepath, rand, sort, slices | 共 19 个模块 |
-| P0 已落地 | strconv 13 个函数；string 6 个 ctype 判断函数 | string.ToUpperRune/ToLowerRune |
+| P0 已落地 | strconv 13 个函数；string 6 个 ctype 判断函数；string.ToUpperRune/ToLowerRune（已落地 2026-11-23） | — |
 | P1 待落地 | — | — |
 | P2 待落地 | — | sort.Slice/SliceStable；maps.*；unique.*；bytes/bufio；log；errors.Is/As；sync/atomic；reflect |
 | P3 待落地 | — | crypto/*；hash/*；unicode/utf8/utf16；container/*；net/*；template/*；regexp |

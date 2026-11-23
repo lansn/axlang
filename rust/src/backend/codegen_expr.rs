@@ -1535,6 +1535,16 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             let a0 = self.gen(&args[0].k.expr, None, false, false);
             return format!("ax_str_fields({})", a0);
         }
+        if mk == "ToUpperRune" {
+            // `string.ToUpperRune(c)`：接收者 `string` 仅是命名空间，取单个 int 实参。
+            let a0 = self.gen(&args[0].k.expr, None, false, false);
+            return format!("ax_str_to_upper_rune({})", a0);
+        }
+        if mk == "ToLowerRune" {
+            // `string.ToLowerRune(c)`：接收者 `string` 仅是命名空间，取单个 int 实参。
+            let a0 = self.gen(&args[0].k.expr, None, false, false);
+            return format!("ax_str_to_lower_rune({})", a0);
+        }
         if mk == "arena_alloc" {
             // O-17：`ar.Alloc(x)` —— 区域收养对象指针，返回值即 ArenaRef<T>
             //（C 层 T*）。实参在 sema 已按 move 处理。
@@ -1996,6 +2006,8 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             /* ---------------- string 模块（模块级函数） ---------------- */
             ("string", "Compare") => format!("ax_str_cmp({}, {})", a[0], a[1]),
             ("string", "Fields") => format!("ax_str_fields({})", a[0]),
+            ("string", "ToUpperRune") => format!("ax_str_to_upper_rune({})", a[0]),
+            ("string", "ToLowerRune") => format!("ax_str_to_lower_rune({})", a[0]),
             /* ---------------- filepath 模块 ---------------- */
             ("filepath", "Join") => {
                 let arr = &a[0];

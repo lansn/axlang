@@ -821,6 +821,20 @@ ax_str ax_str_to_lower(ax_str s) {
     return ax_str_from_bytes(buf, s.len);
 }
 
+/* string.ToUpperRune：对单个码点做大小写转换（对标 Go strings.ToUpperRune / C toupper，
+ * 仅处理 ASCII 范围：a-z -> A-Z，非 ASCII 码点原样返回）。标准 C11 实现。 */
+int64_t ax_str_to_upper_rune(int64_t c) {
+    if (c >= (int64_t)'a' && c <= (int64_t)'z') return c - (int64_t)'a' + (int64_t)'A';
+    return c;
+}
+
+/* string.ToLowerRune：对单个码点做小写转换（对标 Go strings.ToLowerRune / C tolower，
+ * 仅处理 ASCII 范围：A-Z -> a-z，非 ASCII 码点原样返回）。标准 C11 实现。 */
+int64_t ax_str_to_lower_rune(int64_t c) {
+    if (c >= (int64_t)'A' && c <= (int64_t)'Z') return c - (int64_t)'A' + (int64_t)'a';
+    return c;
+}
+
 /* string.Title：每个单词首字母大写（对标 Go strings.Title，仅处理 ASCII。
  * 单词由空白符分隔；非 ASCII 字符不作大小写变换。 */
 ax_str ax_str_title(ax_str s) {

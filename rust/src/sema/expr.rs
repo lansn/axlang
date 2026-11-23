@@ -94,6 +94,8 @@ pub fn module_sig(mod_: &str, name: &str) -> Option<(Vec<Option<Ty>>, Ty)> {
         ("string", "FromCodepoint") => (vec![Some(t_int())], t_result(t_string())),
         ("string", "Compare") => (vec![Some(t_string()), Some(t_string())], t_int()),
         ("string", "Fields") => (vec![Some(t_string())], t_array(t_string(), None)),
+        ("string", "ToUpperRune") => (vec![Some(t_int())], t_int()),
+        ("string", "ToLowerRune") => (vec![Some(t_int())], t_int()),
         ("time", "NowMs") => (vec![], t_int()),
         ("time", "Now") => (vec![], t_named(DefId::Name("time"), Vec::new())),
         ("time", "FromUnixMs") => (vec![Some(t_int())], t_named(DefId::Name("time"), Vec::new())),

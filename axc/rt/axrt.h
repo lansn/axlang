@@ -109,6 +109,11 @@ ax_str  ax_str_map(ax_str s, int64_t (*mapping)(int64_t));
 ax_str  ax_str_to_upper(ax_str s);
 ax_str  ax_str_to_lower(ax_str s);
 
+/* 单字符大小写转换（对标 Go strings.ToUpperRune/ToLowerRune / C toupper/tolower，
+ * 仅处理 ASCII 范围：a-z<->A-Z，非 ASCII 码点原样返回；标准 C11 实现） */
+int64_t ax_str_to_upper_rune(int64_t c);
+int64_t ax_str_to_lower_rune(int64_t c);
+
 /* 忽略大小写的字符串相等比较（对标 Go strings.EqualFold，仅处理 ASCII 大小写，
  * 非 ASCII 字符按字节比较；相等返回 1，否则返回 0） */
 int     ax_str_equal_fold(ax_str a, ax_str b);
