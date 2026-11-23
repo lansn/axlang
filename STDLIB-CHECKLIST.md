@@ -743,7 +743,7 @@
 
 11. ✅ `math.Asin` / `math.Acos` / `math.Atan` / `math.Atan2` / `math.Hypot` / `math.Cbrt` / `math.Trunc`（对标 Go `math` / C `math.h`，反三角与取整，P1，已落地 2026-11-23，见 tests/run/Math-AcosAsinAtan.ax/.out）
 
-7. `file.Chmod` / `file.Chtimes` / `file.TempFile`（对标 Go `os`，文件权限/时间/临时文件，P1）
+7. ✅ `file.Chmod` / `file.Chtimes` / `file.TempFile`（对标 Go `os`，文件权限/时间/临时文件，P1，已落地 2026-11-22，见 tests/run/File-ChmodChtimesTempfile.ax/.out）
 
 
 
