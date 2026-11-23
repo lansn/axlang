@@ -1,0 +1,37 @@
+// string.EqualFold（P1，对标 Go strings.EqualFold，忽略大小写比较）
+// 仅处理 ASCII 大小写（A-Z<->a-z），非 ASCII 字符按字节比较；相等返回 true，否则返回 false。
+
+import string
+
+int main() {
+    string s1 = "Hello"
+    string s2 = "hello"
+    string s3 = "HELLO"
+    string s4 = "World"
+    string empty = ""
+    string zh1 = "你好"
+    string zh2 = "你好"
+    string zh3 = "世界"
+
+    // 相等（忽略大小写）
+    println("eq_hello={s1.EqualFold(s2)}")    // true
+    println("eq_hello_upper={s1.EqualFold(s3)}") // true
+    println("eq_same={s1.EqualFold(s1)}")      // true
+
+    // 不相等
+    println("eq_diff={s1.EqualFold(s4)}")      // false
+
+    // 空字符串
+    println("eq_empty={empty.EqualFold(empty)}") // true
+    println("eq_empty_vs_nonempty={empty.EqualFold(s1)}") // false
+
+    // 中文/非 ASCII（按字节比较）
+    println("eq_zh_same={zh1.EqualFold(zh2)}")  // true
+    println("eq_zh_diff={zh1.EqualFold(zh3)}")  // false
+
+    // 数字
+    println("eq_num={"123".EqualFold("123")}")  // true
+    println("eq_num_diff={"123".EqualFold("456")}") // false
+
+    return 0
+}

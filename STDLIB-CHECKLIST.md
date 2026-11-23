@@ -178,8 +178,8 @@
 | `string.ContainsRune` | `(r: int) -> bool`                     | Go `strings.ContainsRune`          | 未落地         | ⬜  | 计划中       |
 | `string.Count`        | `(substr: string) -> int`              | Go `strings.Count`                 | 未落地         | ⬜  | 计划中       |
 | `string.IndexAny`     | `(chars: string) -> int`               | Go `strings.IndexAny`              | 未落地         | ⬜  | 计划中       |
-| `string.LastIndexAny` | `(chars: string) -> int`               | Go `strings.LastIndexAny`          | 未落地         | ⬜  | 计划中       |
-| `string.EqualFold`    | `(t: string) -> bool`                  | Go `strings.EqualFold`             | 未落地         | ⬜  | 计划中       |
+| `string.LastIndexAny` | `(chars: string) -> int`               | Go `strings.LastIndexAny`          | 最后出现任意字符的码点索引，对标 Go strings.LastIndexAny；标准 C11 直接映射 | ✅ | 标准 C11 实现 |
+| `string.EqualFold`    | `(t: string) -> bool`                  | Go `strings.EqualFold`             | 忽略大小写比较，对标 Go strings.EqualFold；标准 C11 直接映射 | ✅ | 标准 C11 实现 |
 | `string.TrimLeft` | `(cutset: string) -> string` | Go `strings.TrimLeft` | 未落地 | ⬜ | 计划中 |
 | `string.TrimRight` | `(cutset: string) -> string` | Go `strings.TrimRight` | 未落地 | ⬜ | 计划中 |
 | `string.TrimPrefix` | `(prefix: string) -> string` | Go `strings.TrimPrefix` | 未落地 | ⬜ | 计划中 |
@@ -457,8 +457,8 @@
 | `string.ContainsRune` | 实例 | `(r: int) -> bool` | Go `strings.ContainsRune` | 判断是否包含字符，对标 Go strings.ContainsRune | ✅ | 标准 C11 实现 |
 | `string.Count` | 实例 | `(substr: string) -> int` | Go `strings.Count` | 统计子串出现次数，对标 Go strings.Count | ✅ |
 | `string.IndexAny` | 实例 | `(chars: string) -> int` | Go `strings.IndexAny` | 首次出现任意字符的索引，对标 Go strings.IndexAny | ✅ |
-| `string.LastIndexAny` | 实例 | `(chars: string) -> int` | Go `strings.LastIndexAny` | 最后出现任意字符的索引，对标 Go strings.LastIndexAny | ⬜ |
-| `string.EqualFold` | 实例 | `(t: string) -> bool` | Go `strings.EqualFold` | 忽略大小写比较，对标 Go strings.EqualFold | ⬜ |
+| `string.LastIndexAny` | 实例 | `(chars: string) -> int` | Go `strings.LastIndexAny` | 最后出现任意字符的索引，对标 Go strings.LastIndexAny | ✅ | 标准 C11 实现 |
+| `string.EqualFold` | 实例 | `(t: string) -> bool` | Go `strings.EqualFold` | 忽略大小写比较，对标 Go strings.EqualFold | ✅ | 标准 C11 实现 |
 | `string.TrimLeft` | 实例 | `(cutset: string) -> string` | Go `strings.TrimLeft` | 去除左侧字符集，对标 Go strings.TrimLeft | ⬜ |
 | `string.TrimRight` | 实例 | `(cutset: string) -> string` | Go `strings.TrimRight` | 去除右侧字符集，对标 Go strings.TrimRight | ⬜ |
 | `string.TrimPrefix` | 实例 | `(prefix: string) -> string` | Go `strings.TrimPrefix` | 去除前缀，对标 Go strings.TrimPrefix | ⬜ |

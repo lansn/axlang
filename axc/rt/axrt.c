@@ -709,6 +709,19 @@ ax_str ax_str_to_lower(ax_str s) {
     return ax_str_from_bytes(buf, s.len);
 }
 
+/* string.EqualFold：忽略大小写的字符串相等比较，对标 Go strings.EqualFold。
+ * 仅处理 ASCII 大小写（A-Z<->a-z），非 ASCII 字符按字节比较；相等返回 1，否则返回 0。
+ * 空字符串相等返回 1。标准 C11 实现。 */
+int ax_str_equal_fold(ax_str a, ax_str b) {
+    if (a.len != b.len) return 0;
+    for (int64_t i = 0; i < a.len; i++) {
+        uint8_t ca = u8_to_ascii_lower(a.p[i]);
+        uint8_t cb = u8_to_ascii_lower(b.p[i]);
+        if (ca != cb) return 0;
+    }
+    return 1;
+}
+
 /* ---------------- 前缀/后缀判断 ---------------- */
 
 int ax_str_starts_with(ax_str s, ax_str prefix) {

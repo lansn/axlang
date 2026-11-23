@@ -2487,6 +2487,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                     // 前缀/后缀判断
                     "StartsWith" => format!("ax_str_starts_with({}, {})", tv, a[0]),
                     "EndsWith" => format!("ax_str_ends_with({}, {})", tv, a[0]),
+                    "EqualFold" => format!("ax_str_equal_fold({}, {})", tv, a[0]),
                     // 用 s 作为分隔符连接字符串数组
                     "Join" => {
                         let arr_ty = t_array(t_string(), None);

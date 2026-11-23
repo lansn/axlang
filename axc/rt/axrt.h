@@ -88,6 +88,10 @@ ax_str  ax_str_trim(ax_str s);
 ax_str  ax_str_to_upper(ax_str s);
 ax_str  ax_str_to_lower(ax_str s);
 
+/* 忽略大小写的字符串相等比较（对标 Go strings.EqualFold，仅处理 ASCII 大小写，
+ * 非 ASCII 字符按字节比较；相等返回 1，否则返回 0） */
+int     ax_str_equal_fold(ax_str a, ax_str b);
+
 /* 前缀/后缀判断 */
 int     ax_str_starts_with(ax_str s, ax_str prefix);
 int     ax_str_ends_with(ax_str s, ax_str suffix);

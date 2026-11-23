@@ -1449,6 +1449,7 @@ impl<'a> Sema<'a> {
                 ("Lower", vec![], t_string()),
                 ("StartsWith", vec![t_string()], t_bool()),
                 ("EndsWith", vec![t_string()], t_bool()),
+                ("EqualFold", vec![t_string()], t_bool()),
                 ("Join", vec![t_array(t_string(), None)], t_string()),
                 ("Replace", vec![t_string(), t_string()], t_string()),
                 ("Repeat", vec![t_int()], t_string()),
