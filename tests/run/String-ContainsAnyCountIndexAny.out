@@ -1,0 +1,11 @@
+contains_any_vowels=true
+contains_any_digits=false
+contains_any_empty=false
+index_any_vowels=1
+index_any_digits=-1
+index_any_empty=-1
+count_l=3
+count_o=2
+count_empty=14
+count_ll=1
+count_z=0

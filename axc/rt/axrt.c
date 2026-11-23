@@ -472,6 +472,66 @@ int ax_str_contains(ax_str s, ax_str sub) {
     return 0;
 }
 
+/* 判断码点 cp 是否在字符集 chars 中（按 UTF-8 码点比较） */
+static int ax_str_char_in_set(int32_t cp, ax_str chars) {
+    int64_t i = 0;
+    while (i < chars.len) {
+        int32_t ccp;
+        int k = u8_decode(chars.p + i, chars.len - i, &ccp);
+        if (k <= 0) k = 1;
+        if (ccp == cp) return 1;
+        i += k;
+    }
+    return 0;
+}
+
+/* string.ContainsAny：s 是否包含 chars 中任意字符，1=是 0=否 */
+int ax_str_contains_any(ax_str s, ax_str chars) {
+    if (chars.len == 0) return 0;
+    int64_t i = 0;
+    while (i < s.len) {
+        int32_t cp;
+        int k = u8_decode(s.p + i, s.len - i, &cp);
+        if (k <= 0) k = 1;
+        if (ax_str_char_in_set(cp, chars)) return 1;
+        i += k;
+    }
+    return 0;
+}
+
+/* string.IndexAny：首次出现 chars 中任意字符的码点索引，未找到返回 -1 */
+int64_t ax_str_index_any(ax_str s, ax_str chars) {
+    if (chars.len == 0) return -1;
+    int64_t i = 0;
+    int64_t cp_idx = 0;
+    while (i < s.len) {
+        int32_t cp;
+        int k = u8_decode(s.p + i, s.len - i, &cp);
+        if (k <= 0) k = 1;
+        if (ax_str_char_in_set(cp, chars)) return cp_idx;
+        i += k;
+        cp_idx++;
+    }
+    return -1;
+}
+
+/* string.Count：非重叠子串出现次数 */
+int64_t ax_str_count(ax_str s, ax_str substr) {
+    if (substr.len == 0) return ax_str_len_cp(s) + 1;
+    if (substr.len > s.len) return 0;
+    int64_t count = 0;
+    int64_t i = 0;
+    while (i + substr.len <= s.len) {
+        if (memcmp(s.p + i, substr.p, (size_t)substr.len) == 0) {
+            count++;
+            i += substr.len;  /* 非重叠：跳过已匹配的子串 */
+        } else {
+            i++;
+        }
+    }
+    return count;
+}
+
 /* ---------------- 子串查找（按 UTF-8 码点索引，未找到返回 -1） ---------------- */
 
 /* 返回 sub 在 s 中首次出现的码点索引；空子串匹配索引 0。 */

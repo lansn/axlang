@@ -1,0 +1,28 @@
+// string.ContainsAny / Count / IndexAny（对标 Go strings.ContainsAny / Count / IndexAny）
+// 覆盖 sema intrinsic 表与 codegen 分支的一一对应
+
+int main() {
+    string s = "Hello, World!"
+    string vowels = "aeiou"
+    string digits = "0123456789"
+    string empty = ""
+
+    // ContainsAny：是否包含字符集中的任意字符
+    println("contains_any_vowels={s.ContainsAny(vowels)}")   // true (e, o)
+    println("contains_any_digits={s.ContainsAny(digits)}")   // false
+    println("contains_any_empty={s.ContainsAny(empty)}")     // false
+
+    // IndexAny：首次出现字符集中任意字符的索引
+    println("index_any_vowels={s.IndexAny(vowels)}")         // 1 ('e' at index 1)
+    println("index_any_digits={s.IndexAny(digits)}")         // -1
+    println("index_any_empty={s.IndexAny(empty)}")           // -1
+
+    // Count：非重叠子串出现次数
+    println("count_l={s.Count("l")}")                        // 3 (Hello -> ll, World -> l)
+    println("count_o={s.Count("o")}")                        // 2 (Hello, World)
+    println("count_empty={s.Count(empty)}")                  // 14 (len_cp + 1)
+    println("count_ll={s.Count("ll")}")                       // 1
+    println("count_z={s.Count("z")}")                        // 0
+
+    return 0
+}

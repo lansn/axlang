@@ -454,10 +454,10 @@
 
 | ax.函数 | 类型 | 签名 | 对标 | 函数功能/用途 | 状态 |
 | ------ | ------ | ------ | ------ | ------ | ------ |
-| `string.ContainsAny` | 实例 | `(chars: string) -> bool` | Go `strings.ContainsAny` | 判断是否包含任意字符，对标 Go strings.ContainsAny | ⬜ |
+| `string.ContainsAny` | 实例 | `(chars: string) -> bool` | Go `strings.ContainsAny` | 判断是否包含任意字符，对标 Go strings.ContainsAny | ✅ |
 | `string.ContainsRune` | 实例 | `(r: int) -> bool` | Go `strings.ContainsRune` | 判断是否包含字符，对标 Go strings.ContainsRune | ⬜ |
-| `string.Count` | 实例 | `(substr: string) -> int` | Go `strings.Count` | 统计子串出现次数，对标 Go strings.Count | ⬜ |
-| `string.IndexAny` | 实例 | `(chars: string) -> int` | Go `strings.IndexAny` | 首次出现任意字符的索引，对标 Go strings.IndexAny | ⬜ |
+| `string.Count` | 实例 | `(substr: string) -> int` | Go `strings.Count` | 统计子串出现次数，对标 Go strings.Count | ✅ |
+| `string.IndexAny` | 实例 | `(chars: string) -> int` | Go `strings.IndexAny` | 首次出现任意字符的索引，对标 Go strings.IndexAny | ✅ |
 | `string.LastIndexAny` | 实例 | `(chars: string) -> int` | Go `strings.LastIndexAny` | 最后出现任意字符的索引，对标 Go strings.LastIndexAny | ⬜ |
 | `string.EqualFold` | 实例 | `(t: string) -> bool` | Go `strings.EqualFold` | 忽略大小写比较，对标 Go strings.EqualFold | ⬜ |
 | `string.TrimLeft` | 实例 | `(cutset: string) -> string` | Go `strings.TrimLeft` | 去除左侧字符集，对标 Go strings.TrimLeft | ⬜ |
@@ -656,11 +656,7 @@
 以下为 `go_lib.txt`（Go 1.25.1 标准库）中尚未列入 axlang P0/P1/P2 待落地清单的顶层包，均标记为 ⬜ 未落地，作为后续持续丰富的候选。已在 P0/P1/P2 中列出的包（`errors`、`html/template`、`io/fs`、`log/slog`、`reflect`、`sync/atomic`、`unique`、`template/parse`）此处不再重复。
 
 
-
 | Go 包 (go_lib.txt) | 代表子包 | 对标 axlang 计划 | 函数功能/用途 | 状态 | 说明 |
-| --- | --- | --- | --- | --- | ------ |
-
-|  |  |  |  |  |  |
 | --- | --- | --- | --- | --- | --- |
 | `archive` | `tar`, `zip` | `archive` | 归档文件读写 | ⬜ | 计划中 |
 | `compress` | `bzip2`, `flate`, `gzip`, `lzw`, `zlib`, `zstd` | `compress` | 压缩/解压缩 | ⬜ | 计划中 |
@@ -706,19 +702,11 @@
 
 ## 三、当前进度汇总
 
-
-
-|  |  |  |
-| --- | --- | --- |
 | 阶段 | 已完成 | 待完成 |
-
-| ------ | -------- | -------- |
-
-|  |  |  |
 | --- | --- | --- |
 | 已落地模块 | io, math, json, file, db, string, time, decimal, Int/Float/Bool/Enum, Array, Map, Range, thread/queue, os, strconv, filepath, rand, sort, slices | 共 19 个模块 |
 | P0 已落地 | strconv 13 个函数；string 6 个 ctype 判断函数 | string.ToUpperRune/ToLowerRune |
-| P1 待落地 | — | string.ContainsAny/Count/IndexAny/… |
+| P1 待落地 | — | — |
 | P2 待落地 | — | fmt.Sprintf/Fprintf/…；json.MarshalIndent/Valid；csv.ReadAll/Write；sort.Float64s/…；maps.*；unique.*；bytes/bufio；log/errors；sync/atomic；reflect |
 | P3 待落地 | — | crypto/*；hash/*；unicode/utf8/utf16；container/*；net/*；template/*；regexp |
 
