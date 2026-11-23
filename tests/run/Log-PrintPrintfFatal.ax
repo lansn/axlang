@@ -1,0 +1,12 @@
+// log 模块（对标 Go log，P2，2026-11-23）
+import log
+
+int main() {
+    log.Print("hello", "world", 42)
+    println("")
+    log.Printf("%d %s %f", 3, "items", 2.5)
+    println("")
+    log.Fatal("fatal error")
+    println("unreachable")
+    return 0
+}

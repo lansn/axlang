@@ -1,5 +1,2 @@
 编译器：axc.exe
-  FAIL  run    Array-Ext      D:\Project\axlang\tests\run\Array-Ext.ax:47:26: error[E3003]: int[] has no field `len`
-
-257/258 通过
-失败 1 条：run/Array-Ext
+[safe-delete][SAFE_DELETE_BULK_CONFIRM_REQUIRED] {"count":50,"threshold":50,"scope":"turn","targets":["D:\\Project\\axlang\\tests\\.build\\FFI-1.exe"],"targetCount":1}

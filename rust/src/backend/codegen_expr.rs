@@ -1801,6 +1801,20 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
         if module == "fmt" && name == "Scanf" {
             return self.fmt_scanf(e);
         }
+        // log.Print / log.Fatal：对标 Go log.Print / log.Fatal，多实参，空格分隔，
+        // Fatal 额外调用 os.Exit(1)。不加日期时间前缀（axlang 极简风格，用户可自行加前缀）。
+        if module == "log" && (name == "Print" || name == "Fatal") {
+            self.emit_print(args, false);
+            if name == "Fatal" {
+                self.emit("ax_write_stdout(AX_S(\"\\n\"));".to_string());
+                self.emit("ax_os_exit(1);".to_string());
+            }
+            return "0".to_string();
+        }
+        // log.Printf：对标 Go log.Printf，复用 fmt.Printf 的格式化（编译期核对占位符）。
+        if module == "log" && name == "Printf" {
+            return self.fmt_printf(e);
+        }
         let mut a: Vec<String> = Vec::new();
         // 实参按模块签名声明的形参类型转换（map → object 要装箱，等等）——
         // 与用户函数调用走同一套 coerce 规则
@@ -2047,8 +2061,9 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 let av = self.gen(&arg.k.expr, None, false, false);
                 self.push_interp(&sb, &av, &aty, None, &arg.k.expr);
             } else {
-                let av = self.gen(&arg.k.expr, Some(&t_string()), false, false);
-                self.emit(format!("ax_sb_push(&{}, {});", sb, av));
+                let aty = self.ty_or_int(arg.k.expr.id);
+                let av = self.gen(&arg.k.expr, None, false, false);
+                self.push_one_to_sb(&sb, &av, &aty);
             }
         }
         let t = self.tmpn();
@@ -2106,7 +2121,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                     let v = self.gen(&arg.k.expr, None, false, false);
                     // `%.Nf` → 插值的 `:.N`；其余占位符无精度走默认显示。
                     // sema 已核对类型与个数，push_interp 按类型分派即可。
-                    let f = if *spec == 'f' { *prec } else { None };
+                    let f = if *spec == 'f' { prec.or(Some(6)) } else { None };
                     self.push_interp(&sb, &v, &aty, f, &arg.k.expr);
                 }
             }
@@ -2135,8 +2150,9 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 let av = self.gen(&arg.k.expr, None, false, false);
                 self.push_interp(&sb, &av, &aty, None, &arg.k.expr);
             } else {
-                let av = self.gen(&arg.k.expr, Some(&t_string()), false, false);
-                self.emit(format!("ax_sb_push(&{}, {});", sb, av));
+                let aty = self.ty_or_int(arg.k.expr.id);
+                let av = self.gen(&arg.k.expr, None, false, false);
+                self.push_one_to_sb(&sb, &av, &aty);
             }
         }
         let t = self.tmpn();
@@ -2187,7 +2203,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                     ai += 1;
                     let aty = self.ty_or_int(arg.k.expr.id);
                     let v = self.gen(&arg.k.expr, None, false, false);
-                    let f = if *spec == 'f' { *prec } else { None };
+                    let f = if *spec == 'f' { prec.or(Some(6)) } else { None };
                     self.push_interp(&sb, &v, &aty, f, &arg.k.expr);
                 }
             }
@@ -2243,7 +2259,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                     ai += 1;
                     let aty = self.ty_or_int(arg.k.expr.id);
                     let v = self.gen(&arg.k.expr, None, false, false);
-                    let f = if *spec == 'f' { *prec } else { None };
+                    let f = if *spec == 'f' { prec.or(Some(6)) } else { None };
                     self.push_interp(&sb, &v, &aty, f, &arg.k.expr);
                 }
             }
@@ -2298,7 +2314,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                     ai += 1;
                     let aty = self.ty_or_int(arg.k.expr.id);
                     let v = self.gen(&arg.k.expr, None, false, false);
-                    let f = if *spec == 'f' { *prec } else { None };
+                    let f = if *spec == 'f' { prec.or(Some(6)) } else { None };
                     self.push_interp(&sb, &v, &aty, f, &arg.k.expr);
                 }
             }

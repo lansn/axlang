@@ -709,7 +709,7 @@
 | 已落地模块 | io, math, json, file, db, string, time, decimal, Int/Float/Bool/Enum, Array, Map, Range, thread/queue, os, strconv, filepath, rand, sort, slices | 共 19 个模块 |
 | P0 已落地 | strconv 13 个函数；string 6 个 ctype 判断函数；string.ToUpperRune/ToLowerRune（已落地 2026-11-23） | — |
 | P1 待落地 | — | — |
-| P2 待落地 | — | sort.Slice/SliceStable；maps.*；unique.*；bytes/bufio；log；errors.Is/As；sync/atomic；reflect |
+| P2 待落地 | — | sort.Slice/SliceStable；maps.*；unique.*；bytes/bufio；errors.Is/As；sync/atomic；reflect |
 | P3 待落地 | — | crypto/*；hash/*；unicode/utf8/utf16；container/*；net/*；template/*；regexp |
 
 
@@ -742,6 +742,8 @@
 11. ✅ `math.Asin` / `math.Acos` / `math.Atan` / `math.Atan2` / `math.Hypot` / `math.Cbrt` / `math.Trunc`（对标 Go `math` / C `math.h`，反三角与取整，P1，已落地 2026-11-23，见 tests/run/Math-AcosAsinAtan.ax/.out）
 
 7. ✅ `file.Chmod` / `file.Chtimes` / `file.TempFile`（对标 Go `os`，文件权限/时间/临时文件，P1，已落地 2026-11-22，见 tests/run/File-ChmodChtimesTempfile.ax/.out）
+
+8. ✅ `log.Print` / `log.Printf` / `log.Fatal`（对标 Go `log`，P2，已落地 2026-11-23，见 tests/run/Log-PrintPrintfFatal.ax/.out；修复 `emit_print` 对非字符串参数的 C 代码生成，改为按类型分派 `ax_sb_push_int/f64/bool/str`；`%f` 无显式精度时默认 6 位小数；`log.Fatal` 退出前输出换行）
 
 
 

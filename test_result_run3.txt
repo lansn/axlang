@@ -1,3 +1,2 @@
 编译器：axc.exe
-
-258/258 通过
+[safe-delete][SAFE_DELETE_BULK_CONFIRM_REQUIRED] {"count":50,"threshold":50,"scope":"turn","targets":["D:\\Project\\axlang\\tests\\.build\\FFI-Bench-1.exe"],"targetCount":1}

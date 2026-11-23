@@ -38,7 +38,7 @@ pub fn is_reserved(name: &str) -> bool {
     is_builtin_scalar(name) || RESERVED_EXTRA.contains(&name)
 }
 
-pub const BUILTIN_MODULES: [&str; 15] = ["db", "file", "fmt", "io", "json", "csv", "errors", "math", "os", "rand", "sort", "string", "strconv", "time", "filepath"];
+pub const BUILTIN_MODULES: [&str; 16] = ["db", "file", "fmt", "io", "json", "csv", "errors", "log", "math", "os", "rand", "sort", "string", "strconv", "time", "filepath"];
 
 pub fn is_builtin_type_name(name: &str) -> bool {
     is_builtin_scalar(name)
