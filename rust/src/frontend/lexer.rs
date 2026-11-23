@@ -28,7 +28,7 @@ pub const KEYWORDS: &[&str] = &[
 
 /// 保留类型名：词法上是 IDENT，语义上是根模块内建类型（E3018 用）。
 pub const RESERVED_TYPES: &[&str] = &[
-    "bool", "int", "int8", "int16", "int32", "uint", "uint8", "uint16",
+    "bool", "byte", "int", "int8", "int16", "int32", "uint", "uint8", "uint16",
     "uint32", "float", "float32", "decimal", "string", "object", "void", "result",
     "error", "func", "map", "Self", "range", "Rounding", "Arena", "ArenaRef",
 ];

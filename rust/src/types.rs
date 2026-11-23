@@ -198,6 +198,7 @@ pub fn is_nullable(t: &Ty) -> bool {
 pub fn builtin_scalar(name: &str) -> Option<Ty> {
     Some(match name {
         "bool" => t_bool(),
+        "byte" => t_int_b(8, false),
         "int" => t_int(),
         "uint" => t_uint(),
         "int8" => t_int_b(8, true),
