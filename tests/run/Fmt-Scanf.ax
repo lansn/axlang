@@ -1,0 +1,10 @@
+// fmt.Scanf：从 stdin 按格式读取，对标 Go fmt.Scanf / C scanf。
+import fmt
+
+int main() {
+    int a = 0
+    int b = 0
+    int n = fmt.Scanf("%d %d", a, b)
+    println("n={n} a={a} b={b}")
+    return 0
+}

@@ -892,7 +892,7 @@ impl<'a> Sema<'a> {
     ///   这是 C 风格 `printf` 在 axlang 里唯一被允许的形态：类型和个数都在编译期堵死，
     ///   `%n`/`%x` 等危险或歧义占位符根本不开放（E4044）。
     fn check_fmt_call(&mut self, e: &ast::EPtr, args: &[ast::N<ast::Arg>], name: &str) -> Ty {
-        const MEMBERS: [&str; 6] = ["Print", "Println", "Printf", "Sprint", "Sprintf", "Fprintf"];
+        const MEMBERS: [&str; 8] = ["Print", "Println", "Printf", "Sprint", "Sprintf", "Fprintf", "Errorf", "Scanf"];
         if !MEMBERS.contains(&name) {
             let pascal = crate::sema::expr::pascal_member(name);
             if pascal != name && MEMBERS.contains(&pascal.as_str()) {
@@ -908,7 +908,7 @@ impl<'a> Sema<'a> {
                     "E3003",
                     &e.tok,
                     "文稿 11.2",
-                    "模块 `fmt` 没有符号 `{0}`（可选 Print / Println / Printf / Sprint / Sprintf / Fprintf）",
+                    "模块 `fmt` 没有符号 `{0}`（可选 Print / Println / Printf / Sprint / Sprintf / Fprintf / Errorf / Scanf）",
                     &[&name],
                 );
             }
@@ -1038,6 +1038,159 @@ impl<'a> Sema<'a> {
                         );
                     }
                     self.sl(a.k.expr.id).interp_arg = true;
+                }
+            }
+            return t_int();
+        }
+        // ---- fmt.Errorf ----
+        if name == "Errorf" {
+            // 第 0 个实参是格式字符串，其余为占位符实参；返回 error
+            self.sl(e.id).mkind = Some("module");
+            if args.is_empty() {
+                self.err(
+                    "E4031",
+                    &e.tok,
+                    "文稿 11.2",
+                    "`fmt.Errorf` 至少需要 1 个实参（格式字符串）",
+                    &[&name],
+                );
+                return t_error();
+            }
+            let fexpr = &args[0].k.expr;
+            let fmt_str: String = match &fexpr.k {
+                Expr::StrLit { parts } if parts.iter().all(|p| matches!(p, ast::SPart::Text(_))) => parts
+                    .iter()
+                    .map(|p| match p {
+                        ast::SPart::Text(t) => t.clone(),
+                        _ => String::new(),
+                    })
+                    .collect(),
+                _ => {
+                    self.err(
+                        "E4032",
+                        &fexpr.tok,
+                        "文稿 11.2",
+                        "`fmt.Errorf` 的格式串必须是纯字符串字面量（不含 `{...}` 插值），才能在编译期核对占位符；得到 {1}",
+                        &[&name, &self.ts(&self.ty_of(fexpr.id).unwrap_or_else(t_object))],
+                    );
+                    return t_error();
+                }
+            };
+            let specs = match crate::fmt_spec::parse(&fmt_str) {
+                Ok(s) => s,
+                Err((pos, ch)) => {
+                    self.err(
+                        "E4044",
+                        &fexpr.tok,
+                        "文稿 11.2",
+                        "不支持的格式占位符 `%{0}`（格式串中第 {1} 个字符处）；支持 `%%` `%d` `%f` `%.Nf` `%s` `%t` `%v`——`%n` / `%x` 等危险或歧义占位符一律不开放",
+                        &[&ch.to_string(), &(pos + 1).to_string()],
+                    );
+                    return t_error();
+                }
+            };
+            let need = specs
+                .iter()
+                .filter(|s| matches!(s, crate::fmt_spec::FmtPart::Arg { .. }))
+                .count();
+            let have = args.len() - 1; // 不含格式串本身
+            if need != have {
+                self.err(
+                    "E4032",
+                    &e.tok,
+                    "文稿 11.2",
+                    "格式串里有 {0} 个占位符，但实参有 {1} 个（不含格式串本身）",
+                    &[&need.to_string(), &have.to_string()],
+                );
+            }
+            let mut ai = 1;
+            for sp in &specs {
+                if let crate::fmt_spec::FmtPart::Arg { spec, prec } = sp {
+                    if ai >= args.len() {
+                        break;
+                    }
+                    let a = &args[ai];
+                    ai += 1;
+                    let t = self.ty_of(a.k.expr.id).unwrap_or_else(t_object);
+                    let ok = match spec {
+                        'd' => matches!(&*t, TyS::Int(..)),
+                        'f' => matches!(&*t, TyS::Float | TyS::Decimal),
+                        's' => matches!(&*t, TyS::Str),
+                        't' => matches!(&*t, TyS::Bool),
+                        'v' => {
+                            !matches!(&*t, TyS::Object | TyS::Void)
+                                && (crate::types::interp_supported(&t) || self.implements_printable(&t))
+                        }
+                        _ => true,
+                    };
+                    if !ok {
+                        self.err(
+                            "E4032",
+                            &a.tok,
+                            "文稿 11.2",
+                            "占位符 `%{0}` 与实参类型 `{1}` 不匹配（`%d`=整数, `%f`=小数, `%s`=字符串, `%t`=布尔, `%v`=任意可打印值；可空值请用 `%v` 或先判空）",
+                            &[&spec.to_string(), &self.ts(&t)],
+                        );
+                    }
+                    if prec.is_some() && *spec != 'f' {
+                        self.err(
+                            "E4032",
+                            &a.tok,
+                            "文稿 11.2",
+                            "`%.N` 精度只支持 `%f`，不支持 `%{0}`（与插值 `{x:.N}` 同规则）",
+                            &[&spec.to_string()],
+                        );
+                    }
+                    self.sl(a.k.expr.id).interp_arg = true;
+                }
+            }
+            return t_error();
+        }
+        // ---- fmt.Scanf ----
+        if name == "Scanf" {
+            // 从 stdin 按格式读取，返回读取的项数；格式串必须是纯字符串字面量
+            self.sl(e.id).mkind = Some("module");
+            if args.is_empty() {
+                self.err(
+                    "E4031",
+                    &e.tok,
+                    "文稿 11.2",
+                    "`fmt.Scanf` 至少需要 1 个实参（格式字符串）",
+                    &[&name],
+                );
+                return t_int();
+            }
+            let fexpr = &args[0].k.expr;
+            let _fmt_str: String = match &fexpr.k {
+                Expr::StrLit { parts } if parts.iter().all(|p| matches!(p, ast::SPart::Text(_))) => parts
+                    .iter()
+                    .map(|p| match p {
+                        ast::SPart::Text(t) => t.clone(),
+                        _ => String::new(),
+                    })
+                    .collect(),
+                _ => {
+                    self.err(
+                        "E4032",
+                        &fexpr.tok,
+                        "文稿 11.2",
+                        "`fmt.Scanf` 的格式串必须是纯字符串字面量；得到 {1}",
+                        &[&name, &self.ts(&self.ty_of(fexpr.id).unwrap_or_else(t_object))],
+                    );
+                    return t_int();
+                }
+            };
+            // Scanf 的实参必须是可引用的左值（变量），用于写回读取结果
+            for (_i, a) in args.iter().enumerate().skip(1) {
+                let t = self.ty_of(a.k.expr.id).unwrap_or_else(t_object);
+                if !matches!(&*t, TyS::Int(..) | TyS::Float | TyS::Str) {
+                    self.err(
+                        "E4032",
+                        &a.tok,
+                        "文稿 11.2",
+                        "`fmt.Scanf` 实参仅支持 int / float / string 类型，得到 {0}",
+                        &[&self.ts(&t)],
+                    );
                 }
             }
             return t_int();

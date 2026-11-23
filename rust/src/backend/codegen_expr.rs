@@ -1783,6 +1783,14 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
         if module == "fmt" && name == "Fprintf" {
             return self.fmt_fprintf(e);
         }
+        // fmt.Errorf：与 fmt_sprintf 同款格式解析，但返回 ax_err（error），对标 Go fmt.Errorf / C 错误构造
+        if module == "fmt" && name == "Errorf" {
+            return self.fmt_errorf(e);
+        }
+        // fmt.Scanf：从 stdin 按格式读取，返回读取的项数，对标 Go fmt.Scanf / C scanf
+        if module == "fmt" && name == "Scanf" {
+            return self.fmt_scanf(e);
+        }
         let mut a: Vec<String> = Vec::new();
         // 实参按模块签名声明的形参类型转换（map → object 要装箱，等等）——
         // 与用户函数调用走同一套 coerce 规则
@@ -2197,6 +2205,164 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
         self.emit(format!("ax_str {} = ax_sb_finish(&{});", t, sb));
         self.emit(format!("ax_file_write({}, {});", wv, t));
         "0".to_string()
+    }
+
+    /// `fmt.Errorf(format, args...)`：与 `fmt_sprintf` 同款格式解析，但返回 `ax_err`（error），
+    /// 对标 Go `fmt.Errorf`。构造一个带错误码 1 的错误值，消息为格式化后的字符串。
+    fn fmt_errorf(&mut self, e: &'a ast::EPtr) -> String {
+        let args: &'a [ast::N<ast::Arg>] = match &e.k {
+            Expr::MethodCall { args, .. } => args,
+            _ => return "ax_err_new(1, AX_S(\"fmt.Errorf: no format\"))".to_string(),
+        };
+        if args.is_empty() {
+            return "ax_err_new(1, AX_S(\"fmt.Errorf: no format\"))".to_string();
+        }
+        let parts: &'a [SPart] = match &args[0].k.expr.k {
+            Expr::StrLit { parts } => parts,
+            _ => return "ax_err_new(1, AX_S(\"fmt.Errorf: bad format\"))".to_string(),
+        };
+        let fmt_str: String = parts
+            .iter()
+            .filter_map(|p| match p {
+                SPart::Text(t) => Some(t.as_str()),
+                _ => None,
+            })
+            .collect();
+        let specs = crate::fmt_spec::parse(&fmt_str).unwrap_or_default();
+        let sb = self.tmpn();
+        self.emit(format!("ax_sb {}; ax_sb_init(&{});", sb, sb));
+        let mut ai = 1;
+        for sp in &specs {
+            match sp {
+                crate::fmt_spec::FmtPart::Text(t) => {
+                    if !t.is_empty() {
+                        let lit = format!("AX_S({})", cstr(t));
+                        self.emit(format!("ax_sb_push(&{}, {});", sb, lit));
+                    }
+                }
+                crate::fmt_spec::FmtPart::Pct => {
+                    self.emit(format!("ax_sb_push(&{}, AX_S(\"%\"));", sb));
+                }
+                crate::fmt_spec::FmtPart::Arg { spec, prec } => {
+                    if ai >= args.len() {
+                        break;
+                    }
+                    let arg = &args[ai];
+                    ai += 1;
+                    let aty = self.ty_or_int(arg.k.expr.id);
+                    let v = self.gen(&arg.k.expr, None, false, false);
+                    let f = if *spec == 'f' { *prec } else { None };
+                    self.push_interp(&sb, &v, &aty, f, &arg.k.expr);
+                }
+            }
+        }
+        let t = self.tmpn();
+        self.emit(format!("ax_str {} = ax_sb_finish(&{});", t, sb));
+        // 返回 ax_err：使用 C11 复合字面量，code=1, msg=格式化后的字符串
+        format!("(ax_err){{ .code = 1, .msg = {} }}", t)
+    }
+
+    /// `fmt.Scanf(format, args...)`：从 stdin 按格式读取，返回成功解析的项数。
+    /// 对标 Go `fmt.Scanf` / C `scanf`。目前支持 `%d`、`%f`、`%s`，实参必须是 int / float / string 变量。
+    fn fmt_scanf(&mut self, e: &'a ast::EPtr) -> String {
+        let args: &'a [ast::N<ast::Arg>] = match &e.k {
+            Expr::MethodCall { args, .. } => args,
+            _ => return "0".to_string(),
+        };
+        if args.is_empty() {
+            return "0".to_string();
+        }
+        let parts: &'a [SPart] = match &args[0].k.expr.k {
+            Expr::StrLit { parts } => parts,
+            _ => return "0".to_string(),
+        };
+        let fmt_str: String = parts
+            .iter()
+            .filter_map(|p| match p {
+                SPart::Text(t) => Some(t.as_str()),
+                _ => None,
+            })
+            .collect();
+        // 读取一行输入到缓冲区
+        let line = self.tmpn();
+        self.emit(format!("ax_str {}; if (ax_read_line(&{}) != 0) {{ {} = ax_str_empty(); }}", line, line, line));
+        // 按空白符分割输入行，得到 token 列表
+        let tokens = self.tmpn();
+        self.emit(format!("ax_arr {} = ax_str_fields({});", tokens, line));
+        let count = self.tmpn();
+        self.emit(format!("int64_t {} = 0;", count));
+        let mut ti = 0; // token 下标
+        let mut ai = 1; // args 下标（跳过格式串）
+        let specs: Vec<crate::fmt_spec::FmtPart> = crate::fmt_spec::parse(&fmt_str).unwrap_or_default();
+        for sp in &specs {
+            match sp {
+                crate::fmt_spec::FmtPart::Text(_) => {
+                    // 文本部分在 scanf 中不消耗 token（可选：可做严格匹配，此处简化为跳过）
+                }
+                crate::fmt_spec::FmtPart::Pct => {
+                    // %% 表示字面量 %，不消耗 token
+                }
+                crate::fmt_spec::FmtPart::Arg { spec, .. } => {
+                    if ai >= args.len() {
+                        break;
+                    }
+                    let arg = &args[ai];
+                    ai += 1;
+                    if ti >= 0 {
+                        // 获取 token 数组长度
+                        let len_var = self.tmpn();
+                        self.emit(format!("int64_t {} = {}.len;", len_var, tokens));
+                        // 检查是否还有 token
+                        let ok_var = self.tmpn();
+                        self.emit(format!("int {} = ({} < {}) ? 1 : 0;", ok_var, ti, len_var));
+                        // 只有有 token 时才解析
+                        self.emit(format!("if ({}) {{", ok_var));
+                        // 获取 token 字符串
+                        let tok_var = self.tmpn();
+                        let tok_ptr = self.tmpn();
+                        self.emit(format!("ax_str* {} = (ax_str*)ax_arr_at(&{}, {}, (int64_t)sizeof(ax_str), __FILE__, __LINE__, 0);", tok_ptr, tokens, ti));
+                        self.emit(format!("ax_str {} = *{};", tok_var, tok_ptr));
+                        // 根据 spec 解析
+                        match spec {
+                            'd' => {
+                                let out_var = self.tmpn();
+                                self.emit(format!("int64_t {} = 0;", out_var));
+                                self.emit(format!("if (ax_parse_i64({}, &{})) {{", tok_var, out_var));
+                                // 写回变量：arg.k.expr 是左值，gen 后得到 C 表达式
+                                let lv = self.gen(&arg.k.expr, None, false, false);
+                                self.emit(format!("{} = {};", lv, out_var));
+                                self.emit(format!("{} += 1;", count));
+                                self.emit("} else {".to_string());
+                                self.emit(format!("{} = ax_str_empty();", tok_var));
+                                self.emit("}".to_string());
+                            }
+                            'f' => {
+                                let out_var = self.tmpn();
+                                self.emit(format!("double {} = 0.0;", out_var));
+                                self.emit(format!("if (ax_parse_f64({}, &{})) {{", tok_var, out_var));
+                                let lv = self.gen(&arg.k.expr, None, false, false);
+                                self.emit(format!("{} = {};", lv, out_var));
+                                self.emit(format!("{} += 1;", count));
+                                self.emit("} else {".to_string());
+                                self.emit(format!("{} = ax_str_empty();", tok_var));
+                                self.emit("}".to_string());
+                            }
+                            's' => {
+                                let lv = self.gen(&arg.k.expr, None, false, false);
+                                self.emit(format!("{} = {};", lv, tok_var));
+                                self.emit(format!("{} += 1;", count));
+                            }
+                            _ => {
+                                // 不支持的 spec，跳过
+                            }
+                        }
+                        self.emit("}".to_string()); // if ok_var
+                        ti += 1;
+                    }
+                }
+            }
+        }
+        format!("(int){}", count)
     }
 
     fn intrinsic(&mut self, e: &'a ast::EPtr) -> String {

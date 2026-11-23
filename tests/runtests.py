@@ -129,7 +129,9 @@ def run_positive(path, be, stem=None):
     if fx is not None:
         env["AX_DB_FIXTURE"] = fx.strip("\r\n")
     args = read(base + ".args", "").split()
-    r = subprocess.run([exe] + args, capture_output=True, env=env)
+    stdin_data = read(base + ".stdin")
+    r = subprocess.run([exe] + args, capture_output=True, env=env,
+                       input=(stdin_data.encode("utf-8") if stdin_data is not None else None))
 
     # 多文件用例的期望输出可以叫 `<目录名>.out`（Mod-1.out），也可以叫 main.out
     want_out = read(base + ".out")

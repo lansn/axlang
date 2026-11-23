@@ -1,0 +1,21 @@
+// fmt.Errorf：按格式构造 error 值，对标 Go fmt.Errorf。
+import fmt
+
+int main() {
+    int code = 404
+    string name = "阿蓝"
+
+    // 无占位符
+    var e1 = fmt.Errorf("not found")
+    // 有占位符
+    var e2 = fmt.Errorf("user %s not found (code=%d)", name, code)
+
+    print("e1-msg=[")
+    print(e1.msg)
+    println("]")
+    print("e2-msg=[")
+    print(e2.msg)
+    println("]")
+
+    return 0
+}
