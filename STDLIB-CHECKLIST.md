@@ -59,7 +59,7 @@
 | `fmt.Printf`  | `(format: string, args: any...) -> void`           | Go `fmt.Printf` / C `printf`    | fmt 模块已有 Printf/Print/Println，编译期核对占位符              | 🔄 | 部分落地      |
 | `fmt.Sprintf` | `(format: string, args: any...) -> string`         | Go `fmt.Sprintf` / C `snprintf` | 按格式字符串生成字符串，对标 Go fmt.Sprintf / C snprintf；编译期核对占位符 | ✅  | 标准 C11 实现 |
 | `fmt.Sprint`  | `(args: any...) -> string`                         | Go `fmt.Sprint`                 | 将任意参数拼接为字符串，空格分隔，对标 Go fmt.Sprint                   | ✅  | 标准 C11 实现 |
-| `fmt.Fprintf` | `(w: Writer, format: string, args: any...) -> int` | Go `fmt.Fprintf` / C `fprintf`  | 未落地                                                 | ⬜  | 计划中       |
+| `fmt.Fprintf` | `(w: File, format: string, args: any...) -> int` | Go `fmt.Fprintf` / C `fprintf`  | 按格式字符串写入指定 File，对标 Go fmt.Fprintf / C fprintf；编译期核对占位符 | ✅  | 标准 C11 实现 |
 | `fmt.Errorf`  | `(format: string, args: any...) -> error`          | Go `fmt.Errorf`                 | 未落地                                                 | ⬜  | 计划中       |
 | `fmt.Scanf`   | `(format: string, args: any...) -> int`            | Go `fmt.Scanf` / C `scanf`      | 未落地                                                 | ⬜  | 计划中       |
 
@@ -707,7 +707,7 @@
 | 已落地模块 | io, math, json, file, db, string, time, decimal, Int/Float/Bool/Enum, Array, Map, Range, thread/queue, os, strconv, filepath, rand, sort, slices | 共 19 个模块 |
 | P0 已落地 | strconv 13 个函数；string 6 个 ctype 判断函数 | string.ToUpperRune/ToLowerRune |
 | P1 待落地 | — | — |
-| P2 待落地 | — | fmt.Sprintf/Fprintf/…；json.MarshalIndent/Valid；csv.ReadAll/Write；sort.Float64s/…；maps.*；unique.*；bytes/bufio；log/errors；sync/atomic；reflect |
+| P2 待落地 | — | fmt.Errorf/Scanf；json.MarshalIndent/Valid；csv.ReadAll/Write；sort.Float64s/…；maps.*；unique.*；bytes/bufio；log/errors；sync/atomic；reflect |
 | P3 待落地 | — | crypto/*；hash/*；unicode/utf8/utf16；container/*；net/*；template/*；regexp |
 
 
@@ -729,8 +729,9 @@
 4. ✅ `slices.Contains` / `slices.Index` / `slices.Sort`（对标 Go `slices`，泛型切片工具，P2，已落地 2026-11-22）
 
 5. ✅ `fmt.Sprintf` / `fmt.Sprint`（对标 Go `fmt`，格式化字符串，P2，已落地 2026-11-22）
+6. ✅ `fmt.Fprintf`（对标 Go `fmt` / C `fprintf`，格式化写入 File，P2，已落地 2026-11-23）
 
-6. `file.Chmod` / `file.Chtimes` / `file.TempFile`（对标 Go `os`，文件权限/时间/临时文件，P1）
+7. `file.Chmod` / `file.Chtimes` / `file.TempFile`（对标 Go `os`，文件权限/时间/临时文件，P1）
 
 
 
@@ -738,5 +739,5 @@
 
 
 
-*更新于 2026-11-22，基于 Go 1.25.1 (pkg.go.dev/std) 和 GCC 16.2.0*
+*更新于 2026-11-23，基于 Go 1.25.1 (pkg.go.dev/std) 和 GCC 16.2.0*
 

@@ -1,0 +1,22 @@
+// fmt.Fprintf：将格式化后的内容写入指定的 File（Writer），对标 Go fmt.Fprintf / C fprintf。
+// Writer 是 file.Open/Create/Append 得到的 File 值。本测试验证：写入后可按原样读回。
+import file
+import fmt
+
+int main() {
+    string path = "__ax_fprintf_test.txt"
+
+    var f = file.Create(path) try
+    fmt.Fprintf(f, "%d 件，共 %.2f 元\n", 3, 59.97d)
+    fmt.Fprintf(f, "name=%s ok=%t\n", "阿蓝", true)
+    fmt.Fprintf(f, "count=%d ratio=%.1f\n", 42, 0.5)
+    f.Close()
+
+    result<string> c = file.ReadAll(path)
+    match c {
+        ok(s) => print(s),
+        fail(e) => print("read-fail"),
+    }
+    file.Remove(path)
+    return 0
+}
