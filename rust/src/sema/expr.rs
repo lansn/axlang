@@ -127,6 +127,12 @@ pub fn module_sig(mod_: &str, name: &str) -> Option<(Vec<Option<Ty>>, Ty)> {
         ("os", "Setenv") => (vec![Some(t_string()), Some(t_string())], t_int()),
         ("os", "Unsetenv") => (vec![Some(t_string())], t_int()),
         ("os", "UserHomeDir") => (vec![], t_string()),
+        /* sync/atomic 模块（对标 Go sync/atomic，P2。addr 参数为 int 变量，
+         * codegen 层对其取地址传给 C 原子原语。） */
+        ("atomic", "AddInt") => (vec![Some(t_int()), Some(t_int())], t_int()),
+        ("atomic", "LoadInt") => (vec![Some(t_int())], t_int()),
+        ("atomic", "StoreInt") => (vec![Some(t_int()), Some(t_int())], t_void()),
+        ("atomic", "CompareAndSwapInt") => (vec![Some(t_int()), Some(t_int()), Some(t_int())], t_bool()),
         /* rand 模块 */
         ("rand", "Int") => (vec![Some(t_int())], t_int()),
         ("rand", "Float") => (vec![], t_float()),
@@ -1153,11 +1159,15 @@ impl<'a> Sema<'a> {
                 self.sl(e.id).ckind = Some("queue_create");
                 return qty;
             }
-            // 本模块限定名兜底：用户模块体内裸名调用自身的类型构造 / 顶层函数
+            // 本模块限定名兜底：用户模块体内裸名调用自身的类型构造 / 顶层函数。
+            // 零实参调用（如 Mutex()、RWMutex()、WaitGroup()、Once()）不走 conversion，
+            // 以免被 E4031“缺少实参”拦截；应落到 res_of 匹配，由 conversion_named→construct
+            // 处理零字段/非泛型结构体的零实参构造。
             let treg = self
                 .lookup_type_name(name, &callee.tok)
                 .map(|_| name.clone());
             if segs.len() == 1
+                && !args.is_empty()
                 && (is_builtin_scalar(name)
                     || treg.is_some()
                     || matches!(name.as_str(), "object" | "result" | "error" | "Rounding")
@@ -1196,7 +1206,9 @@ impl<'a> Sema<'a> {
                 return self.call_thread(e, args);
             }
             match self.res_of(callee.id) {
-                Some(Res::Type(d)) => return self.conversion_named(e, args, Some(d), expected),
+                Some(Res::Type(d)) => {
+                    return self.conversion_named(e, args, Some(d), expected)
+                }
                 Some(Res::BuiltinType(bn)) => {
                     return self.conversion(e, args, &bn, expected)
                 }
@@ -1213,6 +1225,13 @@ impl<'a> Sema<'a> {
         // （一处误用只报一条，否则真正的错因会被后面这条盖住）。
         if self.d.error_count > errs_before {
             return t_object();
+        }
+        // 类型名作为可调用目标：`Mutex()`、`RWMutex()`、`WaitGroup()`、`Once()` 等
+        // 零实参构造调用。check_expr 已把 callee 的 res 设为 Res::Type(d)，返回 TyS::Meta(name)。
+        if let TyS::Meta(name) = &*t {
+            if let Some(d) = self.lookup_type_name(name, &callee.tok) {
+                return self.conversion_named(e, args, Some(d), expected);
+            }
         }
         if matches!(
             &*t,

@@ -8,6 +8,7 @@
 #include <string.h>
 #include <errno.h>
 #include <sys/stat.h>   /* stat/_stat, S_ISDIR/S_ISREG/_S_IFDIR/_S_IFREG（标准 C 库头，非编译器扩展） */
+#include <stdatomic.h>  /* C11 原子：atomic_int/atomic_fetch_add/atomic_load/atomic_store/atomic_compare_exchange_strong */
 
 #ifdef _WIN32
 #ifndef _WIN32_WINNT
@@ -4282,4 +4283,193 @@ void ax_queue_close(ax_queue* q) {
     pthread_cond_broadcast(&q->not_empty);
     pthread_mutex_unlock(&q->lock);
 #endif
+}
+
+/* ================================================================ sync 模块（对标 Go sync，P2） */
+
+/* --- 互斥锁 --- */
+void ax_mutex_lock(ax_mutex* m) {
+    if (!m) return;
+    if (!m->initialized) {
+#ifdef _WIN32
+        InitializeCriticalSection(&m->cs);
+#else
+        pthread_mutex_init(&m->mu, NULL);
+#endif
+        m->initialized = 1;
+    }
+#ifdef _WIN32
+    EnterCriticalSection(&m->cs);
+#else
+    pthread_mutex_lock(&m->mu);
+#endif
+}
+
+void ax_mutex_unlock(ax_mutex* m) {
+    if (!m) return;
+    if (!m->initialized) {
+        return;  /* 未曾加锁，无需解锁 */
+    }
+#ifdef _WIN32
+    LeaveCriticalSection(&m->cs);
+#else
+    pthread_mutex_unlock(&m->mu);
+#endif
+}
+
+/* --- 读写锁 --- */
+void ax_rwmutex_lock(ax_rwmutex* rw) {
+    if (!rw) return;
+    if (!rw->initialized) {
+#ifndef _WIN32
+        pthread_rwlock_init(&rw->rw, NULL);
+#endif
+        rw->initialized = 1;
+    }
+#ifdef _WIN32
+    AcquireSRWLockExclusive(&rw->srw);
+#else
+    pthread_rwlock_wrlock(&rw->rw);
+#endif
+}
+
+void ax_rwmutex_unlock(ax_rwmutex* rw) {
+    if (!rw) return;
+    if (!rw->initialized) {
+        return;
+    }
+#ifdef _WIN32
+    ReleaseSRWLockExclusive(&rw->srw);
+#else
+    pthread_rwlock_unlock(&rw->rw);
+#endif
+}
+
+void ax_rwmutex_rlock(ax_rwmutex* rw) {
+    if (!rw) return;
+    if (!rw->initialized) {
+#ifndef _WIN32
+        pthread_rwlock_init(&rw->rw, NULL);
+#endif
+        rw->initialized = 1;
+    }
+#ifdef _WIN32
+    AcquireSRWLockShared(&rw->srw);
+#else
+    pthread_rwlock_rdlock(&rw->rw);
+#endif
+}
+
+void ax_rwmutex_runlock(ax_rwmutex* rw) {
+    if (!rw) return;
+    if (!rw->initialized) {
+        return;
+    }
+#ifdef _WIN32
+    ReleaseSRWLockShared(&rw->srw);
+#else
+    pthread_rwlock_unlock(&rw->rw);
+#endif
+}
+
+/* --- 等待组 --- */
+void ax_waitgroup_add(ax_waitgroup* wg, int64_t delta) {
+    if (!wg) return;
+    if (!wg->initialized) {
+#ifdef _WIN32
+        InitializeCriticalSection(&wg->cs);
+        InitializeConditionVariable(&wg->cv);
+#else
+        pthread_mutex_init(&wg->mu, NULL);
+        pthread_cond_init(&wg->cv, NULL);
+#endif
+        wg->initialized = 1;
+    }
+#ifdef _WIN32
+    EnterCriticalSection(&wg->cs);
+#else
+    pthread_mutex_lock(&wg->mu);
+#endif
+    wg->counter += delta;
+    if (wg->counter <= 0) {
+#ifdef _WIN32
+        WakeAllConditionVariable(&wg->cv);
+#else
+        pthread_cond_broadcast(&wg->cv);
+#endif
+    }
+#ifdef _WIN32
+    LeaveCriticalSection(&wg->cs);
+#else
+    pthread_mutex_unlock(&wg->mu);
+#endif
+}
+
+void ax_waitgroup_done(ax_waitgroup* wg) {
+    ax_waitgroup_add(wg, -1);
+}
+
+void ax_waitgroup_wait(ax_waitgroup* wg) {
+    if (!wg) return;
+    if (!wg->initialized) {
+        return;  /* 未 Add 过，计数器为 0，无需等待 */
+    }
+#ifdef _WIN32
+    EnterCriticalSection(&wg->cs);
+    while (wg->counter > 0) {
+        SleepConditionVariableCS(&wg->cv, &wg->cs, INFINITE);
+    }
+    LeaveCriticalSection(&wg->cs);
+#else
+    pthread_mutex_lock(&wg->mu);
+    while (wg->counter > 0) {
+        pthread_cond_wait(&wg->cv, &wg->mu);
+    }
+    pthread_mutex_unlock(&wg->mu);
+#endif
+}
+
+/* --- Once --- */
+/* axlang 尚无闭包/函数值，Once.Do 无可传回调；C 层仅提供 done 标志快路径，
+ * 上层在串行化上下文中调用。 */
+void ax_once_do(ax_once* o) {
+    if (!o) return;
+    if (o->done) return;
+#ifdef _WIN32
+    /* INIT_ONCE 需静态初始化，对堆分配结构体不直接适用；此处以 done 标志
+     * 作快路径，并由调用方保证串行化（axlang 单线程或用户自行加锁）。 */
+    o->done = 1;
+#else
+    pthread_once(&o->once, NULL);
+    o->done = 1;
+#endif
+}
+
+/* ================================================================ sync/atomic 模块（对标 Go sync/atomic，P2） */
+
+/* axlang 层传 *int 变量的地址（int64_t*），C 层按 volatile int64_t* 接收，
+ * 内部经标准 C11 <stdatomic.h> 原子操作。int64_t 与 _Atomic int64_t 布局兼容。 */
+int64_t ax_atomic_add_int(volatile int64_t* addr, int64_t delta) {
+    if (!addr) return 0;
+    _Atomic int64_t* p = (_Atomic int64_t*)addr;
+    return atomic_fetch_add(p, delta) + delta;
+}
+
+int64_t ax_atomic_load_int(volatile int64_t* addr) {
+    if (!addr) return 0;
+    _Atomic int64_t* p = (_Atomic int64_t*)addr;
+    return atomic_load(p);
+}
+
+void ax_atomic_store_int(volatile int64_t* addr, int64_t val) {
+    if (!addr) return;
+    _Atomic int64_t* p = (_Atomic int64_t*)addr;
+    atomic_store(p, val);
+}
+
+int ax_atomic_compare_and_swap_int(volatile int64_t* addr, int64_t old, int64_t new) {
+    if (!addr) return 0;
+    _Atomic int64_t* p = (_Atomic int64_t*)addr;
+    int64_t expected = old;
+    return atomic_compare_exchange_strong(p, &expected, new) ? 1 : 0;
 }

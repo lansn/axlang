@@ -1,0 +1,46 @@
+// sync/atomic 模块测试（对标 Go sync / sync/atomic，P2，2026-11-24）
+// Mutex/RWMutex/WaitGroup/Once 为内建句柄类型，零初始化后直接使用；
+// atomic.* 对 int 变量取地址做原子操作，无需构造对象。
+import sync
+import atomic
+
+int main() {
+    // --- sync.Mutex ---
+    var m = Mutex()
+    m.Lock()
+    m.Unlock()
+
+    // --- atomic.AddInt / LoadInt / StoreInt / CompareAndSwapInt ---
+    var v = 0
+    atomic.AddInt(v, 5)
+    println("atomic-1={v}")   // 5
+    atomic.StoreInt(v, 10)
+    println("atomic-2={v}")   // 10
+    var loaded = atomic.LoadInt(v)
+    println("atomic-3={loaded}")  // 10
+    var swapped = atomic.CompareAndSwapInt(v, 10, 99)
+    println("atomic-4={swapped}") // true
+    println("atomic-5={v}")       // 99
+    var swapped2 = atomic.CompareAndSwapInt(v, 10, 77)
+    println("atomic-6={swapped2}") // false
+    println("atomic-7={v}")       // 99
+
+    // --- sync.RWMutex ---
+    var rw = RWMutex()
+    rw.Lock()
+    rw.Unlock()
+    rw.RLock()
+    rw.Runlock()
+
+    // --- sync.WaitGroup ---
+    var wg = WaitGroup()
+    wg.Add(1)
+    wg.Done()
+    wg.Wait()
+
+    // --- sync.Once ---
+    var o = Once()
+    o.Do()
+
+    return 0
+}

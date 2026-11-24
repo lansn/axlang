@@ -1,0 +1,1679 @@
+{
+  "version": "0.0.28",
+  "updated": "2026-11-24",
+  "source_note": "人工维护的主数据源；STDLIB-CHECKLIST.md 为人类可读快照，不再手动编辑",
+  "modules": [
+    {
+      "name": "io",
+      "priority": "P0",
+      "go_counterpart": "io / C stdio",
+      "status": "implemented",
+      "functions": [
+        {
+          "name": "ReadLine",
+          "signature": "() -> string?",
+          "status": "implemented",
+          "note": "标准 C11 实现"
+        },
+        {
+          "name": "ReadFile",
+          "signature": "(path: string) -> result<string>",
+          "status": "implemented",
+          "note": "标准 C11 实现"
+        },
+        {
+          "name": "Write",
+          "signature": "(s: string) -> void",
+          "status": "implemented",
+          "note": "标准 C11 实现"
+        },
+        {
+          "name": "WriteLine",
+          "signature": "(s: string) -> void",
+          "status": "implemented",
+          "note": "标准 C11 实现"
+        }
+      ]
+    },
+    {
+      "name": "fmt",
+      "priority": "P2",
+      "go_counterpart": "Go fmt / C stdio 格式化",
+      "status": "partial",
+      "functions": [
+        {
+          "name": "Print",
+          "signature": "(args: any...) -> void",
+          "status": "partial",
+          "note": "通过 print/println 部分实现"
+        },
+        {
+          "name": "Println",
+          "signature": "(args: any...) -> void",
+          "status": "partial",
+          "note": "同上"
+        },
+        {
+          "name": "Printf",
+          "signature": "(format: string, args: any...) -> void",
+          "status": "partial",
+          "note": "编译期核对占位符"
+        },
+        {
+          "name": "Sprintf",
+          "signature": "(format: string, args: any...) -> string",
+          "status": "implemented",
+          "note": "标准 C11 实现"
+        },
+        {
+          "name": "Sprint",
+          "signature": "(args: any...) -> string",
+          "status": "implemented",
+          "note": "标准 C11 实现"
+        },
+        {
+          "name": "Fprintf",
+          "signature": "(w: File, format: string, args: any...) -> int",
+          "status": "implemented",
+          "note": "标准 C11 实现"
+        },
+        {
+          "name": "Errorf",
+          "signature": "(format: string, args: any...) -> error",
+          "status": "implemented",
+          "note": "标准 C11 实现"
+        },
+        {
+          "name": "Scanf",
+          "signature": "(format: string, args: any...) -> int",
+          "status": "implemented",
+          "note": "标准 C11 实现"
+        }
+      ]
+    },
+    {
+      "name": "math",
+      "priority": "P0",
+      "go_counterpart": "Go math / C math.h",
+      "status": "partial",
+      "functions": [
+        {
+          "name": "Abs",
+          "signature": "(x: float) -> float",
+          "status": "implemented"
+        },
+        {
+          "name": "Max",
+          "signature": "(a: float, b: float) -> float",
+          "status": "implemented"
+        },
+        {
+          "name": "Min",
+          "signature": "(a: float, b: float) -> float",
+          "status": "implemented"
+        },
+        {
+          "name": "Sqrt",
+          "signature": "(x: float) -> float",
+          "status": "implemented"
+        },
+        {
+          "name": "Pow",
+          "signature": "(a: float, b: float) -> float",
+          "status": "implemented"
+        },
+        {
+          "name": "Exp",
+          "signature": "(x: float) -> float",
+          "status": "implemented"
+        },
+        {
+          "name": "Log",
+          "signature": "(x: float) -> float",
+          "status": "implemented"
+        },
+        {
+          "name": "Sin",
+          "signature": "(x: float) -> float",
+          "status": "implemented"
+        },
+        {
+          "name": "Cos",
+          "signature": "(x: float) -> float",
+          "status": "implemented"
+        },
+        {
+          "name": "Tan",
+          "signature": "(x: float) -> float",
+          "status": "implemented"
+        },
+        {
+          "name": "Ceil",
+          "signature": "(x: float) -> float",
+          "status": "implemented"
+        },
+        {
+          "name": "Floor",
+          "signature": "(x: float) -> float",
+          "status": "implemented"
+        },
+        {
+          "name": "Round",
+          "signature": "(x: float) -> float",
+          "status": "implemented"
+        },
+        {
+          "name": "Sign",
+          "signature": "(x: float) -> int",
+          "status": "implemented"
+        },
+        {
+          "name": "Mod",
+          "signature": "(x: float, y: float) -> float",
+          "status": "implemented"
+        },
+        {
+          "name": "Equals",
+          "signature": "(a: float, b: float, eps: float) -> bool",
+          "status": "implemented"
+        },
+        {
+          "name": "Compare",
+          "signature": "(a: float, b: float) -> int",
+          "status": "implemented"
+        },
+        {
+          "name": "Exp2",
+          "signature": "(x: float) -> float",
+          "status": "implemented"
+        },
+        {
+          "name": "Log10",
+          "signature": "(x: float) -> float",
+          "status": "implemented"
+        },
+        {
+          "name": "Log2",
+          "signature": "(x: float) -> float",
+          "status": "implemented"
+        },
+        {
+          "name": "Log1p",
+          "signature": "(x: float) -> float",
+          "status": "implemented"
+        },
+        {
+          "name": "Sinh",
+          "signature": "(x: float) -> float",
+          "status": "implemented"
+        },
+        {
+          "name": "Cosh",
+          "signature": "(x: float) -> float",
+          "status": "implemented"
+        },
+        {
+          "name": "Tanh",
+          "signature": "(x: float) -> float",
+          "status": "implemented"
+        },
+        {
+          "name": "Asin",
+          "signature": "(x: float) -> float",
+          "status": "implemented"
+        },
+        {
+          "name": "Acos",
+          "signature": "(x: float) -> float",
+          "status": "implemented"
+        },
+        {
+          "name": "Atan",
+          "signature": "(x: float) -> float",
+          "status": "implemented"
+        },
+        {
+          "name": "Atan2",
+          "signature": "(y: float, x: float) -> float",
+          "status": "implemented"
+        },
+        {
+          "name": "Hypot",
+          "signature": "(p: float, q: float) -> float",
+          "status": "implemented"
+        },
+        {
+          "name": "Cbrt",
+          "signature": "(x: float) -> float",
+          "status": "implemented"
+        },
+        {
+          "name": "Trunc",
+          "signature": "(x: float) -> float",
+          "status": "implemented"
+        },
+        {
+          "name": "IsNaN",
+          "signature": "(f: float) -> bool",
+          "status": "implemented"
+        },
+        {
+          "name": "IsInf",
+          "signature": "(f: float, sign: int) -> bool",
+          "status": "implemented"
+        },
+        {
+          "name": "Frexp",
+          "signature": "(f: float) -> (frac: float, exp: int)",
+          "status": "planned"
+        },
+        {
+          "name": "Ldexp",
+          "signature": "(frac: float, exp: int) -> float",
+          "status": "planned"
+        },
+        {
+          "name": "Signbit",
+          "signature": "(f: float) -> bool",
+          "status": "planned"
+        },
+        {
+          "name": "Copysign",
+          "signature": "(f: float, sign: float) -> float",
+          "status": "planned"
+        },
+        {
+          "name": "Dim",
+          "signature": "(x: float, y: float) -> float",
+          "status": "planned"
+        }
+      ]
+    },
+    {
+      "name": "json",
+      "priority": "P0",
+      "go_counterpart": "Go encoding/json",
+      "status": "implemented",
+      "functions": [
+        {
+          "name": "Parse",
+          "signature": "(s: string) -> result<map<string, object>>",
+          "status": "implemented"
+        },
+        {
+          "name": "Stringify",
+          "signature": "(v: object) -> string",
+          "status": "implemented"
+        },
+        {
+          "name": "MarshalIndent",
+          "signature": "(v: object, prefix: string, indent: string) -> string",
+          "status": "implemented"
+        },
+        {
+          "name": "Valid",
+          "signature": "(s: string) -> bool",
+          "status": "implemented"
+        }
+      ]
+    },
+    {
+      "name": "file",
+      "priority": "P0",
+      "go_counterpart": "Go os / C stdio/stdlib",
+      "status": "implemented",
+      "functions": [
+        {
+          "name": "Open",
+          "signature": "(path: string) -> result<File>",
+          "status": "implemented"
+        },
+        {
+          "name": "Create",
+          "signature": "(path: string) -> result<File>",
+          "status": "implemented"
+        },
+        {
+          "name": "Append",
+          "signature": "(path: string) -> result<File>",
+          "status": "implemented"
+        },
+        {
+          "name": "Remove",
+          "signature": "(path: string) -> int",
+          "status": "implemented"
+        },
+        {
+          "name": "Rename",
+          "signature": "(old: string, new: string) -> int",
+          "status": "implemented"
+        },
+        {
+          "name": "Exists",
+          "signature": "(path: string) -> int",
+          "status": "implemented"
+        },
+        {
+          "name": "Mkdir",
+          "signature": "(path: string) -> int",
+          "status": "implemented"
+        },
+        {
+          "name": "ReadAll",
+          "signature": "(path: string) -> result<string>",
+          "status": "implemented"
+        },
+        {
+          "name": "WriteAll",
+          "signature": "(path: string, s: string) -> int",
+          "status": "implemented"
+        },
+        {
+          "name": "IsDir",
+          "signature": "(path: string) -> int",
+          "status": "implemented"
+        },
+        {
+          "name": "IsFile",
+          "signature": "(path: string) -> int",
+          "status": "implemented"
+        },
+        {
+          "name": "Size",
+          "signature": "(path: string) -> int",
+          "status": "implemented"
+        },
+        {
+          "name": "ModTime",
+          "signature": "(path: string) -> int",
+          "status": "implemented"
+        },
+        {
+          "name": "Chmod",
+          "signature": "(path: string, mode: int) -> int",
+          "status": "implemented"
+        },
+        {
+          "name": "Chtimes",
+          "signature": "(path: string, atime: int, mtime: int) -> int",
+          "status": "implemented"
+        },
+        {
+          "name": "TempFile",
+          "signature": "(dir: string, prefix: string) -> result<File>",
+          "status": "implemented"
+        }
+      ]
+    },
+    {
+      "name": "db",
+      "priority": "P0",
+      "go_counterpart": "axlang 特有，无直接 Go 对标",
+      "status": "implemented",
+      "functions": [
+        {
+          "name": "Query",
+          "signature": "(sql: string) -> result<Row>",
+          "status": "implemented"
+        }
+      ]
+    },
+    {
+      "name": "string",
+      "priority": "P0",
+      "go_counterpart": "Go strings / C string.h / C ctype.h",
+      "status": "partial",
+      "static_functions": [
+        {
+          "name": "FromCodepoint",
+          "signature": "(cp: int) -> result<string>",
+          "status": "implemented"
+        },
+        {
+          "name": "Compare",
+          "signature": "(a: string, b: string) -> int",
+          "status": "implemented"
+        },
+        {
+          "name": "Fields",
+          "signature": "(s: string) -> string[]",
+          "status": "implemented"
+        }
+      ],
+      "instance_functions": [
+        {
+          "name": "ToUpper",
+          "signature": "() -> string",
+          "status": "implemented"
+        },
+        {
+          "name": "ToLower",
+          "signature": "() -> string",
+          "status": "implemented"
+        },
+        {
+          "name": "Contains",
+          "signature": "(sub: string) -> bool",
+          "status": "implemented"
+        },
+        {
+          "name": "ContainsAny",
+          "signature": "(chars: string) -> bool",
+          "status": "implemented"
+        },
+        {
+          "name": "ContainsRune",
+          "signature": "(r: int) -> bool",
+          "status": "implemented"
+        },
+        {
+          "name": "Count",
+          "signature": "(substr: string) -> int",
+          "status": "implemented"
+        },
+        {
+          "name": "IndexOf",
+          "signature": "(sub: string) -> int",
+          "status": "implemented"
+        },
+        {
+          "name": "IndexAny",
+          "signature": "(chars: string) -> int",
+          "status": "implemented"
+        },
+        {
+          "name": "LastIndexOf",
+          "signature": "(sub: string) -> int",
+          "status": "implemented"
+        },
+        {
+          "name": "LastIndexAny",
+          "signature": "(chars: string) -> int",
+          "status": "implemented"
+        },
+        {
+          "name": "Split",
+          "signature": "(sep: string) -> string[]",
+          "status": "implemented"
+        },
+        {
+          "name": "Trim",
+          "signature": "() -> string",
+          "status": "implemented"
+        },
+        {
+          "name": "TrimLeft",
+          "signature": "(cutset: string) -> string",
+          "status": "implemented"
+        },
+        {
+          "name": "TrimRight",
+          "signature": "(cutset: string) -> string",
+          "status": "implemented"
+        },
+        {
+          "name": "TrimPrefix",
+          "signature": "(prefix: string) -> string",
+          "status": "implemented"
+        },
+        {
+          "name": "TrimSuffix",
+          "signature": "(suffix: string) -> string",
+          "status": "implemented"
+        },
+        {
+          "name": "SplitN",
+          "signature": "(sep: string, n: int) -> string[]",
+          "status": "implemented"
+        },
+        {
+          "name": "SplitAfter",
+          "signature": "(sep: string) -> string[]",
+          "status": "implemented"
+        },
+        {
+          "name": "Title",
+          "signature": "() -> string",
+          "status": "implemented"
+        },
+        {
+          "name": "Map",
+          "signature": "(mapping: func(int) int) -> string",
+          "status": "implemented"
+        },
+        {
+          "name": "Replace",
+          "signature": "(old: string, new: string) -> string",
+          "status": "implemented"
+        },
+        {
+          "name": "Repeat",
+          "signature": "(n: int) -> string",
+          "status": "implemented"
+        },
+        {
+          "name": "StartsWith",
+          "signature": "(prefix: string) -> bool",
+          "status": "implemented"
+        },
+        {
+          "name": "EndsWith",
+          "signature": "(suffix: string) -> bool",
+          "status": "implemented"
+        },
+        {
+          "name": "Len",
+          "signature": "() -> int",
+          "status": "implemented"
+        },
+        {
+          "name": "IsDigit",
+          "signature": "() -> bool",
+          "status": "implemented"
+        },
+        {
+          "name": "IsAlpha",
+          "signature": "() -> bool",
+          "status": "implemented"
+        },
+        {
+          "name": "IsSpace",
+          "signature": "() -> bool",
+          "status": "implemented"
+        },
+        {
+          "name": "IsLower",
+          "signature": "() -> bool",
+          "status": "implemented"
+        },
+        {
+          "name": "IsUpper",
+          "signature": "() -> bool",
+          "status": "implemented"
+        },
+        {
+          "name": "IsAlnum",
+          "signature": "() -> bool",
+          "status": "implemented"
+        },
+        {
+          "name": "EqualFold",
+          "signature": "(t: string) -> bool",
+          "status": "implemented"
+        },
+        {
+          "name": "ToUpperRune",
+          "signature": "(r: int) -> int",
+          "status": "implemented"
+        },
+        {
+          "name": "ToLowerRune",
+          "signature": "(r: int) -> int",
+          "status": "implemented"
+        }
+      ]
+    },
+    {
+      "name": "time",
+      "priority": "P0",
+      "go_counterpart": "Go time / C time.h",
+      "status": "partial",
+      "module_functions": [
+        {
+          "name": "NowMs",
+          "signature": "() -> int",
+          "status": "implemented"
+        },
+        {
+          "name": "Now",
+          "signature": "() -> time",
+          "status": "implemented"
+        },
+        {
+          "name": "FromUnixMs",
+          "signature": "(ms: int) -> time",
+          "status": "implemented"
+        },
+        {
+          "name": "Sleep",
+          "signature": "(ms: int) -> void",
+          "status": "implemented"
+        },
+        {
+          "name": "Parse",
+          "signature": "(s: string, fmt: string) -> result<time>",
+          "status": "implemented"
+        },
+        {
+          "name": "Unix",
+          "signature": "(sec: int, nsec: int) -> time",
+          "status": "implemented"
+        },
+        {
+          "name": "UnixMilli",
+          "signature": "(ms: int) -> time",
+          "status": "implemented"
+        },
+        {
+          "name": "UnixMicro",
+          "signature": "(us: int) -> time",
+          "status": "implemented"
+        },
+        {
+          "name": "UnixNano",
+          "signature": "(nsec: int) -> time",
+          "status": "implemented"
+        },
+        {
+          "name": "Since",
+          "signature": "(t: time) -> int",
+          "status": "implemented"
+        },
+        {
+          "name": "Date",
+          "signature": "(year, month, day, hour, min, sec, nsec: int) -> time",
+          "status": "implemented"
+        },
+        {
+          "name": "Until",
+          "signature": "(t: time) -> int",
+          "status": "implemented"
+        },
+        {
+          "name": "After",
+          "signature": "(u: time) -> bool",
+          "kind": "instance",
+          "status": "implemented"
+        },
+        {
+          "name": "Before",
+          "signature": "(u: time) -> bool",
+          "kind": "instance",
+          "status": "implemented"
+        },
+        {
+          "name": "Equal",
+          "signature": "(u: time) -> bool",
+          "kind": "instance",
+          "status": "planned"
+        },
+        {
+          "name": "Compare",
+          "signature": "(u: time) -> int",
+          "kind": "instance",
+          "status": "planned"
+        },
+        {
+          "name": "Sub",
+          "signature": "(u: time) -> int",
+          "kind": "instance",
+          "status": "planned"
+        },
+        {
+          "name": "Add",
+          "signature": "(d: int) -> time",
+          "kind": "instance",
+          "status": "planned"
+        },
+        {
+          "name": "Round",
+          "signature": "(d: int) -> time",
+          "kind": "instance",
+          "status": "planned"
+        },
+        {
+          "name": "Truncate",
+          "signature": "(d: int) -> time",
+          "kind": "instance",
+          "status": "planned"
+        }
+      ],
+      "instance_functions": [
+        {
+          "name": "ToString",
+          "signature": "() -> string",
+          "status": "implemented"
+        },
+        {
+          "name": "Format",
+          "signature": "(fmt: string) -> string",
+          "status": "implemented"
+        }
+      ]
+    },
+    {
+      "name": "decimal",
+      "priority": "P0",
+      "go_counterpart": "axlang 特有，高精度十进制",
+      "status": "implemented",
+      "functions": [
+        {
+          "name": "Parse",
+          "signature": "(s: string) -> result<decimal>",
+          "kind": "static",
+          "status": "implemented"
+        },
+        {
+          "name": "Truncate",
+          "signature": "(v: int) -> int8",
+          "kind": "instance",
+          "status": "implemented"
+        },
+        {
+          "name": "Truncate",
+          "signature": "(v: int) -> int16",
+          "kind": "instance",
+          "status": "implemented"
+        },
+        {
+          "name": "Truncate",
+          "signature": "(v: int) -> int32",
+          "kind": "instance",
+          "status": "implemented"
+        }
+      ]
+    },
+    {
+      "name": "Int/Float/Bool/Enum",
+      "priority": "P0",
+      "go_counterpart": "基础类型方法",
+      "status": "implemented",
+      "functions": [
+        {
+          "name": "ToString",
+          "signature": "() -> string",
+          "kind": "instance",
+          "status": "implemented"
+        },
+        {
+          "name": "WrappingAdd",
+          "signature": "(other: T) -> T",
+          "kind": "instance",
+          "status": "implemented"
+        },
+        {
+          "name": "Round",
+          "signature": "(digits: int) -> float",
+          "kind": "instance",
+          "status": "implemented"
+        },
+        {
+          "name": "Divide",
+          "signature": "(other: T) -> T",
+          "kind": "instance",
+          "status": "implemented"
+        }
+      ]
+    },
+    {
+      "name": "Array",
+      "priority": "P0",
+      "go_counterpart": "Go slice / C 数组",
+      "status": "implemented",
+      "functions": [
+        {
+          "name": "Push",
+          "signature": "(elem: T) -> void",
+          "kind": "instance",
+          "status": "implemented"
+        },
+        {
+          "name": "Pop",
+          "signature": "() -> T?",
+          "kind": "instance",
+          "status": "implemented"
+        },
+        {
+          "name": "Remove",
+          "signature": "(index: int) -> void",
+          "kind": "instance",
+          "status": "implemented"
+        },
+        {
+          "name": "Clear",
+          "signature": "() -> void",
+          "kind": "instance",
+          "status": "implemented"
+        },
+        {
+          "name": "ToString",
+          "signature": "() -> string",
+          "kind": "instance",
+          "status": "implemented"
+        },
+        {
+          "name": "==",
+          "signature": "(other: T[]) -> bool",
+          "kind": "instance",
+          "status": "implemented"
+        },
+        {
+          "name": "!=",
+          "signature": "(other: T[]) -> bool",
+          "kind": "instance",
+          "status": "implemented"
+        },
+        {
+          "name": "切片",
+          "signature": "[lo..hi] / [lo..=hi]",
+          "kind": "syntax",
+          "status": "implemented"
+        }
+      ]
+    },
+    {
+      "name": "Map",
+      "priority": "P0",
+      "go_counterpart": "Go map",
+      "status": "implemented",
+      "functions": [
+        {
+          "name": "Clear",
+          "signature": "() -> void",
+          "kind": "instance",
+          "status": "implemented"
+        },
+        {
+          "name": "Remove",
+          "signature": "(key: K) -> void",
+          "kind": "instance",
+          "status": "implemented"
+        },
+        {
+          "name": "==",
+          "signature": "(other: Map) -> bool",
+          "kind": "instance",
+          "status": "implemented"
+        },
+        {
+          "name": "!=",
+          "signature": "(other: Map) -> bool",
+          "kind": "instance",
+          "status": "implemented"
+        }
+      ]
+    },
+    {
+      "name": "Range",
+      "priority": "P0",
+      "go_counterpart": "Go range",
+      "status": "implemented",
+      "functions": [
+        {
+          "name": "Step",
+          "signature": "(n: int) -> Range",
+          "kind": "instance",
+          "status": "implemented"
+        }
+      ]
+    },
+    {
+      "name": "thread",
+      "priority": "P0",
+      "go_counterpart": "Go channel / goroutine",
+      "status": "implemented",
+      "functions": [
+        {
+          "name": "Push",
+          "signature": "(v: T) -> void",
+          "kind": "instance",
+          "status": "implemented"
+        },
+        {
+          "name": "Pop",
+          "signature": "() -> T?",
+          "kind": "instance",
+          "status": "implemented"
+        },
+        {
+          "name": "Close",
+          "signature": "() -> void",
+          "kind": "instance",
+          "status": "implemented"
+        },
+        {
+          "name": "Join",
+          "signature": "() -> void",
+          "kind": "instance",
+          "status": "implemented"
+        }
+      ]
+    },
+    {
+      "name": "queue",
+      "priority": "P0",
+      "go_counterpart": "Go channel",
+      "status": "implemented",
+      "functions": [
+        {
+          "name": "TryPop",
+          "signature": "() -> T?",
+          "kind": "instance",
+          "status": "implemented"
+        }
+      ]
+    },
+    {
+      "name": "os",
+      "priority": "P0",
+      "go_counterpart": "Go os / C stdlib",
+      "status": "partial",
+      "functions": [
+        {
+          "name": "Args",
+          "signature": "() -> string[]",
+          "status": "implemented"
+        },
+        {
+          "name": "Chdir",
+          "signature": "(path: string) -> int",
+          "status": "implemented"
+        },
+        {
+          "name": "Environ",
+          "signature": "() -> string[]",
+          "status": "implemented"
+        },
+        {
+          "name": "Exit",
+          "signature": "(code: int) -> void",
+          "status": "implemented"
+        },
+        {
+          "name": "Getenv",
+          "signature": "(name: string) -> string",
+          "status": "implemented"
+        },
+        {
+          "name": "Getpid",
+          "signature": "() -> int",
+          "status": "implemented"
+        },
+        {
+          "name": "Getppid",
+          "signature": "() -> int",
+          "status": "implemented"
+        },
+        {
+          "name": "Getwd",
+          "signature": "() -> string",
+          "status": "implemented"
+        },
+        {
+          "name": "Hostname",
+          "signature": "() -> string",
+          "status": "implemented"
+        },
+        {
+          "name": "Setenv",
+          "signature": "(name: string, value: string) -> int",
+          "status": "implemented"
+        },
+        {
+          "name": "Unsetenv",
+          "signature": "(name: string) -> int",
+          "status": "implemented"
+        },
+        {
+          "name": "UserHomeDir",
+          "signature": "() -> string",
+          "status": "implemented"
+        },
+        {
+          "name": "UserCacheDir",
+          "signature": "() -> string",
+          "status": "planned"
+        },
+        {
+          "name": "Getpagesize",
+          "signature": "() -> int",
+          "status": "planned"
+        },
+        {
+          "name": "Getuid",
+          "signature": "() -> int",
+          "status": "planned"
+        },
+        {
+          "name": "Getgid",
+          "signature": "() -> int",
+          "status": "planned"
+        },
+        {
+          "name": "Geteuid",
+          "signature": "() -> int",
+          "status": "planned"
+        },
+        {
+          "name": "Getegid",
+          "signature": "() -> int",
+          "status": "planned"
+        },
+        {
+          "name": "Getgroups",
+          "signature": "() -> int[]",
+          "status": "planned"
+        },
+        {
+          "name": "Executable",
+          "signature": "() -> string",
+          "status": "planned"
+        }
+      ]
+    },
+    {
+      "name": "strconv",
+      "priority": "P0",
+      "go_counterpart": "Go strconv",
+      "status": "implemented",
+      "functions": [
+        {
+          "name": "Atoi",
+          "signature": "(s: string) -> int",
+          "status": "implemented"
+        },
+        {
+          "name": "Itoa",
+          "signature": "(v: int) -> string",
+          "status": "implemented"
+        },
+        {
+          "name": "ParseBool",
+          "signature": "(s: string) -> bool",
+          "status": "implemented"
+        },
+        {
+          "name": "FormatBool",
+          "signature": "(v: bool) -> string",
+          "status": "implemented"
+        },
+        {
+          "name": "ParseFloat",
+          "signature": "(s: string) -> float",
+          "status": "implemented"
+        },
+        {
+          "name": "FormatFloat",
+          "signature": "(v: float) -> string",
+          "status": "implemented"
+        },
+        {
+          "name": "ParseInt",
+          "signature": "(s: string, base: int) -> int",
+          "status": "implemented"
+        },
+        {
+          "name": "FormatInt",
+          "signature": "(v: int, base: int) -> string",
+          "status": "implemented"
+        },
+        {
+          "name": "ParseUint",
+          "signature": "(s: string, base: int) -> int",
+          "status": "implemented"
+        },
+        {
+          "name": "FormatUint",
+          "signature": "(v: int, base: int) -> string",
+          "status": "implemented"
+        },
+        {
+          "name": "CanBackquote",
+          "signature": "(s: string) -> bool",
+          "status": "implemented"
+        },
+        {
+          "name": "Quote",
+          "signature": "(s: string) -> string",
+          "status": "implemented"
+        },
+        {
+          "name": "Unquote",
+          "signature": "(s: string) -> string",
+          "status": "implemented"
+        }
+      ]
+    },
+    {
+      "name": "filepath",
+      "priority": "P0",
+      "go_counterpart": "Go path/filepath",
+      "status": "partial",
+      "functions": [
+        {
+          "name": "Join",
+          "signature": "(parts: string[]) -> string",
+          "status": "implemented"
+        },
+        {
+          "name": "Dir",
+          "signature": "(path: string) -> string",
+          "status": "implemented"
+        },
+        {
+          "name": "Base",
+          "signature": "(path: string) -> string",
+          "status": "implemented"
+        },
+        {
+          "name": "Ext",
+          "signature": "(path: string) -> string",
+          "status": "implemented"
+        },
+        {
+          "name": "Split",
+          "signature": "(path: string) -> string[2]",
+          "status": "implemented"
+        },
+        {
+          "name": "Clean",
+          "signature": "(path: string) -> string",
+          "status": "implemented"
+        },
+        {
+          "name": "Abs",
+          "signature": "(path: string) -> string",
+          "status": "implemented"
+        },
+        {
+          "name": "IsAbs",
+          "signature": "(path: string) -> bool",
+          "status": "implemented"
+        },
+        {
+          "name": "EvalSymlinks",
+          "signature": "(path: string) -> string",
+          "status": "planned"
+        },
+        {
+          "name": "Glob",
+          "signature": "(pattern: string) -> string[]",
+          "status": "planned"
+        },
+        {
+          "name": "Rel",
+          "signature": "(basepath, targpath: string) -> string",
+          "status": "planned"
+        },
+        {
+          "name": "Walk",
+          "signature": "(root: string, fn: func) -> int",
+          "status": "planned"
+        }
+      ]
+    },
+    {
+      "name": "rand",
+      "priority": "P0",
+      "go_counterpart": "Go math/rand",
+      "status": "implemented",
+      "functions": [
+        {
+          "name": "Int",
+          "signature": "(n: int) -> int",
+          "status": "implemented"
+        },
+        {
+          "name": "Float",
+          "signature": "() -> float",
+          "status": "implemented"
+        },
+        {
+          "name": "Seed",
+          "signature": "(seed: int) -> void",
+          "status": "implemented"
+        }
+      ]
+    },
+    {
+      "name": "sort",
+      "priority": "P2",
+      "go_counterpart": "Go sort",
+      "status": "partial",
+      "functions": [
+        {
+          "name": "Ints",
+          "signature": "(a: int[]) -> void",
+          "status": "implemented"
+        },
+        {
+          "name": "Strings",
+          "signature": "(a: string[]) -> void",
+          "status": "implemented"
+        },
+        {
+          "name": "Float64s",
+          "signature": "(a: float[]) -> void",
+          "status": "implemented"
+        },
+        {
+          "name": "IntsAreSorted",
+          "signature": "(a: int[]) -> bool",
+          "status": "implemented"
+        },
+        {
+          "name": "StringsAreSorted",
+          "signature": "(a: string[]) -> bool",
+          "status": "implemented"
+        },
+        {
+          "name": "SearchInts",
+          "signature": "(a: int[], x: int) -> int",
+          "status": "implemented"
+        },
+        {
+          "name": "SearchStrings",
+          "signature": "(a: string[], x: string) -> int",
+          "status": "implemented"
+        },
+        {
+          "name": "Slice",
+          "signature": "(a: any[], less: func(i, j int) bool) -> void",
+          "status": "not_implemented",
+          "note": "axlang 不支持闭包，暂不落地"
+        },
+        {
+          "name": "SliceStable",
+          "signature": "(a: any[], less: func(i, j int) bool) -> void",
+          "status": "not_implemented",
+          "note": "axlang 不支持闭包，暂不落地"
+        }
+      ]
+    },
+    {
+      "name": "slices",
+      "priority": "P2",
+      "go_counterpart": "Go slices (Go 1.21+)",
+      "status": "implemented",
+      "functions": [
+        {
+          "name": "Contains",
+          "signature": "(x: T) -> bool",
+          "kind": "instance",
+          "status": "implemented"
+        },
+        {
+          "name": "Index",
+          "signature": "(x: T) -> int",
+          "kind": "instance",
+          "status": "implemented"
+        },
+        {
+          "name": "Sort",
+          "signature": "() -> void",
+          "kind": "instance",
+          "status": "implemented"
+        },
+        {
+          "name": "Sort",
+          "signature": "(cmp) -> void",
+          "kind": "instance",
+          "status": "implemented",
+          "note": "带比较函数，GAP #10"
+        },
+        {
+          "name": "Reverse",
+          "signature": "() -> void",
+          "kind": "instance",
+          "status": "implemented"
+        },
+        {
+          "name": "Clone",
+          "signature": "() -> T[]",
+          "kind": "instance",
+          "status": "implemented"
+        },
+        {
+          "name": "Insert",
+          "signature": "(i, x) -> void",
+          "kind": "instance",
+          "status": "implemented"
+        },
+        {
+          "name": "Fill",
+          "signature": "(x) -> void",
+          "kind": "instance",
+          "status": "implemented"
+        },
+        {
+          "name": "Resize",
+          "signature": "(n) -> void",
+          "kind": "instance",
+          "status": "implemented"
+        },
+        {
+          "name": "Merge",
+          "signature": "(other) -> void",
+          "kind": "instance",
+          "status": "implemented"
+        },
+        {
+          "name": "Min",
+          "signature": "() -> T",
+          "kind": "instance",
+          "status": "implemented"
+        },
+        {
+          "name": "Max",
+          "signature": "() -> T",
+          "kind": "instance",
+          "status": "implemented"
+        },
+        {
+          "name": "Sum",
+          "signature": "() -> T",
+          "kind": "instance",
+          "status": "implemented"
+        },
+        {
+          "name": "Delete",
+          "signature": "(i, j) -> T[]",
+          "kind": "instance",
+          "status": "not_implemented",
+          "note": "与 arr.Remove 语义重复，暂不落地"
+        }
+      ]
+    },
+    {
+      "name": "maps",
+      "priority": "P2",
+      "go_counterpart": "Go maps (Go 1.21+)",
+      "status": "implemented",
+      "functions": [
+        {
+          "name": "Keys",
+          "signature": "(m: Map) -> K[]",
+          "status": "implemented"
+        },
+        {
+          "name": "Values",
+          "signature": "(m: Map) -> V[]",
+          "status": "implemented"
+        },
+        {
+          "name": "Clone",
+          "signature": "(m: Map) -> Map",
+          "status": "implemented"
+        },
+        {
+          "name": "Copy",
+          "signature": "(dst: Map, src: Map) -> void",
+          "status": "implemented"
+        },
+        {
+          "name": "Delete",
+          "signature": "(m: Map, key: K) -> void",
+          "status": "implemented"
+        },
+        {
+          "name": "DeleteFunc",
+          "signature": "(m: Map, f: func(K) bool) -> void",
+          "status": "not_implemented",
+          "note": "axlang 不支持闭包，暂不落地"
+        },
+        {
+          "name": "Equal",
+          "signature": "(m1: Map, m2: Map) -> bool",
+          "status": "implemented"
+        }
+      ]
+    },
+    {
+      "name": "unique",
+      "priority": "P2",
+      "go_counterpart": "Go unique (Go 1.23+)",
+      "status": "implemented",
+      "functions": [
+        {
+          "name": "Make",
+          "signature": "(v: T) -> Handle[T]",
+          "status": "implemented"
+        },
+        {
+          "name": "Value",
+          "signature": "(h: Handle[T]) -> T",
+          "status": "implemented"
+        }
+      ]
+    },
+    {
+      "name": "bytes",
+      "priority": "P2",
+      "go_counterpart": "Go bytes",
+      "status": "implemented",
+      "functions": [
+        {
+          "name": "Contains",
+          "signature": "(s: bytes, sub: bytes) -> bool",
+          "status": "implemented"
+        },
+        {
+          "name": "Equal",
+          "signature": "(a: bytes, b: bytes) -> bool",
+          "status": "implemented"
+        },
+        {
+          "name": "Index",
+          "signature": "(s: bytes, sub: bytes) -> int",
+          "status": "implemented"
+        },
+        {
+          "name": "Split",
+          "signature": "(s: bytes, sep: bytes) -> bytes[]",
+          "status": "implemented"
+        },
+        {
+          "name": "TrimSpace",
+          "signature": "(s: bytes) -> bytes",
+          "status": "implemented"
+        },
+        {
+          "name": "ToUpper",
+          "signature": "(s: bytes) -> bytes",
+          "status": "implemented"
+        },
+        {
+          "name": "ToLower",
+          "signature": "(s: bytes) -> bytes",
+          "status": "implemented"
+        },
+        {
+          "name": "Repeat",
+          "signature": "(s: bytes, count: int) -> bytes",
+          "status": "implemented"
+        }
+      ]
+    },
+    {
+      "name": "bufio",
+      "priority": "P2",
+      "go_counterpart": "Go bufio",
+      "status": "implemented",
+      "functions": [
+        {
+          "name": "NewReader",
+          "signature": "(r: File) -> File",
+          "status": "implemented"
+        },
+        {
+          "name": "NewWriter",
+          "signature": "(w: File) -> File",
+          "status": "implemented"
+        },
+        {
+          "name": "Scanner",
+          "signature": "(r: File) -> File",
+          "status": "implemented"
+        }
+      ]
+    },
+    {
+      "name": "csv",
+      "priority": "P2",
+      "go_counterpart": "Go encoding/csv",
+      "status": "implemented",
+      "functions": [
+        {
+          "name": "ReadAll",
+          "signature": "(r: Reader) -> string[][]",
+          "status": "implemented"
+        },
+        {
+          "name": "Write",
+          "signature": "(w: Writer, record: string[]) -> int",
+          "status": "implemented"
+        }
+      ]
+    },
+    {
+      "name": "errors",
+      "priority": "P2",
+      "go_counterpart": "Go errors",
+      "status": "implemented",
+      "functions": [
+        {
+          "name": "New",
+          "signature": "(msg: string) -> error",
+          "status": "implemented"
+        },
+        {
+          "name": "Is",
+          "signature": "(err: error, target: error) -> bool",
+          "status": "implemented"
+        },
+        {
+          "name": "As",
+          "signature": "(err: error, target: error) -> bool",
+          "status": "implemented",
+          "note": "axlang 无运行时类型反射，target 限定为 error 类型"
+        }
+      ]
+    },
+    {
+      "name": "log",
+      "priority": "P2",
+      "go_counterpart": "Go log",
+      "status": "implemented",
+      "functions": [
+        {
+          "name": "Print",
+          "signature": "(v: any...) -> void",
+          "status": "implemented"
+        },
+        {
+          "name": "Printf",
+          "signature": "(format: string, v: any...) -> void",
+          "status": "implemented"
+        },
+        {
+          "name": "Fatal",
+          "signature": "(v: any...) -> void",
+          "status": "implemented"
+        }
+      ]
+    },
+    {
+      "name": "sync",
+      "priority": "P2",
+      "go_counterpart": "Go sync",
+      "status": "implemented",
+      "types": [
+        {
+          "name": "Mutex",
+          "kind": "struct",
+          "methods": [
+            "Lock",
+            "Unlock"
+          ]
+        },
+        {
+          "name": "RWMutex",
+          "kind": "struct",
+          "methods": [
+            "Lock",
+            "Unlock",
+            "RLock",
+            "Runlock"
+          ]
+        },
+        {
+          "name": "WaitGroup",
+          "kind": "struct",
+          "methods": [
+            "Add",
+            "Done",
+            "Wait"
+          ]
+        },
+        {
+          "name": "Once",
+          "kind": "struct",
+          "methods": [
+            "Do"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "atomic",
+      "priority": "P2",
+      "go_counterpart": "Go sync/atomic",
+      "status": "implemented",
+      "functions": [
+        {
+          "name": "AddInt",
+          "signature": "(addr: *int, delta: int) -> int",
+          "status": "implemented"
+        },
+        {
+          "name": "LoadInt",
+          "signature": "(addr: *int) -> int",
+          "status": "implemented"
+        },
+        {
+          "name": "StoreInt",
+          "signature": "(addr: *int, val: int) -> void",
+          "status": "implemented"
+        },
+        {
+          "name": "CompareAndSwapInt",
+          "signature": "(addr: *int, old: int, new: int) -> bool",
+          "status": "implemented"
+        }
+      ]
+    },
+    {
+      "name": "reflect",
+      "priority": "P2",
+      "go_counterpart": "Go reflect",
+      "status": "not_implemented",
+      "functions": [
+        {
+          "name": "TypeOf",
+          "signature": "(v: any) -> string",
+          "status": "not_implemented",
+          "note": "axlang 无运行时类型反射，需设计可落地子集"
+        },
+        {
+          "name": "ValueOf",
+          "signature": "(v: any) -> any",
+          "status": "not_implemented",
+          "note": "同上"
+        },
+        {
+          "name": "NumField",
+          "signature": "(v: any) -> int",
+          "status": "not_implemented",
+          "note": "同上"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "implemented_modules": 21,
+    "pending_modules": 2,
+    "total_functions_implemented": 160,
+    "last_regression": "451/465 通过，0 新增回归",
+    "last_regression_date": "2026-11-24"
+  }
+}

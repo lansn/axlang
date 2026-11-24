@@ -38,7 +38,7 @@ pub fn is_reserved(name: &str) -> bool {
     is_builtin_scalar(name) || RESERVED_EXTRA.contains(&name)
 }
 
-pub const BUILTIN_MODULES: [&str; 20] = ["db", "file", "fmt", "io", "json", "csv", "errors", "log", "maps", "math", "os", "rand", "sort", "string", "strconv", "time", "filepath", "bytes", "unique", "bufio"];
+pub const BUILTIN_MODULES: [&str; 22] = ["db", "file", "fmt", "io", "json", "csv", "errors", "log", "maps", "math", "os", "rand", "sort", "string", "strconv", "time", "filepath", "bytes", "unique", "bufio", "sync", "atomic"];
 
 pub fn is_builtin_type_name(name: &str) -> bool {
     is_builtin_scalar(name)
@@ -695,6 +695,35 @@ impl<'a> Sema<'a> {
             next_node_id: 1_000_000_000,
         };
         sema.seed_builtin_ifaces();
+        // 内建句柄类型（对标 Go sync，P2）：零字段结构体，支持 `Mutex()` / `RWMutex()` /
+        // `WaitGroup()` / `Once()` 零初始化构造，在表达式中作为类型名可被 lookup_type_name 解析。
+        for name in ["Mutex", "RWMutex", "WaitGroup", "Once"] {
+            let id = sema.typedefs.len() as u32;
+            sema.next_type_id += 1;
+            sema.typedefs.push(TypeDef {
+                id,
+                name: name.to_string(),
+                kind: "struct",
+                tok: dummy_tok(),
+                vis: "public".to_string(),
+                generics: Vec::new(),
+                is_abstract: false,
+                is_final: false,
+                fields: Vec::new(),
+                methods: BTreeMap::new(),
+                ctors: HashMap::new(),
+                parent: None,
+                impls: Vec::new(),
+                extends: Vec::new(),
+                variants: Vec::new(),
+                alias_target: None,
+                alias_node: None,
+                nested: BTreeMap::new(),
+                expanding: false,
+            });
+            sema.typedef_mod.push(None);
+            sema.types.insert(name.to_string(), id);
+        }
         sema
     }
 
@@ -866,7 +895,11 @@ impl<'a> Sema<'a> {
     /// 最后一档是"`import catalog.product` 之后直接写 `Product`"，
     /// 与 `catalog.product.Product` / 末段短名 `product.Product` 三者等价。
     pub(crate) fn lookup_type_name(&mut self, name: &str, tok: &Tok) -> Option<u32> {
-        if let Some(&d) = self.types.get(name) {
+        let hit = self.types.get(name);
+        if name == "Mutex" || name == "RWMutex" || name == "WaitGroup" || name == "Once" {
+            eprintln!("DEBUG lookup_type_name {} => {:?}", name, hit);
+        }
+        if let Some(&d) = hit {
             return Some(d);
         }
         if let Some(p) = self.cur_mod_prefix.clone() {
@@ -1647,6 +1680,10 @@ impl<'a> Sema<'a> {
                         "Arena" => return t_named(DefId::Name("Arena"), Vec::new()),
                         "Rounding" => return t_named(DefId::Name("Rounding"), Vec::new()),
                         "bytes" => return t_array(t_int_b(8, false), None),
+                        "Mutex" => return t_named(DefId::Name("Mutex"), Vec::new()),
+                        "RWMutex" => return t_named(DefId::Name("RWMutex"), Vec::new()),
+                        "WaitGroup" => return t_named(DefId::Name("WaitGroup"), Vec::new()),
+                        "Once" => return t_named(DefId::Name("Once"), Vec::new()),
                         "time" => return t_named(DefId::Name("time"), Vec::new()),
                         "thread" => return t_named(DefId::Name("thread"), Vec::new()),
                         "queue" => {

@@ -1705,6 +1705,18 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                     tyc = tyc
                 )
             }
+            /* ---------------- sync 模块方法（对标 Go sync，P2） ----------------
+             * recv 在 C 层为 ax_mutex/ax_rwmutex/ax_waitgroup/ax_once 指针，直接传入。 */
+            "Mutex.Lock" => { self.emit(format!("ax_mutex_lock(&{});", tv)); "0".to_string() }
+            "Mutex.Unlock" => { self.emit(format!("ax_mutex_unlock(&{});", tv)); "0".to_string() }
+            "RWMutex.Lock" => { self.emit(format!("ax_rwmutex_lock(&{});", tv)); "0".to_string() }
+            "RWMutex.Unlock" => { self.emit(format!("ax_rwmutex_unlock(&{});", tv)); "0".to_string() }
+            "RWMutex.RLock" => { self.emit(format!("ax_rwmutex_rlock(&{});", tv)); "0".to_string() }
+            "RWMutex.Runlock" => { self.emit(format!("ax_rwmutex_runlock(&{});", tv)); "0".to_string() }
+            "WaitGroup.Add" => format!("ax_waitgroup_add(&{}, {})", tv, self.gen(&args[0].k.expr, Some(&t_int()), false, false)),
+            "WaitGroup.Done" => { self.emit(format!("ax_waitgroup_done(&{});", tv)); "0".to_string() }
+            "WaitGroup.Wait" => { self.emit(format!("ax_waitgroup_wait(&{});", tv)); "0".to_string() }
+            "Once.Do" => { self.emit(format!("ax_once_do(&{});", tv)); "0".to_string() }
             _ => "0".to_string(),
         }
     }
@@ -1966,6 +1978,18 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             ("rand", "Seed") => {
                 self.emit(format!("ax_rand_seed({});", a[0]));
                 "0".to_string()
+            }
+            /* ---------------- sync/atomic 模块 ----------------
+             * atomic.* 的 addr 参数为 int 变量，C 层需取其地址传给 volatile int64_t*。
+             * 实参必须是左值（简单变量），否则 C 编译会报“取地址运算对象不是左值”。 */
+            ("atomic", "AddInt") => format!("ax_atomic_add_int(&{}, {})", a[0], a[1]),
+            ("atomic", "LoadInt") => format!("ax_atomic_load_int(&{})", a[0]),
+            ("atomic", "StoreInt") => {
+                self.emit(format!("ax_atomic_store_int(&{}, {});", a[0], a[1]));
+                "0".to_string()
+            }
+            ("atomic", "CompareAndSwapInt") => {
+                format!("ax_atomic_compare_and_swap_int(&{}, {}, {})", a[0], a[1], a[2])
             }
             /* ---------------- sort 模块 ---------------- */
             ("sort", "Ints") => {
@@ -3166,6 +3190,36 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                         out
                     }
                     "Close" => format!("ax_queue_close({})", tv),
+                    _ => "0".to_string(),
+                }
+            }
+            // sync 内建句柄类型：通过 typedefs 注册，类型为 TyS::Named(DefId::Id(id), _)
+            TyS::Named(DefId::Id(id), _) => {
+                let td = self.cg.s.typedefs.get(*id as usize);
+                let tv = self.declare(&rt, &rv);
+                match td.map(|d| d.name.as_str()) {
+                    Some("Mutex") => match name.as_str() {
+                        "Lock" => { self.emit(format!("ax_mutex_lock(&{});", tv)); "0".to_string() }
+                        "Unlock" => { self.emit(format!("ax_mutex_unlock(&{});", tv)); "0".to_string() }
+                        _ => "0".to_string(),
+                    },
+                    Some("RWMutex") => match name.as_str() {
+                        "Lock" => { self.emit(format!("ax_rwmutex_lock(&{});", tv)); "0".to_string() }
+                        "Unlock" => { self.emit(format!("ax_rwmutex_unlock(&{});", tv)); "0".to_string() }
+                        "RLock" => { self.emit(format!("ax_rwmutex_rlock(&{});", tv)); "0".to_string() }
+                        "Runlock" => { self.emit(format!("ax_rwmutex_runlock(&{});", tv)); "0".to_string() }
+                        _ => "0".to_string(),
+                    },
+                    Some("WaitGroup") => match name.as_str() {
+                        "Add" => format!("ax_waitgroup_add(&{}, {})", tv, self.gen(&args[0].k.expr, Some(&t_int()), false, false)),
+                        "Done" => { self.emit(format!("ax_waitgroup_done(&{});", tv)); "0".to_string() }
+                        "Wait" => { self.emit(format!("ax_waitgroup_wait(&{});", tv)); "0".to_string() }
+                        _ => "0".to_string(),
+                    },
+                    Some("Once") => match name.as_str() {
+                        "Do" => { self.emit(format!("ax_once_do(&{});", tv)); "0".to_string() }
+                        _ => "0".to_string(),
+                    },
                     _ => "0".to_string(),
                 }
             }

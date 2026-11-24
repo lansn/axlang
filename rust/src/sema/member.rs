@@ -1783,6 +1783,49 @@ impl<'a> Sema<'a> {
                     ("Close", vec![], t_void()),
                 ])
             }
+            /* ---------------- sync 模块内建类型方法（对标 Go sync，P2） ---------------- */
+            TyS::Named(DefId::Name("Mutex"), _) => Some(vec![
+                ("Lock", vec![], t_void()),
+                ("Unlock", vec![], t_void()),
+            ]),
+            TyS::Named(DefId::Name("RWMutex"), _) => Some(vec![
+                ("Lock", vec![], t_void()),
+                ("Unlock", vec![], t_void()),
+                ("RLock", vec![], t_void()),
+                ("Runlock", vec![], t_void()),
+            ]),
+            TyS::Named(DefId::Name("WaitGroup"), _) => Some(vec![
+                ("Add", vec![t_int()], t_void()),
+                ("Done", vec![], t_void()),
+                ("Wait", vec![], t_void()),
+            ]),
+            TyS::Named(DefId::Name("Once"), _) => Some(vec![
+                ("Do", vec![], t_void()),
+            ]),
+            // sync 内建句柄类型是通过 typedefs 注册的 struct，类型为 TyS::Named(DefId::Id(id), _)
+            // 而非 DefId::Name，因此在此单独按 typedef 名称匹配。
+            TyS::Named(DefId::Id(id), _) => {
+                let td = self.typedefs.get(*id as usize);
+                match td.map(|d| d.name.as_str()) {
+                    Some("Mutex") => Some(vec![
+                        ("Lock", vec![], t_void()),
+                        ("Unlock", vec![], t_void()),
+                    ]),
+                    Some("RWMutex") => Some(vec![
+                        ("Lock", vec![], t_void()),
+                        ("Unlock", vec![], t_void()),
+                        ("RLock", vec![], t_void()),
+                        ("Runlock", vec![], t_void()),
+                    ]),
+                    Some("WaitGroup") => Some(vec![
+                        ("Add", vec![t_int()], t_void()),
+                        ("Done", vec![], t_void()),
+                        ("Wait", vec![], t_void()),
+                    ]),
+                    Some("Once") => Some(vec![("Do", vec![], t_void())]),
+                    _ => None,
+                }
+            }
             _ => None,
         };
         let table = match table {

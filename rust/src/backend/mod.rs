@@ -385,12 +385,25 @@ impl<'s, 'a> CodeGen<'s, 'a> {
                     DefId::Name("time") => return "int64_t".to_string(),
                     DefId::Name("thread") => return "ax_thread*".to_string(),
                     DefId::Name("queue") => return "ax_queue*".to_string(),
+                    // 内建句柄类型为值类型（结构体），按值传递、C 层取地址后用
+                    DefId::Name("Mutex") => return "ax_mutex".to_string(),
+                    DefId::Name("RWMutex") => return "ax_rwmutex".to_string(),
+                    DefId::Name("WaitGroup") => return "ax_waitgroup".to_string(),
+                    DefId::Name("Once") => return "ax_once".to_string(),
                     _ => {}
                 }
                 match self.def_of(nm) {
                     None => "void*".to_string(),
                     Some(d) => {
                         let d = d.clone();
+                        // DefId::Id 路径：按 typedef 名称映射内建句柄类型（值类型）
+                        match d.name.as_str() {
+                            "Mutex" => return "ax_mutex".to_string(),
+                            "RWMutex" => return "ax_rwmutex".to_string(),
+                            "WaitGroup" => return "ax_waitgroup".to_string(),
+                            "Once" => return "ax_once".to_string(),
+                            _ => {}
+                        }
                         if d.kind == "class" {
                             format!("{}*", self.class_name(&d))
                         } else if d.kind == "interface" {

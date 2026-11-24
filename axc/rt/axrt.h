@@ -12,6 +12,12 @@
 #include <stdio.h>
 #include <math.h>
 
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <pthread.h>
+#endif
+
 
 /* ---------------- arena（区域分配器，规格书 8.4 / O-17…O-20） ----------------
  * 整块同生共死：adopt 只登记指针（所有权移交区域），free 一次性释放
@@ -578,6 +584,75 @@ int        ax_queue_pop(ax_queue* q, void* out);
 int        ax_queue_try_pop(ax_queue* q, void* out);
 /* 关闭队列：后续 pop 在队列耗尽后返回 1，作为结束信号。 */
 void       ax_queue_close(ax_queue* q);
+
+/* ---------------- sync 模块（对标 Go sync，P2） ----------------
+ * 基于平台原语：Windows CRITICAL_SECTION / SRWLOCK / CONDITION_VARIABLE，
+ * 非 Windows pthread_mutex / pthread_rwlock / pthread_cond。
+ * axlang 尚无闭包/函数值，Once.Do 的回调由上层在 C 层之外处理，
+ * 这里仅提供原语绑定。 */
+
+/* 互斥锁（不可重入）：Lock/Unlock。 */
+typedef struct {
+#ifdef _WIN32
+    CRITICAL_SECTION cs;
+#else
+    pthread_mutex_t mu;
+#endif
+    int initialized;  /* 懒初始化标志：零值结构体不能直接加锁，首次锁定时平台初始化 */
+} ax_mutex;
+void ax_mutex_lock(ax_mutex* m);
+void ax_mutex_unlock(ax_mutex* m);
+
+/* 读写锁：Lock/Unlock（写），RLock/Runlock（读）。 */
+typedef struct {
+#ifdef _WIN32
+    SRWLOCK srw;
+#else
+    pthread_rwlock_t rw;
+#endif
+    int initialized;  /* 懒初始化标志：pthread_rwlock 零值不可直接用，首次锁定时初始化 */
+} ax_rwmutex;
+void ax_rwmutex_lock(ax_rwmutex* rw);
+void ax_rwmutex_unlock(ax_rwmutex* rw);
+void ax_rwmutex_rlock(ax_rwmutex* rw);
+void ax_rwmutex_runlock(ax_rwmutex* rw);
+
+/* 等待组：Add(delta)/Done()/Wait()。 */
+typedef struct {
+#ifdef _WIN32
+    CRITICAL_SECTION cs;
+    CONDITION_VARIABLE cv;
+#else
+    pthread_mutex_t mu;
+    pthread_cond_t cv;
+#endif
+    int64_t counter;
+    int initialized;  /* 懒初始化标志：零值结构体不能直接用，首次操作时平台初始化 */
+} ax_waitgroup;
+void ax_waitgroup_add(ax_waitgroup* wg, int64_t delta);
+void ax_waitgroup_done(ax_waitgroup* wg);
+void ax_waitgroup_wait(ax_waitgroup* wg);
+
+/* Once：Do() 保证初始化逻辑仅执行一次。done 标志由 axlang 上层串行化访问，
+ * C 层仅提供原语绑定（无闭包时无回调可传）。 */
+typedef struct {
+#ifdef _WIN32
+    INIT_ONCE io;
+#else
+    pthread_once_t once;
+#endif
+    int64_t done;
+} ax_once;
+void ax_once_do(ax_once* o);
+
+/* ---------------- sync/atomic 模块（对标 Go sync/atomic，P2） ----------------
+ * 原子整数操作，基于标准 C11 <stdatomic.h>（axrt.c 内部包含）。
+ * addr 在 axlang 层传 *int 变量的地址，C 层形参为 volatile int64_t*，
+ * 内部经标准 C11 atomic_* 操作。 */
+int64_t ax_atomic_add_int(volatile int64_t* addr, int64_t delta);
+int64_t ax_atomic_load_int(volatile int64_t* addr);
+void    ax_atomic_store_int(volatile int64_t* addr, int64_t val);
+int     ax_atomic_compare_and_swap_int(volatile int64_t* addr, int64_t old, int64_t new);
 
 #ifdef __cplusplus
 }
