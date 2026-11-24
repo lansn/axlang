@@ -248,10 +248,6 @@
 | ax.函数 | 签名 | 对标 | 函数功能/用途 | 状态 |
 | ------ | ------ | ------ | ------ | ------ |
 | `math.frexp` | `(f: float) -> (frac: float, exp: int)` | — |  | ⬜ 计划中 |
-| `math.ldexp` | `(frac: float, exp: int) -> float` | — |  | ⬜ 计划中 |
-| `math.signbit` | `(f: float) -> bool` | — |  | ⬜ 计划中 |
-| `math.copysign` | `(f: float, sign: float) -> float` | — |  | ⬜ 计划中 |
-| `math.dim` | `(x: float, y: float) -> float` | — |  | ⬜ 计划中 |
 
 #### time 扩展
 
@@ -321,7 +317,7 @@
 | --- | --- | --- |
 | 已落地模块 | io, json, file, db, decimal, int/float/bool/enum, array, map, range, thread, queue, strconv, rand, slices, maps, unique, bytes, bufio, csv, errors, log, sync, atomic | 共 23 个模块 |
 | 待落地模块 | math, string, time, os, filepath, fmt, sort, reflect | 共 8 个模块 |
-| 已落地函数 | 239 / 272 | — |
+| 已落地函数 | 243 / 272 | — |
 
 
 *更新于 2026-11-24，基于 STDLIB-STATUS.json 自动生成*

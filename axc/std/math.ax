@@ -14,6 +14,12 @@ extern "C" {
     int ax_math_isnan(float x);
     int ax_math_isinf(float x, int sign);
 
+    /* axrt 原语扩展（signbit / copysign / dim / ldexp） */
+    int ax_math_signbit(float x);
+    float ax_math_copysign(float x, float y);
+    float ax_math_dim(float x, float y);
+    float ax_math_ldexp(float x, int exp);
+
     /* C 标准库 math.h（标准 C11，无 GNU/Clang 扩展） */
     float fabs(float x);
     float fmax(float a, float b);
@@ -172,5 +178,29 @@ public int isnan(float x) {
 public int isinf(float x, int sign) {
     unsafe {
         return ax_math_isinf(x, sign)
+    }
+}
+
+public int signbit(float x) {
+    unsafe {
+        return ax_math_signbit(x)
+    }
+}
+
+public float copysign(float x, float y) {
+    unsafe {
+        return ax_math_copysign(x, y)
+    }
+}
+
+public float dim(float x, float y) {
+    unsafe {
+        return ax_math_dim(x, y)
+    }
+}
+
+public float ldexp(float x, int exp) {
+    unsafe {
+        return ax_math_ldexp(x, exp)
     }
 }

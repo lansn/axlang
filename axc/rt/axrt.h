@@ -243,6 +243,12 @@ double ax_math_mod(double x, double y); /* 浮点余数，语义同 C fmod：符
 int   ax_math_isnan(double x);   /* C11 isnan：x 为 NaN 返回 1，否则 0 */
 int   ax_math_isinf(double x, int sign); /* C11 isinf：sign>0 只判 +Inf，sign<0 只判 -Inf，sign==0 判任意无穷 */
 
+/* math 扩展（对标 Go math.Signbit / math.Copysign / math.Dim / math.Ldexp，纯 C11，无 GNU/Clang 扩展） */
+int   ax_math_signbit(float x);  /* C11 signbit：x 为负数（含 -0 / -NaN）返回 1，否则 0 */
+float ax_math_copysign(float x, float y); /* C11 copysign：x 的幅值、y 的符号 */
+float ax_math_dim(float x, float y);      /* C11 fdim：max(x - y, 0) */
+float ax_math_ldexp(float x, int exp);    /* C11 ldexp：x * 2^exp */
+
 /* ---------------- map（Rt-8，插入序） ---------------- */
 typedef struct { uint64_t hash; void* k; void* v; } ax_mentry;
 

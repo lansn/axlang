@@ -527,6 +527,26 @@ int ax_math_isinf(double x, int sign) {
     return 1;
 }
 
+/* math.Signbit：C11 signbit 宏，x 为负数（含 -0 / -NaN）返回 1，否则 0 */
+int ax_math_signbit(float x) {
+    return signbit(x) ? 1 : 0;
+}
+
+/* math.Copysign：C11 copysign，返回 x 的幅值、y 的符号 */
+float ax_math_copysign(float x, float y) {
+    return copysignf(x, y);
+}
+
+/* math.Dim：C11 fdim，返回 max(x - y, 0) */
+float ax_math_dim(float x, float y) {
+    return fdimf(x, y);
+}
+
+/* math.Ldexp：C11 ldexp，返回 x * 2^exp */
+float ax_math_ldexp(float x, int exp) {
+    return ldexpf(x, exp);
+}
+
 /* ---------------- 大小写转换（仅 ASCII，UTF-8 多字节原样保留） ---------------- */
 
 

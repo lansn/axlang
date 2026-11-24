@@ -279,22 +279,22 @@
         {
           "name": "ldexp",
           "signature": "(frac: float, exp: int) -> float",
-          "status": "planned"
+          "status": "implemented"
         },
         {
           "name": "signbit",
           "signature": "(f: float) -> bool",
-          "status": "planned"
+          "status": "implemented"
         },
         {
           "name": "copysign",
           "signature": "(f: float, sign: float) -> float",
-          "status": "planned"
+          "status": "implemented"
         },
         {
           "name": "dim",
           "signature": "(x: float, y: float) -> float",
-          "status": "planned"
+          "status": "implemented"
         }
       ]
     },

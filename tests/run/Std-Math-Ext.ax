@@ -1,0 +1,24 @@
+// 验证 std.math 扩展函数（C 风格函数名：signbit / copysign / dim / ldexp）
+import std.math
+
+int main() {
+    var a = std.math.signbit(-3.5)
+    println("signbit(-3.5)={a}")
+    var b = std.math.signbit(3.5)
+    println("signbit(3.5)={b}")
+    var c = std.math.signbit(0.0)
+    println("signbit(0.0)={c}")
+    var d = std.math.copysign(3.5, -2.0)
+    println("copysign(3.5, -2.0)={d}")
+    var e = std.math.copysign(-3.5, 2.0)
+    println("copysign(-3.5, 2.0)={e}")
+    var f = std.math.dim(5.0, 3.0)
+    println("dim(5.0, 3.0)={f}")
+    var g = std.math.dim(3.0, 5.0)
+    println("dim(3.0, 5.0)={g}")
+    var h = std.math.ldexp(1.5, 3)
+    println("ldexp(1.5, 3)={h}")
+    var i = std.math.ldexp(1.5, -1)
+    println("ldexp(1.5, -1)={i}")
+    return 0
+}
