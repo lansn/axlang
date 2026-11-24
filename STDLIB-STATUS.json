@@ -1217,7 +1217,7 @@
         {
           "name": "rel",
           "signature": "(basepath, targpath: string) -> string",
-          "status": "planned"
+          "status": "implemented"
         },
         {
           "name": "walk",

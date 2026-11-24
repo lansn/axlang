@@ -210,6 +210,80 @@ ax_str ax_filepath_abs(ax_str path) {
     return ax_filepath_clean(joined);
 }
 
+/* 计算从 basepath 到 targpath 的相对路径（对标 Go filepath.Rel，纯 C11） */
+ax_str ax_filepath_rel(ax_str basepath, ax_str targpath) {
+    ax_str base = ax_filepath_clean(basepath);
+    ax_str targ = ax_filepath_clean(targpath);
+
+    /* 分割 basepath 为段（同时视 / 和 \ 为分隔符，跨平台兼容；跳过 "." 段） */
+    ax_arr base_parts;
+    ax_arr_init(&base_parts);
+    int64_t start = 0;
+    for (int64_t i = 0; i <= base.len; i++) {
+        uint8_t c = base.p[i];
+        if (i == base.len || c == (uint8_t)AX_FILEPATH_SEP[0] || c == (uint8_t)'/') {
+            if (i > start) {
+                ax_str seg = ax_str_slice_cp(base, start, i);
+                /* 跳过 "." 段（如 clean(".") 产生的单段） */
+                if (seg.len == 1 && seg.p[0] == '.') { start = i + 1; continue; }
+                ax_arr_push(&base_parts, &seg, (int64_t)sizeof(ax_str));
+            }
+            start = i + 1;
+        }
+    }
+
+    /* 分割 targpath 为段（同时视 / 和 \ 为分隔符，跨平台兼容；跳过 "." 段） */
+    ax_arr targ_parts;
+    ax_arr_init(&targ_parts);
+    start = 0;
+    for (int64_t i = 0; i <= targ.len; i++) {
+        uint8_t c = targ.p[i];
+        if (i == targ.len || c == (uint8_t)AX_FILEPATH_SEP[0] || c == (uint8_t)'/') {
+            if (i > start) {
+                ax_str seg = ax_str_slice_cp(targ, start, i);
+                if (seg.len == 1 && seg.p[0] == '.') { start = i + 1; continue; }
+                ax_arr_push(&targ_parts, &seg, (int64_t)sizeof(ax_str));
+            }
+            start = i + 1;
+        }
+    }
+
+    /* 找到公共前缀段数 */
+    int64_t bn = base_parts.len, tn = targ_parts.len;
+    int64_t common = 0;
+    int64_t n = bn < tn ? bn : tn;
+    for (int64_t i = 0; i < n; i++) {
+        ax_str* bs = (ax_str*)ax_arr_at(&base_parts, i, (int64_t)sizeof(ax_str), __FILE__, __LINE__, 0);
+        ax_str* ts = (ax_str*)ax_arr_at(&targ_parts, i, (int64_t)sizeof(ax_str), __FILE__, __LINE__, 0);
+        if (bs->len == ts->len && memcmp(bs->p, ts->p, bs->len) == 0) {
+            common++;
+        } else {
+            break;
+        }
+    }
+
+    /* 生成相对路径：base 剩余段各输出 ".."，targ 剩余段直接追加 */
+    ax_sb sb;
+    ax_sb_init(&sb);
+    for (int64_t i = common; i < bn; i++) {
+        if (sb.len > 0) ax_sb_push_cstr(&sb, AX_FILEPATH_SEP);
+        ax_sb_push_cstr(&sb, "..");
+    }
+    for (int64_t i = common; i < tn; i++) {
+        if (sb.len > 0) ax_sb_push_cstr(&sb, AX_FILEPATH_SEP);
+        ax_str* seg = (ax_str*)ax_arr_at(&targ_parts, i, (int64_t)sizeof(ax_str), __FILE__, __LINE__, 0);
+        ax_sb_push(&sb, *seg);
+    }
+
+    ax_str result;
+    if (sb.len == 0) {
+        result = ax_str_from_cstr(".");
+    } else {
+        result = ax_sb_finish(&sb);
+    }
+    return result;
+}
+
 /* ---------------- arena（区域分配器） ---------------- */
 struct ax_arena {
     void**  items;

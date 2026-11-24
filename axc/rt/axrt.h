@@ -567,6 +567,9 @@ int     ax_filepath_is_abs(ax_str path);
 /* 转为绝对路径（需当前工作目录，失败返回原路径） */
 ax_str  ax_filepath_abs(ax_str path);
 
+/* 计算从 basepath 到 targpath 的相对路径（对标 Go filepath.Rel，纯 C11） */
+ax_str  ax_filepath_rel(ax_str basepath, ax_str targpath);
+
 int   ax_parse_i64(ax_str s, int64_t* out);
 int   ax_parse_f64(ax_str s, double* out);
 int   ax_parse_bool(ax_str s);          /* "true"/"1" → 1，"false"/"0" → 0，否则 0 */

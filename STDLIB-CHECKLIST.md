@@ -266,7 +266,6 @@
 | ------ | ------ | ------ | ------ | ------ |
 | `filepath.eval_symlinks` | `(path: string) -> string` | — |  | ⬜ 计划中 |
 | `filepath.glob` | `(pattern: string) -> string[]` | — |  | ⬜ 计划中 |
-| `filepath.rel` | `(basepath, targpath: string) -> string` | — |  | ⬜ 计划中 |
 | `filepath.walk` | `(root: string, fn: func) -> int` | — |  | ⬜ 计划中 |
 
 #### sort 扩展
@@ -304,7 +303,7 @@
 | --- | --- | --- |
 | 已落地模块 | io, json, file, db, decimal, int/float/bool/enum, array, map, range, thread, queue, strconv, rand, slices, maps, unique, bytes, bufio, csv, errors, log, sync, atomic | 共 23 个模块 |
 | 待落地模块 | math, string, time, os, filepath, fmt, sort, reflect | 共 8 个模块 |
-| 已落地函数 | 251 / 272 | — |
+| 已落地函数 | 252 / 272 | — |
 
 
 *更新于 2026-11-24，基于 STDLIB-STATUS.json 自动生成*
