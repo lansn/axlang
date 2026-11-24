@@ -4,7 +4,7 @@ import fmt
 int main() {
     int a = 0
     int b = 0
-    int n = fmt.Scanf("%d %d", a, b)
+    int n = fmt.scanf("%d %d", a, b)
     println("n={n} a={a} b={b}")
     return 0
 }

@@ -2,6 +2,6 @@
 // %.N 精度只支持 %f（与插值 {x:.N} 同规则），%.2d 报错
 import fmt
 int main() {
-    fmt.Printf("%.2d", 1)
+    fmt.printf("%.2d", 1)
     return 0
 }

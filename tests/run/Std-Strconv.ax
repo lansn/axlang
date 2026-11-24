@@ -1,0 +1,16 @@
+// 验证 std.strconv 模块（C 风格函数名）
+import std.strconv
+
+int main() {
+    var s = std.strconv.itoa(42)
+    println("itoa={s}")
+    var b = std.strconv.parse_bool("true")
+    println("parse_bool={b}")
+    var fb = std.strconv.format_bool(true)
+    println("format_bool={fb}")
+    var ff = std.strconv.format_float(3.14)
+    println("format_float={ff}")
+    var q = std.strconv.quote("hello")
+    println("quote={q}")
+    return 0
+}

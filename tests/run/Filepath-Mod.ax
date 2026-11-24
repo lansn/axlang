@@ -2,15 +2,15 @@
 import filepath
 
 int main() {
-    string p = filepath.Join(["usr", "local", "bin"])
+    string p = filepath.join(["usr", "local", "bin"])
     println(p)
-    string d = filepath.Dir(p)
+    string d = filepath.dir(p)
     println(d)
-    string b = filepath.Base(p)
+    string b = filepath.base(p)
     println(b)
-    string d2 = filepath.Dir("foo.txt")
+    string d2 = filepath.dir("foo.txt")
     println(d2)
-    string b2 = filepath.Base("foo.txt")
+    string b2 = filepath.base("foo.txt")
     println(b2)
     return 0
 }

@@ -2,17 +2,17 @@
 import math
 
 int main() {
-    println("{math.Abs(5.0)}")
-    println("{math.Abs(-3.0)}")
-    println("{math.Abs(0.0)}")
-    println("{math.Max(1.0, 2.0)}")
-    println("{math.Max(2.0, 1.0)}")
-    println("{math.Max(3.0, 3.0)}")
-    println("{math.Min(1.0, 2.0)}")
-    println("{math.Min(2.0, 1.0)}")
-    println("{math.Min(3.0, 3.0)}")
-    println("{math.Abs(math.Max(-5.0, -3.0))}")
-    println("{math.Max(math.Abs(-10.0), math.Abs(3.0))}")
-    println("{math.Min(math.Abs(-7.0), math.Abs(2.0))}")
+    println("{math.abs(5.0)}")
+    println("{math.abs(-3.0)}")
+    println("{math.abs(0.0)}")
+    println("{math.max(1.0, 2.0)}")
+    println("{math.max(2.0, 1.0)}")
+    println("{math.max(3.0, 3.0)}")
+    println("{math.min(1.0, 2.0)}")
+    println("{math.min(2.0, 1.0)}")
+    println("{math.min(3.0, 3.0)}")
+    println("{math.abs(math.max(-5.0, -3.0))}")
+    println("{math.max(math.abs(-10.0), math.abs(3.0))}")
+    println("{math.min(math.abs(-7.0), math.abs(2.0))}")
     return 0
 }

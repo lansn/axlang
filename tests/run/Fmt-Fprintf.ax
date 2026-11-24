@@ -6,17 +6,17 @@ import fmt
 int main() {
     string path = "__ax_fprintf_test.txt"
 
-    var f = file.Create(path) try
-    fmt.Fprintf(f, "%d 件，共 %.2f 元\n", 3, 59.97d)
-    fmt.Fprintf(f, "name=%s ok=%t\n", "阿蓝", true)
-    fmt.Fprintf(f, "count=%d ratio=%.1f\n", 42, 0.5)
-    f.Close()
+    var f = file.create(path) try
+    fmt.fprintf(f, "%d 件，共 %.2f 元\n", 3, 59.97d)
+    fmt.fprintf(f, "name=%s ok=%t\n", "阿蓝", true)
+    fmt.fprintf(f, "count=%d ratio=%.1f\n", 42, 0.5)
+    f.close()
 
-    result<string> c = file.ReadAll(path)
+    result<string> c = file.read_all(path)
     match c {
         ok(s) => print(s),
         fail(e) => print("read-fail"),
     }
-    file.Remove(path)
+    file.remove(path)
     return 0
 }

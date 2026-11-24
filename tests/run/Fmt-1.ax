@@ -9,10 +9,10 @@ int main() {
     string name = "阿蓝"
     bool ok = true
     int? maybe = null
-    fmt.Printf("%d 件，共 %.2f 元\n", n, total)
-    fmt.Printf("name=%s ok=%t ratio=%.1f 100%% done\n", name, ok, ratio)
-    fmt.Printf("%v %v %d\n", maybe, n, n)
-    fmt.Print("x", 1)
-    fmt.Println(" y", 2)
+    fmt.printf("%d 件，共 %.2f 元\n", n, total)
+    fmt.printf("name=%s ok=%t ratio=%.1f 100%% done\n", name, ok, ratio)
+    fmt.printf("%v %v %d\n", maybe, n, n)
+    fmt.print("x", 1)
+    fmt.println(" y", 2)
     return 0
 }

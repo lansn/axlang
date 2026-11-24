@@ -9,21 +9,21 @@ int main() {
     stock["鸟粮"] = 20
 
     // Keys：返回键数组（按插入顺序）
-    string[] keys = maps.Keys(stock)
+    string[] keys = maps.keys(stock)
     println("键数量={keys.Len()}")          // 3
     println("第一个键={keys[0]}")            // 柴犬粮
     println("第二个键={keys[1]}")            // 猫粮
     println("第三个键={keys[2]}")            // 鸟粮
 
     // Values：返回值数组（按插入顺序）
-    int[] vals = maps.Values(stock)
+    int[] vals = maps.values(stock)
     println("值数量={vals.Len()}")          // 3
     println("第一个值={vals[0]}")            // 10
     println("第二个值={vals[1]}")            // 5
     println("第三个值={vals[2]}")            // 20
 
     // Clone：返回独立副本，修改副本不影响原图
-    map<string, int> clone = maps.Clone(stock)
+    map<string, int> clone = maps.clone(stock)
     println("克隆长度={clone.Len()}")        // 3
     clone["新增"] = 99
     println("原始长度={stock.Len()}")        // 3（不受克隆修改影响）
@@ -31,12 +31,12 @@ int main() {
 
     // Copy：将 stock 复制到 dst
     map<string, int> dst = {}
-    maps.Copy(dst, stock)
+    maps.copy(dst, stock)
     println("拷贝后长度={dst.Len()}")        // 3
     println("拷贝柴犬粮={dst["柴犬粮"]}")    // 10
 
     // Delete：从 stock 中删除 "猫粮"
-    maps.Delete(stock, "猫粮")
+    maps.delete(stock, "猫粮")
     println("删除后长度={stock.Len()}")      // 2
     println("猫粮是否存在={stock.Has("猫粮")}")  // false
 
@@ -50,8 +50,8 @@ int main() {
     map<string, int> c = {}
     c["x"] = 1
     c["y"] = 3
-    println("a==b={maps.Equal(a, b)}")       // true
-    println("a==c={maps.Equal(a, c)}")       // false
+    println("a==b={maps.equal(a, b)}")       // true
+    println("a==c={maps.equal(a, c)}")       // false
 
     return 0
 }

@@ -4,19 +4,19 @@ import time
 
 int main() {
     // time.Date 按 UTC 组装年月日时分秒纳秒 -> time（Unix 毫秒），.ToString() 按本地时区显示
-    time t0 = time.Date(1970, 1, 1, 0, 0, 0, 0)
+    time t0 = time.date(1970, 1, 1, 0, 0, 0, 0)
     println("date-epoch={t0.ToString()}")
 
-    time t1 = time.Date(1970, 1, 2, 0, 0, 0, 0)
+    time t1 = time.date(1970, 1, 2, 0, 0, 0, 0)
     println("date-nextday={t1.ToString()}")
 
-    // time.Until(t) = t - now；time.Since(t) = now - t；二者互为相反数（确定性断言）
-    time t = time.Date(2026, 1, 1, 0, 0, 0, 0)
-    println("until-neg-since={time.Until(t) == -time.Since(t)}")
+    // time.until(t) = t - now；time.since(t) = now - t；二者互为相反数（确定性断言）
+    time t = time.date(2026, 1, 1, 0, 0, 0, 0)
+    println("until-neg-since={time.until(t) == -time.since(t)}")
 
     // time.After / time.Before（实例方法，按 Unix 毫秒比较）
-    time a = time.Date(2026, 1, 1, 0, 0, 0, 0)
-    time b = time.Date(2026, 12, 31, 0, 0, 0, 0)
+    time a = time.date(2026, 1, 1, 0, 0, 0, 0)
+    time b = time.date(2026, 12, 31, 0, 0, 0, 0)
     println("a-before-b={a.Before(b)}")
     println("b-after-a={b.After(a)}")
     println("a-after-b={a.After(b)}")

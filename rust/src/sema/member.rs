@@ -620,11 +620,11 @@ impl<'a> Sema<'a> {
             ("Row", "GetString") => Some((vec![t_string()], t_string())),
             ("Row", "GetInt") => Some((vec![t_string()], t_int())),
             ("Row", "GetDecimal") => Some((vec![t_string()], t_decimal())),
-            ("File", "Close") => Some((vec![], t_void())),
-            ("File", "Read") => Some((vec![], t_result(t_string()))),
-            ("File", "ReadLine") => Some((vec![], t_nullable(t_string()))),
-            ("File", "Write") => Some((vec![t_string()], t_result(t_int()))),
-            ("File", "WriteLine") => Some((vec![t_string()], t_result(t_int()))),
+            ("File", "close") => Some((vec![], t_void())),
+            ("File", "read") => Some((vec![], t_result(t_string()))),
+            ("File", "read_line") => Some((vec![], t_nullable(t_string()))),
+            ("File", "write") => Some((vec![t_string()], t_result(t_int()))),
+            ("File", "write_line") => Some((vec![t_string()], t_result(t_int()))),
             _ => None,
         };
         let sig = match sig {
@@ -717,11 +717,11 @@ impl<'a> Sema<'a> {
                 "GetString" => (vec![t_string()], t_string()),
                 "GetInt" => (vec![t_string()], t_int()),
                 "GetDecimal" => (vec![t_string()], t_decimal()),
-                "Close" => (vec![], t_void()),
-                "Read" => (vec![], t_result(t_string())),
-                "ReadLine" => (vec![], t_nullable(t_string())),
-                "Write" => (vec![t_string()], t_result(t_int())),
-                "WriteLine" => (vec![t_string()], t_result(t_int())),
+                "close" => (vec![], t_void()),
+                "read" => (vec![], t_result(t_string())),
+                "read_line" => (vec![], t_nullable(t_string())),
+                "write" => (vec![t_string()], t_result(t_int())),
+                "write_line" => (vec![t_string()], t_result(t_int())),
                 _ => {
                     self.err("E3003", &e.tok, "N-3", "`{0}` 没有静态方法 `{1}`", &[&type_name, &name]);
                     return t_object();
@@ -782,7 +782,7 @@ impl<'a> Sema<'a> {
             Expr::MethodCall { name, .. } => name.clone(),
             _ => unreachable!(),
         };
-        if name == "Parse" {
+        if name == "parse" {
             self.check_call_args(args, Some(&[t_string()]), None, e.id);
             if type_name == "string" {
                 self.err("E3003", &e.tok, "N-17", "string 没有 parse", &[]);
@@ -790,39 +790,39 @@ impl<'a> Sema<'a> {
             }
             let tgt = builtin_scalar(type_name).unwrap_or_else(t_int);
             let s = self.sl(e.id);
-            s.mkind = Some("Parse");
+            s.mkind = Some("parse");
             s.parse_to = Some(tgt.clone());
             return t_result(tgt);
         }
-        if name == "Truncate" && matches!(type_name, "int8" | "int16" | "int32") {
+        if name == "truncate" && matches!(type_name, "int8" | "int16" | "int32") {
             self.check_call_args(args, Some(&[t_int()]), None, e.id);
             let tgt = builtin_scalar(type_name).unwrap();
             let s = self.sl(e.id);
-            s.mkind = Some("Truncate");
+            s.mkind = Some("truncate");
             s.trunc_to = Some(tgt.clone());
             return tgt;
         }
-        if name == "FromCodepoint" && type_name == "string" {
+        if name == "from_codepoint" && type_name == "string" {
             self.check_call_args(args, Some(&[t_int()]), None, e.id);
             self.sl(e.id).mkind = Some("FromCodepoint");
             return t_result(t_string());
         }
-        if name == "Compare" && type_name == "string" {
+        if name == "compare" && type_name == "string" {
             self.check_call_args(args, Some(&[t_string(), t_string()]), None, e.id);
             self.sl(e.id).mkind = Some("StrCompare");
             return t_int();
         }
-        if name == "Fields" && type_name == "string" {
+        if name == "fields" && type_name == "string" {
             self.check_call_args(args, Some(&[t_string()]), None, e.id);
             self.sl(e.id).mkind = Some("StrFields");
             return t_array(t_string(), None);
         }
-        if name == "ToUpperRune" && type_name == "string" {
+        if name == "to_upper_rune" && type_name == "string" {
             self.check_call_args(args, Some(&[t_int()]), None, e.id);
             self.sl(e.id).mkind = Some("ToUpperRune");
             return t_int();
         }
-        if name == "ToLowerRune" && type_name == "string" {
+        if name == "to_lower_rune" && type_name == "string" {
             self.check_call_args(args, Some(&[t_int()]), None, e.id);
             self.sl(e.id).mkind = Some("ToLowerRune");
             return t_int();
@@ -857,17 +857,18 @@ impl<'a> Sema<'a> {
         }
         let sig = match module_sig(m, &name) {
             None => {
-                // 模块成员一律 PascalCase（文稿 2.3）：小写写法给一条精确的迁移提示，
+                // 模块成员一律小写（文稿 2.3）：PascalCase 写法给一条精确的迁移提示，
                 // 而不是笼统的「没有符号」——`io.readline` 与 `io.ReadLine` 差一个下划线
                 // 和一处大小写，提示里点名正确的拼写，比让用户去翻文档有用。
-                let pascal = crate::sema::expr::pascal_member(&name);
-                if pascal != name && module_sig(m, &pascal).is_some() {
+                // 用户可能误写成 PascalCase，尝试转小写后在 module_sig 中查找
+                let lower = name.to_lowercase();
+                if lower != name && module_sig(m, &lower).is_some() {
                     self.err(
                         "E3003",
                         &e.tok,
                         "文稿 2.3",
-                        "模块成员一律 PascalCase：`{0}.{1}` 请写 `{0}.{2}`",
-                        &[&m, &name, &pascal],
+                        "模块成员一律小写：`{0}.{1}` 请写 `{0}.{2}`",
+                        &[&m, &name, &lower],
                     );
                 } else {
                     self.err("E3003", &e.tok, "文稿 9.2", "模块 `{0}` 没有符号 `{1}`", &[&m, &name]);
@@ -926,7 +927,7 @@ impl<'a> Sema<'a> {
     ) -> Ty {
         let ret: Ty = match name {
             // maps.Keys(m: Map<K,V>) -> K[]
-            "Keys" => {
+            "keys" => {
                 if args.is_empty() {
                     return self.maps_not_map_err(e, name);
                 }
@@ -938,7 +939,7 @@ impl<'a> Sema<'a> {
                 t_array(kt, None)
             }
             // maps.Values(m: Map<K,V>) -> V[]
-            "Values" => {
+            "values" => {
                 if args.is_empty() {
                     return self.maps_not_map_err(e, name);
                 }
@@ -949,8 +950,8 @@ impl<'a> Sema<'a> {
                 self.sl(e.id).mkind = Some("module");
                 t_array(vt, None)
             }
-            // maps.Clone(m: Map<K,V>) -> Map<K,V>
-            "Clone" => {
+            // maps.clone(m: Map<K,V>) -> Map<K,V>
+            "clone" => {
                 if args.is_empty() {
                     return self.maps_not_map_err(e, name);
                 }
@@ -962,7 +963,7 @@ impl<'a> Sema<'a> {
                 t_map(kt, vt)
             }
             // maps.Copy(dst: Map<K,V>, src: Map<K,V>) -> void
-            "Copy" => {
+            "copy" => {
                 if args.len() < 2 {
                     return self.maps_not_map_err(e, name);
                 }
@@ -972,7 +973,7 @@ impl<'a> Sema<'a> {
                 t_void()
             }
             // maps.Delete(m: Map<K,V>, key: K) -> void
-            "Delete" => {
+            "delete" => {
                 if args.len() < 2 {
                     return self.maps_not_map_err(e, name);
                 }
@@ -985,7 +986,7 @@ impl<'a> Sema<'a> {
                 t_void()
             }
             // maps.Equal(m1: Map<K,V>, m2: Map<K,V>) -> bool
-            "Equal" => {
+            "equal" => {
                 if args.len() < 2 {
                     return self.maps_not_map_err(e, name);
                 }
@@ -999,7 +1000,7 @@ impl<'a> Sema<'a> {
                     "E3003",
                     &e.tok,
                     "文稿 9.2",
-                    "模块 `maps` 没有符号 `{0}`（可用：Keys/Values/Clone/Copy/Delete/Equal）",
+                    "模块 `maps` 没有符号 `{0}`（可用：keys/values/clone/copy/delete/equal）",
                     &[&name],
                 );
                 return t_object();
@@ -1031,13 +1032,13 @@ impl<'a> Sema<'a> {
     ) -> Ty {
         let ret: Ty = match name {
             // unique.Make(v: T) -> Handle[T]
-            "Make" => {
+            "make" => {
                 if args.is_empty() {
                     self.err(
                         "E4031",
                         &e.tok,
                         "N-20",
-                        "`unique.Make` 需要 1 个实参，得到 0",
+                        "`unique.make` 需要 1 个实参，得到 0",
                         &[],
                     );
                     return t_object();
@@ -1048,13 +1049,13 @@ impl<'a> Sema<'a> {
                 t_named(DefId::Name("Handle"), vec![vt])
             }
             // unique.Value(h: Handle[T]) -> T
-            "Value" => {
+            "value" => {
                 if args.is_empty() {
                     self.err(
                         "E4031",
                         &e.tok,
                         "N-20",
-                        "`unique.Value` 需要 1 个实参，得到 0",
+                        "`unique.value` 需要 1 个实参，得到 0",
                         &[],
                     );
                     return t_object();
@@ -1084,7 +1085,7 @@ impl<'a> Sema<'a> {
                     "E3003",
                     &e.tok,
                     "文稿 9.2",
-                    "模块 `unique` 没有符号 `{0}`（可用：Make/Value）",
+                    "模块 `unique` 没有符号 `{0}`（可用：make/value）",
                     &[&name],
                 );
                 return t_object();
@@ -1095,49 +1096,49 @@ impl<'a> Sema<'a> {
 
     /// 内建 `fmt` 模块（文稿 11.2，0.0.27）。
     ///
-    /// - `fmt.Print(args...)` / `fmt.Println(args...)`：与 `print` / `println` 完全同实现
+    /// - `fmt.print(args...)` / `fmt.println(args...)`：与 `print` / `println` 完全同实现
     ///   （多实参、空格分隔），只是给 C/Print 习惯留的入口，语义不二。
     /// - `fmt.Printf(fmt, args...)`：格式串必须是纯字符串字面量，编译期解析占位符
     ///   （`%%` `%d` `%f` `%.Nf` `%s` `%t` `%v`）并核对个数与类型——
     ///   这是 C 风格 `printf` 在 axlang 里唯一被允许的形态：类型和个数都在编译期堵死，
     ///   `%n`/`%x` 等危险或歧义占位符根本不开放（E4044）。
     fn check_fmt_call(&mut self, e: &ast::EPtr, args: &[ast::N<ast::Arg>], name: &str) -> Ty {
-        const MEMBERS: [&str; 8] = ["Print", "Println", "Printf", "Sprint", "Sprintf", "Fprintf", "Errorf", "Scanf"];
+        const MEMBERS: [&str; 8] = ["print", "println", "printf", "sprint", "sprintf", "fprintf", "errorf", "scanf"];
         if !MEMBERS.contains(&name) {
-            let pascal = crate::sema::expr::pascal_member(name);
-            if pascal != name && MEMBERS.contains(&pascal.as_str()) {
+            let lower = name.to_lowercase();
+            if lower != name && MEMBERS.contains(&lower.as_str()) {
                 self.err(
                     "E3003",
                     &e.tok,
                     "文稿 2.3",
-                    "模块成员一律 PascalCase：`fmt.{0}` 请写 `fmt.{1}`",
-                    &[&name, &pascal],
+                    "模块成员一律小写：`fmt.{0}` 请写 `fmt.{1}`",
+                    &[&name, &lower],
                 );
             } else {
                 self.err(
                     "E3003",
                     &e.tok,
                     "文稿 11.2",
-                    "模块 `fmt` 没有符号 `{0}`（可选 Print / Println / Printf / Sprint / Sprintf / Fprintf / Errorf / Scanf）",
+                    "模块 `fmt` 没有符号 `{0}`（可选 print / println / printf / sprint / sprintf / fprintf / errorf / scanf）",
                     &[&name],
                 );
             }
             return t_object();
         }
-        if name == "Print" || name == "Println" {
+        if name == "print" || name == "println" {
             // 走 print 同款实现；mkind 标 "module" 让 codegen 进 module_call 后再分派回来
             self.sl(e.id).mkind = Some("module");
             return self.call_print(e, args, &format!("fmt.{}", name));
         }
         // ---- fmt.Sprint ----
-        if name == "Sprint" {
+        if name == "sprint" {
             // 与 Print 同款实参校验，但返回 string 而非 void
             self.sl(e.id).mkind = Some("module");
             self.call_print(e, args, &format!("fmt.{}", name));
             return t_string();
         }
         // ---- fmt.Fprintf ----
-        if name == "Fprintf" {
+        if name == "fprintf" {
             // 第 0 个实参是 Writer（File 类型），第 1 个是格式字符串，其余为占位符实参
             self.sl(e.id).mkind = Some("module");
             if args.len() < 2 {
@@ -1253,7 +1254,7 @@ impl<'a> Sema<'a> {
             return t_int();
         }
         // ---- fmt.Errorf ----
-        if name == "Errorf" {
+        if name == "errorf" {
             // 第 0 个实参是格式字符串，其余为占位符实参；返回 error
             self.sl(e.id).mkind = Some("module");
             if args.is_empty() {
@@ -1357,7 +1358,7 @@ impl<'a> Sema<'a> {
             return t_error();
         }
         // ---- fmt.Scanf ----
-        if name == "Scanf" {
+        if name == "scanf" {
             // 从 stdin 按格式读取，返回读取的项数；格式串必须是纯字符串字面量
             self.sl(e.id).mkind = Some("module");
             if args.is_empty() {
@@ -1406,7 +1407,7 @@ impl<'a> Sema<'a> {
             return t_int();
         }
         // ---- fmt.Printf / fmt.Sprintf ----
-        if name == "Printf" || name == "Sprintf" {
+        if name == "printf" || name == "sprintf" {
             self.sl(e.id).mkind = Some("module");
             if args.is_empty() {
                 self.err(
@@ -1416,7 +1417,7 @@ impl<'a> Sema<'a> {
                     "`fmt.{0}` 至少需要 1 个实参（格式字符串）",
                     &[&name],
                 );
-                return if name == "Sprintf" { t_string() } else { t_void() };
+                return if name == "sprintf" { t_string() } else { t_void() };
             }
         }
         let fexpr = &args[0].k.expr;
@@ -1437,7 +1438,7 @@ impl<'a> Sema<'a> {
                     &[&name, &self.ts(&self.ty_of(fexpr.id).unwrap_or_else(t_object))],
                 );
                 // 格式串都不是字面量，后面的个数/类型核对没有意义——一处误用只报一条
-                return if name == "Sprintf" { t_string() } else { t_void() };
+                return if name == "sprintf" { t_string() } else { t_void() };
             }
         };
         let specs = match crate::fmt_spec::parse(&fmt_str) {
@@ -1450,7 +1451,7 @@ impl<'a> Sema<'a> {
                     "不支持的格式占位符 `%{0}`（格式串中第 {1} 个字符处）；支持 `%%` `%d` `%f` `%.Nf` `%s` `%t` `%v`——`%n` / `%x` 等危险或歧义占位符一律不开放",
                     &[&ch.to_string(), &(pos + 1).to_string()],
                 );
-                return if name == "Sprintf" { t_string() } else { t_void() };
+                return if name == "sprintf" { t_string() } else { t_void() };
             }
         };
         let need = specs
@@ -1509,7 +1510,7 @@ impl<'a> Sema<'a> {
                 self.sl(a.k.expr.id).interp_arg = true;
             }
         }
-        if name == "Sprintf" { t_string() } else { t_void() }
+        if name == "sprintf" { t_string() } else { t_void() }
     }
 
     // ------------------------------------------------------ 用户模块（文稿 9.2）

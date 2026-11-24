@@ -5,37 +5,37 @@ import math
 
 int main() {
     // asin：反正弦，定义域 [-1, 1]
-    println("{math.Asin(0.0)}")     // 0
-    println("{math.Asin(1.0)}")     // π/2 ≈ 1.57079632679
-    println("{math.Asin(-1.0)}")    // -π/2
+    println("{math.asin(0.0)}")     // 0
+    println("{math.asin(1.0)}")     // π/2 ≈ 1.57079632679
+    println("{math.asin(-1.0)}")    // -π/2
 
     // acos：反余弦，定义域 [-1, 1]
-    println("{math.Acos(1.0)}")     // 0
-    println("{math.Acos(0.0)}")     // π/2
-    println("{math.Acos(-1.0)}")    // π
+    println("{math.acos(1.0)}")     // 0
+    println("{math.acos(0.0)}")     // π/2
+    println("{math.acos(-1.0)}")    // π
 
     // atan：反正切
-    println("{math.Atan(0.0)}")     // 0
-    println("{math.Atan(1.0)}")     // π/4 ≈ 0.78539816339
+    println("{math.atan(0.0)}")     // 0
+    println("{math.atan(1.0)}")     // π/4 ≈ 0.78539816339
 
     // atan2：带符号商的反正切
-    println("{math.Atan2(0.0, 1.0)}")   // 0
-    println("{math.Atan2(1.0, 1.0)}")   // π/4
-    println("{math.Atan2(-1.0, -1.0)}") // -3π/4
+    println("{math.atan2(0.0, 1.0)}")   // 0
+    println("{math.atan2(1.0, 1.0)}")   // π/4
+    println("{math.atan2(-1.0, -1.0)}") // -3π/4
 
     // hypot：平方和开方
-    println("{math.Hypot(3.0, 4.0)}")   // 5
-    println("{math.Hypot(0.0, 0.0)}")   // 0
+    println("{math.hypot(3.0, 4.0)}")   // 5
+    println("{math.hypot(0.0, 0.0)}")   // 0
 
     // cbrt：立方根
-    println("{math.Cbrt(8.0)}")     // 2
-    println("{math.Cbrt(-8.0)}")    // -2
-    println("{math.Cbrt(0.0)}")     // 0
+    println("{math.cbrt(8.0)}")     // 2
+    println("{math.cbrt(-8.0)}")    // -2
+    println("{math.cbrt(0.0)}")     // 0
 
     // trunc：向零取整
-    println("{math.Trunc(1.7)}")    // 1
-    println("{math.Trunc(-1.7)}")   // -1
-    println("{math.Trunc(0.0)}")    // 0
+    println("{math.trunc(1.7)}")    // 1
+    println("{math.trunc(-1.7)}")   // -1
+    println("{math.trunc(0.0)}")    // 0
 
     return 0
 }

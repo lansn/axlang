@@ -1,4 +1,4 @@
-// 递归测试：整数递归 + time 类型在递归中的使用（全确定性，避免 time.Now() 的非确定性输出）
+// 递归测试：整数递归 + time 类型在递归中的使用（全确定性，避免 time.now() 的非确定性输出）
 int fact(int n) {
     if (n <= 1) {
         return 1
@@ -28,8 +28,8 @@ int main() {
     println("fib(6) = {fib(6)}")
 
     // 3. 递归中使用 time：time 作为参数传递，叶层返回两个 time 的 UnixMs 差值
-    time t1 = time.FromUnixMs(1000)
-    time t2 = time.FromUnixMs(2500)
+    time t1 = time.from_unix_ms(1000)
+    time t2 = time.from_unix_ms(2500)
     int d = diff(3, t1, t2)
     println("diff_ms = {d}")
 

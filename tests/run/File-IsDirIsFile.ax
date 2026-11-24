@@ -7,25 +7,25 @@ int main() {
     string missing = "__ax_no_such_path_xyz"
 
     // 清理可能残留的测试文件（目录留给 Mkdir 处理）
-    file.Remove(f)
+    file.remove(f)
 
     // 创建目录并判断类型（Mkdir 若目录已存在会返回 1，不影响 IsDir 判断）
-    file.Mkdir(dir)
-    println("isdir-dir={file.IsDir(dir)}")
-    println("isfile-dir={file.IsFile(dir)}")
+    file.mkdir(dir)
+    println("isdir-dir={file.is_dir(dir)}")
+    println("isfile-dir={file.is_file(dir)}")
 
     // 创建文件并判断类型
-    int w = file.WriteAll(f, "hello")
+    int w = file.write_all(f, "hello")
     println("write={w}")
-    println("isdir-file={file.IsDir(f)}")
-    println("isfile-file={file.IsFile(f)}")
+    println("isdir-file={file.is_dir(f)}")
+    println("isfile-file={file.is_file(f)}")
 
     // 不存在的路径
-    println("isdir-missing={file.IsDir(missing)}")
-    println("isfile-missing={file.IsFile(missing)}")
+    println("isdir-missing={file.is_dir(missing)}")
+    println("isfile-missing={file.is_file(missing)}")
 
     // 清理测试文件
-    file.Remove(f)
+    file.remove(f)
 
     return 0
 }

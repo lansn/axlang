@@ -5,22 +5,22 @@ import math
 
 int main() {
     // sinh：双曲正弦
-    println("{math.Sinh(0.0)}")     // 0
-    println("{math.Sinh(1.0)}")     // ~1.1752011936438014
-    println("{math.Sinh(-1.0)}")    // ~-1.1752011936438014
-    println("{math.Sinh(2.0)}")     // ~3.626860407847019
+    println("{math.sinh(0.0)}")     // 0
+    println("{math.sinh(1.0)}")     // ~1.1752011936438014
+    println("{math.sinh(-1.0)}")    // ~-1.1752011936438014
+    println("{math.sinh(2.0)}")     // ~3.626860407847019
 
     // cosh：双曲余弦
-    println("{math.Cosh(0.0)}")     // 1
-    println("{math.Cosh(1.0)}")     // ~1.5430806348152437
-    println("{math.Cosh(-1.0)}")    // ~1.5430806348152437
-    println("{math.Cosh(2.0)}")     // ~3.7621956910836314
+    println("{math.cosh(0.0)}")     // 1
+    println("{math.cosh(1.0)}")     // ~1.5430806348152437
+    println("{math.cosh(-1.0)}")    // ~1.5430806348152437
+    println("{math.cosh(2.0)}")     // ~3.7621956910836314
 
     // tanh：双曲正切
-    println("{math.Tanh(0.0)}")     // 0
-    println("{math.Tanh(1.0)}")     // ~0.7615941559557649
-    println("{math.Tanh(-1.0)}")    // ~-0.7615941559557649
-    println("{math.Tanh(2.0)}")     // ~0.9640275800758169
+    println("{math.tanh(0.0)}")     // 0
+    println("{math.tanh(1.0)}")     // ~0.7615941559557649
+    println("{math.tanh(-1.0)}")    // ~-0.7615941559557649
+    println("{math.tanh(2.0)}")     // ~0.9640275800758169
 
     return 0
 }

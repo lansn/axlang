@@ -2,6 +2,6 @@
 // %n / %x 等危险或歧义占位符一律不开放，编译期拒绝（C 的格式串漏洞从根上堵死）
 import fmt
 int main() {
-    fmt.Printf("%n", 1)
+    fmt.printf("%n", 1)
     return 0
 }

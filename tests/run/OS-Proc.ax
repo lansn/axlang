@@ -2,9 +2,9 @@
 import os
 
 int main() {
-    println("getpid-gt0={os.Getpid() > 0}")
-    println("getppid-ge0={os.Getppid() >= 0}")
-    println("hostname-nonempty={os.Hostname().Len() > 0}")
-    println("environ-len-gt0={os.Environ().Len() > 0}")
+    println("getpid-gt0={os.getpid() > 0}")
+    println("getppid-ge0={os.getppid() >= 0}")
+    println("hostname-nonempty={os.hostname().Len() > 0}")
+    println("environ-len-gt0={os.environ().Len() > 0}")
     return 0
 }

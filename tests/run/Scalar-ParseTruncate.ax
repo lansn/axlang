@@ -3,40 +3,40 @@
 
 int main() {
     // int.Parse：成功走 try 展开，失败走 match fail 分支
-    int v1 = int.Parse("42") try
+    int v1 = int.parse("42") try
     println("int.Parse 42={v1}")
 
-    result<int> r2 = int.Parse("abc")
+    result<int> r2 = int.parse("abc")
     match r2 {
         ok(v) => println("int.Parse abc ok={v}"),
         fail(e) => println("int.Parse abc fail={e.msg}"),
     }
 
     // float.Parse
-    float v3 = float.Parse("3.14") try
+    float v3 = float.parse("3.14") try
     println("float.Parse 3.14={v3}")
 
-    result<float> r4 = float.Parse("not-a-float")
+    result<float> r4 = float.parse("not-a-float")
     match r4 {
         ok(v) => println("float.Parse bad ok={v}"),
         fail(e) => println("float.Parse bad fail={e.msg}"),
     }
 
     // decimal.Parse
-    decimal v5 = decimal.Parse("19.99") try
+    decimal v5 = decimal.parse("19.99") try
     println("decimal.Parse 19.99={v5}")
 
-    result<decimal> r6 = decimal.Parse("bad")
+    result<decimal> r6 = decimal.parse("bad")
     match r6 {
         ok(v) => println("decimal.Parse bad ok={v}"),
         fail(e) => println("decimal.Parse bad fail={e.msg}"),
     }
 
     // int8/int16/int32.Truncate（成功路径，返回标量）
-    int8 a = int8.Truncate(100)
-    int16 b = int16.Truncate(20000)
-    int32 c = int32.Truncate(2000000000)
-    println("int8.Truncate(100)={a} int16.Truncate(20000)={b} int32.Truncate(2000000000)={c}")
+    int8 a = int8.truncate(100)
+    int16 b = int16.truncate(20000)
+    int32 c = int32.truncate(2000000000)
+    println("int8.truncate(100)={a} int16.truncate(20000)={b} int32.truncate(2000000000)={c}")
 
     return 0
 }

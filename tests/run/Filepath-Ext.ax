@@ -2,11 +2,11 @@
 import filepath
 
 int main() {
-    println("ext1={filepath.Ext("foo.txt")}")
-    println("ext2={filepath.Ext("archive.tar.gz")}")
-    println("ext3={filepath.Ext("noext")}")
-    println("ext4={filepath.Ext(".hidden")}")
-    println("ext5={filepath.Ext("dir/")}")
-    println("ext6={filepath.Ext("a/b/c.py")}")
+    println("ext1={filepath.ext("foo.txt")}")
+    println("ext2={filepath.ext("archive.tar.gz")}")
+    println("ext3={filepath.ext("noext")}")
+    println("ext4={filepath.ext(".hidden")}")
+    println("ext5={filepath.ext("dir/")}")
+    println("ext6={filepath.ext("a/b/c.py")}")
     return 0
 }

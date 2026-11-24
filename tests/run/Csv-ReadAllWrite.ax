@@ -6,19 +6,19 @@ int main() {
     string path = "__ax_csv_test.txt"
 
     // 写入测试数据
-    var f = file.Create(path) try
+    var f = file.create(path) try
     string[] header = ["name", "age", "city"]
-    csv.Write(f, header)
+    csv.write(f, header)
     string[] row1 = ["阿蓝", "30", "北京"]
-    csv.Write(f, row1)
+    csv.write(f, row1)
     string[] row2 = ["Bob", "25", "上海"]
-    csv.Write(f, row2)
-    f.Close()
+    csv.write(f, row2)
+    f.close()
 
     // 读取并验证
-    var g = file.Open(path) try
-    var rows = csv.ReadAll(g)
-    g.Close()
+    var g = file.open(path) try
+    var rows = csv.read_all(g)
+    g.close()
 
     println("r00={rows[0][0]}")
     println("r01={rows[0][1]}")
@@ -31,19 +31,19 @@ int main() {
     println("r22={rows[2][2]}")
 
     // 再追加一行
-    var h = file.Append(path) try
+    var h = file.append(path) try
     string[] row3 = ["Carol", "35", "广州"]
-    csv.Write(h, row3)
-    h.Close()
+    csv.write(h, row3)
+    h.close()
 
-    var i = file.Open(path) try
-    var rows2 = csv.ReadAll(i)
-    i.Close()
+    var i = file.open(path) try
+    var rows2 = csv.read_all(i)
+    i.close()
 
     println("r30={rows2[3][0]}")
     println("r31={rows2[3][1]}")
     println("r32={rows2[3][2]}")
 
-    file.Remove(path)
+    file.remove(path)
     return 0
 }

@@ -108,17 +108,33 @@ python tests/runtests.py --axc=xxx  # 指定编译器（默认 rust/target/relea
 
 ## 标准库（Stdlib）
 
-axlang 标准库通过 ax 源码预转译为标准 C，随编译器发布，通过 gcc 参与编译。详细落地状态见 `STDLIB-CHECKLIST.md`。
+axlang 标准库以 ax 语法编写源码，位于 `axc/std/`（随编译器发布至 `release/axc/std/`），由 axc 编译器解析语义并生成 C11 代码。标准库 .c 文件预编译为 `.o` 目标文件，缓存至 `release/axc/stdlib/obj/`，用户编译时由 gcc 链接所有 `.o` 文件，避免每次重新编译标准库。详细落地状态见 `STDLIB-CHECKLIST.md`（由 `generate_checklist.py` 从 `STDLIB-STATUS.json` 自动生成）。
 
-已落地模块（版本 0.0.28）：io、fmt、math、json、file、string、sync、atomic、decimal、Int/Float/Bool/Enum、Array、Map、Range、thread/queue、os、strconv、filepath、rand、sort、bytes、unique、bufio、csv、errors、log、slices。
+发行包布局（`release/`）：
+- `bin/axc` — 编译器可执行文件
+- `gcc/bin/` — 平台随发的 gcc（Windows 为 `gcc.exe`），axc 优先在此查找，未找到再回落到 `$PATH`
+- `axc/rt/` — C 运行时源码（axrt.h、axrt_core.c、axrt_str.c、axrt_file.c、axrt_json.c、axrt_os.c、axrt_sync.c、axrt_atomic.c、axrt_time.c、axrt_strconv.c、axrt_csv.c、axrt_decimal.c、axrt_filepath.c、axrt_rand.c、axrt_sort.c 等）
+- `axc/stdlib/` — 标准库 C 声明头文件 `axc_stdlib.h`
+- `axc/stdlib/obj/` — 标准库 `.o` 目标文件缓存（用户编译时复用）
+- `axc/std/` — 标准库 ax 源码文件（io.ax、json.ax、os.ax、strconv.ax、math.ax、errors.ax、fmt.ax、string.ax、file.ax、sync.ax、atomic.ax）
 
-新落地模块：
-- **string**：18 个函数（Compare/Contains/IndexOf/LastIndexOf/Count/Trim/ToUpper/ToLower/Repeat/Replace/StartsWith/EndsWith/IsDigit/IsAlpha/IsSpace/IsLower/IsUpper/IsAlnum），对标 Go strings / C string.h / ctype.h
-- **file**：19 个函数（Open/Create/Append/Remove/Rename/Exists/Mkdir/IsDir/IsFile/Size/ModTime/WriteAll/Chmod/Chtimes/TempFile + ReadAll/Write/WriteLine/Close），对标 Go os / C stdio
-- **sync**：10 个函数（Mutex.Lock/Unlock、RWMutex.Lock/Unlock/RLock/Runlock、WaitGroup.Add/Done/Wait、Once.Do），对标 Go sync
-- **atomic**：4 个函数（AddInt/LoadInt/StoreInt/CompareAndSwapInt），对标 Go sync/atomic
+已落地模块（版本 0.0.28，按优先级 P0→P3）：
+io、fmt、math、json、file、os、strconv、string、sync、atomic、errors、decimal、Int/Float/Bool/Enum、Array、Map、Range、thread/queue、filepath、rand、sort、slices、bytes、unique、bufio、csv、log。
 
-所有 ax 源码位于 `axc/stdlib/`，预转译为 `axc/stdlib/generated/*.c`，通过 `axc_stdlib.h` 声明，底层依赖 `axc/rt/axrt.h/axrt.c` 提供的 C 运行时原语。
+标准库函数名统一采用小写 C 风格（snake_case，下划线分隔），例如：
+- `io.read_line`、`io.read_file`、`io.write`、`io.write_line`
+- `math.abs`、`math.max`、`math.sqrt`、`math.pow`、`math.sin`、`math.cos`、`math.tan`、`math.exp`、`math.log`、`math.isnan`、`math.isinf`
+- `json.parse`、`json.stringify`、`json.marshal_indent`、`json.valid`
+- `os.getenv`、`os.exit`、`os.getwd`、`os.chdir`、`os.getpid`、`os.getppid`、`os.hostname`、`os.setenv`、`os.unsetenv`
+- `strconv.atoi`、`strconv.itoa`、`strconv.parse_bool`、`strconv.format_bool`、`strconv.parse_float`、`strconv.format_float`、`strconv.parse_int`、`strconv.format_int`、`strconv.parse_uint`、`strconv.format_uint`、`strconv.can_backquote`、`strconv.quote`、`strconv.unquote`
+- `string.compare`、`string.contains`、`string.index_of`、`string.trim`、`string.to_upper`、`string.to_lower`、`string.repeat`、`string.replace`、`string.startswith`、`string.endswith`、`string.is_digit`、`string.is_alpha`、`string.is_space`、`string.is_lower`、`string.is_upper`、`string.is_alnum`
+- `file.open`、`file.create`、`file.append`、`file.remove`、`file.rename`、`file.exists`、`file.mkdir`、`file.is_dir`、`file.is_file`、`file.size`、`file.mod_time`、`file.write_all`、`file.chmod`、`file.chtimes`、`file.temp_file`
+- `sync.mutex.lock`、`sync.mutex.unlock`、`sync.rwmutex.lock`、`sync.rwmutex.unlock`、`sync.rwmutex.r_lock`、`sync.rwmutex.runlock`、`sync.waitgroup.add`、`sync.waitgroup.done`、`sync.waitgroup.wait`、`sync.once.do`
+- `atomic.add_int`、`atomic.load_int`、`atomic.store_int`、`atomic.compare_and_swap_int`
+- `errors.new`、`errors.is`、`errors.as`
+- `fmt.print`、`fmt.println`、`fmt.errorf`
+
+所有 ax 源码通过 `extern "C"` 声明底层 `ax_*` C 原语，由 `unsafe {}` 块调用，底层依赖 `axc/rt/axrt.h/axrt_*.c` 提供的 C 运行时原语。
 
 ## 注意
 

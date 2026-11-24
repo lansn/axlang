@@ -2,14 +2,14 @@
 import math
 
 int main() {
-    println("{math.Log2(1.0)}")
-    println("{math.Log2(2.0)}")
-    println("{math.Log2(4.0)}")
-    println("{math.Log2(8.0)}")
-    println("{math.Log2(1024.0)}")
-    println("{math.Log2(0.5)}")
-    println("{math.Log1p(0.0)}")
-    println("{math.Log1p(1.0)}")
-    println("{math.Log1p(10.0)}")
+    println("{math.log2(1.0)}")
+    println("{math.log2(2.0)}")
+    println("{math.log2(4.0)}")
+    println("{math.log2(8.0)}")
+    println("{math.log2(1024.0)}")
+    println("{math.log2(0.5)}")
+    println("{math.log1p(0.0)}")
+    println("{math.log1p(1.0)}")
+    println("{math.log1p(10.0)}")
     return 0
 }

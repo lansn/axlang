@@ -2,17 +2,17 @@
 import errors
 
 int main() {
-    var e1 = errors.New("not found")
-    var e2 = errors.New("not found")
-    var e3 = errors.New("permission denied")
+    var e1 = errors.new("not found")
+    var e2 = errors.new("not found")
+    var e3 = errors.new("permission denied")
 
     // errors.Is：相同的 error 应返回 true
-    println("e1==e2={errors.Is(e1, e2)}")   // true
-    println("e1==e3={errors.Is(e1, e3)}")   // false
+    println("e1==e2={errors.is(e1, e2)}")   // true
+    println("e1==e3={errors.is(e1, e3)}")   // false
 
     // errors.As：将 err 复制给 target，返回 true，target 内容应与 err 一致
-    var t = errors.New("placeholder")
-    var ok = errors.As(e1, t)
+    var t = errors.new("placeholder")
+    var ok = errors.as(e1, t)
     println("as-ok={ok}")                   // true
     println("as-target-code={t.code}")      // 1
     println("as-target-msg=[")
@@ -20,8 +20,8 @@ int main() {
     println("]")                            // [not found]
 
     // errors.As：不同的 error 也能复制（axlang 无错误链，As 始终成功复制）
-    var t2 = errors.New("placeholder")
-    var ok2 = errors.As(e3, t2)
+    var t2 = errors.new("placeholder")
+    var ok2 = errors.as(e3, t2)
     println("as2-ok={ok2}")                 // true
     println("as2-target-code={t2.code}")    // 1
     println("as2-target-msg=[")

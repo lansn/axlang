@@ -80,7 +80,15 @@ fn load_module_rec(
         }
         return;
     }
-    let rel = format!("{}.ax", joined.replace('.', "/"));
+    let rel = if sema::STDLIB_MODULES.contains(&joined) {
+        // 标准库模块（std.string / std.file / std.sync / std.atomic）与用户库一样
+        // 从文件系统加载，但统一位于 axc/std/ 目录下：import std.string -> axc/std/string.ax
+        // 去掉 "std." 前缀，剩余部分作为 axc/std/ 下的相对路径。
+        let rest = joined.strip_prefix("std.").unwrap_or(joined);
+        format!("std/{}.ax", rest.replace('.', "/"))
+    } else {
+        format!("{}.ax", joined.replace('.', "/"))
+    };
     // 按搜索根顺序找：入口文件目录在最前，其后是 `-I` 给的目录
     let file = match roots.iter().map(|r| r.join(&rel)).find(|f| f.is_file()) {
         Some(f) => f,
@@ -211,10 +219,14 @@ fn load_user_imports<'a>(
         .parent()
         .map(|p| p.to_path_buf())
         .unwrap_or_else(|| std::path::PathBuf::from("."));
-    // 搜索根：入口文件目录优先，其后依次是 `-I` 给出的目录（同名模块以先命中者为准）
+    // 搜索根：入口文件目录优先，其后依次是 `-I` 给出的目录，最后是 axc/ 标准库目录
+    //（import std.string -> axc/std/string.ax，由 load_module_rec 去掉 "std." 前缀后匹配 std/xxx.ax）
     let mut roots: Vec<std::path::PathBuf> = vec![entry_dir.clone()];
     for inc in includes {
         roots.push(std::path::PathBuf::from(inc));
+    }
+    if let Ok(cwd) = std::env::current_dir() {
+        roots.push(cwd.join("axc"));
     }
     for item in &entry.items {
         if let ast::Item::Import { path, .. } = &item.k {
@@ -294,10 +306,30 @@ impl Default for Opts {
 }
 
 /// 默认 C 编译器：优先使用用户新安装的 GCC 16.2.0（路径固定，无警告）；
-/// 否则回退到系统 PATH 中的 `gcc`。用户可通过 `AX_CC` 环境变量或 `--cc=` 覆盖。
+/// 其次查找发行包自带的 `release/gcc/` 目录；最后回退到系统 PATH 中的 `gcc`。
+/// 用户可通过 `AX_CC` 环境变量或 `--cc=` 覆盖。
 fn default_cc() -> String {
     if let Ok(v) = std::env::var("AX_CC") {
         return v;
+    }
+    // 优先查找发行包自带的 release/gcc/bin/ 目录（Windows 布局；相对于 axc 可执行文件位置）。
+    if let Ok(exe) = std::env::current_exe() {
+        if let Some(exe_dir) = exe.parent() {
+            let release_dir = match exe_dir.parent() {
+                Some(d) => d,
+                None => exe_dir,
+            };
+            // Windows: release/gcc/bin/gcc.exe
+            let bundled = release_dir.join("gcc").join("bin").join("gcc.exe");
+            if std::path::Path::new(&bundled).exists() {
+                return bundled.to_string_lossy().to_string();
+            }
+            // Linux/macOS: release/gcc/bin/gcc
+            let bundled_no_ext = release_dir.join("gcc").join("bin").join("gcc");
+            if std::path::Path::new(&bundled_no_ext).exists() {
+                return bundled_no_ext.to_string_lossy().to_string();
+            }
+        }
     }
     // 在 Windows 上，Rust 的 Path 需要使用 "D:/..." 或 "D:\\..." 格式的绝对路径，
     // Git Bash 风格的 "/d/..." 相对路径不会被识别为存在的文件。

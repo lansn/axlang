@@ -1,0 +1,37 @@
+// axc/std/fmt.ax —— axlang 标准库 fmt 模块（ax 语法源码）
+// 与用户库一样，由 ax 编译器直接解析，生成对应的 C 源码供 gcc 编译。
+//
+// 对标 Go fmt / C stdio 格式化。ax 层仅包装 axrt C 原语，
+// 通过 extern "C" 声明 + unsafe 块调用，不引入 ax 编译器内建能力。
+//
+// 导出函数命名采用 C 风格：全部小写，下划线分隔，如 errorf。
+// ax 代码中通过 std.fmt.errorf(...) 调用模块级函数。
+//
+// 注：fmt.printf / sprintf / fprintf / scanf 涉及编译期格式串核对与可变参数，
+// 目前仍由 ax 编译器内建模块 fmt 硬编码代码生成，本 ax 文件仅提供可独立包装的函数。
+
+extern "C" {
+    error ax_err_new(int code, string msg);
+    void ax_write_stdout(string s);
+}
+
+// ---------- 模块级函数（C 风格命名：小写 + 下划线） ----------
+
+public error errorf(string format) {
+    unsafe {
+        return ax_err_new(1, format)
+    }
+}
+
+public void print(string s) {
+    unsafe {
+        ax_write_stdout(s)
+    }
+}
+
+public void println(string s) {
+    unsafe {
+        ax_write_stdout(s)
+        ax_write_stdout("\n")
+    }
+}

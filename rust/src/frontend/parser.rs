@@ -497,8 +497,13 @@ impl<'a> Parser<'a> {
         let t = self.expect("import", None)?;
         let mut path = vec![self.expect_ident("模块名")?.text().to_string()];
         while self.at(".") && self.tok(1).is("IDENT") {
+            self.advance(); // 吃掉 "."
+            // 模块路径段可以是任何标识符文本（包括保留字如 string、file 等），
+            // 以支持 `import std.string` 这样的多级标准库模块路径。
+            let seg = self.tok(0).clone();
+            let name = seg.text();
+            path.push(name.to_string());
             self.advance();
-            path.push(self.advance().text().to_string());
         }
         let mut alias = None;
         let mut names = None;
@@ -518,6 +523,12 @@ impl<'a> Parser<'a> {
             }
             self.expect("}", None)?;
             names = Some(ns);
+        }
+        // 消耗可选的语句终止符（`;` 或换行），使 `import std.string;` 能正常结束
+        if self.at(";") {
+            self.advance();
+        } else {
+            self.nl();
         }
         Ok(self.nn(t, Item::Import { path, alias, names }))
     }

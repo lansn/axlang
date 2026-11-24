@@ -1231,9 +1231,10 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 .unwrap_or(0);
             let f = &self.cg.s.funcs[fid];
             let nm = self.cg.fn_name_idx(fid);
-            // extern "C" 与 C 库交互：axlang `string`（ax_str）在边界上按 C 约定
-            // 视作 `const char*`：传参时取 `.p` 指针，返回值时用 ax_str_from_cstr 包装。
-            let is_extern = f.is_extern;
+            // extern "C" 与 C 库交互：
+            //   - axrt 函数（名以 ax_ 开头，如 ax_str_cmp）：期望 ax_str 结构体，直接传递，不转换
+            //   - C 库函数（如 puts）：期望 const char*，将 ax_str 转为 (const char*)({}).p
+            let is_extern_c_lib = f.is_extern && !nm.starts_with("ax_");
             let ret_is_str = matches!(&*f.ret, TyS::Str);
             let params = f.params.clone();
             let mut out = Vec::new();
@@ -1266,7 +1267,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                         }
                         let mut val =
                             self.gen(&arg.k.expr, Some(&p.1), false, false);
-                        if is_extern && matches!(&*p.1, TyS::Str) {
+                        if is_extern_c_lib && matches!(&*p.1, TyS::Str) {
                             // ax_str -> const char*：取底层指针（AX_S 等字面量已空终止）
                             val = format!("(const char*)({}).p", val);
                         }
@@ -1281,7 +1282,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 // ref 返回值：解引用指针返回（*{...}）
                 call = format!("*({})", call);
             }
-            if is_extern && ret_is_str {
+            if is_extern_c_lib && ret_is_str {
                 // const char* -> ax_str
                 call = format!("ax_str_from_cstr({})", call);
             }
@@ -1508,10 +1509,10 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 out.join(", ")
             );
         }
-        if mk == "Parse" {
+        if mk == "parse" {
             return self.parse_call(e);
         }
-        if mk == "Truncate" {
+        if mk == "truncate" {
             let v = self.gen(&args[0].k.expr, None, false, false);
             let bits = match &*sl.trunc_to.clone().unwrap_or_else(t_int) {
                 TyS::Int(b, _) => *b,
@@ -1520,28 +1521,28 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             let pa = self.pos_args(&e.tok);
             return format!("ax_narrow((int64_t)({}), {}, 1, {})", v, bits, pa);
         }
-        if mk == "FromCodepoint" {
+        if mk == "from_codepoint" {
             return self.from_codepoint(e);
         }
-        if mk == "StrCompare" {
-            // `string.Compare(a, b)` 是模块级静态方法，接收者 `string` 仅是命名空间，
+        if mk == "str_compare" {
+            // `string.compare(a, b)` 是模块级静态方法，接收者 `string` 仅是命名空间，
             // 不是 string 值，故直接取两个实参，不使用 recv。
             let a0 = self.gen(&args[0].k.expr, None, false, false);
             let a1 = self.gen(&args[1].k.expr, None, false, false);
             return format!("ax_str_cmp({}, {})", a0, a1);
         }
-        if mk == "StrFields" {
-            // `string.Fields(s)` 同理，接收者 `string` 仅是命名空间。
+        if mk == "str_fields" {
+            // `string.fields(s)` 同理，接收者 `string` 仅是命名空间。
             let a0 = self.gen(&args[0].k.expr, None, false, false);
             return format!("ax_str_fields({})", a0);
         }
-        if mk == "ToUpperRune" {
-            // `string.ToUpperRune(c)`：接收者 `string` 仅是命名空间，取单个 int 实参。
+        if mk == "to_upper_rune" {
+            // `string.to_upper_rune(c)`：接收者 `string` 仅是命名空间，取单个 int 实参。
             let a0 = self.gen(&args[0].k.expr, None, false, false);
             return format!("ax_str_to_upper_rune({})", a0);
         }
-        if mk == "ToLowerRune" {
-            // `string.ToLowerRune(c)`：接收者 `string` 仅是命名空间，取单个 int 实参。
+        if mk == "to_lower_rune" {
+            // `string.to_lower_rune(c)`：接收者 `string` 仅是命名空间，取单个 int 实参。
             let a0 = self.gen(&args[0].k.expr, None, false, false);
             return format!("ax_str_to_lower_rune({})", a0);
         }
@@ -1655,27 +1656,27 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             .and_then(|s| s.bname.clone())
             .unwrap_or_default();
         match b.as_str() {
-            "Row.Empty" => format!("ax_row_empty({})", tv),
-            "Row.GetString" => {
+            "row.empty" => format!("ax_row_empty({})", tv),
+            "row.get_string" => {
                 let a = self.gen(&args[0].k.expr, None, false, false);
                 format!("ax_row_get({}, {})", tv, a)
             }
-            "Row.GetInt" => {
+            "row.get_int" => {
                 let a = self.gen(&args[0].k.expr, None, false, false);
                 format!("str_to_i64(ax_row_get({}, {}))", tv, a)
             }
-            "Row.GetDecimal" => {
+            "row.get_decimal" => {
                 let a = self.gen(&args[0].k.expr, None, false, false);
                 format!(
                     "ax_dec_parse_or(ax_row_get({}, {}), ax_dec_from_i64(0))",
                     tv, a
                 )
             }
-            "File.Close" => {
+            "file.close" => {
                 self.emit(format!("ax_file_close({});", tv));
                 "0".to_string()
             }
-            "File.Read" => {
+            "file.read" => {
                 let tyc = self.cg.ct(&self.ty_or_int(e.id));
                 format!(
                     "({{ {tyc} r_; ax_str o_; if (ax_file_read_all({tv}, &o_) == 0) {{ r_.tag = 1; r_.u.ok = o_; }} else {{ r_.tag = 0; r_.u.err = ax_err_new(4, AX_S(\"read failed\")); }} r_; }})",
@@ -1683,7 +1684,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                     tv = tv
                 )
             }
-            "File.ReadLine" => {
+            "file.read_line" => {
                 let tyc = self.cg.ct(&self.ty_or_int(e.id));
                 format!(
                     "({{ {tyc} r_; ax_str o_; if (ax_file_read_line({tv}, &o_) == 0) {{ r_.has = 1; r_.v = o_; }} else {{ r_.has = 0; r_.v = ax_str_empty(); }} r_; }})",
@@ -1691,10 +1692,10 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                     tv = tv
                 )
             }
-            "File.Write" | "File.WriteLine" => {
+            "file.write" | "file.write_line" => {
                 let tyc = self.cg.ct(&self.ty_or_int(e.id));
                 let a = self.gen(&args[0].k.expr, Some(&t_string()), false, false);
-                let call = if b == "File.Write" {
+                let call = if b == "file.write" {
                     format!("ax_file_write({}, {})", tv, a)
                 } else {
                     format!("ax_file_write_line({}, {})", tv, a)
@@ -1708,16 +1709,16 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             /* ---------------- sync 模块方法（对标 Go sync，P2） ----------------
              * recv 在 C 层为 ax_mutex/ax_rwmutex/ax_waitgroup/ax_once 指针，直接传入。
              * 通过 ax_std_* 标准库 C 接口调用（由 axc/stdlib/sync.ax 预转译生成）。 */
-            "Mutex.Lock" => { self.emit(format!("ax_std_mutex_lock(&{});", tv)); "0".to_string() }
-            "Mutex.Unlock" => { self.emit(format!("ax_std_mutex_unlock(&{});", tv)); "0".to_string() }
-            "RWMutex.Lock" => { self.emit(format!("ax_std_rwmutex_lock(&{});", tv)); "0".to_string() }
-            "RWMutex.Unlock" => { self.emit(format!("ax_std_rwmutex_unlock(&{});", tv)); "0".to_string() }
-            "RWMutex.RLock" => { self.emit(format!("ax_std_rwmutex_rlock(&{});", tv)); "0".to_string() }
-            "RWMutex.Runlock" => { self.emit(format!("ax_std_rwmutex_runlock(&{});", tv)); "0".to_string() }
-            "WaitGroup.Add" => format!("ax_std_waitgroup_add(&{}, {})", tv, self.gen(&args[0].k.expr, Some(&t_int()), false, false)),
-            "WaitGroup.Done" => { self.emit(format!("ax_std_waitgroup_done(&{});", tv)); "0".to_string() }
-            "WaitGroup.Wait" => { self.emit(format!("ax_std_waitgroup_wait(&{});", tv)); "0".to_string() }
-            "Once.Do" => { self.emit(format!("ax_std_once_do(&{});", tv)); "0".to_string() }
+            "mutex.lock" => { self.emit(format!("ax_std_mutex_lock(&{});", tv)); "0".to_string() }
+            "mutex.unlock" => { self.emit(format!("ax_std_mutex_unlock(&{});", tv)); "0".to_string() }
+            "rwmutex.lock" => { self.emit(format!("ax_std_rwmutex_lock(&{});", tv)); "0".to_string() }
+            "rwmutex.unlock" => { self.emit(format!("ax_std_rwmutex_unlock(&{});", tv)); "0".to_string() }
+            "rwmutex.rlock" => { self.emit(format!("ax_std_rwmutex_rlock(&{});", tv)); "0".to_string() }
+            "rwmutex.runlock" => { self.emit(format!("ax_std_rwmutex_runlock(&{});", tv)); "0".to_string() }
+            "waitgroup.add" => format!("ax_std_waitgroup_add(&{}, {})", tv, self.gen(&args[0].k.expr, Some(&t_int()), false, false)),
+            "waitgroup.done" => { self.emit(format!("ax_std_waitgroup_done(&{});", tv)); "0".to_string() }
+            "waitgroup.wait" => { self.emit(format!("ax_std_waitgroup_wait(&{});", tv)); "0".to_string() }
+            "once.do" => { self.emit(format!("ax_std_once_do(&{});", tv)); "0".to_string() }
             _ => "0".to_string(),
         }
     }
@@ -1781,51 +1782,51 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             }
         }
         let module = match &recv.k {
-            Expr::Path { segs, .. } => segs.first().cloned().unwrap_or_default(),
+            Expr::Path { segs, .. } => segs.join("."),
             _ => String::new(),
         };
         // fmt.Printf 在 sema 已被解析并核对，这里直接展开成插值式拼接——
         // 要赶在下面的通用实参 gen 循环之前，避免格式串字面量被多生成一份未使用的临时串
-        if module == "fmt" && name == "Printf" {
+        if module == "fmt" && name == "printf" {
             return self.fmt_printf(e);
         }
         // fmt.Print / fmt.Println：sema 走的是 print 同款（多实参、空格分隔）
-        if module == "fmt" && (name == "Print" || name == "Println") {
-            self.emit_print(args, name == "Println");
+        if module == "fmt" && (name == "print" || name == "println") {
+            self.emit_print(args, name == "println");
             return "0".to_string();
         }
         // fmt.Sprint：与 Print 同款实参拼串，但返回 ax_str 而非写 stdout
-        if module == "fmt" && name == "Sprint" {
+        if module == "fmt" && name == "sprint" {
             return self.fmt_sprint(args);
         }
         // fmt.Sprintf：与 Printf 同款格式解析，但返回 ax_str 而非写 stdout
-        if module == "fmt" && name == "Sprintf" {
+        if module == "fmt" && name == "sprintf" {
             return self.fmt_sprintf(e);
         }
         // fmt.Fprintf：与 fmt_sprintf 同款格式解析，但将结果写入 ax_file*（Writer），返回写入字节数
-        if module == "fmt" && name == "Fprintf" {
+        if module == "fmt" && name == "fprintf" {
             return self.fmt_fprintf(e);
         }
         // fmt.Errorf：与 fmt_sprintf 同款格式解析，但返回 ax_err（error），对标 Go fmt.Errorf / C 错误构造
-        if module == "fmt" && name == "Errorf" {
+        if module == "fmt" && name == "errorf" {
             return self.fmt_errorf(e);
         }
         // fmt.Scanf：从 stdin 按格式读取，返回读取的项数，对标 Go fmt.Scanf / C scanf
-        if module == "fmt" && name == "Scanf" {
+        if module == "fmt" && name == "scanf" {
             return self.fmt_scanf(e);
         }
         // log.Print / log.Fatal：对标 Go log.Print / log.Fatal，多实参，空格分隔，
         // Fatal 额外调用 os.Exit(1)。不加日期时间前缀（axlang 极简风格，用户可自行加前缀）。
-        if module == "log" && (name == "Print" || name == "Fatal") {
+        if module == "log" && (name == "print" || name == "fatal") {
             self.emit_print(args, false);
-            if name == "Fatal" {
+            if name == "fatal" {
                 self.emit("ax_write_stdout(AX_S(\"\\n\"));".to_string());
                 self.emit("ax_os_exit(1);".to_string());
             }
             return "0".to_string();
         }
         // log.Printf：对标 Go log.Printf，复用 fmt.Printf 的格式化（编译期核对占位符）。
-        if module == "log" && name == "Printf" {
+        if module == "log" && name == "printf" {
             return self.fmt_printf(e);
         }
         let mut a: Vec<String> = Vec::new();
@@ -1844,14 +1845,14 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             // 返回值走 axrt 的 out 参数形态：read_line 给 string?（EOF → has=0），
             // read_file 给 result<string>（失败 → fail）。原先按单值/无参生成，
             // 与 axrt.h 的签名不符，C 编译直接失败（此前没有用例覆盖）
-            ("io", "ReadLine") => {
+            ("io", "read_line") => {
                 let tyc = self.cg.ct(&self.ty_or_int(e.id));
                 format!(
                     "({{ {tyc} r_; ax_str o_; if (ax_read_line(&o_) == 0) {{ r_.has = 1; r_.v = o_; }} else {{ r_.has = 0; r_.v = ax_str_empty(); }} r_; }})",
                     tyc = tyc
                 )
             }
-            ("io", "ReadFile") => {
+            ("io", "read_file") => {
                 let tyc = self.cg.ct(&self.ty_or_int(e.id));
                 format!(
                     "({{ {tyc} r_; ax_str o_; if (ax_read_file({p}, &o_) == 0) {{ r_.tag = 1; r_.u.ok = o_; }} else {{ r_.tag = 0; r_.u.err = ax_err_new(4, AX_S(\"read failed\")); }} r_; }})",
@@ -1859,54 +1860,54 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                     p = a[0]
                 )
             }
-            ("io", "Write") => {
+            ("io", "write") => {
                 self.emit(format!("ax_write_stdout({});", a[0]));
                 "0".to_string()
             }
-            ("io", "WriteLine") => {
+            ("io", "write_line") => {
                 self.emit(format!("ax_write_stdout({});", a[0]));
                 self.emit("ax_write_stdout(AX_S(\"\\n\"));".to_string());
                 "0".to_string()
             }
-            ("math", "Equals") => {
+            ("math", "equals") => {
                 format!("(fabs(({}) - ({})) <= ({}))", a[0], a[1], a[2])
             }
-            ("math", "Compare") => format!(
+            ("math", "compare") => format!(
                 "((({0}) < ({1})) ? -1 : ((({0}) > ({1})) ? 1 : 0))",
                 a[0], a[1]
             ),
-            ("math", "Abs") => format!("(fabs({}))", a[0]),
-            ("math", "Max") => format!("(fmax({}, {}))", a[0], a[1]),
-            ("math", "Min") => format!("(fmin({}, {}))", a[0], a[1]),
-            ("math", "Sqrt") => format!("(sqrt({}))", a[0]),
-            ("math", "Pow") => format!("(pow({}, {}))", a[0], a[1]),
-            ("math", "Exp") => format!("(exp({}))", a[0]),
-            ("math", "Log") => format!("(log({}))", a[0]),
-            ("math", "Sin") => format!("(sin({}))", a[0]),
-            ("math", "Cos") => format!("(cos({}))", a[0]),
-            ("math", "Tan") => format!("(tan({}))", a[0]),
-            ("math", "Ceil") => format!("(ceil({}))", a[0]),
-            ("math", "Floor") => format!("(floor({}))", a[0]),
-            ("math", "Round") => format!("(round({}))", a[0]),
-            ("math", "Sign") => format!("ax_math_sign({})", a[0]),
-            ("math", "Mod") => format!("ax_math_mod({}, {})", a[0], a[1]),
-            ("math", "Exp2") => format!("(exp2({}))", a[0]),
-            ("math", "Log2") => format!("(log2({}))", a[0]),
-            ("math", "Log10") => format!("(log10({}))", a[0]),
-            ("math", "Log1p") => format!("(log1p({}))", a[0]),
-            ("math", "IsNaN") => format!("ax_math_isnan({})", a[0]),
-            ("math", "IsInf") => format!("ax_math_isinf({}, {})", a[0], a[1]),
-            ("math", "Sinh") => format!("(sinh({}))", a[0]),
-            ("math", "Cosh") => format!("(cosh({}))", a[0]),
-            ("math", "Tanh") => format!("(tanh({}))", a[0]),
-            ("math", "Asin") => format!("(asin({}))", a[0]),
-            ("math", "Acos") => format!("(acos({}))", a[0]),
-            ("math", "Atan") => format!("(atan({}))", a[0]),
-            ("math", "Atan2") => format!("(atan2({}, {}))", a[0], a[1]),
-            ("math", "Hypot") => format!("(hypot({}, {}))", a[0], a[1]),
-            ("math", "Cbrt") => format!("(cbrt({}))", a[0]),
-            ("math", "Trunc") => format!("(trunc({}))", a[0]),
-            ("db", "Query") => {
+            ("math", "abs") => format!("(fabs({}))", a[0]),
+            ("math", "max") => format!("(fmax({}, {}))", a[0], a[1]),
+            ("math", "min") => format!("(fmin({}, {}))", a[0], a[1]),
+            ("math", "sqrt") => format!("(sqrt({}))", a[0]),
+            ("math", "pow") => format!("(pow({}, {}))", a[0], a[1]),
+            ("math", "exp") => format!("(exp({}))", a[0]),
+            ("math", "log") => format!("(log({}))", a[0]),
+            ("math", "sin") => format!("(sin({}))", a[0]),
+            ("math", "cos") => format!("(cos({}))", a[0]),
+            ("math", "tan") => format!("(tan({}))", a[0]),
+            ("math", "ceil") => format!("(ceil({}))", a[0]),
+            ("math", "floor") => format!("(floor({}))", a[0]),
+            ("math", "round") => format!("(round({}))", a[0]),
+            ("math", "sign") => format!("ax_math_sign({})", a[0]),
+            ("math", "mod") => format!("ax_math_mod({}, {})", a[0], a[1]),
+            ("math", "exp2") => format!("(exp2({}))", a[0]),
+            ("math", "log2") => format!("(log2({}))", a[0]),
+            ("math", "log10") => format!("(log10({}))", a[0]),
+            ("math", "log1p") => format!("(log1p({}))", a[0]),
+            ("math", "is_nan") => format!("ax_math_isnan({})", a[0]),
+            ("math", "is_inf") => format!("ax_math_isinf({}, {})", a[0], a[1]),
+            ("math", "sinh") => format!("(sinh({}))", a[0]),
+            ("math", "cosh") => format!("(cosh({}))", a[0]),
+            ("math", "tanh") => format!("(tanh({}))", a[0]),
+            ("math", "asin") => format!("(asin({}))", a[0]),
+            ("math", "acos") => format!("(acos({}))", a[0]),
+            ("math", "atan") => format!("(atan({}))", a[0]),
+            ("math", "atan2") => format!("(atan2({}, {}))", a[0], a[1]),
+            ("math", "hypot") => format!("(hypot({}, {}))", a[0], a[1]),
+            ("math", "cbrt") => format!("(cbrt({}))", a[0]),
+            ("math", "trunc") => format!("(trunc({}))", a[0]),
+            ("db", "query") => {
                 let arg = if a.len() > 1 {
                     a[1].clone()
                 } else {
@@ -1914,22 +1915,23 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 };
                 format!("ax_db_query_result({}, {})", a[0], arg)
             }
-            ("json", "Parse") => format!("ax_json_parse_result({})", a[0]),
-            ("json", "Stringify") => format!("ax_json_stringify({})", a[0]),
-            ("json", "MarshalIndent") => format!("ax_json_marshal_indent({}, {}, {})", a[0], a[1], a[2]),
-            ("json", "Valid") => format!("ax_json_valid({})", a[0]),
-            ("file", "Open") => format!("ax_file_open_result({}, 0)", a[0]),
-            ("file", "Create") => format!("ax_file_open_result({}, 1)", a[0]),
-            ("file", "Append") => format!("ax_file_open_result({}, 2)", a[0]),
-            ("file", "Remove") => format!("ax_file_remove({})", a[0]),
-            ("file", "Rename") => format!("ax_file_rename({}, {})", a[0], a[1]),
-            ("file", "Exists") => format!("ax_file_exists({})", a[0]),
-            ("file", "Mkdir") => format!("ax_dir_create({})", a[0]),
-            ("file", "IsDir") => format!("ax_file_is_dir({})", a[0]),
-            ("file", "IsFile") => format!("ax_file_is_file({})", a[0]),
-            ("file", "Size") => format!("ax_file_size({})", a[0]),
-            ("file", "ModTime") => format!("ax_file_modtime({})", a[0]),
-            ("file", "ReadAll") => {
+            ("json", "parse") => format!("ax_json_parse_result({})", a[0]),
+            ("json", "stringify") => format!("ax_json_stringify({})", a[0]),
+            ("json", "marshal_indent") => format!("ax_json_marshal_indent({}, {}, {})", a[0], a[1], a[2]),
+            ("json", "valid") => format!("ax_json_valid({})", a[0]),
+            /* file 模块（单段名，向后兼容；std.file 现已改为 axc/std/file.ax） */
+            ("file", "open") => format!("ax_file_open_result({}, 0)", a[0]),
+            ("file", "create") => format!("ax_file_open_result({}, 1)", a[0]),
+            ("file", "append") => format!("ax_file_open_result({}, 2)", a[0]),
+            ("file", "remove") => format!("ax_file_remove({})", a[0]),
+            ("file", "rename") => format!("ax_file_rename({}, {})", a[0], a[1]),
+            ("file", "exists") => format!("ax_file_exists({})", a[0]),
+            ("file", "mkdir") => format!("ax_dir_create({})", a[0]),
+            ("file", "is_dir") => format!("ax_file_is_dir({})", a[0]),
+            ("file", "is_file") => format!("ax_file_is_file({})", a[0]),
+            ("file", "size") => format!("ax_file_size({})", a[0]),
+            ("file", "mod_time") => format!("ax_file_modtime({})", a[0]),
+            ("file", "read_all") => {
                 let tyc = self.cg.ct(&self.ty_or_int(e.id));
                 format!(
                     "({{ {tyc} r_; ax_str o_; if (ax_read_file({p}, &o_) == 0) {{ r_.tag = 1; r_.u.ok = o_; }} else {{ r_.tag = 0; r_.u.err = ax_err_new(4, AX_S(\"read failed\")); }} r_; }})",
@@ -1937,98 +1939,95 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                     p = a[0]
                 )
             }
-            ("file", "WriteAll") => format!("ax_file_write_all({}, {})", a[0], a[1]),
-            ("file", "Chmod") => format!("ax_file_chmod({}, {})", a[0], a[1]),
-            ("file", "Chtimes") => format!("ax_file_chtimes({}, {}, {})", a[0], a[1], a[2]),
-            ("file", "TempFile") => format!("ax_file_tempfile({}, {})", a[0], a[1]),
-            ("time", "NowMs") => "ax_now_ms()".to_string(),
-            ("time", "Now") => "ax_now_ms()".to_string(),
-            ("time", "FromUnixMs") => a[0].clone(),
-            ("time", "Sleep") => {
+            ("file", "write_all") => format!("ax_file_write_all({}, {})", a[0], a[1]),
+            ("file", "chmod") => format!("ax_file_chmod({}, {})", a[0], a[1]),
+            ("file", "chtimes") => format!("ax_file_chtimes({}, {}, {})", a[0], a[1], a[2]),
+            ("file", "temp_file") => format!("ax_file_tempfile({}, {})", a[0], a[1]),
+            ("time", "now_ms") => "ax_now_ms()".to_string(),
+            ("time", "now") => "ax_now_ms()".to_string(),
+            ("time", "from_unix_ms") => a[0].clone(),
+            ("time", "sleep") => {
                 self.emit(format!("ax_time_sleep({});", a[0]));
                 "0".to_string()
             }
-            ("time", "Unix") => format!("ax_time_from_unix({}, {})", a[0], a[1]),
-            ("time", "UnixMilli") => format!("ax_time_from_unix_ms({})", a[0]),
-            ("time", "UnixMicro") => format!("ax_time_from_unix_us({})", a[0]),
-            ("time", "UnixNano") => format!("ax_time_from_unix_ns({})", a[0]),
-            ("time", "Since") => format!("ax_time_since({})", a[0]),
-            ("time", "Date") => format!("ax_time_date({}, {}, {}, {}, {}, {}, {})",
+            ("time", "unix") => format!("ax_time_from_unix({}, {})", a[0], a[1]),
+            ("time", "unix_milli") => format!("ax_time_from_unix_ms({})", a[0]),
+            ("time", "unix_micro") => format!("ax_time_from_unix_us({})", a[0]),
+            ("time", "unix_nano") => format!("ax_time_from_unix_ns({})", a[0]),
+            ("time", "since") => format!("ax_time_since({})", a[0]),
+            ("time", "date") => format!("ax_time_date({}, {}, {}, {}, {}, {}, {})",
                                         a[0], a[1], a[2], a[3], a[4], a[5], a[6]),
-            ("time", "Until") => format!("ax_time_until({})", a[0]),
-            ("time", "Parse") => format!("ax_time_parse_result({}, {})", a[0], a[1]),
+            ("time", "until") => format!("ax_time_until({})", a[0]),
+            ("time", "parse") => format!("ax_time_parse_result({}, {})", a[0], a[1]),
             /* ---------------- os 模块 ---------------- */
-            ("os", "Getenv") => format!("ax_os_getenv({})", a[0]),
-            ("os", "Exit") => {
+            ("os", "getenv") => format!("ax_os_getenv({})", a[0]),
+            ("os", "exit") => {
                 self.emit(format!("ax_os_exit({});", a[0]));
                 "0".to_string()
             }
-            ("os", "Args") => "ax_os_args()".to_string(),
-            ("os", "Getwd") => "ax_os_getwd()".to_string(),
-            ("os", "Chdir") => format!("ax_os_chdir({})", a[0]),
-            ("os", "Getpid") => "ax_os_getpid()".to_string(),
-            ("os", "Getppid") => "ax_os_getppid()".to_string(),
-            ("os", "Hostname") => "ax_os_hostname()".to_string(),
-            ("os", "Environ") => "ax_os_environ()".to_string(),
-            ("os", "Setenv") => format!("ax_os_setenv({}, {})", a[0], a[1]),
-            ("os", "Unsetenv") => format!("ax_os_unsetenv({})", a[0]),
-            ("os", "UserHomeDir") => "ax_os_user_home_dir()".to_string(),
+            ("os", "args") => "ax_os_args()".to_string(),
+            ("os", "getwd") => "ax_os_getwd()".to_string(),
+            ("os", "chdir") => format!("ax_os_chdir({})", a[0]),
+            ("os", "getpid") => "ax_os_getpid()".to_string(),
+            ("os", "getppid") => "ax_os_getppid()".to_string(),
+            ("os", "hostname") => "ax_os_hostname()".to_string(),
+            ("os", "environ") => "ax_os_environ()".to_string(),
+            ("os", "setenv") => format!("ax_os_setenv({}, {})", a[0], a[1]),
+            ("os", "unsetenv") => format!("ax_os_unsetenv({})", a[0]),
+            ("os", "user_home_dir") => "ax_os_user_home_dir()".to_string(),
             /* ---------------- rand 模块 ---------------- */
-            ("rand", "Int") => format!("ax_rand_int({})", a[0]),
-            ("rand", "Float") => "ax_rand_float()".to_string(),
-            ("rand", "Seed") => {
+            ("rand", "int") => format!("ax_rand_int({})", a[0]),
+            ("rand", "float") => "ax_rand_float()".to_string(),
+            ("rand", "seed") => {
                 self.emit(format!("ax_rand_seed({});", a[0]));
                 "0".to_string()
             }
-            /* ---------------- sync/atomic 模块 ----------------
-             * atomic.* 的 addr 参数为 int 变量，C 层需取其地址传给 volatile int64_t*。
-             * 实参必须是左值（简单变量），否则 C 编译会报“取地址运算对象不是左值”。
-             * 通过 ax_std_* 标准库 C 接口调用（由 axc/stdlib/atomic.ax 预转译生成）。 */
-            ("atomic", "AddInt") => format!("ax_std_atomic_add_int(&{}, {})", a[0], a[1]),
-            ("atomic", "LoadInt") => format!("ax_std_atomic_load_int(&{})", a[0]),
-            ("atomic", "StoreInt") => {
+            /* atomic 模块（单段名，向后兼容；std.atomic 现已改为 axc/std/atomic.ax） */
+            ("atomic", "add_int") => format!("ax_std_atomic_add_int(&{}, {})", a[0], a[1]),
+            ("atomic", "load_int") => format!("ax_std_atomic_load_int(&{})", a[0]),
+            ("atomic", "store_int") => {
                 self.emit(format!("ax_std_atomic_store_int(&{}, {});", a[0], a[1]));
                 "0".to_string()
             }
-            ("atomic", "CompareAndSwapInt") => {
+            ("atomic", "compare_and_swap_int") => {
                 format!("ax_std_atomic_compare_and_swap_int(&{}, {}, {})", a[0], a[1], a[2])
             }
             /* ---------------- sort 模块 ---------------- */
-            ("sort", "Ints") => {
+            ("sort", "ints") => {
                 let arr = self.declare(&t_array(t_int(), None), &a[0]);
                 format!("ax_sort_int((int64_t*){}.data, {}.len)", arr, arr)
             }
-            ("sort", "Strings") => {
+            ("sort", "strings") => {
                 let arr = self.declare(&t_array(t_string(), None), &a[0]);
                 format!("ax_sort_str((ax_str*){}.data, {}.len)", arr, arr)
             }
-            ("sort", "Float64s") => {
+            ("sort", "float64s") => {
                 let arr = self.declare(&t_array(t_float(), None), &a[0]);
                 format!("ax_sort_float((double*){}.data, {}.len)", arr, arr)
             }
-            ("sort", "IntsAreSorted") => {
+            ("sort", "ints_are_sorted") => {
                 let arr = self.declare(&t_array(t_int(), None), &a[0]);
                 format!("ax_sort_ints_are_sorted((int64_t*){}.data, {}.len)", arr, arr)
             }
-            ("sort", "StringsAreSorted") => {
+            ("sort", "strings_are_sorted") => {
                 let arr = self.declare(&t_array(t_string(), None), &a[0]);
                 format!("ax_sort_strings_are_sorted((ax_str*){}.data, {}.len)", arr, arr)
             }
-            ("sort", "SearchInts") => {
+            ("sort", "search_ints") => {
                 let arr = self.declare(&t_array(t_int(), None), &a[0]);
                 format!("ax_sort_search_ints((int64_t*){}.data, {}.len, {})", arr, arr, a[1])
             }
-            ("sort", "SearchStrings") => {
+            ("sort", "search_strings") => {
                 let arr = self.declare(&t_array(t_string(), None), &a[0]);
                 format!("ax_sort_search_strings((ax_str*){}.data, {}.len, {})", arr, arr, a[1])
             }
-            ("csv", "ReadAll") => format!("ax_csv_read_all({})", a[0]),
-            ("csv", "Write") => format!("ax_csv_write({}, {})", a[0], a[1]),
-            ("errors", "New") => format!("ax_err_new(1, {})", a[0]),
+            ("csv", "read_all") => format!("ax_csv_read_all({})", a[0]),
+            ("csv", "write") => format!("ax_csv_write({}, {})", a[0], a[1]),
+            ("errors", "new") => format!("ax_err_new(1, {})", a[0]),
             // errors.Is(err, target) -> bool：对标 Go errors.Is，比较 code 和 msg 是否相等
-            ("errors", "Is") => format!("ax_err_is({}, {})", a[0], a[1]),
+            ("errors", "is") => format!("ax_err_is({}, {})", a[0], a[1]),
             // errors.As(err, target) -> bool：对标 Go errors.As，将 err 复制到 target（target 必须是 error 左值）
-            ("errors", "As") => {
+            ("errors", "as") => {
                 let tgt = if Self::is_lvalue(&args[1].k.expr) {
                     format!("&{}", a[1])
                 } else {
@@ -2039,66 +2038,66 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             }
             /* ---------------- bytes 模块（对标 Go bytes，2026-11-24；P2。bytes 操作 ax_arr，元素为 uint8_t） ---------------- */
             // bytes.Contains(s, sub) -> bool
-            ("bytes", "Contains") => format!("ax_bytes_contains({}, {})", a[0], a[1]),
+            ("bytes", "contains") => format!("ax_bytes_contains({}, {})", a[0], a[1]),
             // bytes.Equal(a, b) -> bool
-            ("bytes", "Equal") => format!("ax_bytes_equal({}, {})", a[0], a[1]),
+            ("bytes", "equal") => format!("ax_bytes_equal({}, {})", a[0], a[1]),
             // bytes.Index(s, sub) -> int
-            ("bytes", "Index") => format!("ax_bytes_index({}, {})", a[0], a[1]),
+            ("bytes", "index") => format!("ax_bytes_index({}, {})", a[0], a[1]),
             // bytes.Split(s, sep) -> bytes[]
-            ("bytes", "Split") => format!("ax_bytes_split({}, {})", a[0], a[1]),
+            ("bytes", "split") => format!("ax_bytes_split({}, {})", a[0], a[1]),
             // bytes.TrimSpace(s) -> bytes
-            ("bytes", "TrimSpace") => format!("ax_bytes_trim_space({})", a[0]),
+            ("bytes", "trim_space") => format!("ax_bytes_trim_space({})", a[0]),
             // bytes.ToUpper(s) -> bytes
-            ("bytes", "ToUpper") => format!("ax_bytes_to_upper({})", a[0]),
+            ("bytes", "to_upper") => format!("ax_bytes_to_upper({})", a[0]),
             // bytes.ToLower(s) -> bytes
-            ("bytes", "ToLower") => format!("ax_bytes_to_lower({})", a[0]),
+            ("bytes", "to_lower") => format!("ax_bytes_to_lower({})", a[0]),
             // bytes.Repeat(s, count) -> bytes
-            ("bytes", "Repeat") => format!("ax_bytes_repeat({}, {})", a[0], a[1]),
+            ("bytes", "repeat") => format!("ax_bytes_repeat({}, {})", a[0], a[1]),
             /* ---------------- bufio 模块（对标 Go bufio，P2。Reader/Writer 为 File 句柄 ax_file*） ---------------- */
             // bufio.NewReader(f: File) -> File：创建缓冲读取器，对标 Go bufio.NewReader
-            ("bufio", "NewReader") => format!("ax_file_buf_reader({})", a[0]),
+            ("bufio", "new_reader") => format!("ax_file_buf_reader({})", a[0]),
             // bufio.NewWriter(f: File) -> File：创建缓冲写入器，对标 Go bufio.NewWriter
-            ("bufio", "NewWriter") => format!("ax_file_buf_writer({})", a[0]),
+            ("bufio", "new_writer") => format!("ax_file_buf_writer({})", a[0]),
             // bufio.Scanner(f: File) -> File：创建扫描器，对标 Go bufio.NewScanner
-            ("bufio", "Scanner") => format!("ax_file_buf_scanner({})", a[0]),
+            ("bufio", "scanner") => format!("ax_file_buf_scanner({})", a[0]),
             /* ---------------- strconv 模块 ---------------- */
-            ("strconv", "Atoi") => {
+            ("strconv", "atoi") => {
                 format!("({{ int64_t v_; ax_parse_i64({}, &v_) ? v_ : 0; }})", a[0])
             }
-            ("strconv", "Itoa") => format!("ax_str_of_int({})", a[0]),
-            ("strconv", "ParseFloat") => {
+            ("strconv", "itoa") => format!("ax_str_of_int({})", a[0]),
+            ("strconv", "parse_float") => {
                 format!("({{ double v_; ax_parse_f64({}, &v_) ? v_ : 0.0; }})", a[0])
             }
-            ("strconv", "FormatFloat") => format!("ax_str_of_f64({})", a[0]),
-            ("strconv", "ParseInt") => format!("ax_parse_int_base({}, {})", a[0], a[1]),
-            ("strconv", "FormatInt") => format!("ax_str_of_int_base({}, {})", a[0], a[1]),
-            ("strconv", "ParseBool") => format!("ax_parse_bool({})", a[0]),
-            ("strconv", "FormatBool") => format!("ax_str_of_bool({})", a[0]),
-            ("strconv", "ParseUint") => format!("ax_parse_uint_base({}, {})", a[0], a[1]),
-            ("strconv", "FormatUint") => format!("ax_str_of_uint_base({}, {})", a[0], a[1]),
-            ("strconv", "CanBackquote") => format!("ax_str_can_backquote({})", a[0]),
-            ("strconv", "Quote") => format!("ax_str_quote({})", a[0]),
-            ("strconv", "Unquote") => format!("ax_str_unquote({})", a[0]),
-            /* ---------------- string 模块（模块级函数） ---------------- */
-            ("string", "Compare") => format!("ax_str_cmp({}, {})", a[0], a[1]),
-            ("string", "Fields") => format!("ax_str_fields({})", a[0]),
-            ("string", "ToUpperRune") => format!("ax_str_to_upper_rune({})", a[0]),
-            ("string", "ToLowerRune") => format!("ax_str_to_lower_rune({})", a[0]),
+            ("strconv", "format_float") => format!("ax_str_of_f64({})", a[0]),
+            ("strconv", "parse_int") => format!("ax_parse_int_base({}, {})", a[0], a[1]),
+            ("strconv", "format_int") => format!("ax_str_of_int_base({}, {})", a[0], a[1]),
+            ("strconv", "parse_bool") => format!("ax_parse_bool({})", a[0]),
+            ("strconv", "format_bool") => format!("ax_str_of_bool({})", a[0]),
+            ("strconv", "parse_uint") => format!("ax_parse_uint_base({}, {})", a[0], a[1]),
+            ("strconv", "format_uint") => format!("ax_str_of_uint_base({}, {})", a[0], a[1]),
+            ("strconv", "can_backquote") => format!("ax_str_can_backquote({})", a[0]),
+            ("strconv", "quote") => format!("ax_str_quote({})", a[0]),
+            ("strconv", "unquote") => format!("ax_str_unquote({})", a[0]),
+            /* string 模块（单段名，向后兼容；std.string 现已改为 axc/std/string.ax） */
+            ("string", "compare") => format!("ax_str_cmp({}, {})", a[0], a[1]),
+            ("string", "fields") => format!("ax_str_fields({})", a[0]),
+            ("string", "to_upper_rune") => format!("ax_str_to_upper_rune({})", a[0]),
+            ("string", "to_lower_rune") => format!("ax_str_to_lower_rune({})", a[0]),
             /* ---------------- filepath 模块 ---------------- */
-            ("filepath", "Join") => {
+            ("filepath", "join") => {
                 let arr = &a[0];
                 format!(
                     "ax_filepath_join({arr})",
                     arr = arr
                 )
             }
-            ("filepath", "Dir") => format!("ax_filepath_dir({})", a[0]),
-            ("filepath", "Base") => format!("ax_filepath_base({})", a[0]),
-            ("filepath", "Ext") => format!("ax_filepath_ext({})", a[0]),
-            ("filepath", "Split") => format!("ax_filepath_split({})", a[0]),
-            ("filepath", "Clean") => format!("ax_filepath_clean({})", a[0]),
-            ("filepath", "Abs") => format!("ax_filepath_abs({})", a[0]),
-            ("filepath", "IsAbs") => format!("ax_filepath_is_abs({})", a[0]),
+            ("filepath", "dir") => format!("ax_filepath_dir({})", a[0]),
+            ("filepath", "base") => format!("ax_filepath_base({})", a[0]),
+            ("filepath", "ext") => format!("ax_filepath_ext({})", a[0]),
+            ("filepath", "split") => format!("ax_filepath_split({})", a[0]),
+            ("filepath", "clean") => format!("ax_filepath_clean({})", a[0]),
+            ("filepath", "abs") => format!("ax_filepath_abs({})", a[0]),
+            ("filepath", "is_abs") => format!("ax_filepath_is_abs({})", a[0]),
             /* ---------------- maps 模块（对标 Go maps，K/V 由实参 Map 类型推导） ---------------- */
             // maps.Keys(m) -> K[]：返回键数组（按插入顺序）
             ("maps", "Keys") => {

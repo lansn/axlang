@@ -7,18 +7,18 @@ int main() {
     string v2 = "xyz";
     string empty = "";
     // 先删除不存在的变量，应返回 0（无操作成功）
-    println("unset_missing={os.Unsetenv(name)}");
+    println("unset_missing={os.unsetenv(name)}");
     // 设置环境变量，应返回 0
-    println("set={os.Setenv(name, v1)}");
-    println("get={os.Getenv(name)}");
+    println("set={os.setenv(name, v1)}");
+    println("get={os.getenv(name)}");
     // 覆盖设置
-    println("set2={os.Setenv(name, v2)}");
-    println("get2={os.Getenv(name)}");
+    println("set2={os.setenv(name, v2)}");
+    println("get2={os.getenv(name)}");
     // 删除环境变量
-    println("unset={os.Unsetenv(name)}");
-    println("get_after_unset={os.Getenv(name)}");
+    println("unset={os.unsetenv(name)}");
+    println("get_after_unset={os.getenv(name)}");
     // 设置空值
-    println("set_empty={os.Setenv(name, empty)}");
-    println("get_empty={os.Getenv(name)}");
+    println("set_empty={os.setenv(name, empty)}");
+    println("get_empty={os.getenv(name)}");
     return 0
 }

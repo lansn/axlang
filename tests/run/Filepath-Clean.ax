@@ -2,14 +2,14 @@
 import filepath
 
 int main() {
-    println("clean1={filepath.Clean("foo\\bar")}")
-    println("clean2={filepath.Clean("foo\\\\bar")}")
-    println("clean3={filepath.Clean("foo\\.\\bar")}")
-    println("clean4={filepath.Clean("foo\\..\\bar")}")
-    println("clean5={filepath.Clean("..\\foo")}")
-    println("clean6={filepath.Clean("\\foo\\..\\bar")}")
-    println("clean7={filepath.Clean("")}")
-    println("clean8={filepath.Clean(".")}")
-    println("clean9={filepath.Clean(".\\")}")
+    println("clean1={filepath.clean("foo\\bar")}")
+    println("clean2={filepath.clean("foo\\\\bar")}")
+    println("clean3={filepath.clean("foo\\.\\bar")}")
+    println("clean4={filepath.clean("foo\\..\\bar")}")
+    println("clean5={filepath.clean("..\\foo")}")
+    println("clean6={filepath.clean("\\foo\\..\\bar")}")
+    println("clean7={filepath.clean("")}")
+    println("clean8={filepath.clean(".")}")
+    println("clean9={filepath.clean(".\\")}")
     return 0
 }

@@ -11,12 +11,28 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <stdatomic.h>   /* C11 原子：atomic_load/atomic_store/atomic_compare_exchange_strong */
+#include <inttypes.h>    /* PRId64 等格式化宏 */
+#include <time.h>        /* 时间函数 */
+#include <errno.h>       /* errno */
+#include <sys/stat.h>    /* stat/_stat, S_ISDIR/S_ISREG/_S_IFDIR/_S_IFREG */
 
 #ifdef _WIN32
-#include <windows.h>
-#else
-#include <pthread.h>
+#ifndef _WIN32_WINNT
+#define _WIN32_WINNT 0x0600
 #endif
+#include <windows.h>
+#include <io.h>
+#include <direct.h>
+#include <process.h>   /* _environ */
+#include <sys/utime.h> /* _utimbuf, _utime */
+#else
+#include <sys/time.h>
+#include <pthread.h>
+#include <unistd.h>    /* getpid/getppid/gethostname/environ */
+#endif
+
+#define AX_I64_HIGH_BIT ((uint64_t)1 << 63)
 
 
 /* ---------------- arena（区域分配器，规格书 8.4 / O-17…O-20） ----------------
@@ -387,6 +403,12 @@ ax_file* ax_file_buf_scanner(ax_file* f); /* 创建扫描器，对标 Go bufio.N
 /* 模式：0=只读 1=写（新建或截断） 2=追加。失败时 tag=0 + error.IO。 */
 typedef struct { uint8_t tag; union { ax_file* ok; ax_err err; } u; } ax_res_file;
 ax_res_file ax_file_open_result(ax_str path, int mode);
+
+/* 便捷打开函数：成功返回 ax_file* 句柄，失败返回 NULL（ax 标准库 ax_std_* 包装层使用）。
+ * 与 ax_file_open_result 等价，但直接返回句柄而不暴露 result 结构。 */
+ax_file* ax_file_open(ax_str path);       /* mode=0 只读 */
+ax_file* ax_file_create(ax_str path);     /* mode=1 写（新建或截断） */
+ax_file* ax_file_append(ax_str path);     /* mode=2 追加 */
 
 int     ax_file_read_all(ax_file* f, ax_str* out);   /* 0=读到末尾 1=读失败 */
 ax_str  ax_file_read_all_val(ax_file f);             /* 按值返回 ax_str，供 ax 标准库调用 */

@@ -2,11 +2,11 @@
 import log
 
 int main() {
-    log.Print("hello", "world", 42)
+    log.print("hello", "world", 42)
     println("")
-    log.Printf("%d %s %f", 3, "items", 2.5)
+    log.printf("%d %s %f", 3, "items", 2.5)
     println("")
-    log.Fatal("fatal error")
+    log.fatal("fatal error")
     println("unreachable")
     return 0
 }

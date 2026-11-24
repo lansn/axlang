@@ -1,10 +1,11 @@
-// axc/stdlib/atomic.ax —— axlang 标准库 atomic 模块（ax 语法源码）
-// 预转译为标准 C，随编译器发布，通过 gcc 参与编译。
+// axc/std/atomic.ax —— axlang 标准库 atomic 模块（ax 语法源码）
+// 与用户库一样，由 ax 编译器直接解析，生成对应的 C 源码供 gcc 编译。
 //
 // 对标 Go sync/atomic。对 int 变量取地址做原子操作，无需构造对象。
 // 通过 extern "C" 声明 axrt C 原子原语，ax 层仅做包装。
 //
-// 所有导出函数均使用 ax_std_* 前缀，预转译后直接对应标准 C 接口函数名。
+// 导出函数命名采用 C 风格：全部小写，下划线分隔，如 add_int / load_int。
+// ax 代码中通过 std.atomic.add_int(&x, 1) 调用。
 
 extern "C" {
     int ax_atomic_add_int(ref int addr, int delta);
@@ -13,25 +14,25 @@ extern "C" {
     bool ax_atomic_compare_and_swap_int(ref int addr, int old, int replacement);
 }
 
-int ax_std_atomic_add_int(ref int addr, int delta) {
+public int add_int(ref int addr, int delta) {
     unsafe {
         ax_atomic_add_int(addr, delta)
     }
 }
 
-int ax_std_atomic_load_int(ref int addr) {
+public int load_int(ref int addr) {
     unsafe {
         ax_atomic_load_int(addr)
     }
 }
 
-void ax_std_atomic_store_int(ref int addr, int val) {
+public void store_int(ref int addr, int val) {
     unsafe {
         ax_atomic_store_int(addr, val)
     }
 }
 
-bool ax_std_atomic_compare_and_swap_int(ref int addr, int old, int replacement) {
+public bool compare_and_swap_int(ref int addr, int old, int replacement) {
     unsafe {
         ax_atomic_compare_and_swap_int(addr, old, replacement)
     }

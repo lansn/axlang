@@ -3130,6 +3130,24 @@ ax_res_file ax_file_open_result(ax_str path, int mode) {
     return r;
 }
 
+ax_file* ax_file_open(ax_str path) {
+    ax_res_file r = ax_file_open_result(path, 0);
+    if (r.tag != 1) return NULL;
+    return r.u.ok;
+}
+
+ax_file* ax_file_create(ax_str path) {
+    ax_res_file r = ax_file_open_result(path, 1);
+    if (r.tag != 1) return NULL;
+    return r.u.ok;
+}
+
+ax_file* ax_file_append(ax_str path) {
+    ax_res_file r = ax_file_open_result(path, 2);
+    if (r.tag != 1) return NULL;
+    return r.u.ok;
+}
+
 int ax_file_read_all(ax_file* f, ax_str* out) {
     if (!f || !f->fp) return 1;
     ax_sb b;
@@ -4478,4 +4496,60 @@ int ax_atomic_compare_and_swap_int(volatile int64_t* addr, int64_t old, int64_t 
     _Atomic int64_t* p = (_Atomic int64_t*)addr;
     int64_t expected = old;
     return atomic_compare_exchange_strong(p, &expected, new) ? 1 : 0;
+}
+
+/* ax_std_atomic_*：向后兼容的单段 atomic 模块 C 接口，封装 ax_atomic_* */
+int64_t ax_std_atomic_add_int(volatile int64_t* addr, int64_t delta) {
+    return ax_atomic_add_int(addr, delta);
+}
+int64_t ax_std_atomic_load_int(volatile int64_t* addr) {
+    return ax_atomic_load_int(addr);
+}
+void ax_std_atomic_store_int(volatile int64_t* addr, int64_t val) {
+    ax_atomic_store_int(addr, val);
+}
+int ax_std_atomic_compare_and_swap_int(volatile int64_t* addr, int64_t old, int64_t new) {
+    return ax_atomic_compare_and_swap_int(addr, old, new);
+}
+
+/* ax_std_* sync 模块 C 接口，封装 axrt 同步原语。
+ * 参数为 void* 以兼容 ax_stdlib.h 声明，内部转回对应句柄类型。 */
+void ax_std_mutex_lock(void* m) {
+    ax_mutex_lock((ax_mutex*)m);
+}
+
+void ax_std_mutex_unlock(void* m) {
+    ax_mutex_unlock((ax_mutex*)m);
+}
+
+void ax_std_rwmutex_lock(void* rw) {
+    ax_rwmutex_lock((ax_rwmutex*)rw);
+}
+
+void ax_std_rwmutex_unlock(void* rw) {
+    ax_rwmutex_unlock((ax_rwmutex*)rw);
+}
+
+void ax_std_rwmutex_rlock(void* rw) {
+    ax_rwmutex_rlock((ax_rwmutex*)rw);
+}
+
+void ax_std_rwmutex_runlock(void* rw) {
+    ax_rwmutex_runlock((ax_rwmutex*)rw);
+}
+
+void ax_std_waitgroup_add(void* wg, int64_t delta) {
+    ax_waitgroup_add((ax_waitgroup*)wg, delta);
+}
+
+void ax_std_waitgroup_done(void* wg) {
+    ax_waitgroup_done((ax_waitgroup*)wg);
+}
+
+void ax_std_waitgroup_wait(void* wg) {
+    ax_waitgroup_wait((ax_waitgroup*)wg);
+}
+
+void ax_std_once_do(void* o) {
+    ax_once_do((ax_once*)o);
 }

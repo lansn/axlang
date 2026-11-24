@@ -1,0 +1,14 @@
+// 验证 std.os 模块（C 风格函数名）
+import std.os
+
+int main() {
+    var pid = std.os.getpid()
+    println("pid={pid}")
+    var ppid = std.os.getppid()
+    println("ppid={ppid}")
+    var wd = std.os.getwd()
+    println("cwd={wd}")
+    var hn = std.os.hostname()
+    println("hostname={hn}")
+    return 0
+}

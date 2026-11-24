@@ -3,10 +3,10 @@ import io
 import file
 
 int main() {
-    File f = file.Create("tests/.build/io-2.txt") try
-    f.WriteLine("第一行") try
-    f.Close()
-    string text = io.ReadFile("tests/.build/io-2.txt") try
+    File f = file.create("tests/.build/io-2.txt") try
+    f.write_line("第一行") try
+    f.close()
+    string text = io.read_file("tests/.build/io-2.txt") try
     print(text)
     return 0
 }

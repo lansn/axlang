@@ -2,9 +2,9 @@
 import os
 
 int main() {
-    string home = os.UserHomeDir()
-    string h1 = os.Getenv("HOME")
-    string h2 = os.Getenv("USERPROFILE")
+    string home = os.user_home_dir()
+    string h1 = os.getenv("HOME")
+    string h2 = os.getenv("USERPROFILE")
     println("{home}")
     println("{h1}")
     println("{h2}")

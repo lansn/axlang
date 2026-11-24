@@ -3,6 +3,6 @@
 import fmt
 int main() {
     int x = 1
-    fmt.Printf("{x} %d", 2)
+    fmt.printf("{x} %d", 2)
     return 0
 }

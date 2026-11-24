@@ -2,13 +2,13 @@
 import filepath
 
 int main() {
-    println("isabs-drive={filepath.IsAbs("C:\\Users")}")
-    println("isabs-root={filepath.IsAbs("\\foo")}")
-    println("isabs-rel={filepath.IsAbs("foo")}")
-    println("isabs-dotdot={filepath.IsAbs("../foo")}")
-    println("abs-root={filepath.Abs("\\foo")}")
-    println("abs-drive={filepath.Abs("C:\\foo")}")
-    println("abs-rel={filepath.Abs("foo")}")
-    println("abs-empty={filepath.Abs("")}")
+    println("isabs-drive={filepath.is_abs("C:\\Users")}")
+    println("isabs-root={filepath.is_abs("\\foo")}")
+    println("isabs-rel={filepath.is_abs("foo")}")
+    println("isabs-dotdot={filepath.is_abs("../foo")}")
+    println("abs-root={filepath.abs("\\foo")}")
+    println("abs-drive={filepath.abs("C:\\foo")}")
+    println("abs-rel={filepath.abs("foo")}")
+    println("abs-empty={filepath.abs("")}")
     return 0
 }

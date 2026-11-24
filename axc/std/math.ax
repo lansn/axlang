@@ -1,0 +1,176 @@
+// axc/std/math.ax —— axlang 标准库 math 模块（ax 语法源码）
+// 与用户库一样，由 ax 编译器直接解析，生成对应的 C 源码供 gcc 编译。
+//
+// 对标 Go math / C math.h。ax 层仅包装 axrt C 原语及 C 标准库 math.h 函数，
+// 通过 extern "C" 声明 + unsafe 块调用，不引入 ax 编译器内建能力。
+//
+// 导出函数命名采用 C 风格：全部小写，下划线分隔，如 abs / sin / is_nan。
+// ax 代码中通过 std.math.abs(...) 调用模块级函数。
+
+extern "C" {
+    /* axrt 原语 */
+    int ax_math_sign(float x);
+    float ax_math_mod(float x, float y);
+    int ax_math_isnan(float x);
+    int ax_math_isinf(float x, int sign);
+
+    /* C 标准库 math.h（标准 C11，无 GNU/Clang 扩展） */
+    float fabs(float x);
+    float fmax(float a, float b);
+    float fmin(float a, float b);
+    float sqrt(float x);
+    float pow(float a, float b);
+    float exp(float x);
+    float log(float x);
+    float sin(float x);
+    float cos(float x);
+    float tan(float x);
+    float ceil(float x);
+    float floor(float x);
+    float round(float x);
+    float fmod(float x, float y);
+    float exp2(float x);
+    float log2(float x);
+    float log10(float x);
+    float log1p(float x);
+}
+
+// ---------- 模块级函数（C 风格命名：小写 + 下划线） ----------
+
+public float abs(float x) {
+    unsafe {
+        return fabs(x)
+    }
+}
+
+public float max(float a, float b) {
+    unsafe {
+        return fmax(a, b)
+    }
+}
+
+public float min(float a, float b) {
+    unsafe {
+        return fmin(a, b)
+    }
+}
+
+public float sqrt(float x) {
+    unsafe {
+        return sqrt(x)
+    }
+}
+
+public float pow(float a, float b) {
+    unsafe {
+        return pow(a, b)
+    }
+}
+
+public float exp(float x) {
+    unsafe {
+        return exp(x)
+    }
+}
+
+public float log(float x) {
+    unsafe {
+        return log(x)
+    }
+}
+
+public float sin(float x) {
+    unsafe {
+        return sin(x)
+    }
+}
+
+public float cos(float x) {
+    unsafe {
+        return cos(x)
+    }
+}
+
+public float tan(float x) {
+    unsafe {
+        return tan(x)
+    }
+}
+
+public float ceil(float x) {
+    unsafe {
+        return ceil(x)
+    }
+}
+
+public float floor(float x) {
+    unsafe {
+        return floor(x)
+    }
+}
+
+public float round(float x) {
+    unsafe {
+        return round(x)
+    }
+}
+
+public int sign(float x) {
+    unsafe {
+        return ax_math_sign(x)
+    }
+}
+
+public float mod(float x, float y) {
+    unsafe {
+        return ax_math_mod(x, y)
+    }
+}
+
+public int equals(float a, float b, float eps) {
+    unsafe {
+        return (ax_math_sign(fabs(a - b) - eps) <= 0) ? 1 : 0
+    }
+}
+
+public int compare(float a, float b) {
+    unsafe {
+        return ax_math_sign(a - b)
+    }
+}
+
+public float exp2(float x) {
+    unsafe {
+        return exp2(x)
+    }
+}
+
+public float log10(float x) {
+    unsafe {
+        return log10(x)
+    }
+}
+
+public float log2(float x) {
+    unsafe {
+        return log2(x)
+    }
+}
+
+public float log1p(float x) {
+    unsafe {
+        return log1p(x)
+    }
+}
+
+public int isnan(float x) {
+    unsafe {
+        return ax_math_isnan(x)
+    }
+}
+
+public int isinf(float x, int sign) {
+    unsafe {
+        return ax_math_isinf(x, sign)
+    }
+}

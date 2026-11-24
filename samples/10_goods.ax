@@ -17,11 +17,11 @@ class Goods {
     }
 
     public static result<Goods?> Load(int id) {
-        var row = db.Query("select id, name, price, stock from goods where id = ?", id) try
+        var row = db.query("select id, name, price, stock from goods where id = ?", id) try
         if row.Empty() {
             return ok(null)
         }
-        decimal price = decimal.Parse(row.GetString("price")) try    // 解析失败即向上传播
+        decimal price = decimal.parse(row.GetString("price")) try    // 解析失败即向上传播
         return ok(new Goods(
             id,
             row.GetString("name"),

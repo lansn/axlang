@@ -2,10 +2,10 @@
 import io
 
 int main() {
-    io.WriteLine("hello world")
-    io.WriteLine("")
-    io.WriteLine("第二行")
-    io.Write("第三行：中文测试")
-    io.WriteLine("")
+    io.write_line("hello world")
+    io.write_line("")
+    io.write_line("第二行")
+    io.write("第三行：中文测试")
+    io.write_line("")
     return 0
 }

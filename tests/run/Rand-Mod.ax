@@ -4,23 +4,23 @@ import math
 
 int main() {
     // 非正 n 返回 0（平台无关）
-    println("int-zero={rand.Int(0)}")
-    println("int-neg={rand.Int(-7)}")
+    println("int-zero={rand.int(0)}")
+    println("int-neg={rand.int(-7)}")
 
     // 固定种子下两次产生相同序列
-    rand.Seed(42)
-    int a = rand.Int(1000)
-    rand.Seed(42)
-    int b = rand.Int(1000)
+    rand.seed(42)
+    int a = rand.int(1000)
+    rand.seed(42)
+    int b = rand.int(1000)
     println("seed-deterministic={a == b}")
     println("int-ge0={a >= 0}")
     println("int-lt1000={a < 1000}")
 
     // Float 在 [0, 1)
-    rand.Seed(7)
-    float f = rand.Float()
-    println("float-ge0={math.Compare(f, 0.0) >= 0}")
-    println("float-lt1={math.Compare(f, 1.0) < 0}")
+    rand.seed(7)
+    float f = rand.float()
+    println("float-ge0={math.compare(f, 0.0) >= 0}")
+    println("float-lt1={math.compare(f, 1.0) < 0}")
 
     return 0
 }

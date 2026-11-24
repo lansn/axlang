@@ -5,14 +5,14 @@ int main() {
     string fmt = "%Y-%m-%d %H:%M:%S"
 
     // 成功解析：解析后再格式化，应得到原字符串
-    result<time> r = time.Parse("2026-11-22 08:56:55", fmt)
+    result<time> r = time.parse("2026-11-22 08:56:55", fmt)
     match r {
         ok(t) => println("parse-ok={t.Format(fmt)}"),
         fail(e) => println("parse-fail={e.msg}"),
     }
 
     // 失败解析：格式不匹配
-    result<time> b = time.Parse("not-a-date", fmt)
+    result<time> b = time.parse("not-a-date", fmt)
     match b {
         ok(t) => println("bad-ok={t.Format(fmt)}"),
         fail(e) => println("bad-fail={e.msg.Len() > 0}"),
@@ -20,7 +20,7 @@ int main() {
 
     // 仅日期
     string dfmt = "%Y-%m-%d"
-    result<time> d = time.Parse("2026-01-05", dfmt)
+    result<time> d = time.parse("2026-01-05", dfmt)
     match d {
         ok(t) => println("date-ok={t.Format(dfmt)}"),
         fail(e) => println("date-fail={e.msg}"),

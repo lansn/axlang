@@ -5,37 +5,37 @@ import file
 
 int main() {
     // 测试 bufio.NewReader：缓冲读取器，对标 Go bufio.NewReader
-    var f = file.Create("/tmp/bufio_test.txt") try
-    f.WriteLine("line1")
-    f.WriteLine("line2")
-    f.WriteLine("line3")
-    f.Close()
+    var f = file.create("/tmp/bufio_test.txt") try
+    f.write_line("line1")
+    f.write_line("line2")
+    f.write_line("line3")
+    f.close()
 
-    var f2 = file.Open("/tmp/bufio_test.txt") try
-    var br = bufio.NewReader(f2)
-    var l1 = br.ReadLine()
+    var f2 = file.open("/tmp/bufio_test.txt") try
+    var br = bufio.new_reader(f2)
+    var l1 = br.read_line()
     println("reader-1={l1}")   // line1
-    var l2 = br.ReadLine()
+    var l2 = br.read_line()
     println("reader-2={l2}")   // line2
-    br.Close()
+    br.close()
 
     // 测试 bufio.NewWriter：缓冲写入器，对标 Go bufio.NewWriter
-    var f3 = file.Create("/tmp/bufio_test2.txt") try
-    var bw = bufio.NewWriter(f3)
-    bw.WriteLine("buffered write")
-    bw.Close()
+    var f3 = file.create("/tmp/bufio_test2.txt") try
+    var bw = bufio.new_writer(f3)
+    bw.write_line("buffered write")
+    bw.close()
 
-    var f4 = file.Open("/tmp/bufio_test2.txt") try
-    var wl = f4.ReadLine()
+    var f4 = file.open("/tmp/bufio_test2.txt") try
+    var wl = f4.read_line()
     println("writer-1={wl}")   // buffered write
-    f4.Close()
+    f4.close()
 
     // 测试 bufio.Scanner：扫描器，对标 Go bufio.NewScanner
-    var f5 = file.Open("/tmp/bufio_test.txt") try
-    var sc = bufio.Scanner(f5)
-    var s1 = sc.ReadLine()
+    var f5 = file.open("/tmp/bufio_test.txt") try
+    var sc = bufio.scanner(f5)
+    var s1 = sc.read_line()
     println("scanner-1={s1}")  // line1
-    sc.Close()
+    sc.close()
 
     return 0
 }

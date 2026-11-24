@@ -3,7 +3,7 @@ import sort
 
 int main() {
     float[] a = [3.5, 1.2, -4.0, 2.7, 0.0]
-    sort.Float64s(a)
+    sort.float64s(a)
     println("f64-0={a[0]}")
     println("f64-1={a[1]}")
     println("f64-2={a[2]}")
@@ -11,11 +11,11 @@ int main() {
     println("f64-4={a[4]}")
 
     float[] b = [1.0]
-    sort.Float64s(b)
+    sort.float64s(b)
     println("single={b[0]}")
 
     float[] c = []
-    sort.Float64s(c)
+    sort.float64s(c)
     println("empty-ok=true")
 
     return 0

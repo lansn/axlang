@@ -2,15 +2,15 @@
 import filepath
 
 int main() {
-    string[] p = filepath.Split(filepath.Join(["foo", "bar", "baz.txt"]))
+    string[] p = filepath.split(filepath.join(["foo", "bar", "baz.txt"]))
     println("split-dir={p[0]}")
     println("split-base={p[1]}")
 
-    string[] p2 = filepath.Split("foo.txt")
+    string[] p2 = filepath.split("foo.txt")
     println("split2-dir={p2[0]}")
     println("split2-base={p2[1]}")
 
-    string[] p3 = filepath.Split(filepath.Join(["a", "b"]))
+    string[] p3 = filepath.split(filepath.join(["a", "b"]))
     println("split3-dir={p3[0]}")
     println("split3-base={p3[1]}")
 

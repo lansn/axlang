@@ -5,20 +5,20 @@ import unique
 int main() {
     // unique.Make / unique.Value 与 int
     int x = 42
-    Handle<int> h1 = unique.Make(x)
-    int v1 = unique.Value(h1)
+    Handle<int> h1 = unique.make(x)
+    int v1 = unique.value(h1)
     println("make-int={v1}")          // 42
 
     // unique.Make / unique.Value 与 string
     string s = "hello"
-    Handle<string> h2 = unique.Make(s)
-    string v2 = unique.Value(h2)
+    Handle<string> h2 = unique.make(s)
+    string v2 = unique.value(h2)
     println("make-str={v2}")          // hello
 
     // unique.Make / unique.Value 与 float
     float f = 3.14
-    Handle<float> h3 = unique.Make(f)
-    float v3 = unique.Value(h3)
+    Handle<float> h3 = unique.make(f)
+    float v3 = unique.value(h3)
     println("make-float={v3}")        // 3.140000
 
     return 0

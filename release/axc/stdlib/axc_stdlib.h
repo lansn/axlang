@@ -4,20 +4,15 @@
 /* axc_stdlib.h -- axlang 标准库 C 接口头文件
  *
  * 声明所有 ax_std_* 前缀的标准库 C 接口函数。
- * 这些函数由 ax 标准库 ax 源码（axc/stdlib/*.ax）预转译为标准 C 后生成，
- * 随编译器发布，通过 gcc 与用户代码一起编译链接。
- *
- * 底层仍依赖 axrt.h / axrt.c 提供的 C 运行时原语（ax_mutex_*、ax_atomic_* 等）。
- * 标准库 ax 源码通过 extern "C" 调用 axrt 原语，ax 层仅做包装。
- *
+ * 底层仍依赖 axrt.h / axrt.c 提供的 C 运行时原语。
  * 纯标准 C11，不使用任何 GNU/Clang 扩展。
  */
 
 #include "axrt.h"
 
 /* ================================================================
- * sync 模块（对标 Go sync，P2）
- * ax_std_* 函数由 axc/stdlib/sync.ax 预转译生成
+ * sync 模块（对标 Go sync）
+ * ax_std_* 函数由 axrt 原语包装
  * ================================================================ */
 
 void ax_std_mutex_lock(void* m);
@@ -32,8 +27,7 @@ void ax_std_waitgroup_wait(void* wg);
 void ax_std_once_do(void* o);
 
 /* ================================================================
- * atomic 模块（对标 Go sync/atomic，P2）
- * ax_std_* 函数由 axc/stdlib/atomic.ax 预转译生成
+ * atomic 模块（对标 Go sync/atomic）
  * ================================================================ */
 
 int64_t ax_std_atomic_add_int(volatile int64_t* addr, int64_t delta);
@@ -42,8 +36,7 @@ void ax_std_atomic_store_int(volatile int64_t* addr, int64_t val);
 int ax_std_atomic_compare_and_swap_int(volatile int64_t* addr, int64_t old, int64_t new);
 
 /* ================================================================
- * string 模块（对标 Go strings / C string.h / C ctype.h，P0）
- * ax_std_* 函数由 axc/stdlib/string.ax 预转译生成
+ * string 模块（对标 Go strings / C string.h / C ctype.h）
  * ================================================================ */
 
 int ax_std_string_compare(ax_str a, ax_str b);
@@ -66,8 +59,7 @@ int ax_std_string_is_upper(ax_str s);
 int ax_std_string_is_alnum(ax_str s);
 
 /* ================================================================
- * file 模块（对标 Go os / C stdio/stdlib，P0）
- * ax_std_* 函数由 axc/stdlib/file.ax 预转译生成
+ * file 模块（对标 Go os / C stdio/stdlib）
  * ================================================================ */
 
 ax_file ax_std_file_open(ax_str path);

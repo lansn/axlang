@@ -50,9 +50,13 @@ pub const INTERNAL_BUILTINS: [&str; 18] = [
 /// axlang 标准库模块（STDLIB_MODULES）：用 ax 语法编写，预转译为标准 C，随编译器发布，
 /// 通过 gcc 参与编译。ax 层仅包装 axrt C 运行时原语，通过 extern "C" 调用，
 /// 不引入 ax 编译器内建能力。codegen 将模块方法调用映射为 ax_std_* 标准库 C 接口调用。
-pub const STDLIB_MODULES: [&str; 4] = ["sync", "atomic", "file", "string"];
+/// 模块名统一以 `std.` 前缀开头，如 `std.string`、`std.file`、`std.sync`、`std.atomic`，
+/// 与用户库 import/use 方式一致。
+pub const STDLIB_MODULES: [&str; 11] = ["std.string", "std.file", "std.sync", "std.atomic", "std.io", "std.json", "std.os", "std.strconv", "std.math", "std.errors", "std.fmt"];
 
-/// 向后兼容别名：BUILTIN_MODULES = INTERNAL_BUILTINS + STDLIB_MODULES
+/// 向后兼容别名：BUILTIN_MODULES = INTERNAL_BUILTINS + 单段标准库别名
+///（`std.file`/`std.string`/`std.sync`/`std.atomic` 现已改为从 axc/std/ 加载，
+/// 但保留单段名 `file`/`string`/`sync`/`atomic` 以兼容现有代码）
 pub const BUILTIN_MODULES: [&str; 22] = [
     "db", "fmt", "io", "json", "csv", "errors", "log", "maps", "math",
     "os", "rand", "sort", "strconv", "time", "filepath", "bytes", "unique", "bufio",
@@ -1336,23 +1340,34 @@ impl<'a> Sema<'a> {
                     Item::Import { path, alias, names } => {
                         let joined = path.join(".");
                         let view = alias.clone().unwrap_or_else(|| joined.clone());
+                        // 标准库模块使用多段名（如 "std.string"），完整匹配 STDLIB_MODULES；
+                        // 内建模块使用单段名（如 "io", "fmt"），匹配 BUILTIN_MODULES 的第一段。
                         let builtin = BUILTIN_MODULES.contains(&path[0].as_str());
+                        let is_stdlib = STDLIB_MODULES.contains(&joined.as_str());
                         let target = if builtin {
+                            // 单段内建模块（io/fmt/math 等），不从文件系统加载
                             "*builtin*".to_string()
                         } else {
+                            // 标准库模块（std.string 等）与用户库一样，从 path_canon 查找 canon
                             match self.path_canon.get(&joined) {
                                 Some(c) => c.clone(),
                                 None => {
                                     // loader 没加载到：文件缺失或写法未注册
-                                    self.err("E3027", &item.tok, "文稿 9.2", "找不到模块 `{0}`（模块路径即目录结构：`import a.b` 对应入口文件同目录的 `a/b.ax`）", &[&joined]);
+                                    let hint = if is_stdlib {
+                                        "（标准库模块，应位于 axc/std/ 目录下）"
+                                    } else {
+                                        "（模块路径即目录结构：`import a.b` 对应入口文件同目录的 `a/b.ax`）"
+                                    };
+                                    self.err("E3027", &item.tok, "文稿 9.2", "找不到模块 `{0}`{1}", &[&joined, &hint]);
                                     continue;
                                 }
                             }
                         };
                         // 全路径（或 `as` 别名）永远可用
                         let ok = self.insert_view(&canon, &view, &target, names.as_ref(), &item.tok, &joined);
-                        // 末段短名：`import net.http` 之后 `http.ping()` 也能写（文稿 9.2）。
+                        // 末段短名：`import std.string` 之后 `string.Compare()` 也能写（文稿 9.2）。
                         // `as` 给了就只留别名——别名是"我要的名字"，不再自动生成第二个。
+                        // 对于标准库多段名（path.len() > 1），生成末段短名视图，与用户库一致。
                         if ok && !builtin && alias.is_none() && path.len() > 1 {
                             let short = path.last().unwrap().clone();
                             self.insert_view(&canon, &short, &target, names.as_ref(), &item.tok, &joined);

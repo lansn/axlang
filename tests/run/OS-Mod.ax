@@ -2,14 +2,14 @@
 import os
 
 int main() {
-    string e = os.Getenv("AX_NONEXISTENT_VAR_12345")
+    string e = os.getenv("AX_NONEXISTENT_VAR_12345")
     if e == "" {
         println("getenv-empty-ok")
     } else {
         println("getenv-empty-fail")
     }
-    string[] args = os.Args()
+    string[] args = os.args()
     println("args len={args.Len()}")
-    os.Exit(42)
+    os.exit(42)
     return 0
 }

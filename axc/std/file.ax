@@ -1,5 +1,5 @@
-// axc/stdlib/file.ax —— axlang 标准库 file 模块（ax 语法源码）
-// 预转译为标准 C，随编译器发布，通过 gcc 参与编译。
+// axc/std/file.ax —— axlang 标准库 file 模块（ax 语法源码）
+// 与用户库一样，由 ax 编译器直接解析，生成对应的 C 源码供 gcc 编译。
 //
 // 对标 Go os / C stdio/stdlib。ax 层仅包装 axrt C 文件原语，
 // 通过 extern "C" 声明 + unsafe 块调用，不引入 ax 编译器内建能力。
@@ -7,7 +7,8 @@
 // File 为 axlang 内建句柄类型，ax 源码层直接操作 File 值，
 // C 层对应 ax_file*。
 //
-// 所有导出函数均使用 ax_std_* 前缀，预转译后直接对应标准 C 接口函数名。
+// 导出函数命名采用 C 风格：全部小写，下划线分隔，如 open / read_all / write。
+// ax 代码中通过 std.file.open("path") 调用模块级函数，通过 std.file.read_all(f) 调用实例风格函数。
 
 extern "C" {
     int ax_file_remove(string path);
@@ -36,117 +37,118 @@ const int FILE_MODE_READ = 0
 const int FILE_MODE_WRITE = 1
 const int FILE_MODE_APPEND = 2
 
-File ax_std_file_open(string path) {
+public File open(string path) {
     unsafe {
         return ax_file_open(path)
     }
 }
 
-File ax_std_file_create(string path) {
+public File create(string path) {
     unsafe {
         return ax_file_create(path)
     }
 }
 
-File ax_std_file_append(string path) {
+public File append(string path) {
     unsafe {
         return ax_file_append(path)
     }
 }
 
-int ax_std_file_remove(string path) {
+public int remove(string path) {
     unsafe {
         return ax_file_remove(path)
     }
 }
 
-int ax_std_file_rename(string old_path, string new_path) {
+public int rename(string old_path, string new_path) {
     unsafe {
         return ax_file_rename(old_path, new_path)
     }
 }
 
-int ax_std_file_exists(string path) {
+public int exists(string path) {
     unsafe {
         return ax_file_exists(path)
     }
 }
 
-int ax_std_file_mkdir(string path) {
+public int mkdir(string path) {
     unsafe {
         return ax_dir_create(path)
     }
 }
 
-int ax_std_file_is_dir(string path) {
+public int is_dir(string path) {
     unsafe {
         return ax_file_is_dir(path)
     }
 }
 
-int ax_std_file_is_file(string path) {
+public int is_file(string path) {
     unsafe {
         return ax_file_is_file(path)
     }
 }
 
-int ax_std_file_size(string path) {
+public int size(string path) {
     unsafe {
         return ax_file_size(path)
     }
 }
 
-int ax_std_file_modtime(string path) {
+public int modtime(string path) {
     unsafe {
         return ax_file_modtime(path)
     }
 }
 
-int ax_std_file_write_all(string path, string s) {
+public int write_all(string path, string s) {
     unsafe {
         return ax_file_write_all(path, s)
     }
 }
 
-int ax_std_file_chmod(string path, int mode) {
+public int chmod(string path, int mode) {
     unsafe {
         return ax_file_chmod(path, mode)
     }
 }
 
-int ax_std_file_chtimes(string path, int atime, int mtime) {
+public int chtimes(string path, int atime, int mtime) {
     unsafe {
         return ax_file_chtimes(path, atime, mtime)
     }
 }
 
-File ax_std_file_tempfile(string dir, string prefix) {
+public File tempfile(string dir, string prefix) {
     unsafe {
         return ax_file_tempfile(dir, prefix)
     }
 }
 
-// File 实例方法（对标 File.Read / ReadLine / Write / WriteLine / Close）
+// File 实例风格函数（对标 File.Read / ReadLine / Write / WriteLine / Close）
+// 第一个参数为 File 或 ref File，ax 代码中通过 std.file.read_all(f) 调用。
 
-string ax_std_file_read_all(File f) {
+public string read_all(File f) {
     unsafe {
         return ax_file_read_all_val(f)
     }
 }
 
-int ax_std_file_write(ref File f, string s) {
+public int write(ref File f, string s) {
     unsafe {
         return ax_file_write(f, s)
     }
 }
 
-int ax_std_file_write_line(ref File f, string s) {
+public int write_line(ref File f, string s) {
     unsafe {
         return ax_file_write_line(f, s)
     }
 }
 
-void ax_std_file_close(ref File f) {
+public void close(ref File f) {
     unsafe {
         ax_file_close(f)
     }

@@ -12,16 +12,16 @@ int main() {
 
     // --- atomic.AddInt / LoadInt / StoreInt / CompareAndSwapInt ---
     var v = 0
-    atomic.AddInt(v, 5)
+    atomic.add_int(v, 5)
     println("atomic-1={v}")   // 5
-    atomic.StoreInt(v, 10)
+    atomic.store_int(v, 10)
     println("atomic-2={v}")   // 10
-    var loaded = atomic.LoadInt(v)
+    var loaded = atomic.load_int(v)
     println("atomic-3={loaded}")  // 10
-    var swapped = atomic.CompareAndSwapInt(v, 10, 99)
+    var swapped = atomic.compare_and_swap_int(v, 10, 99)
     println("atomic-4={swapped}") // true
     println("atomic-5={v}")       // 99
-    var swapped2 = atomic.CompareAndSwapInt(v, 10, 77)
+    var swapped2 = atomic.compare_and_swap_int(v, 10, 77)
     println("atomic-6={swapped2}") // false
     println("atomic-7={v}")       // 99
 

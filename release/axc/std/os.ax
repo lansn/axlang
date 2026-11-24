@@ -1,0 +1,86 @@
+// axc/std/os.ax —— axlang 标准库 os 模块（ax 语法源码）
+// 与用户库一样，由 ax 编译器直接解析，生成对应的 C 源码供 gcc 编译。
+//
+// 对标 Go os / C stdlib。ax 层仅包装 axrt C 原语，
+// 通过 extern "C" 声明 + unsafe 块调用，不引入 ax 编译器内建能力。
+//
+// 导出函数命名采用 C 风格：全部小写，下划线分隔，如 getenv / setenv。
+// ax 代码中通过 std.os.getenv(...) 调用模块级函数。
+//
+// 注：os.args() / os.environ() 返回 string[] 数组，涉及 ax_arr 返回值，
+// 当前 ax 源码层先不独立包装，可继续沿用内建模块或后续补齐。
+
+extern "C" {
+    string ax_os_getenv(string name);
+    string ax_os_user_home_dir();
+    void ax_os_exit(int code);
+    string ax_os_getwd();
+    int ax_os_chdir(string path);
+    int ax_os_getpid();
+    int ax_os_getppid();
+    string ax_os_hostname();
+    int ax_os_setenv(string name, string value);
+    int ax_os_unsetenv(string name);
+}
+
+// ---------- 模块级函数（C 风格命名：小写 + 下划线） ----------
+
+public string getenv(string name) {
+    unsafe {
+        return ax_os_getenv(name)
+    }
+}
+
+public string user_home_dir() {
+    unsafe {
+        return ax_os_user_home_dir()
+    }
+}
+
+public void exit(int code) {
+    unsafe {
+        ax_os_exit(code)
+    }
+}
+
+public string getwd() {
+    unsafe {
+        return ax_os_getwd()
+    }
+}
+
+public int chdir(string path) {
+    unsafe {
+        return ax_os_chdir(path)
+    }
+}
+
+public int getpid() {
+    unsafe {
+        return ax_os_getpid()
+    }
+}
+
+public int getppid() {
+    unsafe {
+        return ax_os_getppid()
+    }
+}
+
+public string hostname() {
+    unsafe {
+        return ax_os_hostname()
+    }
+}
+
+public int setenv(string name, string value) {
+    unsafe {
+        return ax_os_setenv(name, value)
+    }
+}
+
+public int unsetenv(string name) {
+    unsafe {
+        return ax_os_unsetenv(name)
+    }
+}

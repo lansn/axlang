@@ -1,7 +1,7 @@
 // EXPECT: E4001
 // time 与 int 比较：两边类型不一致（time 只能与 time 比较）。
 int main() {
-    time t = time.FromUnixMs(0)
+    time t = time.from_unix_ms(0)
     int x = 1
     bool b = t < x
     return 0

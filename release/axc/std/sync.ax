@@ -1,0 +1,82 @@
+// axc/std/sync.ax —— axlang 标准库 sync 模块（ax 语法源码）
+// 与用户库一样，由 ax 编译器直接解析，生成对应的 C 源码供 gcc 编译。
+//
+// 对标 Go sync。Mutex/RWMutex/WaitGroup/Once 为 axlang 内建句柄类型，
+// 零初始化后直接使用。本文件仅在 ax 层包装 axrt C 原语，
+// 通过 extern "C" 声明 + unsafe 块调用，不引入任何 ax 编译器内建能力。
+//
+// 导出函数命名采用 C 风格：全部小写，下划线分隔，如 mutex_lock / waitgroup_add。
+// ax 代码中通过 std.sync.mutex_lock(m) 调用。
+
+extern "C" {
+    void ax_mutex_lock(ref Mutex m);
+    void ax_mutex_unlock(ref Mutex m);
+    void ax_rwmutex_lock(ref RWMutex rw);
+    void ax_rwmutex_unlock(ref RWMutex rw);
+    void ax_rwmutex_rlock(ref RWMutex rw);
+    void ax_rwmutex_runlock(ref RWMutex rw);
+    void ax_waitgroup_add(ref WaitGroup wg, int delta);
+    void ax_waitgroup_done(ref WaitGroup wg);
+    void ax_waitgroup_wait(ref WaitGroup wg);
+    void ax_once_do(ref Once o);
+}
+
+public void mutex_lock(ref Mutex m) {
+    unsafe {
+        ax_mutex_lock(m)
+    }
+}
+
+public void mutex_unlock(ref Mutex m) {
+    unsafe {
+        ax_mutex_unlock(m)
+    }
+}
+
+public void rwmutex_lock(ref RWMutex rw) {
+    unsafe {
+        ax_rwmutex_lock(rw)
+    }
+}
+
+public void rwmutex_unlock(ref RWMutex rw) {
+    unsafe {
+        ax_rwmutex_unlock(rw)
+    }
+}
+
+public void rwmutex_rlock(ref RWMutex rw) {
+    unsafe {
+        ax_rwmutex_rlock(rw)
+    }
+}
+
+public void rwmutex_runlock(ref RWMutex rw) {
+    unsafe {
+        ax_rwmutex_runlock(rw)
+    }
+}
+
+public void waitgroup_add(ref WaitGroup wg, int delta) {
+    unsafe {
+        ax_waitgroup_add(wg, delta)
+    }
+}
+
+public void waitgroup_done(ref WaitGroup wg) {
+    unsafe {
+        ax_waitgroup_done(wg)
+    }
+}
+
+public void waitgroup_wait(ref WaitGroup wg) {
+    unsafe {
+        ax_waitgroup_wait(wg)
+    }
+}
+
+public void once_do(ref Once o) {
+    unsafe {
+        ax_once_do(o)
+    }
+}

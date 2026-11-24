@@ -1,6 +1,6 @@
-// Truncate 溢出负例：int8.Truncate(300) 超出 int8 范围，触发运行时陷阱 R_CONVERT
+// Truncate 溢出负例：int8.truncate(300) 超出 int8 范围，触发运行时陷阱 R_CONVERT
 int main() {
-    int8 a = int8.Truncate(300)
+    int8 a = int8.truncate(300)
     println("unreachable={a}")
     return 0
 }

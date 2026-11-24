@@ -2,7 +2,7 @@
 import errors
 
 int main() {
-    var e1 = errors.New("not found")
+    var e1 = errors.new("not found")
     print("e1-code=")
     println(e1.code)
 
@@ -10,7 +10,7 @@ int main() {
     print(e1.msg)
     println("]")
 
-    var e2 = errors.New("user 阿蓝 not found")
+    var e2 = errors.new("user 阿蓝 not found")
     print("e2-code=")
     println(e2.code)
 

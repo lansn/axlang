@@ -1,0 +1,11 @@
+// 验证 std.io 模块（C 风格函数名）
+import std.io
+
+int main() {
+    std.io.write("hello ")
+    std.io.write("world")
+    std.io.write_line("")
+    std.io.write_line("foo")
+    std.io.write_line("bar")
+    return 0
+}

@@ -4,17 +4,17 @@ import json
 int main() {
     // json.MarshalIndent：嵌套对象
     string s = "{\"a\":1,\"c\":{\"d\":\"y\"},\"b\":2}"
-    result<map<string, object>> r = json.Parse(s)
+    result<map<string, object>> r = json.parse(s)
     match r {
-        ok(m) => println(json.MarshalIndent(m, "", "  ")),
+        ok(m) => println(json.marshal_indent(m, "", "  ")),
         fail(e) => println("parse-fail={e.msg.Len() > 0}"),
     }
 
     // json.Valid
     string good = "{\"a\":1,\"b\":[1,2.5,true,\"x\"]}"
     string bad = "{\"name\":}"
-    println("valid-good={json.Valid(good)}")
-    println("valid-bad={json.Valid(bad)}")
+    println("valid-good={json.valid(good)}")
+    println("valid-bad={json.valid(bad)}")
 
     return 0
 }

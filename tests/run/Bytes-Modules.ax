@@ -7,45 +7,45 @@ int main() {
     byte[] s1 = [1, 2, 3, 4, 5]
     byte[] sub1 = [2, 3]
     byte[] sub2 = [6, 7]
-    println("contains-1={bytes.Contains(s1, sub1)}")  // true
-    println("contains-2={bytes.Contains(s1, sub2)}")  // false
+    println("contains-1={bytes.contains(s1, sub1)}")  // true
+    println("contains-2={bytes.contains(s1, sub2)}")  // false
 
     // bytes.Equal
     byte[] a1 = [1, 2, 3]
     byte[] a2 = [1, 2, 3]
     byte[] a3 = [1, 2, 4]
-    println("equal-1={bytes.Equal(a1, a2)}")  // true
-    println("equal-2={bytes.Equal(a1, a3)}")  // false
+    println("equal-1={bytes.equal(a1, a2)}")  // true
+    println("equal-2={bytes.equal(a1, a3)}")  // false
 
     // bytes.Index
     byte[] s2 = [10, 20, 30, 20, 40]
     byte[] sub3 = [20]
-    println("index-1={bytes.Index(s2, sub3)}")  // 1
+    println("index-1={bytes.index(s2, sub3)}")  // 1
     byte[] sub4 = [99]
-    println("index-2={bytes.Index(s2, sub4)}")  // -1
+    println("index-2={bytes.index(s2, sub4)}")  // -1
 
     // bytes.TrimSpace
     byte[] sp = [32, 32, 65, 66, 32]  // "  AB "
-    byte[] tp = bytes.TrimSpace(sp)
+    byte[] tp = bytes.trim_space(sp)
     println("trimspace-len={tp.Len()}")  // 2
 
     // bytes.ToUpper / ToLower
     byte[] lower = [97, 98, 99]  // "abc"
-    byte[] upper = bytes.ToUpper(lower)
+    byte[] upper = bytes.to_upper(lower)
     println("toupper-len={upper.Len()}")  // 3
     byte[] upper2 = [65, 66, 67]  // "ABC"
-    byte[] lower2 = bytes.ToLower(upper2)
+    byte[] lower2 = bytes.to_lower(upper2)
     println("tolower-len={lower2.Len()}")  // 3
 
     // bytes.Repeat
     byte[] rep = [1, 2]
-    byte[] rep2 = bytes.Repeat(rep, 3)
+    byte[] rep2 = bytes.repeat(rep, 3)
     println("repeat-len={rep2.Len()}")  // 6
 
     // bytes.Split
     byte[] spl = [1, 2, 0, 3, 4, 0, 5]
     byte[] sep = [0]
-    byte[][] parts = bytes.Split(spl, sep)
+    byte[][] parts = bytes.split(spl, sep)
     println("split-len={parts.Len()}")  // 3
 
     return 0

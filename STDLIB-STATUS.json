@@ -8,27 +8,30 @@
       "priority": "P0",
       "go_counterpart": "io / C stdio",
       "status": "implemented",
+      "translation": "ax_stdlib",
+      "source": "axc/std/io.ax",
+      "generated": "axc/stdlib/generated/io.c",
       "functions": [
         {
-          "name": "ReadLine",
+          "name": "read_line",
           "signature": "() -> string?",
           "status": "implemented",
           "note": "标准 C11 实现"
         },
         {
-          "name": "ReadFile",
+          "name": "read_file",
           "signature": "(path: string) -> result<string>",
           "status": "implemented",
           "note": "标准 C11 实现"
         },
         {
-          "name": "Write",
+          "name": "write",
           "signature": "(s: string) -> void",
           "status": "implemented",
           "note": "标准 C11 实现"
         },
         {
-          "name": "WriteLine",
+          "name": "write_line",
           "signature": "(s: string) -> void",
           "status": "implemented",
           "note": "标准 C11 实现"
@@ -40,51 +43,54 @@
       "priority": "P2",
       "go_counterpart": "Go fmt / C stdio 格式化",
       "status": "partial",
+      "translation": "ax_stdlib",
+      "source": "axc/std/fmt.ax",
+      "generated": "axc/stdlib/generated/fmt.c",
       "functions": [
         {
-          "name": "Print",
+          "name": "print",
           "signature": "(args: any...) -> void",
           "status": "partial",
           "note": "通过 print/println 部分实现"
         },
         {
-          "name": "Println",
+          "name": "println",
           "signature": "(args: any...) -> void",
           "status": "partial",
           "note": "同上"
         },
         {
-          "name": "Printf",
+          "name": "printf",
           "signature": "(format: string, args: any...) -> void",
           "status": "partial",
           "note": "编译期核对占位符"
         },
         {
-          "name": "Sprintf",
+          "name": "sprintf",
           "signature": "(format: string, args: any...) -> string",
           "status": "implemented",
           "note": "标准 C11 实现"
         },
         {
-          "name": "Sprint",
+          "name": "sprint",
           "signature": "(args: any...) -> string",
           "status": "implemented",
           "note": "标准 C11 实现"
         },
         {
-          "name": "Fprintf",
+          "name": "fprintf",
           "signature": "(w: File, format: string, args: any...) -> int",
           "status": "implemented",
           "note": "标准 C11 实现"
         },
         {
-          "name": "Errorf",
+          "name": "errorf",
           "signature": "(format: string, args: any...) -> error",
           "status": "implemented",
           "note": "标准 C11 实现"
         },
         {
-          "name": "Scanf",
+          "name": "scanf",
           "signature": "(format: string, args: any...) -> int",
           "status": "implemented",
           "note": "标准 C11 实现"
@@ -96,194 +102,197 @@
       "priority": "P0",
       "go_counterpart": "Go math / C math.h",
       "status": "partial",
+      "translation": "ax_stdlib",
+      "source": "axc/std/math.ax",
+      "generated": "axc/stdlib/generated/math.c",
       "functions": [
         {
-          "name": "Abs",
+          "name": "abs",
           "signature": "(x: float) -> float",
           "status": "implemented"
         },
         {
-          "name": "Max",
+          "name": "max",
           "signature": "(a: float, b: float) -> float",
           "status": "implemented"
         },
         {
-          "name": "Min",
+          "name": "min",
           "signature": "(a: float, b: float) -> float",
           "status": "implemented"
         },
         {
-          "name": "Sqrt",
+          "name": "sqrt",
           "signature": "(x: float) -> float",
           "status": "implemented"
         },
         {
-          "name": "Pow",
+          "name": "pow",
           "signature": "(a: float, b: float) -> float",
           "status": "implemented"
         },
         {
-          "name": "Exp",
+          "name": "exp",
           "signature": "(x: float) -> float",
           "status": "implemented"
         },
         {
-          "name": "Log",
+          "name": "log",
           "signature": "(x: float) -> float",
           "status": "implemented"
         },
         {
-          "name": "Sin",
+          "name": "sin",
           "signature": "(x: float) -> float",
           "status": "implemented"
         },
         {
-          "name": "Cos",
+          "name": "cos",
           "signature": "(x: float) -> float",
           "status": "implemented"
         },
         {
-          "name": "Tan",
+          "name": "tan",
           "signature": "(x: float) -> float",
           "status": "implemented"
         },
         {
-          "name": "Ceil",
+          "name": "ceil",
           "signature": "(x: float) -> float",
           "status": "implemented"
         },
         {
-          "name": "Floor",
+          "name": "floor",
           "signature": "(x: float) -> float",
           "status": "implemented"
         },
         {
-          "name": "Round",
+          "name": "round",
           "signature": "(x: float) -> float",
           "status": "implemented"
         },
         {
-          "name": "Sign",
+          "name": "sign",
           "signature": "(x: float) -> int",
           "status": "implemented"
         },
         {
-          "name": "Mod",
+          "name": "mod",
           "signature": "(x: float, y: float) -> float",
           "status": "implemented"
         },
         {
-          "name": "Equals",
+          "name": "equals",
           "signature": "(a: float, b: float, eps: float) -> bool",
           "status": "implemented"
         },
         {
-          "name": "Compare",
+          "name": "compare",
           "signature": "(a: float, b: float) -> int",
           "status": "implemented"
         },
         {
-          "name": "Exp2",
+          "name": "exp2",
           "signature": "(x: float) -> float",
           "status": "implemented"
         },
         {
-          "name": "Log10",
+          "name": "log10",
           "signature": "(x: float) -> float",
           "status": "implemented"
         },
         {
-          "name": "Log2",
+          "name": "log2",
           "signature": "(x: float) -> float",
           "status": "implemented"
         },
         {
-          "name": "Log1p",
+          "name": "log1p",
           "signature": "(x: float) -> float",
           "status": "implemented"
         },
         {
-          "name": "Sinh",
+          "name": "sinh",
           "signature": "(x: float) -> float",
           "status": "implemented"
         },
         {
-          "name": "Cosh",
+          "name": "cosh",
           "signature": "(x: float) -> float",
           "status": "implemented"
         },
         {
-          "name": "Tanh",
+          "name": "tanh",
           "signature": "(x: float) -> float",
           "status": "implemented"
         },
         {
-          "name": "Asin",
+          "name": "asin",
           "signature": "(x: float) -> float",
           "status": "implemented"
         },
         {
-          "name": "Acos",
+          "name": "acos",
           "signature": "(x: float) -> float",
           "status": "implemented"
         },
         {
-          "name": "Atan",
+          "name": "atan",
           "signature": "(x: float) -> float",
           "status": "implemented"
         },
         {
-          "name": "Atan2",
+          "name": "atan2",
           "signature": "(y: float, x: float) -> float",
           "status": "implemented"
         },
         {
-          "name": "Hypot",
+          "name": "hypot",
           "signature": "(p: float, q: float) -> float",
           "status": "implemented"
         },
         {
-          "name": "Cbrt",
+          "name": "cbrt",
           "signature": "(x: float) -> float",
           "status": "implemented"
         },
         {
-          "name": "Trunc",
+          "name": "trunc",
           "signature": "(x: float) -> float",
           "status": "implemented"
         },
         {
-          "name": "IsNaN",
+          "name": "is_na_n",
           "signature": "(f: float) -> bool",
           "status": "implemented"
         },
         {
-          "name": "IsInf",
+          "name": "is_inf",
           "signature": "(f: float, sign: int) -> bool",
           "status": "implemented"
         },
         {
-          "name": "Frexp",
+          "name": "frexp",
           "signature": "(f: float) -> (frac: float, exp: int)",
           "status": "planned"
         },
         {
-          "name": "Ldexp",
+          "name": "ldexp",
           "signature": "(frac: float, exp: int) -> float",
           "status": "planned"
         },
         {
-          "name": "Signbit",
+          "name": "signbit",
           "signature": "(f: float) -> bool",
           "status": "planned"
         },
         {
-          "name": "Copysign",
+          "name": "copysign",
           "signature": "(f: float, sign: float) -> float",
           "status": "planned"
         },
         {
-          "name": "Dim",
+          "name": "dim",
           "signature": "(x: float, y: float) -> float",
           "status": "planned"
         }
@@ -294,24 +303,27 @@
       "priority": "P0",
       "go_counterpart": "Go encoding/json",
       "status": "implemented",
+      "translation": "ax_stdlib",
+      "source": "axc/std/json.ax",
+      "generated": "axc/stdlib/generated/json.c",
       "functions": [
         {
-          "name": "Parse",
+          "name": "parse",
           "signature": "(s: string) -> result<map<string, object>>",
           "status": "implemented"
         },
         {
-          "name": "Stringify",
+          "name": "stringify",
           "signature": "(v: object) -> string",
           "status": "implemented"
         },
         {
-          "name": "MarshalIndent",
+          "name": "marshal_indent",
           "signature": "(v: object, prefix: string, indent: string) -> string",
           "status": "implemented"
         },
         {
-          "name": "Valid",
+          "name": "valid",
           "signature": "(s: string) -> bool",
           "status": "implemented"
         }
@@ -327,82 +339,82 @@
       "generated": "axc/stdlib/generated/file.c",
       "functions": [
         {
-          "name": "Open",
+          "name": "open",
           "signature": "(path: string) -> result<File>",
           "status": "implemented"
         },
         {
-          "name": "Create",
+          "name": "create",
           "signature": "(path: string) -> result<File>",
           "status": "implemented"
         },
         {
-          "name": "Append",
+          "name": "append",
           "signature": "(path: string) -> result<File>",
           "status": "implemented"
         },
         {
-          "name": "Remove",
+          "name": "remove",
           "signature": "(path: string) -> int",
           "status": "implemented"
         },
         {
-          "name": "Rename",
+          "name": "rename",
           "signature": "(old: string, new: string) -> int",
           "status": "implemented"
         },
         {
-          "name": "Exists",
+          "name": "exists",
           "signature": "(path: string) -> int",
           "status": "implemented"
         },
         {
-          "name": "Mkdir",
+          "name": "mkdir",
           "signature": "(path: string) -> int",
           "status": "implemented"
         },
         {
-          "name": "ReadAll",
+          "name": "read_all",
           "signature": "(path: string) -> result<string>",
           "status": "implemented"
         },
         {
-          "name": "WriteAll",
+          "name": "write_all",
           "signature": "(path: string, s: string) -> int",
           "status": "implemented"
         },
         {
-          "name": "IsDir",
+          "name": "is_dir",
           "signature": "(path: string) -> int",
           "status": "implemented"
         },
         {
-          "name": "IsFile",
+          "name": "is_file",
           "signature": "(path: string) -> int",
           "status": "implemented"
         },
         {
-          "name": "Size",
+          "name": "size",
           "signature": "(path: string) -> int",
           "status": "implemented"
         },
         {
-          "name": "ModTime",
+          "name": "mod_time",
           "signature": "(path: string) -> int",
           "status": "implemented"
         },
         {
-          "name": "Chmod",
+          "name": "chmod",
           "signature": "(path: string, mode: int) -> int",
           "status": "implemented"
         },
         {
-          "name": "Chtimes",
+          "name": "chtimes",
           "signature": "(path: string, atime: int, mtime: int) -> int",
           "status": "implemented"
         },
         {
-          "name": "TempFile",
+          "name": "temp_file",
           "signature": "(dir: string, prefix: string) -> result<File>",
           "status": "implemented"
         }
@@ -415,7 +427,7 @@
       "status": "implemented",
       "functions": [
         {
-          "name": "Query",
+          "name": "query",
           "signature": "(sql: string) -> result<Row>",
           "status": "implemented"
         }
@@ -431,189 +443,189 @@
       "generated": "axc/stdlib/generated/string.c",
       "static_functions": [
         {
-          "name": "FromCodepoint",
+          "name": "from_codepoint",
           "signature": "(cp: int) -> result<string>",
           "status": "implemented"
         },
         {
-          "name": "Compare",
+          "name": "compare",
           "signature": "(a: string, b: string) -> int",
           "status": "implemented"
         },
         {
-          "name": "Fields",
+          "name": "fields",
           "signature": "(s: string) -> string[]",
           "status": "implemented"
         }
       ],
       "instance_functions": [
         {
-          "name": "ToUpper",
+          "name": "to_upper",
           "signature": "() -> string",
           "status": "implemented"
         },
         {
-          "name": "ToLower",
+          "name": "to_lower",
           "signature": "() -> string",
           "status": "implemented"
         },
         {
-          "name": "Contains",
+          "name": "contains",
           "signature": "(sub: string) -> bool",
           "status": "implemented"
         },
         {
-          "name": "ContainsAny",
+          "name": "contains_any",
           "signature": "(chars: string) -> bool",
           "status": "implemented"
         },
         {
-          "name": "ContainsRune",
+          "name": "contains_rune",
           "signature": "(r: int) -> bool",
           "status": "implemented"
         },
         {
-          "name": "Count",
+          "name": "count",
           "signature": "(substr: string) -> int",
           "status": "implemented"
         },
         {
-          "name": "IndexOf",
+          "name": "index_of",
           "signature": "(sub: string) -> int",
           "status": "implemented"
         },
         {
-          "name": "IndexAny",
+          "name": "index_any",
           "signature": "(chars: string) -> int",
           "status": "implemented"
         },
         {
-          "name": "LastIndexOf",
+          "name": "last_index_of",
           "signature": "(sub: string) -> int",
           "status": "implemented"
         },
         {
-          "name": "LastIndexAny",
+          "name": "last_index_any",
           "signature": "(chars: string) -> int",
           "status": "implemented"
         },
         {
-          "name": "Split",
+          "name": "split",
           "signature": "(sep: string) -> string[]",
           "status": "implemented"
         },
         {
-          "name": "Trim",
+          "name": "trim",
           "signature": "() -> string",
           "status": "implemented"
         },
         {
-          "name": "TrimLeft",
+          "name": "trim_left",
           "signature": "(cutset: string) -> string",
           "status": "implemented"
         },
         {
-          "name": "TrimRight",
+          "name": "trim_right",
           "signature": "(cutset: string) -> string",
           "status": "implemented"
         },
         {
-          "name": "TrimPrefix",
+          "name": "trim_prefix",
           "signature": "(prefix: string) -> string",
           "status": "implemented"
         },
         {
-          "name": "TrimSuffix",
+          "name": "trim_suffix",
           "signature": "(suffix: string) -> string",
           "status": "implemented"
         },
         {
-          "name": "SplitN",
+          "name": "split_n",
           "signature": "(sep: string, n: int) -> string[]",
           "status": "implemented"
         },
         {
-          "name": "SplitAfter",
+          "name": "split_after",
           "signature": "(sep: string) -> string[]",
           "status": "implemented"
         },
         {
-          "name": "Title",
+          "name": "title",
           "signature": "() -> string",
           "status": "implemented"
         },
         {
-          "name": "Map",
+          "name": "map",
           "signature": "(mapping: func(int) int) -> string",
           "status": "implemented"
         },
         {
-          "name": "Replace",
+          "name": "replace",
           "signature": "(old: string, new: string) -> string",
           "status": "implemented"
         },
         {
-          "name": "Repeat",
+          "name": "repeat",
           "signature": "(n: int) -> string",
           "status": "implemented"
         },
         {
-          "name": "StartsWith",
+          "name": "starts_with",
           "signature": "(prefix: string) -> bool",
           "status": "implemented"
         },
         {
-          "name": "EndsWith",
+          "name": "ends_with",
           "signature": "(suffix: string) -> bool",
           "status": "implemented"
         },
         {
-          "name": "Len",
+          "name": "len",
           "signature": "() -> int",
           "status": "implemented"
         },
         {
-          "name": "IsDigit",
+          "name": "is_digit",
           "signature": "() -> bool",
           "status": "implemented"
         },
         {
-          "name": "IsAlpha",
+          "name": "is_alpha",
           "signature": "() -> bool",
           "status": "implemented"
         },
         {
-          "name": "IsSpace",
+          "name": "is_space",
           "signature": "() -> bool",
           "status": "implemented"
         },
         {
-          "name": "IsLower",
+          "name": "is_lower",
           "signature": "() -> bool",
           "status": "implemented"
         },
         {
-          "name": "IsUpper",
+          "name": "is_upper",
           "signature": "() -> bool",
           "status": "implemented"
         },
         {
-          "name": "IsAlnum",
+          "name": "is_alnum",
           "signature": "() -> bool",
           "status": "implemented"
         },
         {
-          "name": "EqualFold",
+          "name": "equal_fold",
           "signature": "(t: string) -> bool",
           "status": "implemented"
         },
         {
-          "name": "ToUpperRune",
+          "name": "to_upper_rune",
           "signature": "(r: int) -> int",
           "status": "implemented"
         },
         {
-          "name": "ToLowerRune",
+          "name": "to_lower_rune",
           "signature": "(r: int) -> int",
           "status": "implemented"
         }
@@ -626,109 +638,109 @@
       "status": "partial",
       "module_functions": [
         {
-          "name": "NowMs",
+          "name": "now_ms",
           "signature": "() -> int",
           "status": "implemented"
         },
         {
-          "name": "Now",
+          "name": "now",
           "signature": "() -> time",
           "status": "implemented"
         },
         {
-          "name": "FromUnixMs",
+          "name": "from_unix_ms",
           "signature": "(ms: int) -> time",
           "status": "implemented"
         },
         {
-          "name": "Sleep",
+          "name": "sleep",
           "signature": "(ms: int) -> void",
           "status": "implemented"
         },
         {
-          "name": "Parse",
+          "name": "parse",
           "signature": "(s: string, fmt: string) -> result<time>",
           "status": "implemented"
         },
         {
-          "name": "Unix",
+          "name": "unix",
           "signature": "(sec: int, nsec: int) -> time",
           "status": "implemented"
         },
         {
-          "name": "UnixMilli",
+          "name": "unix_milli",
           "signature": "(ms: int) -> time",
           "status": "implemented"
         },
         {
-          "name": "UnixMicro",
+          "name": "unix_micro",
           "signature": "(us: int) -> time",
           "status": "implemented"
         },
         {
-          "name": "UnixNano",
+          "name": "unix_nano",
           "signature": "(nsec: int) -> time",
           "status": "implemented"
         },
         {
-          "name": "Since",
+          "name": "since",
           "signature": "(t: time) -> int",
           "status": "implemented"
         },
         {
-          "name": "Date",
+          "name": "date",
           "signature": "(year, month, day, hour, min, sec, nsec: int) -> time",
           "status": "implemented"
         },
         {
-          "name": "Until",
+          "name": "until",
           "signature": "(t: time) -> int",
           "status": "implemented"
         },
         {
-          "name": "After",
+          "name": "after",
           "signature": "(u: time) -> bool",
           "kind": "instance",
           "status": "implemented"
         },
         {
-          "name": "Before",
+          "name": "before",
           "signature": "(u: time) -> bool",
           "kind": "instance",
           "status": "implemented"
         },
         {
-          "name": "Equal",
+          "name": "equal",
           "signature": "(u: time) -> bool",
           "kind": "instance",
           "status": "planned"
         },
         {
-          "name": "Compare",
+          "name": "compare",
           "signature": "(u: time) -> int",
           "kind": "instance",
           "status": "planned"
         },
         {
-          "name": "Sub",
+          "name": "sub",
           "signature": "(u: time) -> int",
           "kind": "instance",
           "status": "planned"
         },
         {
-          "name": "Add",
+          "name": "add",
           "signature": "(d: int) -> time",
           "kind": "instance",
           "status": "planned"
         },
         {
-          "name": "Round",
+          "name": "round",
           "signature": "(d: int) -> time",
           "kind": "instance",
           "status": "planned"
         },
         {
-          "name": "Truncate",
+          "name": "truncate",
           "signature": "(d: int) -> time",
           "kind": "instance",
           "status": "planned"
@@ -736,12 +748,12 @@
       ],
       "instance_functions": [
         {
-          "name": "ToString",
+          "name": "to_string",
           "signature": "() -> string",
           "status": "implemented"
         },
         {
-          "name": "Format",
+          "name": "format",
           "signature": "(fmt: string) -> string",
           "status": "implemented"
         }
@@ -754,25 +766,25 @@
       "status": "implemented",
       "functions": [
         {
-          "name": "Parse",
+          "name": "parse",
           "signature": "(s: string) -> result<decimal>",
           "kind": "static",
           "status": "implemented"
         },
         {
-          "name": "Truncate",
+          "name": "truncate",
           "signature": "(v: int) -> int8",
           "kind": "instance",
           "status": "implemented"
         },
         {
-          "name": "Truncate",
+          "name": "truncate",
           "signature": "(v: int) -> int16",
           "kind": "instance",
           "status": "implemented"
         },
         {
-          "name": "Truncate",
+          "name": "truncate",
           "signature": "(v: int) -> int32",
           "kind": "instance",
           "status": "implemented"
@@ -780,31 +792,31 @@
       ]
     },
     {
-      "name": "Int/Float/Bool/Enum",
+      "name": "int/float/bool/enum",
       "priority": "P0",
       "go_counterpart": "基础类型方法",
       "status": "implemented",
       "functions": [
         {
-          "name": "ToString",
+          "name": "to_string",
           "signature": "() -> string",
           "kind": "instance",
           "status": "implemented"
         },
         {
-          "name": "WrappingAdd",
+          "name": "wrapping_add",
           "signature": "(other: T) -> T",
           "kind": "instance",
           "status": "implemented"
         },
         {
-          "name": "Round",
+          "name": "round",
           "signature": "(digits: int) -> float",
           "kind": "instance",
           "status": "implemented"
         },
         {
-          "name": "Divide",
+          "name": "divide",
           "signature": "(other: T) -> T",
           "kind": "instance",
           "status": "implemented"
@@ -812,37 +824,37 @@
       ]
     },
     {
-      "name": "Array",
+      "name": "array",
       "priority": "P0",
       "go_counterpart": "Go slice / C 数组",
       "status": "implemented",
       "functions": [
         {
-          "name": "Push",
+          "name": "push",
           "signature": "(elem: T) -> void",
           "kind": "instance",
           "status": "implemented"
         },
         {
-          "name": "Pop",
+          "name": "pop",
           "signature": "() -> T?",
           "kind": "instance",
           "status": "implemented"
         },
         {
-          "name": "Remove",
+          "name": "remove",
           "signature": "(index: int) -> void",
           "kind": "instance",
           "status": "implemented"
         },
         {
-          "name": "Clear",
+          "name": "clear",
           "signature": "() -> void",
           "kind": "instance",
           "status": "implemented"
         },
         {
-          "name": "ToString",
+          "name": "to_string",
           "signature": "() -> string",
           "kind": "instance",
           "status": "implemented"
@@ -868,19 +880,19 @@
       ]
     },
     {
-      "name": "Map",
+      "name": "map",
       "priority": "P0",
       "go_counterpart": "Go map",
       "status": "implemented",
       "functions": [
         {
-          "name": "Clear",
+          "name": "clear",
           "signature": "() -> void",
           "kind": "instance",
           "status": "implemented"
         },
         {
-          "name": "Remove",
+          "name": "remove",
           "signature": "(key: K) -> void",
           "kind": "instance",
           "status": "implemented"
@@ -900,13 +912,13 @@
       ]
     },
     {
-      "name": "Range",
+      "name": "range",
       "priority": "P0",
       "go_counterpart": "Go range",
       "status": "implemented",
       "functions": [
         {
-          "name": "Step",
+          "name": "step",
           "signature": "(n: int) -> Range",
           "kind": "instance",
           "status": "implemented"
@@ -920,25 +932,25 @@
       "status": "implemented",
       "functions": [
         {
-          "name": "Push",
+          "name": "push",
           "signature": "(v: T) -> void",
           "kind": "instance",
           "status": "implemented"
         },
         {
-          "name": "Pop",
+          "name": "pop",
           "signature": "() -> T?",
           "kind": "instance",
           "status": "implemented"
         },
         {
-          "name": "Close",
+          "name": "close",
           "signature": "() -> void",
           "kind": "instance",
           "status": "implemented"
         },
         {
-          "name": "Join",
+          "name": "join",
           "signature": "() -> void",
           "kind": "instance",
           "status": "implemented"
@@ -952,7 +964,7 @@
       "status": "implemented",
       "functions": [
         {
-          "name": "TryPop",
+          "name": "try_pop",
           "signature": "() -> T?",
           "kind": "instance",
           "status": "implemented"
@@ -964,104 +976,107 @@
       "priority": "P0",
       "go_counterpart": "Go os / C stdlib",
       "status": "partial",
+      "translation": "ax_stdlib",
+      "source": "axc/std/os.ax",
+      "generated": "axc/stdlib/generated/os.c",
       "functions": [
         {
-          "name": "Args",
+          "name": "args",
           "signature": "() -> string[]",
           "status": "implemented"
         },
         {
-          "name": "Chdir",
+          "name": "chdir",
           "signature": "(path: string) -> int",
           "status": "implemented"
         },
         {
-          "name": "Environ",
+          "name": "environ",
           "signature": "() -> string[]",
           "status": "implemented"
         },
         {
-          "name": "Exit",
+          "name": "exit",
           "signature": "(code: int) -> void",
           "status": "implemented"
         },
         {
-          "name": "Getenv",
+          "name": "getenv",
           "signature": "(name: string) -> string",
           "status": "implemented"
         },
         {
-          "name": "Getpid",
+          "name": "getpid",
           "signature": "() -> int",
           "status": "implemented"
         },
         {
-          "name": "Getppid",
+          "name": "getppid",
           "signature": "() -> int",
           "status": "implemented"
         },
         {
-          "name": "Getwd",
+          "name": "getwd",
           "signature": "() -> string",
           "status": "implemented"
         },
         {
-          "name": "Hostname",
+          "name": "hostname",
           "signature": "() -> string",
           "status": "implemented"
         },
         {
-          "name": "Setenv",
+          "name": "setenv",
           "signature": "(name: string, value: string) -> int",
           "status": "implemented"
         },
         {
-          "name": "Unsetenv",
+          "name": "unsetenv",
           "signature": "(name: string) -> int",
           "status": "implemented"
         },
         {
-          "name": "UserHomeDir",
+          "name": "user_home_dir",
           "signature": "() -> string",
           "status": "implemented"
         },
         {
-          "name": "UserCacheDir",
+          "name": "user_cache_dir",
           "signature": "() -> string",
           "status": "planned"
         },
         {
-          "name": "Getpagesize",
+          "name": "getpagesize",
           "signature": "() -> int",
           "status": "planned"
         },
         {
-          "name": "Getuid",
+          "name": "getuid",
           "signature": "() -> int",
           "status": "planned"
         },
         {
-          "name": "Getgid",
+          "name": "getgid",
           "signature": "() -> int",
           "status": "planned"
         },
         {
-          "name": "Geteuid",
+          "name": "geteuid",
           "signature": "() -> int",
           "status": "planned"
         },
         {
-          "name": "Getegid",
+          "name": "getegid",
           "signature": "() -> int",
           "status": "planned"
         },
         {
-          "name": "Getgroups",
+          "name": "getgroups",
           "signature": "() -> int[]",
           "status": "planned"
         },
         {
-          "name": "Executable",
+          "name": "executable",
           "signature": "() -> string",
           "status": "planned"
         }
@@ -1072,69 +1087,72 @@
       "priority": "P0",
       "go_counterpart": "Go strconv",
       "status": "implemented",
+      "translation": "ax_stdlib",
+      "source": "axc/std/strconv.ax",
+      "generated": "axc/stdlib/generated/strconv.c",
       "functions": [
         {
-          "name": "Atoi",
+          "name": "atoi",
           "signature": "(s: string) -> int",
           "status": "implemented"
         },
         {
-          "name": "Itoa",
+          "name": "itoa",
           "signature": "(v: int) -> string",
           "status": "implemented"
         },
         {
-          "name": "ParseBool",
+          "name": "parse_bool",
           "signature": "(s: string) -> bool",
           "status": "implemented"
         },
         {
-          "name": "FormatBool",
+          "name": "format_bool",
           "signature": "(v: bool) -> string",
           "status": "implemented"
         },
         {
-          "name": "ParseFloat",
+          "name": "parse_float",
           "signature": "(s: string) -> float",
           "status": "implemented"
         },
         {
-          "name": "FormatFloat",
+          "name": "format_float",
           "signature": "(v: float) -> string",
           "status": "implemented"
         },
         {
-          "name": "ParseInt",
+          "name": "parse_int",
           "signature": "(s: string, base: int) -> int",
           "status": "implemented"
         },
         {
-          "name": "FormatInt",
+          "name": "format_int",
           "signature": "(v: int, base: int) -> string",
           "status": "implemented"
         },
         {
-          "name": "ParseUint",
+          "name": "parse_uint",
           "signature": "(s: string, base: int) -> int",
           "status": "implemented"
         },
         {
-          "name": "FormatUint",
+          "name": "format_uint",
           "signature": "(v: int, base: int) -> string",
           "status": "implemented"
         },
         {
-          "name": "CanBackquote",
+          "name": "can_backquote",
           "signature": "(s: string) -> bool",
           "status": "implemented"
         },
         {
-          "name": "Quote",
+          "name": "quote",
           "signature": "(s: string) -> string",
           "status": "implemented"
         },
         {
-          "name": "Unquote",
+          "name": "unquote",
           "signature": "(s: string) -> string",
           "status": "implemented"
         }
@@ -1147,62 +1165,62 @@
       "status": "partial",
       "functions": [
         {
-          "name": "Join",
+          "name": "join",
           "signature": "(parts: string[]) -> string",
           "status": "implemented"
         },
         {
-          "name": "Dir",
+          "name": "dir",
           "signature": "(path: string) -> string",
           "status": "implemented"
         },
         {
-          "name": "Base",
+          "name": "base",
           "signature": "(path: string) -> string",
           "status": "implemented"
         },
         {
-          "name": "Ext",
+          "name": "ext",
           "signature": "(path: string) -> string",
           "status": "implemented"
         },
         {
-          "name": "Split",
+          "name": "split",
           "signature": "(path: string) -> string[2]",
           "status": "implemented"
         },
         {
-          "name": "Clean",
+          "name": "clean",
           "signature": "(path: string) -> string",
           "status": "implemented"
         },
         {
-          "name": "Abs",
+          "name": "abs",
           "signature": "(path: string) -> string",
           "status": "implemented"
         },
         {
-          "name": "IsAbs",
+          "name": "is_abs",
           "signature": "(path: string) -> bool",
           "status": "implemented"
         },
         {
-          "name": "EvalSymlinks",
+          "name": "eval_symlinks",
           "signature": "(path: string) -> string",
           "status": "planned"
         },
         {
-          "name": "Glob",
+          "name": "glob",
           "signature": "(pattern: string) -> string[]",
           "status": "planned"
         },
         {
-          "name": "Rel",
+          "name": "rel",
           "signature": "(basepath, targpath: string) -> string",
           "status": "planned"
         },
         {
-          "name": "Walk",
+          "name": "walk",
           "signature": "(root: string, fn: func) -> int",
           "status": "planned"
         }
@@ -1215,17 +1233,17 @@
       "status": "implemented",
       "functions": [
         {
-          "name": "Int",
+          "name": "int",
           "signature": "(n: int) -> int",
           "status": "implemented"
         },
         {
-          "name": "Float",
+          "name": "float",
           "signature": "() -> float",
           "status": "implemented"
         },
         {
-          "name": "Seed",
+          "name": "seed",
           "signature": "(seed: int) -> void",
           "status": "implemented"
         }
@@ -1238,48 +1256,48 @@
       "status": "partial",
       "functions": [
         {
-          "name": "Ints",
+          "name": "ints",
           "signature": "(a: int[]) -> void",
           "status": "implemented"
         },
         {
-          "name": "Strings",
+          "name": "strings",
           "signature": "(a: string[]) -> void",
           "status": "implemented"
         },
         {
-          "name": "Float64s",
+          "name": "float64s",
           "signature": "(a: float[]) -> void",
           "status": "implemented"
         },
         {
-          "name": "IntsAreSorted",
+          "name": "ints_are_sorted",
           "signature": "(a: int[]) -> bool",
           "status": "implemented"
         },
         {
-          "name": "StringsAreSorted",
+          "name": "strings_are_sorted",
           "signature": "(a: string[]) -> bool",
           "status": "implemented"
         },
         {
-          "name": "SearchInts",
+          "name": "search_ints",
           "signature": "(a: int[], x: int) -> int",
           "status": "implemented"
         },
         {
-          "name": "SearchStrings",
+          "name": "search_strings",
           "signature": "(a: string[], x: string) -> int",
           "status": "implemented"
         },
         {
-          "name": "Slice",
+          "name": "slice",
           "signature": "(a: any[], less: func(i, j int) bool) -> void",
           "status": "not_implemented",
           "note": "axlang 不支持闭包，暂不落地"
         },
         {
-          "name": "SliceStable",
+          "name": "slice_stable",
           "signature": "(a: any[], less: func(i, j int) bool) -> void",
           "status": "not_implemented",
           "note": "axlang 不支持闭包，暂不落地"
@@ -1293,86 +1311,86 @@
       "status": "implemented",
       "functions": [
         {
-          "name": "Contains",
+          "name": "contains",
           "signature": "(x: T) -> bool",
           "kind": "instance",
           "status": "implemented"
         },
         {
-          "name": "Index",
+          "name": "index",
           "signature": "(x: T) -> int",
           "kind": "instance",
           "status": "implemented"
         },
         {
-          "name": "Sort",
+          "name": "sort",
           "signature": "() -> void",
           "kind": "instance",
           "status": "implemented"
         },
         {
-          "name": "Sort",
+          "name": "sort",
           "signature": "(cmp) -> void",
           "kind": "instance",
           "status": "implemented",
           "note": "带比较函数，GAP #10"
         },
         {
-          "name": "Reverse",
+          "name": "reverse",
           "signature": "() -> void",
           "kind": "instance",
           "status": "implemented"
         },
         {
-          "name": "Clone",
+          "name": "clone",
           "signature": "() -> T[]",
           "kind": "instance",
           "status": "implemented"
         },
         {
-          "name": "Insert",
+          "name": "insert",
           "signature": "(i, x) -> void",
           "kind": "instance",
           "status": "implemented"
         },
         {
-          "name": "Fill",
+          "name": "fill",
           "signature": "(x) -> void",
           "kind": "instance",
           "status": "implemented"
         },
         {
-          "name": "Resize",
+          "name": "resize",
           "signature": "(n) -> void",
           "kind": "instance",
           "status": "implemented"
         },
         {
-          "name": "Merge",
+          "name": "merge",
           "signature": "(other) -> void",
           "kind": "instance",
           "status": "implemented"
         },
         {
-          "name": "Min",
+          "name": "min",
           "signature": "() -> T",
           "kind": "instance",
           "status": "implemented"
         },
         {
-          "name": "Max",
+          "name": "max",
           "signature": "() -> T",
           "kind": "instance",
           "status": "implemented"
         },
         {
-          "name": "Sum",
+          "name": "sum",
           "signature": "() -> T",
           "kind": "instance",
           "status": "implemented"
         },
         {
-          "name": "Delete",
+          "name": "delete",
           "signature": "(i, j) -> T[]",
           "kind": "instance",
           "status": "not_implemented",
@@ -1387,38 +1405,38 @@
       "status": "implemented",
       "functions": [
         {
-          "name": "Keys",
+          "name": "keys",
           "signature": "(m: Map) -> K[]",
           "status": "implemented"
         },
         {
-          "name": "Values",
+          "name": "values",
           "signature": "(m: Map) -> V[]",
           "status": "implemented"
         },
         {
-          "name": "Clone",
+          "name": "clone",
           "signature": "(m: Map) -> Map",
           "status": "implemented"
         },
         {
-          "name": "Copy",
+          "name": "copy",
           "signature": "(dst: Map, src: Map) -> void",
           "status": "implemented"
         },
         {
-          "name": "Delete",
+          "name": "delete",
           "signature": "(m: Map, key: K) -> void",
           "status": "implemented"
         },
         {
-          "name": "DeleteFunc",
+          "name": "delete_func",
           "signature": "(m: Map, f: func(K) bool) -> void",
           "status": "not_implemented",
           "note": "axlang 不支持闭包，暂不落地"
         },
         {
-          "name": "Equal",
+          "name": "equal",
           "signature": "(m1: Map, m2: Map) -> bool",
           "status": "implemented"
         }
@@ -1431,12 +1449,12 @@
       "status": "implemented",
       "functions": [
         {
-          "name": "Make",
+          "name": "make",
           "signature": "(v: T) -> Handle[T]",
           "status": "implemented"
         },
         {
-          "name": "Value",
+          "name": "value",
           "signature": "(h: Handle[T]) -> T",
           "status": "implemented"
         }
@@ -1449,42 +1467,42 @@
       "status": "implemented",
       "functions": [
         {
-          "name": "Contains",
+          "name": "contains",
           "signature": "(s: bytes, sub: bytes) -> bool",
           "status": "implemented"
         },
         {
-          "name": "Equal",
+          "name": "equal",
           "signature": "(a: bytes, b: bytes) -> bool",
           "status": "implemented"
         },
         {
-          "name": "Index",
+          "name": "index",
           "signature": "(s: bytes, sub: bytes) -> int",
           "status": "implemented"
         },
         {
-          "name": "Split",
+          "name": "split",
           "signature": "(s: bytes, sep: bytes) -> bytes[]",
           "status": "implemented"
         },
         {
-          "name": "TrimSpace",
+          "name": "trim_space",
           "signature": "(s: bytes) -> bytes",
           "status": "implemented"
         },
         {
-          "name": "ToUpper",
+          "name": "to_upper",
           "signature": "(s: bytes) -> bytes",
           "status": "implemented"
         },
         {
-          "name": "ToLower",
+          "name": "to_lower",
           "signature": "(s: bytes) -> bytes",
           "status": "implemented"
         },
         {
-          "name": "Repeat",
+          "name": "repeat",
           "signature": "(s: bytes, count: int) -> bytes",
           "status": "implemented"
         }
@@ -1497,17 +1515,17 @@
       "status": "implemented",
       "functions": [
         {
-          "name": "NewReader",
+          "name": "new_reader",
           "signature": "(r: File) -> File",
           "status": "implemented"
         },
         {
-          "name": "NewWriter",
+          "name": "new_writer",
           "signature": "(w: File) -> File",
           "status": "implemented"
         },
         {
-          "name": "Scanner",
+          "name": "scanner",
           "signature": "(r: File) -> File",
           "status": "implemented"
         }
@@ -1520,12 +1538,12 @@
       "status": "implemented",
       "functions": [
         {
-          "name": "ReadAll",
+          "name": "read_all",
           "signature": "(r: Reader) -> string[][]",
           "status": "implemented"
         },
         {
-          "name": "Write",
+          "name": "write",
           "signature": "(w: Writer, record: string[]) -> int",
           "status": "implemented"
         }
@@ -1536,19 +1554,22 @@
       "priority": "P2",
       "go_counterpart": "Go errors",
       "status": "implemented",
+      "translation": "ax_stdlib",
+      "source": "axc/std/errors.ax",
+      "generated": "axc/stdlib/generated/errors.c",
       "functions": [
         {
-          "name": "New",
+          "name": "new",
           "signature": "(msg: string) -> error",
           "status": "implemented"
         },
         {
-          "name": "Is",
+          "name": "is",
           "signature": "(err: error, target: error) -> bool",
           "status": "implemented"
         },
         {
-          "name": "As",
+          "name": "as",
           "signature": "(err: error, target: error) -> bool",
           "status": "implemented",
           "note": "axlang 无运行时类型反射，target 限定为 error 类型"
@@ -1562,17 +1583,17 @@
       "status": "implemented",
       "functions": [
         {
-          "name": "Print",
+          "name": "print",
           "signature": "(v: any...) -> void",
           "status": "implemented"
         },
         {
-          "name": "Printf",
+          "name": "printf",
           "signature": "(format: string, v: any...) -> void",
           "status": "implemented"
         },
         {
-          "name": "Fatal",
+          "name": "fatal",
           "signature": "(v: any...) -> void",
           "status": "implemented"
         }
@@ -1588,7 +1609,7 @@
       "generated": "axc/stdlib/generated/sync.c",
       "types": [
         {
-          "name": "Mutex",
+          "name": "mutex",
           "kind": "struct",
           "methods": [
             "Lock",
@@ -1596,7 +1617,7 @@
           ]
         },
         {
-          "name": "RWMutex",
+          "name": "rwmutex",
           "kind": "struct",
           "methods": [
             "Lock",
@@ -1606,7 +1627,7 @@
           ]
         },
         {
-          "name": "WaitGroup",
+          "name": "wait_group",
           "kind": "struct",
           "methods": [
             "Add",
@@ -1615,7 +1636,7 @@
           ]
         },
         {
-          "name": "Once",
+          "name": "once",
           "kind": "struct",
           "methods": [
             "Do"
@@ -1633,22 +1654,22 @@
       "generated": "axc/stdlib/generated/atomic.c",
       "functions": [
         {
-          "name": "AddInt",
+          "name": "add_int",
           "signature": "(addr: *int, delta: int) -> int",
           "status": "implemented"
         },
         {
-          "name": "LoadInt",
+          "name": "load_int",
           "signature": "(addr: *int) -> int",
           "status": "implemented"
         },
         {
-          "name": "StoreInt",
+          "name": "store_int",
           "signature": "(addr: *int, val: int) -> void",
           "status": "implemented"
         },
         {
-          "name": "CompareAndSwapInt",
+          "name": "compare_and_swap_int",
           "signature": "(addr: *int, old: int, new: int) -> bool",
           "status": "implemented"
         }
@@ -1661,19 +1682,19 @@
       "status": "not_implemented",
       "functions": [
         {
-          "name": "TypeOf",
+          "name": "type_of",
           "signature": "(v: any) -> string",
           "status": "not_implemented",
           "note": "axlang 无运行时类型反射，需设计可落地子集"
         },
         {
-          "name": "ValueOf",
+          "name": "value_of",
           "signature": "(v: any) -> any",
           "status": "not_implemented",
           "note": "同上"
         },
         {
-          "name": "NumField",
+          "name": "num_field",
           "signature": "(v: any) -> int",
           "status": "not_implemented",
           "note": "同上"

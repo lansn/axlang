@@ -1,0 +1,94 @@
+// axc/std/strconv.ax —— axlang 标准库 strconv 模块（ax 语法源码）
+// 与用户库一样，由 ax 编译器直接解析，生成对应的 C 源码供 gcc 编译。
+//
+// 对标 Go strconv。ax 层仅包装 axrt C 原语，
+// 通过 extern "C" 声明 + unsafe 块调用，不引入 ax 编译器内建能力。
+//
+// 导出函数命名采用 C 风格：全部小写，下划线分隔，如 itoa / parse_int。
+// ax 代码中通过 std.strconv.itoa(...) 调用模块级函数。
+//
+// 注：atoi / parse_float 需要输出指针参数（ax_parse_i64 / ax_parse_f64 的 *out 形态），
+// 当前 ax 源码层先不独立包装，可继续沿用内建模块或后续补齐。
+
+extern "C" {
+    string ax_str_of_int(int v);
+    string ax_str_of_uint(int v);
+    string ax_str_of_bool(bool v);
+    string ax_str_of_f64(float v);
+    int ax_parse_bool(string s);
+    int ax_parse_int_base(string s, int base);
+    string ax_str_of_int_base(int v, int base);
+    int ax_parse_uint_base(string s, int base);
+    string ax_str_of_uint_base(int v, int base);
+    int ax_str_can_backquote(string s);
+    string ax_str_quote(string s);
+    string ax_str_unquote(string s);
+}
+
+// ---------- 模块级函数（C 风格命名：小写 + 下划线） ----------
+
+public string itoa(int v) {
+    unsafe {
+        return ax_str_of_int(v)
+    }
+}
+
+public string format_uint(int v, int base) {
+    unsafe {
+        return ax_str_of_uint_base(v, base)
+    }
+}
+
+public string format_int(int v, int base) {
+    unsafe {
+        return ax_str_of_int_base(v, base)
+    }
+}
+
+public string format_bool(bool v) {
+    unsafe {
+        return ax_str_of_bool(v)
+    }
+}
+
+public string format_float(float v) {
+    unsafe {
+        return ax_str_of_f64(v)
+    }
+}
+
+public int parse_bool(string s) {
+    unsafe {
+        return ax_parse_bool(s)
+    }
+}
+
+public int parse_int(string s, int base) {
+    unsafe {
+        return ax_parse_int_base(s, base)
+    }
+}
+
+public int parse_uint(string s, int base) {
+    unsafe {
+        return ax_parse_uint_base(s, base)
+    }
+}
+
+public int can_backquote(string s) {
+    unsafe {
+        return ax_str_can_backquote(s)
+    }
+}
+
+public string quote(string s) {
+    unsafe {
+        return ax_str_quote(s)
+    }
+}
+
+public string unquote(string s) {
+    unsafe {
+        return ax_str_unquote(s)
+    }
+}

@@ -2,6 +2,6 @@
 // 占位符个数与实参个数必须在编译期一致（不含格式串本身）
 import fmt
 int main() {
-    fmt.Printf("%d %d", 1)
+    fmt.printf("%d %d", 1)
     return 0
 }

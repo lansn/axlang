@@ -12,12 +12,12 @@ int main() {
     int u5 = 48   // '0'（数字，不变）
     int u6 = 19988 // '中'（非 ASCII，不变）
 
-    println("toupper_a={string.ToUpperRune(u1)}")   // 65 ('A')
-    println("toupper_A={string.ToUpperRune(u2)}")   // 65 ('A'，已大写不变)
-    println("toupper_z={string.ToUpperRune(u3)}")   // 90 ('Z')
-    println("toupper_Z={string.ToUpperRune(u4)}")   // 90 ('Z'，已大写不变)
-    println("toupper_digit={string.ToUpperRune(u5)}")  // 48 ('0'，不变)
-    println("toupper_cjk={string.ToUpperRune(u6)}")  // 19988 ('中'，不变)
+    println("toupper_a={string.to_upper_rune(u1)}")   // 65 ('A')
+    println("toupper_A={string.to_upper_rune(u2)}")   // 65 ('A'，已大写不变)
+    println("toupper_z={string.to_upper_rune(u3)}")   // 90 ('Z')
+    println("toupper_Z={string.to_upper_rune(u4)}")   // 90 ('Z'，已大写不变)
+    println("toupper_digit={string.to_upper_rune(u5)}")  // 48 ('0'，不变)
+    println("toupper_cjk={string.to_upper_rune(u6)}")  // 19988 ('中'，不变)
 
     // ---------- ToLowerRune ----------
     int l1 = 65   // 'A'
@@ -27,12 +27,12 @@ int main() {
     int l5 = 48   // '0'（数字，不变）
     int l6 = 19988 // '中'（非 ASCII，不变）
 
-    println("tolower_A={string.ToLowerRune(l1)}")   // 97 ('a')
-    println("tolower_a={string.ToLowerRune(l2)}")   // 97 ('a'，已小写不变)
-    println("tolower_Z={string.ToLowerRune(l3)}")   // 122 ('z')
-    println("tolower_z={string.ToLowerRune(l4)}")   // 122 ('z'，已小写不变)
-    println("tolower_digit={string.ToLowerRune(l5)}")  // 48 ('0'，不变)
-    println("tolower_cjk={string.ToLowerRune(l6)}")  // 19988 ('中'，不变)
+    println("tolower_A={string.to_lower_rune(l1)}")   // 97 ('a')
+    println("tolower_a={string.to_lower_rune(l2)}")   // 97 ('a'，已小写不变)
+    println("tolower_Z={string.to_lower_rune(l3)}")   // 122 ('z')
+    println("tolower_z={string.to_lower_rune(l4)}")   // 122 ('z'，已小写不变)
+    println("tolower_digit={string.to_lower_rune(l5)}")  // 48 ('0'，不变)
+    println("tolower_cjk={string.to_lower_rune(l6)}")  // 19988 ('中'，不变)
 
     return 0
 }

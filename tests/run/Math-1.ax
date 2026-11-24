@@ -2,10 +2,10 @@
 import math
 
 int main() {
-    println("{math.Compare(1.0, 2.0)}")
-    println("{math.Compare(2.0, 2.0)}")
-    println("{math.Compare(3.0, 2.0)}")
-    println("{math.Equals(0.1 + 0.2, 0.3, 0.000001)}")
-    println("{math.Equals(1.0, 2.0, 0.5)}")
+    println("{math.compare(1.0, 2.0)}")
+    println("{math.compare(2.0, 2.0)}")
+    println("{math.compare(3.0, 2.0)}")
+    println("{math.equals(0.1 + 0.2, 0.3, 0.000001)}")
+    println("{math.equals(1.0, 2.0, 0.5)}")
     return 0
 }

@@ -1,0 +1,42 @@
+// axc/std/io.ax —— axlang 标准库 io 模块（ax 语法源码）
+// 与用户库一样，由 ax 编译器直接解析，生成对应的 C 源码供 gcc 编译。
+//
+// 对标 Go io / C stdio。ax 层仅包装 axrt C 原语，
+// 通过 extern "C" 声明 + unsafe 块调用，不引入 ax 编译器内建能力。
+//
+// 导出函数命名采用 C 风格：全部小写，下划线分隔，如 read_line / write_line。
+// ax 代码中通过 std.io.read_line(...) 调用模块级函数。
+
+extern "C" {
+    int ax_read_line(ref string out);
+    int ax_read_file(string path, ref string out);
+    void ax_write_stdout(string s);
+    void ax_write_stderr(string s);
+}
+
+// ---------- 模块级函数（C 风格命名：小写 + 下划线） ----------
+
+public int read_line(ref string out) {
+    unsafe {
+        return ax_read_line(out)
+    }
+}
+
+public int read_file(string path, ref string out) {
+    unsafe {
+        return ax_read_file(path, out)
+    }
+}
+
+public void write(string s) {
+    unsafe {
+        ax_write_stdout(s)
+    }
+}
+
+public void write_line(string s) {
+    unsafe {
+        ax_write_stdout(s)
+        ax_write_stdout("\n")
+    }
+}
