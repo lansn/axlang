@@ -1,7 +1,9 @@
 // EXPECT: E3003
 // time 实例上调用不存在的方法。
+import std.time
+
 int main() {
-    time t = time.now()
+    time t = std.time.now()
     int x = t.Foo()
     return 0
 }

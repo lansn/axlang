@@ -1,8 +1,10 @@
 // time 内建具名类型：Now/FromUnixMs 构造，UnixMs/ToString/Format 实例方法，time 间比较。
+import std.time
+
 int main() {
-    time t0 = time.from_unix_ms(0)
-    time t1 = time.from_unix_ms(1000)
-    time t2 = time.from_unix_ms(500)
+    time t0 = std.time.from_unix_ms(0)
+    time t1 = std.time.from_unix_ms(1000)
+    time t2 = std.time.from_unix_ms(500)
     println(t0.UnixMs())
     println(t1.UnixMs())
     println(t2.UnixMs())
@@ -10,13 +12,13 @@ int main() {
     println(t1 > t0)
     println(t0 <= t1)
     println(t1 >= t0)
-    time t3 = time.from_unix_ms(1000)
+    time t3 = std.time.from_unix_ms(1000)
     println(t1 < t3)
     println(t1 <= t3)
     println(t1 >= t3)
     println(t1 > t3)
     println(t0.ToString())
     println(t1.Format("%Y-%m-%d"))
-    println(time.from_unix_ms(1700000000000).Format("%Y-%m-%d %H:%M:%S"))
+    println(std.time.from_unix_ms(1700000000000).Format("%Y-%m-%d %H:%M:%S"))
     return 0
 }

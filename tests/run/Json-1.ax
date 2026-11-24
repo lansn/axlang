@@ -2,7 +2,7 @@
 // 覆盖：object/array/string/int/float/bool 解析、各类型解箱、null 键缺席、
 //       语法错误 fail 分支、stringify 往返（嵌套 + 转义）、now_ms 单调可用
 import json
-import time
+import std.time
 
 int show_ok(map<string, object> m) {
     string name = m.Get("name") ?? "?"
@@ -40,7 +40,7 @@ int main() {
         fail(e) => println("fail: {e.msg}"),
     }
 
-    int t1 = time.now_ms()
+    int t1 = std.time.now_ms()
     println("time-ok={t1 > 0}")
     return 0
 }

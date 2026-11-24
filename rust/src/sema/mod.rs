@@ -42,9 +42,9 @@ pub fn is_reserved(name: &str) -> bool {
 /// 包括：print/println/fmt（变参、编译期占位符核对）、泛型相关、底层 I/O、JSON、数据库、
 /// 日志、数学、操作系统、随机数、排序、字符串转换、时间、文件路径、字节、唯一句柄、
 /// 缓冲 I/O、数组切片、Map 等。这些模块的函数直接由 codegen 硬编码 axrt 调用或内建实现。
-pub const INTERNAL_BUILTINS: [&str; 18] = [
+pub const INTERNAL_BUILTINS: [&str; 17] = [
     "db", "fmt", "io", "json", "csv", "errors", "log", "maps", "math",
-    "os", "rand", "sort", "strconv", "time", "filepath", "bytes", "unique", "bufio",
+    "os", "rand", "sort", "strconv", "filepath", "bytes", "unique", "bufio",
 ];
 
 /// axlang 标准库模块（STDLIB_MODULES）：用 ax 语法编写，预转译为标准 C，随编译器发布，
@@ -52,14 +52,14 @@ pub const INTERNAL_BUILTINS: [&str; 18] = [
 /// 不引入 ax 编译器内建能力。codegen 将模块方法调用映射为 ax_std_* 标准库 C 接口调用。
 /// 模块名统一以 `std.` 前缀开头，如 `std.string`、`std.file`、`std.sync`、`std.atomic`，
 /// 与用户库 import/use 方式一致。
-pub const STDLIB_MODULES: [&str; 11] = ["std.string", "std.file", "std.sync", "std.atomic", "std.io", "std.json", "std.os", "std.strconv", "std.math", "std.errors", "std.fmt"];
+pub const STDLIB_MODULES: [&str; 12] = ["std.string", "std.file", "std.sync", "std.atomic", "std.io", "std.json", "std.os", "std.strconv", "std.math", "std.errors", "std.fmt", "std.time"];
 
 /// 向后兼容别名：BUILTIN_MODULES = INTERNAL_BUILTINS + 单段标准库别名
 ///（`std.file`/`std.string`/`std.sync`/`std.atomic` 现已改为从 axc/std/ 加载，
 /// 但保留单段名 `file`/`string`/`sync`/`atomic` 以兼容现有代码）
-pub const BUILTIN_MODULES: [&str; 22] = [
+pub const BUILTIN_MODULES: [&str; 21] = [
     "db", "fmt", "io", "json", "csv", "errors", "log", "maps", "math",
-    "os", "rand", "sort", "strconv", "time", "filepath", "bytes", "unique", "bufio",
+    "os", "rand", "sort", "strconv", "filepath", "bytes", "unique", "bufio",
     "sync", "atomic", "file", "string",
 ];
 
@@ -919,9 +919,6 @@ impl<'a> Sema<'a> {
     /// 与 `catalog.product.Product` / 末段短名 `product.Product` 三者等价。
     pub(crate) fn lookup_type_name(&mut self, name: &str, tok: &Tok) -> Option<u32> {
         let hit = self.types.get(name);
-        if name == "Mutex" || name == "RWMutex" || name == "WaitGroup" || name == "Once" {
-            eprintln!("DEBUG lookup_type_name {} => {:?}", name, hit);
-        }
         if let Some(&d) = hit {
             return Some(d);
         }

@@ -1062,6 +1062,16 @@ impl<'a> Sema<'a> {
                             }
                         }
                         None => {
+                            // 回退到 codegen 内建模块签名：time.now / time.parse 等
+                            // 仍由 codegen 硬编码处理，key 为 ("time", ...) 而非 ("std.time", ...)
+                            // canon 可能是 "std.time"（标准库多段名）或 "time"（单段内建模块名），
+                            // 需要去掉 "std." 前缀后再匹配 module_sig。
+                            let sig_mod = canon.strip_prefix("std.").unwrap_or(&canon);
+                            if let Some((_ptypes, ret)) = module_sig(sig_mod, export) {
+                                self.sl(e.id).mkind = Some("module");
+                                self.sl(e.id).ckind = Some("module");
+                                return ret;
+                            }
                             self.err("E3030", &e.tok, "文稿 9.1", "模块 `{0}` 没有公开成员 `{1}`（文件内符号默认私有，导出需写 `public`）", &[&view, &export]);
                             t_object()
                         }

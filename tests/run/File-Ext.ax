@@ -1,9 +1,9 @@
 // file.Remove / file.Rename / file.Exists / file.Mkdir
 import file
-import time
+import std.time
 
 int main() {
-    string dir = "tests/.build/file-ext-dir-{time.now_ms()}"
+    string dir = "tests/.build/file-ext-dir-{std.time.now_ms()}"
     string file1 = "tests/.build/file-ext-a.txt"
     string file2 = "tests/.build/file-ext-b.txt"
 

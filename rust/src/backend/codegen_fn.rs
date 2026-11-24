@@ -133,7 +133,13 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
     pub fn declare(&mut self, ty: &Ty, expr: &str) -> String {
         let n = self.tmpn();
         let ct = self.cg.ct(ty);
-        self.emit(format!("{} {} = {};", ct, n, expr));
+        // result<T> 在 C 层为结构体（ax_res_*），不能用整数 0 初始化，改为 {0}。
+        let init = if matches!(&**ty, TyS::Result(_)) && expr == "0" {
+            "{0}".to_string()
+        } else {
+            expr.to_string()
+        };
+        self.emit(format!("{} {} = {};", ct, n, init));
         n
     }
 

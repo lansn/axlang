@@ -341,6 +341,12 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             Expr::Path { segs, .. } => segs,
             _ => &[],
         };
+        // 单段名：优先作为局部变量/参数解析，返回 C 层名称（v_x / p_x）。
+        // var_c 已按是否为参数返回 pv_x / lv_x，直接使用 base 即可。
+        if segs.len() == 1 {
+            let (base, _) = self.var_c(e);
+            return base;
+        }
         let res = self.res_of(e.id);
         match res {
             Some(crate::sema::Res::Local(_)) => {
@@ -1223,6 +1229,37 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             }
             return "0".to_string();
         }
+        if ck == "module" {
+            // std.time.now() / std.time.parse() 等代码生成内建（Call + 路径形式）：
+            // 从 callee 路径中提取模块名，去掉 "std." 前缀后匹配 codegen builtin。
+            if let Expr::Call { callee, args } = &e.k {
+                if let Expr::Path { segs, .. } = &callee.k {
+                    if segs.len() >= 3 && segs[0] == "std" {
+                        let mod_name = segs[1].clone();
+                        let fn_name = segs.last().unwrap().clone();
+                        let ptypes = crate::sema::module_sig(&mod_name, &fn_name).map(|(ps, _)| ps);
+                        let mut a: Vec<String> = Vec::new();
+                        for (i, x) in args.iter().enumerate() {
+                            let pt = ptypes.as_ref().and_then(|ps| ps.get(i).cloned().flatten());
+                            let v = match pt {
+                                Some(pt) => self.gen(&x.k.expr, Some(&pt), false, false),
+                                None => self.gen(&x.k.expr, None, false, false),
+                            };
+                            a.push(v);
+                        }
+                        return match (mod_name.as_str(), fn_name.as_str()) {
+                            ("time", "now") => "ax_now_ms()".to_string(),
+                            ("time", "from_unix_ms") => a[0].clone(),
+                            ("time", "parse") => {
+                                format!("ax_time_parse_result({}, {})", a[0], a[1])
+                            }
+                            _ => "0".to_string(),
+                        };
+                    }
+                }
+            }
+            return "0".to_string();
+        }
         if ck == "func" {
             let fid = self
                 .cg
@@ -1784,6 +1821,17 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
         let module = match &recv.k {
             Expr::Path { segs, .. } => segs.join("."),
             _ => String::new(),
+        };
+        // `std.time.xxx()` / `std.string.xxx()` 等标准库多段名，需去掉 "std." 前缀
+        // 后再匹配 codegen 内建模块签名（key 为 ("time", ...)、("string", ...) 等）。
+        // 若 recv 是嵌套 MethodCall（如 (std.time).parse()），module 为空，则从 sema slot 的 bname 获取。
+        let module = if module.is_empty() {
+            self.cg
+                .slot(&e.id)
+                .and_then(|sl| sl.bname.clone())
+                .unwrap_or_default()
+        } else {
+            module.strip_prefix("std.").unwrap_or(&module).to_string()
         };
         // fmt.Printf 在 sema 已被解析并核对，这里直接展开成插值式拼接——
         // 要赶在下面的通用实参 gen 循环之前，避免格式串字面量被多生成一份未使用的临时串

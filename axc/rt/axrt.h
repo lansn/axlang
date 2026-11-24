@@ -351,6 +351,7 @@ ax_str  ax_json_marshal_indent(ax_box* v, ax_str prefix, ax_str indent);
 int     ax_json_valid(ax_str s);
 
 int64_t ax_now_ms(void);
+int64_t ax_time_now(void);  /* 当前 Unix 毫秒（time 类型，与 ax_now_ms 同值） */
 
 /* 时间（time 类型，Unix 毫秒）：
  * ax_time_to_str 按 "YYYY-MM-DD HH:MM:SS" 格式化；

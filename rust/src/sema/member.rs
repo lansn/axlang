@@ -1577,6 +1577,15 @@ impl<'a> Sema<'a> {
                 )
             }
             None => {
+                // 回退到 codegen 内建模块签名：time.parse 等
+                // canon 可能是 "std.time"（标准库多段名），需去掉 "std." 前缀后匹配 module_sig。
+                let sig_mod = canon.strip_prefix("std.").unwrap_or(canon);
+                if let Some((_ptypes, ret)) = super::module_sig(sig_mod, &name) {
+                    self.sl(e.id).mkind = Some("module");
+                    self.sl(e.id).ckind = Some("module");
+                    self.sl(e.id).bname = Some(sig_mod.to_string());
+                    return ret;
+                }
                 self.err("E3030", &e.tok, "文稿 9.1", "模块 `{0}` 没有公开成员 `{1}`（文件内符号默认私有，导出需写 `public`）", &[&view, &name]);
                 t_object()
             }
@@ -1613,6 +1622,15 @@ impl<'a> Sema<'a> {
                 t_object()
             }
             None => {
+                // 回退到 codegen 内建模块签名：time.parse 等
+                // canon 可能是 "std.time"（标准库多段名），需去掉 "std." 前缀后匹配 module_sig。
+                let sig_mod = canon.strip_prefix("std.").unwrap_or(canon);
+                if let Some((_ptypes, ret)) = super::module_sig(sig_mod, &name) {
+                    self.sl(e.id).mkind = Some("module");
+                    self.sl(e.id).ckind = Some("module");
+                    self.sl(e.id).bname = Some(sig_mod.to_string());
+                    return ret;
+                }
                 self.err("E3030", &e.tok, "文稿 9.1", "模块 `{0}` 没有公开成员 `{1}`（文件内符号默认私有，导出需写 `public`）", &[&view, &name]);
                 t_object()
             }

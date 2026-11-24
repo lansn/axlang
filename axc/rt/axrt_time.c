@@ -41,6 +41,11 @@ int64_t ax_time_from_unix_ms(int64_t ms) {
     return ms;
 }
 
+/* time.Now：当前 Unix 毫秒（time 类型，与 ax_now_ms 同值） */
+int64_t ax_time_now(void) {
+    return ax_now_ms();
+}
+
 /* time.UnixMicro：微秒 -> Unix 毫秒 */
 int64_t ax_time_from_unix_us(int64_t us) {
     return us / 1000;
