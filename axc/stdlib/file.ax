@@ -1,0 +1,153 @@
+// axc/stdlib/file.ax —— axlang 标准库 file 模块（ax 语法源码）
+// 预转译为标准 C，随编译器发布，通过 gcc 参与编译。
+//
+// 对标 Go os / C stdio/stdlib。ax 层仅包装 axrt C 文件原语，
+// 通过 extern "C" 声明 + unsafe 块调用，不引入 ax 编译器内建能力。
+//
+// File 为 axlang 内建句柄类型，ax 源码层直接操作 File 值，
+// C 层对应 ax_file*。
+//
+// 所有导出函数均使用 ax_std_* 前缀，预转译后直接对应标准 C 接口函数名。
+
+extern "C" {
+    int ax_file_remove(string path);
+    int ax_file_rename(string old_path, string new_path);
+    int ax_file_exists(string path);
+    int ax_dir_create(string path);
+    int ax_file_is_dir(string path);
+    int ax_file_is_file(string path);
+    int ax_file_size(string path);
+    int ax_file_modtime(string path);
+    int ax_file_write_all(string path, string s);
+    int ax_file_chmod(string path, int mode);
+    int ax_file_chtimes(string path, int atime, int mtime);
+    File ax_file_open(string path);
+    File ax_file_create(string path);
+    File ax_file_append(string path);
+    File ax_file_tempfile(string dir, string prefix);
+    string ax_file_read_all_val(File f);
+    int ax_file_write(ref File f, string s);
+    int ax_file_write_line(ref File f, string s);
+    void ax_file_close(ref File f);
+}
+
+// 文件打开模式（与 axrt 保持一致）
+const int FILE_MODE_READ = 0
+const int FILE_MODE_WRITE = 1
+const int FILE_MODE_APPEND = 2
+
+File ax_std_file_open(string path) {
+    unsafe {
+        return ax_file_open(path)
+    }
+}
+
+File ax_std_file_create(string path) {
+    unsafe {
+        return ax_file_create(path)
+    }
+}
+
+File ax_std_file_append(string path) {
+    unsafe {
+        return ax_file_append(path)
+    }
+}
+
+int ax_std_file_remove(string path) {
+    unsafe {
+        return ax_file_remove(path)
+    }
+}
+
+int ax_std_file_rename(string old_path, string new_path) {
+    unsafe {
+        return ax_file_rename(old_path, new_path)
+    }
+}
+
+int ax_std_file_exists(string path) {
+    unsafe {
+        return ax_file_exists(path)
+    }
+}
+
+int ax_std_file_mkdir(string path) {
+    unsafe {
+        return ax_dir_create(path)
+    }
+}
+
+int ax_std_file_is_dir(string path) {
+    unsafe {
+        return ax_file_is_dir(path)
+    }
+}
+
+int ax_std_file_is_file(string path) {
+    unsafe {
+        return ax_file_is_file(path)
+    }
+}
+
+int ax_std_file_size(string path) {
+    unsafe {
+        return ax_file_size(path)
+    }
+}
+
+int ax_std_file_modtime(string path) {
+    unsafe {
+        return ax_file_modtime(path)
+    }
+}
+
+int ax_std_file_write_all(string path, string s) {
+    unsafe {
+        return ax_file_write_all(path, s)
+    }
+}
+
+int ax_std_file_chmod(string path, int mode) {
+    unsafe {
+        return ax_file_chmod(path, mode)
+    }
+}
+
+int ax_std_file_chtimes(string path, int atime, int mtime) {
+    unsafe {
+        return ax_file_chtimes(path, atime, mtime)
+    }
+}
+
+File ax_std_file_tempfile(string dir, string prefix) {
+    unsafe {
+        return ax_file_tempfile(dir, prefix)
+    }
+}
+
+// File 实例方法（对标 File.Read / ReadLine / Write / WriteLine / Close）
+
+string ax_std_file_read_all(File f) {
+    unsafe {
+        return ax_file_read_all_val(f)
+    }
+}
+
+int ax_std_file_write(ref File f, string s) {
+    unsafe {
+        return ax_file_write(f, s)
+    }
+}
+
+int ax_std_file_write_line(ref File f, string s) {
+    unsafe {
+        return ax_file_write_line(f, s)
+    }
+}
+
+void ax_std_file_close(ref File f) {
+    unsafe {
+        ax_file_close(f)
+    }
+}

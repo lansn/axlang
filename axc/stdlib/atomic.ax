@@ -1,0 +1,38 @@
+// axc/stdlib/atomic.ax —— axlang 标准库 atomic 模块（ax 语法源码）
+// 预转译为标准 C，随编译器发布，通过 gcc 参与编译。
+//
+// 对标 Go sync/atomic。对 int 变量取地址做原子操作，无需构造对象。
+// 通过 extern "C" 声明 axrt C 原子原语，ax 层仅做包装。
+//
+// 所有导出函数均使用 ax_std_* 前缀，预转译后直接对应标准 C 接口函数名。
+
+extern "C" {
+    int ax_atomic_add_int(ref int addr, int delta);
+    int ax_atomic_load_int(ref int addr);
+    void ax_atomic_store_int(ref int addr, int val);
+    bool ax_atomic_compare_and_swap_int(ref int addr, int old, int replacement);
+}
+
+int ax_std_atomic_add_int(ref int addr, int delta) {
+    unsafe {
+        ax_atomic_add_int(addr, delta)
+    }
+}
+
+int ax_std_atomic_load_int(ref int addr) {
+    unsafe {
+        ax_atomic_load_int(addr)
+    }
+}
+
+void ax_std_atomic_store_int(ref int addr, int val) {
+    unsafe {
+        ax_atomic_store_int(addr, val)
+    }
+}
+
+bool ax_std_atomic_compare_and_swap_int(ref int addr, int old, int replacement) {
+    unsafe {
+        ax_atomic_compare_and_swap_int(addr, old, replacement)
+    }
+}

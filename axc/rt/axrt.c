@@ -3144,6 +3144,12 @@ int ax_file_read_all(ax_file* f, ax_str* out) {
     return 0;
 }
 
+ax_str ax_file_read_all_val(ax_file f) {
+    ax_str out = AX_S("");
+    ax_file_read_all(&f, &out);
+    return out;
+}
+
 int ax_file_read_line(ax_file* f, ax_str* out) {
     if (!f || !f->fp) return 1;
     ax_sb b;

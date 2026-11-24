@@ -866,6 +866,7 @@ impl<'s, 'a> CodeGen<'s, 'a> {
             base
         ));
         body.push("#include \"axrt.h\"".to_string());
+        body.push("#include \"axc_stdlib.h\"".to_string());
         body.push(String::new());
         // 历史行为（v0.9 起测试钉死）：forward 为空时也占一行，保持输出逐字节稳定
         body.push(self.forward.join("\n"));

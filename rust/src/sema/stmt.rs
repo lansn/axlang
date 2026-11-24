@@ -753,6 +753,7 @@ impl<'a> Sema<'a> {
                 !n.arms.is_empty() && n.arms.iter().all(|a| self.expr_must_exit(&a.body))
             }
             Stmt::Simple { lhs, .. } => matches!(&lhs.k, Expr::Call { .. }),
+            Stmt::Unsafe { body } => self.block_must_exit_block(body),
             // try/catch 一定离开函数，当且仅当：finally 自己离开，或
             // 「没有 finally」且 try 体与每个 catch 体都离开
             //（未匹配的 catch 会按原路径 return fail，也算离开）。

@@ -174,10 +174,10 @@
 | `string.IsLower`      | `() -> bool`                           | C `islower`                        | 所有字符均为小写    | ✅  | 标准 C11 实现 |
 | `string.IsUpper`      | `() -> bool`                           | C `isupper`                        | 所有字符均为大写    | ✅  | 标准 C11 实现 |
 | `string.IsAlnum`      | `() -> bool`                           | C `isalnum`                        | 所有字符均为字母或数字 | ✅  | 标准 C11 实现 |
-| `string.ContainsAny`  | `(chars: string) -> bool`              | Go `strings.ContainsAny`           | 未落地         | ⬜  | 计划中       |
-| `string.ContainsRune` | `(r: int) -> bool`                     | Go `strings.ContainsRune`          | 未落地         | ⬜  | 计划中       |
-| `string.Count`        | `(substr: string) -> int`              | Go `strings.Count`                 | 未落地         | ⬜  | 计划中       |
-| `string.IndexAny`     | `(chars: string) -> int`               | Go `strings.IndexAny`              | 未落地         | ⬜  | 计划中       |
+| `string.ContainsAny`  | `(chars: string) -> bool`              | Go `strings.ContainsAny`           | 判断是否包含任意字符，对标 Go strings.ContainsAny | ✅  | 标准 C11 实现 |
+| `string.ContainsRune` | `(r: int) -> bool`                     | Go `strings.ContainsRune`          | 判断是否包含字符，对标 Go strings.ContainsRune | ✅  | 标准 C11 实现 |
+| `string.Count`        | `(substr: string) -> int`              | Go `strings.Count`                 | 统计子串出现次数，对标 Go strings.Count | ✅  | 标准 C11 实现 |
+| `string.IndexAny`     | `(chars: string) -> int`               | Go `strings.IndexAny`              | 首次出现任意字符的索引，对标 Go strings.IndexAny | ✅  | 标准 C11 实现 |
 | `string.LastIndexAny` | `(chars: string) -> int`               | Go `strings.LastIndexAny`          | 最后出现任意字符的码点索引，对标 Go strings.LastIndexAny；标准 C11 直接映射 | ✅ | 标准 C11 实现 |
 | `string.EqualFold`    | `(t: string) -> bool`                  | Go `strings.EqualFold`             | 忽略大小写比较，对标 Go strings.EqualFold；标准 C11 直接映射 | ✅ | 标准 C11 实现 |
 | `string.TrimLeft` | `(cutset: string) -> string` | Go `strings.TrimLeft` | 去除左侧字符集，对标 Go strings.TrimLeft；标准 C11 直接映射 | ✅ | 标准 C11 实现 |

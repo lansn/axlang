@@ -26,6 +26,8 @@ AXRT_H = ROOT / "axc" / "rt" / "axrt.h"
 AXRT_C = ROOT / "axc" / "rt" / "axrt.c"
 TESTS_DIR = ROOT / "tests" / "run"
 JSON_FILE = ROOT / "STDLIB-STATUS.json"
+STDLIB_DIR = ROOT / "axc" / "stdlib"
+STDLIB_GEN_DIR = ROOT / "axc" / "stdlib" / "generated"
 
 
 def read(p: Path) -> str:
@@ -161,6 +163,18 @@ def main():
                 break
         if not test_found and status == "implemented":
             warnings.append(f"[{name}] tests/run/ 中未见相关测试文件（模糊匹配 {name}）")
+
+    # 7. STDLIB_MODULES 预转译文件检查：.ax 源码与 generated/.c 应成对存在
+    #    注：.ax→.c 预转译流水线尚需编译器增强（void*/func 等语法）才能完整打通，
+    #    此处仅做提示性警告，不阻断。
+    stdlib_modules = ["sync", "atomic", "file", "string"]
+    for mod_name in stdlib_modules:
+        ax_path = STDLIB_DIR / f"{mod_name}.ax"
+        c_path = STDLIB_GEN_DIR / f"{mod_name}.c"
+        if not ax_path.exists():
+            warnings.append(f"[{mod_name}] 缺少 ax 标准库源码 {ax_path}")
+        if not c_path.exists():
+            warnings.append(f"[{mod_name}] 缺少预转译 C 输出 {c_path}（可手写或待预转译流水线打通后生成）")
 
     # 统计
     implemented = sum(1 for m in modules if m.get("status") == "implemented")

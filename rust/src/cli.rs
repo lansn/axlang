@@ -14,6 +14,7 @@
 
 use crate::frontend::ast;
 use crate::backend;
+use crate::driver::compile;
 use crate::diag::Diags;
 use crate::frontend::lexer;
 use crate::frontend::parser;
@@ -553,7 +554,7 @@ fn finish(s: &sema::Sema, opts: &Opts, path: &str, kind: &str) -> i32 {
         std::path::PathBuf::from(opts.out.clone().unwrap_or_else(|| default_out(path, kind)))
     };
 
-    let res = cc_compile(&csrc, opts, &out, kind);
+    let res = compile::compile_c_files(&csrc, opts, &out, kind);
     let rc = match res {
         None => 1,
         Some(()) => {
@@ -609,172 +610,3 @@ fn default_out(path: &str, kind: &str) -> String {
     }
 }
 
-/// 运行时目录（axrt.h / axrt.c）：优先按工作目录找，再沿可执行文件位置上溯。
-/// 上溯是为了兼容两种放置：`rust/target/release/axc.exe`（三级到工程根）
-/// 与 `dist/axc.exe`（一级到工程根），以及在任意 cwd 下被调用的情况。
-fn rt_dir() -> Option<std::path::PathBuf> {
-    let mut cands = vec![std::path::PathBuf::from("axc/rt"), std::path::PathBuf::from("rt")];
-    if let Ok(exe) = std::env::current_exe() {
-        let mut cur = exe.parent().map(|d| d.to_path_buf());
-        for _ in 0..5 {
-            let q = match cur {
-                Some(q) => q,
-                None => break,
-            };
-            cands.push(q.join("axc/rt"));
-            cands.push(q.join("rt"));
-            cur = q.parent().map(|x| x.to_path_buf());
-        }
-    }
-    for c in cands {
-        if c.join("axrt.h").exists() && c.join("axrt.c").exists() {
-            return Some(c);
-        }
-    }
-    None
-}
-
-/// 把生成的 C 源码和 axrt.c 一起编译成可执行文件或动态链接库。
-fn cc_compile(csrc: &str, opts: &Opts, out_path: &std::path::Path, kind: &str) -> Option<()> {
-    let rt = match rt_dir() {
-        Some(r) => r,
-        None => {
-            eprintln!("axc: 找不到运行时目录 axc/rt（缺 axrt.h / axrt.c）");
-            return None;
-        }
-    };
-    let workdir = std::env::temp_dir().join(format!(
-        "axc-{}-{}",
-        std::process::id(),
-        now_nanos()
-    ));
-    if fs::create_dir_all(&workdir).is_err() {
-        eprintln!("axc: 无法创建构建目录 {}", workdir.display());
-        return None;
-    }
-    let cpath = workdir.join("unit.c");
-    if fs::write(&cpath, csrc).is_err() {
-        eprintln!("axc: 无法写入 {}", cpath.display());
-        return None;
-    }
-    let _ = fs::copy(rt.join("axrt.h"), workdir.join("axrt.h"));
-    let _ = fs::copy(rt.join("axrt.c"), workdir.join("axrt.c"));
-
-    let out_abs = if out_path.is_absolute() {
-        out_path.to_path_buf()
-    } else {
-        std::env::current_dir()
-            .map(|c| c.join(out_path))
-            .unwrap_or_else(|_| out_path.to_path_buf())
-    };
-
-    let is_shared = kind == "shared";
-
-    // 共享库模式：收集导出符号，生成链接器导出列表文件（def / 版本脚本）
-    let mut export_list_path: Option<std::path::PathBuf> = None;
-    if is_shared {
-        // 从 C 源码中提取导出符号：查找 `ax_export_*` 标记的函数
-        // backend 会在生成的 C 里给 export 函数加 `ax_export_` 前缀，def 文件里也需带此前缀
-        let exports: Vec<String> = csrc
-            .lines()
-            .filter_map(|line| {
-                let trimmed = line.trim();
-                let pos = match trimmed.find("ax_export_") {
-                    Some(p) => p,
-                    None => return None,
-                };
-                let rest = &trimmed[pos..];
-                // 函数名截止于 '(' 或空格（如 `static int64_t ax_export_foo(...)`）
-                let end = rest
-                    .find(|c: char| c == '(' || c.is_whitespace())
-                    .unwrap_or(rest.len());
-                let name = &rest[..end];
-                if !name.is_empty() {
-                    Some(name.to_string())
-                } else {
-                    None
-                }
-            })
-            .collect();
-        if !exports.is_empty() {
-            if cfg!(windows) {
-                // Windows .def 文件（MinGW/gcc 格式）
-                let def_path = workdir.join("exports.def");
-                let mut def_content = String::from("EXPORTS\n");
-                for name in &exports {
-                    def_content.push_str(&format!("    {}\n", name));
-                }
-                if fs::write(&def_path, &def_content).is_ok() {
-                    export_list_path = Some(def_path);
-                }
-            } else {
-                // Linux/macOS 版本脚本
-                let map_path = workdir.join("exports.map");
-                let mut map_content = String::from("{\n  global:\n");
-                for (i, name) in exports.iter().enumerate() {
-                    let comma = if i + 1 < exports.len() { ";" } else { "" };
-                    map_content.push_str(&format!("    {};{}\n", name, comma));
-                }
-                map_content.push_str("  local: *;\n};\n");
-                if fs::write(&map_path, &map_content).is_ok() {
-                    export_list_path = Some(map_path);
-                }
-            }
-        }
-    }
-
-    let mut cmd = std::process::Command::new(&opts.cc);
-    cmd.arg("-std=c11")
-        .arg("-O2")
-        .arg("-Wall")
-        .arg("-Wno-unused-function")
-        // axlang 的 main 允许省略 return（语言层特例，sema 不报错），
-        // 生成的 C 里就没有末尾 return —— 关掉 gcc 这条噪音警告。
-        .arg("-Wno-return-type")
-        .arg("-I")
-        .arg(&workdir)
-        .arg("-o")
-        .arg(&out_abs)
-        .arg(&cpath)
-        .arg(workdir.join("axrt.c"))
-        .arg("-lm")
-        .current_dir(&workdir);
-
-    if is_shared {
-        cmd.arg("-shared");
-        if cfg!(windows) {
-            if let Some(ref def_path) = export_list_path {
-                cmd.arg(def_path);
-            }
-        } else {
-            if let Some(ref map_path) = export_list_path {
-                cmd.arg(format!("-Wl,--version-script={}", map_path.display()));
-            }
-        }
-    }
-
-    let out = cmd.output();
-    let out = match out {
-        Ok(o) => o,
-        Err(e) => {
-            eprintln!("axc: 无法调用 C 编译器 {}：{}", opts.cc, e);
-            return None;
-        }
-    };
-    if !out.status.success() {
-        eprintln!("axc: C 编译失败");
-        eprint!("{}", String::from_utf8_lossy(&out.stderr));
-        eprintln!("\n--- 生成的 C 源码保留于 {} ---", cpath.display());
-        return None;
-    }
-    let err_txt = String::from_utf8_lossy(&out.stderr).to_string();
-    if !err_txt.trim().is_empty() {
-        eprint!("{}", err_txt);
-    }
-    if opts.keep {
-        eprintln!("axc: 构建目录 {}", workdir.display());
-    } else {
-        let _ = fs::remove_dir_all(&workdir);
-    }
-    Some(())
-}

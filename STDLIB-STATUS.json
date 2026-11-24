@@ -322,6 +322,9 @@
       "priority": "P0",
       "go_counterpart": "Go os / C stdio/stdlib",
       "status": "implemented",
+      "translation": "ax_stdlib",
+      "source": "axc/stdlib/file.ax",
+      "generated": "axc/stdlib/generated/file.c",
       "functions": [
         {
           "name": "Open",
@@ -423,6 +426,9 @@
       "priority": "P0",
       "go_counterpart": "Go strings / C string.h / C ctype.h",
       "status": "partial",
+      "translation": "ax_stdlib",
+      "source": "axc/stdlib/string.ax",
+      "generated": "axc/stdlib/generated/string.c",
       "static_functions": [
         {
           "name": "FromCodepoint",
@@ -1577,6 +1583,9 @@
       "priority": "P2",
       "go_counterpart": "Go sync",
       "status": "implemented",
+      "translation": "ax_stdlib",
+      "source": "axc/stdlib/sync.ax",
+      "generated": "axc/stdlib/generated/sync.c",
       "types": [
         {
           "name": "Mutex",
@@ -1619,6 +1628,9 @@
       "priority": "P2",
       "go_counterpart": "Go sync/atomic",
       "status": "implemented",
+      "translation": "ax_stdlib",
+      "source": "axc/stdlib/atomic.ax",
+      "generated": "axc/stdlib/generated/atomic.c",
       "functions": [
         {
           "name": "AddInt",
@@ -1673,7 +1685,7 @@
     "implemented_modules": 21,
     "pending_modules": 2,
     "total_functions_implemented": 160,
-    "last_regression": "451/465 通过，0 新增回归",
+    "last_regression": "452/465 通过，0 新增回归（13 处预存在失败，与基线一致）",
     "last_regression_date": "2026-11-24"
   }
 }

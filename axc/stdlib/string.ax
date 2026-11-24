@@ -1,0 +1,142 @@
+// axc/stdlib/string.ax —— axlang 标准库 string 模块（ax 语法源码）
+// 预转译为标准 C，随编译器发布，通过 gcc 参与编译。
+//
+// 对标 Go strings / C string.h / C ctype.h。ax 层仅包装 axrt C 字符串原语，
+// 通过 extern "C" 声明 + unsafe 块调用，不引入 ax 编译器内建能力。
+//
+// string 为 axlang 内建类型，ax 源码层直接操作 string 值，C 层对应 ax_str。
+//
+// 所有导出函数均使用 ax_std_* 前缀，预转译后直接对应标准 C 接口函数名。
+
+extern "C" {
+    int ax_str_cmp(string a, string b);
+    int ax_str_contains(string s, string sub);
+    int ax_str_index_of(string s, string sub);
+    int ax_str_last_index_of(string s, string sub);
+    int ax_str_count(string s, string substr);
+    string ax_str_trim(string s);
+    string ax_str_to_upper(string s);
+    string ax_str_to_lower(string s);
+    string ax_str_repeat(string s, int n);
+    string ax_str_replace(string s, string old, string replacement);
+    int ax_str_starts_with(string s, string prefix);
+    int ax_str_ends_with(string s, string suffix);
+    int ax_str_is_digit(string s);
+    int ax_str_is_alpha(string s);
+    int ax_str_is_space(string s);
+    int ax_str_is_lower(string s);
+    int ax_str_is_upper(string s);
+    int ax_str_is_alnum(string s);
+}
+
+// ---------- 模块级静态函数 ----------
+
+int ax_std_string_compare(string a, string b) {
+    unsafe {
+        return ax_str_cmp(a, b)
+    }
+}
+
+// ---------- 实例方法（通过 string 类型调用）----------
+
+int ax_std_string_contains(string s, string sub) {
+    unsafe {
+        return ax_str_contains(s, sub)
+    }
+}
+
+int ax_std_string_index_of(string s, string sub) {
+    unsafe {
+        return ax_str_index_of(s, sub)
+    }
+}
+
+int ax_std_string_last_index_of(string s, string sub) {
+    unsafe {
+        return ax_str_last_index_of(s, sub)
+    }
+}
+
+int ax_std_string_count(string s, string substr) {
+    unsafe {
+        return ax_str_count(s, substr)
+    }
+}
+
+string ax_std_string_trim(string s) {
+    unsafe {
+        return ax_str_trim(s)
+    }
+}
+
+string ax_std_string_to_upper(string s) {
+    unsafe {
+        return ax_str_to_upper(s)
+    }
+}
+
+string ax_std_string_to_lower(string s) {
+    unsafe {
+        return ax_str_to_lower(s)
+    }
+}
+
+string ax_std_string_repeat(string s, int n) {
+    unsafe {
+        return ax_str_repeat(s, n)
+    }
+}
+
+string ax_std_string_replace(string s, string old, string replacement) {
+    unsafe {
+        return ax_str_replace(s, old, replacement)
+    }
+}
+
+int ax_std_string_starts_with(string s, string prefix) {
+    unsafe {
+        return ax_str_starts_with(s, prefix)
+    }
+}
+
+int ax_std_string_ends_with(string s, string suffix) {
+    unsafe {
+        return ax_str_ends_with(s, suffix)
+    }
+}
+
+int ax_std_string_is_digit(string s) {
+    unsafe {
+        return ax_str_is_digit(s)
+    }
+}
+
+int ax_std_string_is_alpha(string s) {
+    unsafe {
+        return ax_str_is_alpha(s)
+    }
+}
+
+int ax_std_string_is_space(string s) {
+    unsafe {
+        return ax_str_is_space(s)
+    }
+}
+
+int ax_std_string_is_lower(string s) {
+    unsafe {
+        return ax_str_is_lower(s)
+    }
+}
+
+int ax_std_string_is_upper(string s) {
+    unsafe {
+        return ax_str_is_upper(s)
+    }
+}
+
+int ax_std_string_is_alnum(string s) {
+    unsafe {
+        return ax_str_is_alnum(s)
+    }
+}

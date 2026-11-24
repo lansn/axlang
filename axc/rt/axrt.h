@@ -389,6 +389,7 @@ typedef struct { uint8_t tag; union { ax_file* ok; ax_err err; } u; } ax_res_fil
 ax_res_file ax_file_open_result(ax_str path, int mode);
 
 int     ax_file_read_all(ax_file* f, ax_str* out);   /* 0=读到末尾 1=读失败 */
+ax_str  ax_file_read_all_val(ax_file f);             /* 按值返回 ax_str，供 ax 标准库调用 */
 int     ax_file_read_line(ax_file* f, ax_str* out);  /* 0=读到一行 1=EOF 或失败 */
 int64_t ax_file_write(ax_file* f, ax_str s);         /* >=0 写入字节数，<0 失败 */
 int64_t ax_file_write_line(ax_file* f, ax_str s);    /* 同上，末尾补 '\n' */

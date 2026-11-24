@@ -38,7 +38,26 @@ pub fn is_reserved(name: &str) -> bool {
     is_builtin_scalar(name) || RESERVED_EXTRA.contains(&name)
 }
 
-pub const BUILTIN_MODULES: [&str; 22] = ["db", "file", "fmt", "io", "json", "csv", "errors", "log", "maps", "math", "os", "rand", "sort", "string", "strconv", "time", "filepath", "bytes", "unique", "bufio", "sync", "atomic"];
+/// axlang 内建模块（INTERNAL_BUILTINS）：无法独立表达的能力，保留在编译器 Rust 端内建。
+/// 包括：print/println/fmt（变参、编译期占位符核对）、泛型相关、底层 I/O、JSON、数据库、
+/// 日志、数学、操作系统、随机数、排序、字符串转换、时间、文件路径、字节、唯一句柄、
+/// 缓冲 I/O、数组切片、Map 等。这些模块的函数直接由 codegen 硬编码 axrt 调用或内建实现。
+pub const INTERNAL_BUILTINS: [&str; 18] = [
+    "db", "fmt", "io", "json", "csv", "errors", "log", "maps", "math",
+    "os", "rand", "sort", "strconv", "time", "filepath", "bytes", "unique", "bufio",
+];
+
+/// axlang 标准库模块（STDLIB_MODULES）：用 ax 语法编写，预转译为标准 C，随编译器发布，
+/// 通过 gcc 参与编译。ax 层仅包装 axrt C 运行时原语，通过 extern "C" 调用，
+/// 不引入 ax 编译器内建能力。codegen 将模块方法调用映射为 ax_std_* 标准库 C 接口调用。
+pub const STDLIB_MODULES: [&str; 4] = ["sync", "atomic", "file", "string"];
+
+/// 向后兼容别名：BUILTIN_MODULES = INTERNAL_BUILTINS + STDLIB_MODULES
+pub const BUILTIN_MODULES: [&str; 22] = [
+    "db", "fmt", "io", "json", "csv", "errors", "log", "maps", "math",
+    "os", "rand", "sort", "strconv", "time", "filepath", "bytes", "unique", "bufio",
+    "sync", "atomic", "file", "string",
+];
 
 pub fn is_builtin_type_name(name: &str) -> bool {
     is_builtin_scalar(name)
