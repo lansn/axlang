@@ -1,0 +1,32 @@
+// errors 模块：errors.Is / errors.As（对标 Go errors.Is/errors.As，2026-11-24）
+import errors
+
+int main() {
+    var e1 = errors.New("not found")
+    var e2 = errors.New("not found")
+    var e3 = errors.New("permission denied")
+
+    // errors.Is：相同的 error 应返回 true
+    println("e1==e2={errors.Is(e1, e2)}")   // true
+    println("e1==e3={errors.Is(e1, e3)}")   // false
+
+    // errors.As：将 err 复制给 target，返回 true，target 内容应与 err 一致
+    var t = errors.New("placeholder")
+    var ok = errors.As(e1, t)
+    println("as-ok={ok}")                   // true
+    println("as-target-code={t.code}")      // 1
+    println("as-target-msg=[")
+    print(t.msg)
+    println("]")                            // [not found]
+
+    // errors.As：不同的 error 也能复制（axlang 无错误链，As 始终成功复制）
+    var t2 = errors.New("placeholder")
+    var ok2 = errors.As(e3, t2)
+    println("as2-ok={ok2}")                 // true
+    println("as2-target-code={t2.code}")    // 1
+    println("as2-target-msg=[")
+    print(t2.msg)
+    println("]")                            // [permission denied]
+
+    return 0
+}

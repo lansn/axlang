@@ -624,8 +624,8 @@
 | `log.Printf` | `(format: string, v: any...) -> void` | Go `log.Printf` | 按格式打印日志，对标 Go log.Printf | ✅ |
 | `log.Fatal` | `(v: any...) -> void` | Go `log.Fatal` | 打印致命日志并退出，对标 Go log.Fatal | ✅ |
 | `errors.New` | `(msg: string) -> error` | Go `errors.New` | 创建错误值，对标 Go errors.New；code=1，msg 为错误消息；标准 C11 实现 | ✅ | 标准 C11 实现 |
-| `errors.Is` | `(err: error, target: error) -> bool` | Go `errors.Is` | 判断错误是否匹配目标，对标 Go errors.Is | ✅ |
-| `errors.As` | `(err: error, target: any) -> bool` | Go `errors.As` | 将错误转换为目标类型，对标 Go errors.As | ✅ |
+| `errors.Is` | `(err: error, target: error) -> bool` | Go `errors.Is` | 判断错误是否匹配目标（比较 code 和 msg），对标 Go errors.Is | ✅ | 见 tests/run/Errors-IsAs.ax/.out |
+| `errors.As` | `(err: error, target: error) -> bool` | Go `errors.As` | 将 err 复制给 target，返回 true；axlang 无运行时类型反射，target 限定为 error 类型 | ✅ | 见 tests/run/Errors-IsAs.ax/.out |
 
 
 #### sync / sync/atomic（对标 Go sync，并发原语）
@@ -710,7 +710,7 @@
 | 已落地模块 | io, math, json, file, db, string, time, decimal, Int/Float/Bool/Enum, Array, Map, Range, thread/queue, os, strconv, filepath, rand, sort, slices | 共 19 个模块 |
 | P0 已落地 | strconv 13 个函数；string 6 个 ctype 判断函数；string.ToUpperRune/ToLowerRune（已落地 2026-11-23） | — |
 | P1 待落地 | — | — |
-| P2 待落地 | — | sort.Slice/SliceStable；unique.*；bytes/bufio；errors.Is/As；sync/atomic；reflect |
+| P2 待落地 | — | sort.Slice/SliceStable；unique.*；bytes/bufio；sync/atomic；reflect |
 | P3 待落地 | — | crypto/*；hash/*；unicode/utf8/utf16；container/*；net/*；template/*；regexp |
 
 

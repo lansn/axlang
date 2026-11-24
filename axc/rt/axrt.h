@@ -284,6 +284,8 @@ double  ax_fdiv(double a, double b, const char* f, int l, int c);
 /* ---------------- 错误 ---------------- */
 typedef struct { int32_t code; ax_str msg; } ax_err;
 ax_err ax_err_new(int32_t code, ax_str msg);
+int     ax_err_is(ax_err err, ax_err target);
+int     ax_err_as(ax_err err, ax_err* target);
 
 /* ---------------- 标准库 intrinsic ---------------- */
 typedef struct { ax_str* kv; int64_t n; } ax_row;   /* 极简 Row：扁平键值对 */

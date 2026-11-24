@@ -142,6 +142,8 @@ pub fn module_sig(mod_: &str, name: &str) -> Option<(Vec<Option<Ty>>, Ty)> {
         ("csv", "ReadAll") => (vec![Some(t_named(DefId::Name("File"), Vec::new()))], t_array(t_array(t_string(), None), None)),
         ("csv", "Write") => (vec![Some(t_named(DefId::Name("File"), Vec::new())), Some(t_array(t_string(), None))], t_int()),
         ("errors", "New") => (vec![Some(t_string())], t_error()),
+        ("errors", "Is") => (vec![Some(t_error()), Some(t_error())], t_bool()),
+        ("errors", "As") => (vec![Some(t_error()), Some(t_error())], t_bool()),
         /* log 模块（对标 Go log，2026-11-23；P2。Print/Fatal 走多实参 print，Printf 复用 fmt.Printf） */
         ("log", "Print") => (vec![None], t_void()),
         ("log", "Printf") => (vec![Some(t_string()), None], t_void()),

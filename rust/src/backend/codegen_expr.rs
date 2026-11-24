@@ -1999,6 +1999,18 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             ("csv", "ReadAll") => format!("ax_csv_read_all({})", a[0]),
             ("csv", "Write") => format!("ax_csv_write({}, {})", a[0], a[1]),
             ("errors", "New") => format!("ax_err_new(1, {})", a[0]),
+            // errors.Is(err, target) -> bool：对标 Go errors.Is，比较 code 和 msg 是否相等
+            ("errors", "Is") => format!("ax_err_is({}, {})", a[0], a[1]),
+            // errors.As(err, target) -> bool：对标 Go errors.As，将 err 复制到 target（target 必须是 error 左值）
+            ("errors", "As") => {
+                let tgt = if Self::is_lvalue(&args[1].k.expr) {
+                    format!("&{}", a[1])
+                } else {
+                    let tmp = self.declare(&t_error(), &a[1]);
+                    format!("&{}", tmp)
+                };
+                format!("ax_err_as({}, {})", a[0], tgt)
+            }
             /* ---------------- strconv 模块 ---------------- */
             ("strconv", "Atoi") => {
                 format!("({{ int64_t v_; ax_parse_i64({}, &v_) ? v_ : 0; }})", a[0])
