@@ -2140,6 +2140,37 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 };
                 format!("ax_map_equal(&{}, &{})", tv1, tv2)
             }
+            /* ---------------- unique 模块（对标 Go unique，Handle[T] 装箱/解箱） ---------------- */
+            // unique.Make(v: T) -> Handle[T]：将值装箱为 ax_box*，句柄即 box 指针（void*）
+            ("unique", "Make") => {
+                let v_ty = self.ty_or_int(args[0].k.expr.id);
+                let tv = self.declare(&v_ty, &a[0]);
+                let tag = tag_of(&v_ty);
+                let vtc = self.cg.ct(&v_ty);
+                format!("ax_box_new({}u, &{}, (int64_t)sizeof({}))", tag, tv, vtc)
+            }
+            // unique.Value(h: Handle[T]) -> T：从句柄（ax_box*）解出原值
+            ("unique", "Value") => {
+                let h_ty = self.ty_or_int(args[0].k.expr.id);
+                let inner_ty = match &*h_ty {
+                    TyS::Named(DefId::Name("Handle"), args) if args.len() == 1 => args[0].clone(),
+                    _ => t_int(),
+                };
+                let tv = self.declare(&t_object(), &a[0]);
+                let pa = self.pos_args(&e.tok);
+                match &*inner_ty {
+                    TyS::Int(..) => format!("ax_unbox_int({}, {})", tv, pa),
+                    TyS::Float => format!("ax_unbox_f64({}, {})", tv, pa),
+                    TyS::Decimal => format!("ax_unbox_dec({}, {})", tv, pa),
+                    TyS::Str => format!("ax_unbox_str({}, {})", tv, pa),
+                    TyS::Bool => format!("ax_unbox_bool({}, {})", tv, pa),
+                    _ => {
+                        let tag = tag_of(&inner_ty);
+                        let innerc = self.cg.ct(&inner_ty);
+                        format!("({})ax_unbox_ref({}, {}u, {})", innerc, tv, tag, pa)
+                    }
+                }
+            }
             _ => "0".to_string(),
         }
     }

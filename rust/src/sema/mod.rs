@@ -38,14 +38,14 @@ pub fn is_reserved(name: &str) -> bool {
     is_builtin_scalar(name) || RESERVED_EXTRA.contains(&name)
 }
 
-pub const BUILTIN_MODULES: [&str; 18] = ["db", "file", "fmt", "io", "json", "csv", "errors", "log", "maps", "math", "os", "rand", "sort", "string", "strconv", "time", "filepath", "bytes"];
+pub const BUILTIN_MODULES: [&str; 19] = ["db", "file", "fmt", "io", "json", "csv", "errors", "log", "maps", "math", "os", "rand", "sort", "string", "strconv", "time", "filepath", "bytes", "unique"];
 
 pub fn is_builtin_type_name(name: &str) -> bool {
     is_builtin_scalar(name)
         || matches!(
             name,
             "object" | "result" | "map" | "func" | "error" | "Rounding" | "range" | "Arena"
-                | "ArenaRef" | "string"
+                | "ArenaRef" | "string" | "Handle"
         )
 }
 
@@ -1612,6 +1612,13 @@ impl<'a> Sema<'a> {
                                 return Rc::new(TyS::ArenaRef(t_object()));
                             }
                             return Rc::new(TyS::ArenaRef(self.resolve_type_g(&args[0], env)));
+                        }
+                        "Handle" => {
+                            if args.len() != 1 {
+                                self.err("E4035", &ast.tok, "G-1", "`Handle` 需要 1 个类型实参", &[]);
+                                return t_named(DefId::Name("Handle"), vec![t_object()]);
+                            }
+                            return t_named(DefId::Name("Handle"), vec![self.resolve_type_g(&args[0], env)]);
                         }
                         "func" => {
                             self.err("E2001", &ast.tok, "G-1", "`func` 类型请写成 `func(参数) 返回`", &[]);

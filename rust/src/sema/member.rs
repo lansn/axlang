@@ -845,6 +845,10 @@ impl<'a> Sema<'a> {
         if m == "maps" {
             return self.check_maps_module_call(e, args, &name);
         }
+        // unique.*：泛型唯一句柄工具，Handle[T] 由实参类型推导（module_sig 无法表达 T → Handle[T]）
+        if m == "unique" {
+            return self.check_unique_module_call(e, args, &name);
+        }
         self.check_call_args(args, None, None, e.id);
         // 内建 fmt 模块（文稿 11.2，0.0.27）：Printf 编译期核对占位符，
         // Print/Println 与 print/println 走同一套多实参实现
@@ -1014,6 +1018,79 @@ impl<'a> Sema<'a> {
             &[&name],
         );
         t_object()
+    }
+
+    /// unique.*：泛型唯一句柄工具。
+    /// - `unique.Make(v: T) -> Handle[T]`：将值装箱并返回唯一句柄
+    /// - `unique.Value(h: Handle[T]) -> T`：从句柄解出原值
+    fn check_unique_module_call(
+        &mut self,
+        e: &ast::EPtr,
+        args: &[ast::N<ast::Arg>],
+        name: &str,
+    ) -> Ty {
+        let ret: Ty = match name {
+            // unique.Make(v: T) -> Handle[T]
+            "Make" => {
+                if args.is_empty() {
+                    self.err(
+                        "E4031",
+                        &e.tok,
+                        "N-20",
+                        "`unique.Make` 需要 1 个实参，得到 0",
+                        &[],
+                    );
+                    return t_object();
+                }
+                let vt = self.ty_of(args[0].k.expr.id)
+                    .unwrap_or_else(|| self.check_expr(&args[0].k.expr, None));
+                self.sl(e.id).mkind = Some("module");
+                t_named(DefId::Name("Handle"), vec![vt])
+            }
+            // unique.Value(h: Handle[T]) -> T
+            "Value" => {
+                if args.is_empty() {
+                    self.err(
+                        "E4031",
+                        &e.tok,
+                        "N-20",
+                        "`unique.Value` 需要 1 个实参，得到 0",
+                        &[],
+                    );
+                    return t_object();
+                }
+                let ht = self.ty_of(args[0].k.expr.id)
+                    .unwrap_or_else(|| self.check_expr(&args[0].k.expr, None));
+                let inner = match &*ht {
+                    TyS::Named(DefId::Name("Handle"), args) if args.len() == 1 => {
+                        args[0].clone()
+                    }
+                    _ => {
+                        self.err(
+                            "E4001",
+                            &e.tok,
+                            "T-5",
+                            "unique.Value 的实参必须是 Handle[T] 类型",
+                            &[],
+                        );
+                        return t_object();
+                    }
+                };
+                self.sl(e.id).mkind = Some("module");
+                inner
+            }
+            _ => {
+                self.err(
+                    "E3003",
+                    &e.tok,
+                    "文稿 9.2",
+                    "模块 `unique` 没有符号 `{0}`（可用：Make/Value）",
+                    &[&name],
+                );
+                return t_object();
+            }
+        };
+        ret
     }
 
     /// 内建 `fmt` 模块（文稿 11.2，0.0.27）。
