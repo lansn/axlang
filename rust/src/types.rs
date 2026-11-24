@@ -97,6 +97,11 @@ pub fn t_error() -> Ty {
 pub fn t_bytes() -> Ty {
     t_array(t_int_b(8, false), None)
 }
+
+/// File 类型：ax_file* 句柄，对标 Go os.File
+pub fn t_file() -> Ty {
+    t_named(DefId::Name("File"), Vec::new())
+}
 pub fn t_int() -> Ty {
     Rc::new(TyS::Int(64, true))
 }

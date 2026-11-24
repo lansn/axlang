@@ -957,6 +957,27 @@ ax_arr ax_bytes_repeat(ax_arr s, int64_t count) {
     return out;
 }
 
+/* ---------------- bufio 模块（对标 Go bufio，P2） ----------------
+ * axlang 的 Reader/Writer 即 File 句柄（ax_file*）。bufio 函数接收并返回 File。
+ * 本版本建立 API：在 C 层返回同一句柄，缓冲由底层 FILE* 的 stdio 缓冲提供。
+ * 后续版本可在此基础上增加显式 ax_buf_reader/ax_buf_writer 结构体与可配置缓冲大小。
+ */
+
+/* bufio.NewReader(f: File) -> File：创建缓冲读取器，对标 Go bufio.NewReader。 */
+ax_file* ax_file_buf_reader(ax_file* f) {
+    return f;
+}
+
+/* bufio.NewWriter(f: File) -> File：创建缓冲写入器，对标 Go bufio.NewWriter。 */
+ax_file* ax_file_buf_writer(ax_file* f) {
+    return f;
+}
+
+/* bufio.Scanner(f: File) -> File：创建扫描器，对标 Go bufio.NewScanner。 */
+ax_file* ax_file_buf_scanner(ax_file* f) {
+    return f;
+}
+
 /* string.Title：每个单词首字母大写（对标 Go strings.Title，仅处理 ASCII。
  * 单词由空白符分隔；非 ASCII 字符不作大小写变换。 */
 ax_str ax_str_title(ax_str s) {

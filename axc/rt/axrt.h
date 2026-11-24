@@ -369,6 +369,15 @@ int   ax_read_file(ax_str path, ax_str* out);
  */
 typedef struct { FILE* fp; } ax_file;
 
+/* ---------------- bufio 模块（对标 Go bufio，P2） ----------------
+ * axlang 的 Reader/Writer 即 File 句柄（ax_file*），bufio 函数接收并返回 File。
+ * 本版本建立 API：在 C 层返回同一句柄，缓冲由底层 FILE* 的 stdio 缓冲提供。
+ * 后续版本可在此基础上增加显式 ax_buf_reader/ax_buf_writer 结构体与可配置缓冲大小。
+ */
+ax_file* ax_file_buf_reader(ax_file* f);  /* 创建缓冲读取器，对标 Go bufio.NewReader */
+ax_file* ax_file_buf_writer(ax_file* f);  /* 创建缓冲写入器，对标 Go bufio.NewWriter */
+ax_file* ax_file_buf_scanner(ax_file* f); /* 创建扫描器，对标 Go bufio.NewScanner */
+
 /* 模式：0=只读 1=写（新建或截断） 2=追加。失败时 tag=0 + error.IO。 */
 typedef struct { uint8_t tag; union { ax_file* ok; ax_err err; } u; } ax_res_file;
 ax_res_file ax_file_open_result(ax_str path, int mode);

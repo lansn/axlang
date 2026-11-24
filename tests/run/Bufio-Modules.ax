@@ -1,0 +1,41 @@
+// bufio 模块测试（对标 Go bufio，P2，2026-11-24）
+// Reader/Writer/Scanner 均基于 File 句柄（ax_file*），无需新增底层类型
+import bufio
+import file
+
+int main() {
+    // 测试 bufio.NewReader：缓冲读取器，对标 Go bufio.NewReader
+    var f = file.Create("/tmp/bufio_test.txt") try
+    f.WriteLine("line1")
+    f.WriteLine("line2")
+    f.WriteLine("line3")
+    f.Close()
+
+    var f2 = file.Open("/tmp/bufio_test.txt") try
+    var br = bufio.NewReader(f2)
+    var l1 = br.ReadLine()
+    println("reader-1={l1}")   // line1
+    var l2 = br.ReadLine()
+    println("reader-2={l2}")   // line2
+    br.Close()
+
+    // 测试 bufio.NewWriter：缓冲写入器，对标 Go bufio.NewWriter
+    var f3 = file.Create("/tmp/bufio_test2.txt") try
+    var bw = bufio.NewWriter(f3)
+    bw.WriteLine("buffered write")
+    bw.Close()
+
+    var f4 = file.Open("/tmp/bufio_test2.txt") try
+    var wl = f4.ReadLine()
+    println("writer-1={wl}")   // buffered write
+    f4.Close()
+
+    // 测试 bufio.Scanner：扫描器，对标 Go bufio.NewScanner
+    var f5 = file.Open("/tmp/bufio_test.txt") try
+    var sc = bufio.Scanner(f5)
+    var s1 = sc.ReadLine()
+    println("scanner-1={s1}")  // line1
+    sc.Close()
+
+    return 0
+}

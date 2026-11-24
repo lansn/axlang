@@ -1,0 +1,4 @@
+reader-1=line1
+reader-2=line2
+writer-1=buffered write
+scanner-1=line1

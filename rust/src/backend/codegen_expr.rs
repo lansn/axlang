@@ -2028,6 +2028,13 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             ("bytes", "ToLower") => format!("ax_bytes_to_lower({})", a[0]),
             // bytes.Repeat(s, count) -> bytes
             ("bytes", "Repeat") => format!("ax_bytes_repeat({}, {})", a[0], a[1]),
+            /* ---------------- bufio 模块（对标 Go bufio，P2。Reader/Writer 为 File 句柄 ax_file*） ---------------- */
+            // bufio.NewReader(f: File) -> File：创建缓冲读取器，对标 Go bufio.NewReader
+            ("bufio", "NewReader") => format!("ax_file_buf_reader({})", a[0]),
+            // bufio.NewWriter(f: File) -> File：创建缓冲写入器，对标 Go bufio.NewWriter
+            ("bufio", "NewWriter") => format!("ax_file_buf_writer({})", a[0]),
+            // bufio.Scanner(f: File) -> File：创建扫描器，对标 Go bufio.NewScanner
+            ("bufio", "Scanner") => format!("ax_file_buf_scanner({})", a[0]),
             /* ---------------- strconv 模块 ---------------- */
             ("strconv", "Atoi") => {
                 format!("({{ int64_t v_; ax_parse_i64({}, &v_) ? v_ : 0; }})", a[0])
