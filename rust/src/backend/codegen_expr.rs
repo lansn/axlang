@@ -3132,6 +3132,12 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                     }
                     "After" => format!("({} > {})", tv, a[0]),
                     "Before" => format!("({} < {})", tv, a[0]),
+                    "Equal" => format!("({} == {})", tv, a[0]),
+                    "Compare" => format!("({} < {} ? -1 : {} > {} ? 1 : 0)", tv, a[0], tv, a[0]),
+                    "Sub" => format!("({} - {})", tv, a[0]),
+                    "Add" => format!("({} + {})", tv, a[0]),
+                    "Round" => format!("ax_time_round({}, {})", tv, a[0]),
+                    "Truncate" => format!("ax_time_truncate({}, {})", tv, a[0]),
                     _ => "0".to_string(),
                 }
             }

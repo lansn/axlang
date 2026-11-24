@@ -1771,6 +1771,12 @@ impl<'a> Sema<'a> {
                 ("Format", vec![t_string()], t_string()),
                 ("After", vec![t_named(DefId::Name("time"), Vec::new())], t_bool()),
                 ("Before", vec![t_named(DefId::Name("time"), Vec::new())], t_bool()),
+                ("Equal", vec![t_named(DefId::Name("time"), Vec::new())], t_bool()),
+                ("Compare", vec![t_named(DefId::Name("time"), Vec::new())], t_int()),
+                ("Sub", vec![t_named(DefId::Name("time"), Vec::new())], t_int()),
+                ("Add", vec![t_int()], t_named(DefId::Name("time"), Vec::new())),
+                ("Round", vec![t_int()], t_named(DefId::Name("time"), Vec::new())),
+                ("Truncate", vec![t_int()], t_named(DefId::Name("time"), Vec::new())),
             ]),
             TyS::Named(DefId::Name("thread"), _) => Some(vec![
                 ("Join", vec![], t_void()),

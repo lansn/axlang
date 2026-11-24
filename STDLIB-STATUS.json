@@ -713,37 +713,37 @@
           "name": "equal",
           "signature": "(u: time) -> bool",
           "kind": "instance",
-          "status": "planned"
+          "status": "implemented"
         },
         {
           "name": "compare",
           "signature": "(u: time) -> int",
           "kind": "instance",
-          "status": "planned"
+          "status": "implemented"
         },
         {
           "name": "sub",
           "signature": "(u: time) -> int",
           "kind": "instance",
-          "status": "planned"
+          "status": "implemented"
         },
         {
           "name": "add",
           "signature": "(d: int) -> time",
           "kind": "instance",
-          "status": "planned"
+          "status": "implemented"
         },
         {
           "name": "round",
           "signature": "(d: int) -> time",
           "kind": "instance",
-          "status": "planned"
+          "status": "implemented"
         },
         {
           "name": "truncate",
           "signature": "(d: int) -> time",
           "kind": "instance",
-          "status": "planned"
+          "status": "implemented"
         }
       ],
       "instance_functions": [

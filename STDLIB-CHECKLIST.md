@@ -133,12 +133,12 @@
 | `time.until` | 模块 | `(t: time) -> int` | — |  | ✅ 已落地 | 标准 C11 实现 |
 | `time.after` | instance | `(u: time) -> bool` | — |  | ✅ 已落地 | 标准 C11 实现 |
 | `time.before` | instance | `(u: time) -> bool` | — |  | ✅ 已落地 | 标准 C11 实现 |
-| `time.equal` | instance | `(u: time) -> bool` | — |  | ⬜ 计划中 | 标准 C11 实现 |
-| `time.compare` | instance | `(u: time) -> int` | — |  | ⬜ 计划中 | 标准 C11 实现 |
-| `time.sub` | instance | `(u: time) -> int` | — |  | ⬜ 计划中 | 标准 C11 实现 |
-| `time.add` | instance | `(d: int) -> time` | — |  | ⬜ 计划中 | 标准 C11 实现 |
-| `time.round` | instance | `(d: int) -> time` | — |  | ⬜ 计划中 | 标准 C11 实现 |
-| `time.truncate` | instance | `(d: int) -> time` | — |  | ⬜ 计划中 | 标准 C11 实现 |
+| `time.equal` | instance | `(u: time) -> bool` | — |  | ✅ 已落地 | 标准 C11 实现 |
+| `time.compare` | instance | `(u: time) -> int` | — |  | ✅ 已落地 | 标准 C11 实现 |
+| `time.sub` | instance | `(u: time) -> int` | — |  | ✅ 已落地 | 标准 C11 实现 |
+| `time.add` | instance | `(d: int) -> time` | — |  | ✅ 已落地 | 标准 C11 实现 |
+| `time.round` | instance | `(d: int) -> time` | — |  | ✅ 已落地 | 标准 C11 实现 |
+| `time.truncate` | instance | `(d: int) -> time` | — |  | ✅ 已落地 | 标准 C11 实现 |
 
 
 ### 8. decimal（对标 axlang 特有，高精度十进制）
@@ -249,17 +249,6 @@
 | ------ | ------ | ------ | ------ | ------ |
 | `math.frexp` | `(f: float) -> (frac: float, exp: int)` | — |  | ⬜ 计划中 |
 
-#### time 扩展
-
-| ax.函数 | 签名 | 对标 | 函数功能/用途 | 状态 |
-| ------ | ------ | ------ | ------ | ------ |
-| `time.equal` | `(u: time) -> bool` | — |  | ⬜ 计划中 |
-| `time.compare` | `(u: time) -> int` | — |  | ⬜ 计划中 |
-| `time.sub` | `(u: time) -> int` | — |  | ⬜ 计划中 |
-| `time.add` | `(d: int) -> time` | — |  | ⬜ 计划中 |
-| `time.round` | `(d: int) -> time` | — |  | ⬜ 计划中 |
-| `time.truncate` | `(d: int) -> time` | — |  | ⬜ 计划中 |
-
 #### filepath 扩展
 
 | ax.函数 | 签名 | 对标 | 函数功能/用途 | 状态 |
@@ -303,7 +292,7 @@
 | --- | --- | --- |
 | 已落地模块 | io, json, file, db, decimal, int/float/bool/enum, array, map, range, thread, queue, strconv, rand, slices, maps, unique, bytes, bufio, csv, errors, log, sync, atomic | 共 23 个模块 |
 | 待落地模块 | math, string, time, os, filepath, fmt, sort, reflect | 共 8 个模块 |
-| 已落地函数 | 252 / 272 | — |
+| 已落地函数 | 258 / 272 | — |
 
 
 *更新于 2026-11-24，基于 STDLIB-STATUS.json 自动生成*

@@ -150,3 +150,22 @@ ax_res_time ax_time_parse_result(ax_str s, ax_str fmt) {
     return r;
 }
 
+/* time.Round：按 d 毫秒间隔四舍五入到最近的整数倍，d <= 0 时返回 t 本身。
+ * C11 整数除法向零截断，分正负处理避免负数舍入偏差。 */
+int64_t ax_time_round(int64_t t, int64_t d) {
+    if (d <= 0) return t;
+    int64_t half = d / 2;
+    if (t >= 0) {
+        return ((t + half) / d) * d;
+    } else {
+        return -(((-t) + half) / d) * d;
+    }
+}
+
+/* time.Truncate：按 d 毫秒间隔向零截断到整数倍，d <= 0 时返回 t 本身。
+ * C11 整数除法本身即向零截断，故 (t / d) * d 即可。 */
+int64_t ax_time_truncate(int64_t t, int64_t d) {
+    if (d <= 0) return t;
+    return (t / d) * d;
+}
+

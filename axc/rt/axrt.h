@@ -382,6 +382,11 @@ int64_t ax_time_date(int64_t year, int64_t month, int64_t day,
                      int64_t hour, int64_t min, int64_t sec, int64_t nsec);
 int64_t ax_time_until(int64_t t);   /* t - now */
 
+/* time.Round / time.Truncate（对标 Go time.Round/Truncate，按 d 毫秒间隔舍入，
+ * d <= 0 时返回 t 本身；标准 C11，无 GNU/Clang 扩展）： */
+int64_t ax_time_round(int64_t t, int64_t d);   /* 四舍五入到 d 的最近整数倍 */
+int64_t ax_time_truncate(int64_t t, int64_t d); /* 向零截断到 d 的整数倍 */
+
 /* json.Parse 的 result<map<string, object>> 形态（文稿 11.3）：
    ok 携带 ax_map（string → ax_box*），fail 携带解析错误（code=1 + 位置信息）。 */
 typedef struct { uint8_t tag; union { ax_map ok; ax_err err; } u; } ax_res_map;
