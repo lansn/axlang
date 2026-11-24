@@ -470,6 +470,17 @@ ax_arr  ax_os_environ(void);    /* 环境变量列表 "KEY=VALUE"，元素为 ax
 int     ax_os_setenv(ax_str name, ax_str value);  /* 设置环境变量 */
 int     ax_os_unsetenv(ax_str name);              /* 删除环境变量 */
 
+/* os 缓存目录 / 页面 / 用户身份 / 可执行文件扩展（对标 Go os.UserCacheDir 等，
+ * Windows 下 uid/gid/getgroups 暂无对应，返回 0 / 空数组；标准 C11 + 平台 API，无 GNU/Clang 扩展） */
+ax_str  ax_os_user_cache_dir(void);    /* 用户缓存目录：Windows LOCALAPPDATA/USERPROFILE，Unix XDG_CACHE_HOME/$HOME/.cache */
+int     ax_os_getpagesize(void);       /* 系统页面大小（字节） */
+int     ax_os_getuid(void);            /* 用户 ID（Windows 返回 0） */
+int     ax_os_getgid(void);            /* 组 ID（Windows 返回 0） */
+int     ax_os_geteuid(void);           /* 有效用户 ID（Windows 返回 0） */
+int     ax_os_getegid(void);           /* 有效组 ID（Windows 返回 0） */
+ax_arr  ax_os_getgroups(void);         /* 用户所属组 ID 列表（Windows 返回空数组） */
+ax_str  ax_os_executable(void);        /* 当前可执行文件路径 */
+
 /* ---------------- rand 模块（对标 Go math/rand）------------ */
 /* 设置随机种子 */
 void    ax_rand_seed(int64_t seed);

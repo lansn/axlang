@@ -1043,42 +1043,42 @@
         {
           "name": "user_cache_dir",
           "signature": "() -> string",
-          "status": "planned"
+          "status": "implemented"
         },
         {
           "name": "getpagesize",
           "signature": "() -> int",
-          "status": "planned"
+          "status": "implemented"
         },
         {
           "name": "getuid",
           "signature": "() -> int",
-          "status": "planned"
+          "status": "implemented"
         },
         {
           "name": "getgid",
           "signature": "() -> int",
-          "status": "planned"
+          "status": "implemented"
         },
         {
           "name": "geteuid",
           "signature": "() -> int",
-          "status": "planned"
+          "status": "implemented"
         },
         {
           "name": "getegid",
           "signature": "() -> int",
-          "status": "planned"
+          "status": "implemented"
         },
         {
           "name": "getgroups",
           "signature": "() -> int[]",
-          "status": "planned"
+          "status": "implemented"
         },
         {
           "name": "executable",
           "signature": "() -> string",
-          "status": "planned"
+          "status": "implemented"
         }
       ]
     },

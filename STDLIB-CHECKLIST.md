@@ -260,19 +260,6 @@
 | `time.round` | `(d: int) -> time` | — |  | ⬜ 计划中 |
 | `time.truncate` | `(d: int) -> time` | — |  | ⬜ 计划中 |
 
-#### os 扩展
-
-| ax.函数 | 签名 | 对标 | 函数功能/用途 | 状态 |
-| ------ | ------ | ------ | ------ | ------ |
-| `os.user_cache_dir` | `() -> string` | — |  | ⬜ 计划中 |
-| `os.getpagesize` | `() -> int` | — |  | ⬜ 计划中 |
-| `os.getuid` | `() -> int` | — |  | ⬜ 计划中 |
-| `os.getgid` | `() -> int` | — |  | ⬜ 计划中 |
-| `os.geteuid` | `() -> int` | — |  | ⬜ 计划中 |
-| `os.getegid` | `() -> int` | — |  | ⬜ 计划中 |
-| `os.getgroups` | `() -> int[]` | — |  | ⬜ 计划中 |
-| `os.executable` | `() -> string` | — |  | ⬜ 计划中 |
-
 #### filepath 扩展
 
 | ax.函数 | 签名 | 对标 | 函数功能/用途 | 状态 |
@@ -317,7 +304,7 @@
 | --- | --- | --- |
 | 已落地模块 | io, json, file, db, decimal, int/float/bool/enum, array, map, range, thread, queue, strconv, rand, slices, maps, unique, bytes, bufio, csv, errors, log, sync, atomic | 共 23 个模块 |
 | 待落地模块 | math, string, time, os, filepath, fmt, sort, reflect | 共 8 个模块 |
-| 已落地函数 | 243 / 272 | — |
+| 已落地函数 | 251 / 272 | — |
 
 
 *更新于 2026-11-24，基于 STDLIB-STATUS.json 自动生成*

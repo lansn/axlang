@@ -282,5 +282,117 @@ int ax_os_unsetenv(ax_str name) {
 #endif
 }
 
+/* ---------------- os 用户缓存目录 / 页面 / 用户身份 / 可执行文件扩展（对标 Go os） ---------------- */
+
+/* 用户缓存目录：Windows 读 LOCALAPPDATA（未设置则 USERPROFILE）；Unix 读 XDG_CACHE_HOME（未设置则 $HOME/.cache） */
+ax_str ax_os_user_cache_dir(void) {
+#if defined(_WIN32)
+    char buf[512];
+    DWORD n = GetEnvironmentVariableA("LOCALAPPDATA", buf, (DWORD)sizeof buf);
+    if (n == 0 || n >= (DWORD)sizeof buf) {
+        return ax_os_getenv(AX_S("USERPROFILE"));
+    }
+    buf[n] = 0;
+    return ax_str_from_cstr(buf);
+#else
+    const char *xdg = getenv("XDG_CACHE_HOME");
+    if (xdg && *xdg) return ax_str_from_cstr(xdg);
+    const char *home = getenv("HOME");
+    if (home && *home) {
+        static char buf[1024];
+        int n = snprintf(buf, (int)sizeof buf, "%s/.cache", home);
+        if (n > 0 && n < (int)sizeof buf) return ax_str_from_cstr(buf);
+    }
+    return ax_str_empty();
+#endif
+}
+
+/* 系统页面大小（字节） */
+int ax_os_getpagesize(void) {
+#if defined(_WIN32)
+    SYSTEM_INFO si;
+    GetSystemInfo(&si);
+    return (int)si.dwPageSize;
+#else
+    return (int)getpagesize();
+#endif
+}
+
+/* 用户 ID（Windows 暂无，返回 0） */
+int ax_os_getuid(void) {
+#if defined(_WIN32)
+    return 0;
+#else
+    return (int)getuid();
+#endif
+}
+
+/* 组 ID（Windows 暂无，返回 0） */
+int ax_os_getgid(void) {
+#if defined(_WIN32)
+    return 0;
+#else
+    return (int)getgid();
+#endif
+}
+
+/* 有效用户 ID（Windows 暂无，返回 0） */
+int ax_os_geteuid(void) {
+#if defined(_WIN32)
+    return 0;
+#else
+    return (int)geteuid();
+#endif
+}
+
+/* 有效组 ID（Windows 暂无，返回 0） */
+int ax_os_getegid(void) {
+#if defined(_WIN32)
+    return 0;
+#else
+    return (int)getegid();
+#endif
+}
+
+/* 用户所属组 ID 列表（Windows 返回空数组） */
+ax_arr ax_os_getgroups(void) {
+    ax_arr arr;
+    ax_arr_init(&arr);
+#if !defined(_WIN32)
+    int ngroups = getgroups(0, NULL);
+    if (ngroups > 0) {
+        gid_t *groups = (gid_t*)malloc((size_t)ngroups * sizeof(gid_t));
+        if (groups) {
+            ngroups = getgroups(ngroups, groups);
+            if (ngroups > 0) {
+                for (int i = 0; i < ngroups; i++) {
+                    int64_t v = (int64_t)groups[i];
+                    ax_arr_push(&arr, &v, (int64_t)sizeof(int64_t));
+                }
+            }
+            free(groups);
+        }
+    }
+#endif
+    return arr;
+}
+
+/* 当前可执行文件路径 */
+ax_str ax_os_executable(void) {
+#if defined(_WIN32)
+    char buf[4096];
+    DWORD n = GetModuleFileNameA(NULL, buf, (DWORD)sizeof buf);
+    if (n == 0 || n >= (DWORD)sizeof buf) return ax_str_empty();
+    buf[n] = 0;
+    return ax_str_from_cstr(buf);
+#else
+    char buf[4096];
+    ssize_t n = readlink("/proc/self/exe", buf, sizeof buf - 1);
+    if (n < 0) return ax_str_empty();
+    buf[n] = 0;
+    return ax_str_from_cstr(buf);
+#endif
+}
+
 /* ---------------- rand 模块（对标 Go math/rand） ---------------- */
 
