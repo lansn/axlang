@@ -92,6 +92,11 @@ pub fn t_range() -> Ty {
 pub fn t_error() -> Ty {
     Rc::new(TyS::Error)
 }
+
+/// bytes 类型：byte[]（uint8_t[]）数组，对标 Go []byte
+pub fn t_bytes() -> Ty {
+    t_array(t_int_b(8, false), None)
+}
 pub fn t_int() -> Ty {
     Rc::new(TyS::Int(64, true))
 }

@@ -710,7 +710,7 @@
 | 已落地模块 | io, math, json, file, db, string, time, decimal, Int/Float/Bool/Enum, Array, Map, Range, thread/queue, os, strconv, filepath, rand, sort, slices | 共 19 个模块 |
 | P0 已落地 | strconv 13 个函数；string 6 个 ctype 判断函数；string.ToUpperRune/ToLowerRune（已落地 2026-11-23） | — |
 | P1 待落地 | — | — |
-| P2 待落地 | — | sort.Slice/SliceStable；unique.*；bytes/bufio；sync/atomic；reflect |
+| P2 待落地 | — | sort.Slice/SliceStable（需闭包，暂不落地）；unique.*；bufio；sync/atomic；reflect |
 | P3 待落地 | — | crypto/*；hash/*；unicode/utf8/utf16；container/*；net/*；template/*；regexp |
 
 

@@ -2011,6 +2011,23 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 };
                 format!("ax_err_as({}, {})", a[0], tgt)
             }
+            /* ---------------- bytes 模块（对标 Go bytes，2026-11-24；P2。bytes 操作 ax_arr，元素为 uint8_t） ---------------- */
+            // bytes.Contains(s, sub) -> bool
+            ("bytes", "Contains") => format!("ax_bytes_contains({}, {})", a[0], a[1]),
+            // bytes.Equal(a, b) -> bool
+            ("bytes", "Equal") => format!("ax_bytes_equal({}, {})", a[0], a[1]),
+            // bytes.Index(s, sub) -> int
+            ("bytes", "Index") => format!("ax_bytes_index({}, {})", a[0], a[1]),
+            // bytes.Split(s, sep) -> bytes[]
+            ("bytes", "Split") => format!("ax_bytes_split({}, {})", a[0], a[1]),
+            // bytes.TrimSpace(s) -> bytes
+            ("bytes", "TrimSpace") => format!("ax_bytes_trim_space({})", a[0]),
+            // bytes.ToUpper(s) -> bytes
+            ("bytes", "ToUpper") => format!("ax_bytes_to_upper({})", a[0]),
+            // bytes.ToLower(s) -> bytes
+            ("bytes", "ToLower") => format!("ax_bytes_to_lower({})", a[0]),
+            // bytes.Repeat(s, count) -> bytes
+            ("bytes", "Repeat") => format!("ax_bytes_repeat({}, {})", a[0], a[1]),
             /* ---------------- strconv 模块 ---------------- */
             ("strconv", "Atoi") => {
                 format!("({{ int64_t v_; ax_parse_i64({}, &v_) ? v_ : 0; }})", a[0])

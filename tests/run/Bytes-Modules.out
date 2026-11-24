@@ -1,0 +1,11 @@
+contains-1=true
+contains-2=false
+equal-1=true
+equal-2=false
+index-1=1
+index-2=-1
+trimspace-len=2
+toupper-len=3
+tolower-len=3
+repeat-len=6
+split-len=3

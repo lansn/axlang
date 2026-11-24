@@ -38,7 +38,7 @@ pub fn is_reserved(name: &str) -> bool {
     is_builtin_scalar(name) || RESERVED_EXTRA.contains(&name)
 }
 
-pub const BUILTIN_MODULES: [&str; 17] = ["db", "file", "fmt", "io", "json", "csv", "errors", "log", "maps", "math", "os", "rand", "sort", "string", "strconv", "time", "filepath"];
+pub const BUILTIN_MODULES: [&str; 18] = ["db", "file", "fmt", "io", "json", "csv", "errors", "log", "maps", "math", "os", "rand", "sort", "string", "strconv", "time", "filepath", "bytes"];
 
 pub fn is_builtin_type_name(name: &str) -> bool {
     is_builtin_scalar(name)
@@ -1639,6 +1639,7 @@ impl<'a> Sema<'a> {
                         "range" => return t_range(),
                         "Arena" => return t_named(DefId::Name("Arena"), Vec::new()),
                         "Rounding" => return t_named(DefId::Name("Rounding"), Vec::new()),
+                        "bytes" => return t_array(t_int_b(8, false), None),
                         "time" => return t_named(DefId::Name("time"), Vec::new()),
                         "thread" => return t_named(DefId::Name("thread"), Vec::new()),
                         "queue" => {

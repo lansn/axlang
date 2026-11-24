@@ -191,6 +191,25 @@ void  ax_arr_clear(ax_arr* a);
 void  ax_arr_from(void* out, const void* src, int64_t n, int64_t esz);
 ax_arr ax_arr_of(const void* src, int64_t n, int64_t esz);
 int   ax_arr_eq(const ax_arr* a, const ax_arr* b, int64_t esz);
+
+/* ---------------- 字节数组（Rt-7，对标 Go bytes，元素为 uint8_t，C 层为 ax_arr） ---------------- */
+/* 判断 s 是否包含子片 sub（按字节比较） */
+int     ax_bytes_contains(ax_arr s, ax_arr sub);
+/* 判断两个字节数组是否相等（长度相同且所有字节相同） */
+int     ax_bytes_equal(ax_arr a, ax_arr b);
+/* 查找子片 sub 在 s 中首次出现的索引，未找到返回 -1 */
+int64_t ax_bytes_index(ax_arr s, ax_arr sub);
+/* 按分隔符 sep 分割 s，返回 ax_arr（元素为 ax_arr，每个元素是一个子片） */
+ax_arr  ax_bytes_split(ax_arr s, ax_arr sep);
+/* 去除 s 首尾的空白字节，返回新数组 */
+ax_arr  ax_bytes_trim_space(ax_arr s);
+/* 将 s 中的 ASCII 小写字母转为大写，返回新数组 */
+ax_arr  ax_bytes_to_upper(ax_arr s);
+/* 将 s 中的 ASCII 大写字母转为小写，返回新数组 */
+ax_arr  ax_bytes_to_lower(ax_arr s);
+/* 将 s 重复 count 次，返回新数组 */
+ax_arr  ax_bytes_repeat(ax_arr s, int64_t count);
+
 /* 字符串分割（对标 Go strings.Fields，按空白符分割，返回 ax_arr，元素为 ax_str） */
 ax_arr ax_str_fields(ax_str s);
 
