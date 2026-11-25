@@ -281,14 +281,14 @@
 | `strconv.unquote` | 标准库 | `(s: string) -> string` | — | — | strconv.Unquote | 解析带引号的字符串字面量，去除转义 | C 标准库无直接对应，Go 对标 strconv.Unquote；处理双引号和反引号字符串 | ✅ 已落地 |
 | `string.compare` | 内建库 | `(a: string, b: string) -> int` | — | strcmp | strings.Compare | 按字典序比较两个字符串（-1/0/1） | 对标 C strcmp，Go strings.Compare | ✅ 已落地 |
 | `string.contains` | 内建库 | `(sub: string) -> bool` | — | strstr | strings.Contains | 判断字符串是否包含子串 | 对标 C strstr，Go strings.Contains | ✅ 已落地 |
-| `string.contains_any` | 内建库 | `(chars: string) -> bool` | — | strpbrk | strings.ContainsAny | 判断字符串是否包含任意给定字符 | 对标 C strpbrk，Go strings.ContainsAny | ⬜ 计划中 |
-| `string.contains_rune` | 内建库 | `(r: int) -> bool` | — | — | strings.ContainsRune | 判断字符串是否包含指定 Unicode 码点 | C 标准库无直接对应，Go 对标 strings.ContainsRune | ⬜ 计划中 |
+| `string.contains_any` | 内建库 | `(chars: string) -> bool` | — | strpbrk | strings.ContainsAny | 判断字符串是否包含任意给定字符 | 对标 C strpbrk，Go strings.ContainsAny | ✅ 已落地 |
+| `string.contains_rune` | 内建库 | `(r: int) -> bool` | — | — | strings.ContainsRune | 判断字符串是否包含指定 Unicode 码点 | C 标准库无直接对应，Go 对标 strings.ContainsRune | ✅ 已落地 |
 | `string.count` | 内建库 | `(substr: string) -> int` | — | — | strings.Count | 统计子串在字符串中出现的次数（非重叠） | C 标准库无直接对应，Go 对标 strings.Count | ✅ 已落地 |
 | `string.ends_with` | 内建库 | `(suffix: string) -> bool` | — | strncmp | strings.HasSuffix | 判断字符串是否以指定后缀结尾 | 对标 C strncmp，Go strings.HasSuffix | ✅ 已落地 |
-| `string.equal_fold` | 内建库 | `(t: string) -> bool` | — | strcasecmp | strings.EqualFold | 忽略大小写比较两个字符串是否相等 | 对标 C strcasecmp，Go strings.EqualFold；UTF-8 忽略大小写比较 | ⬜ 计划中 |
-| `string.fields` | 内建库 | `(s: string) -> string[]` | — | strtok | strings.Fields | 按空白字符分割字符串为字符串切片 | 对标 C strtok，Go strings.Fields；按任意空白符拆分 | ⬜ 计划中 |
-| `string.from_codepoint` | 内建库 | `(cp: int) -> result<string>` | — | — | — | 根据 Unicode 码点创建字符串 | C 标准库无直接对应，Go 亦无标准库函数，需手动 UTF-8 编码 | ⬜ 计划中 |
-| `string.index_any` | 内建库 | `(chars: string) -> int` | — | strpbrk | strings.IndexAny | 返回任意给定字符首次出现的索引 | 对标 C strpbrk，Go strings.IndexAny | ⬜ 计划中 |
+| `string.equal_fold` | 内建库 | `(t: string) -> bool` | — | strcasecmp | strings.EqualFold | 忽略大小写比较两个字符串是否相等 | 对标 C strcasecmp，Go strings.EqualFold；UTF-8 忽略大小写比较 | ✅ 已落地 |
+| `string.fields` | 内建库 | `(s: string) -> string[]` | — | strtok | strings.Fields | 按空白字符分割字符串为字符串切片 | 对标 C strtok，Go strings.Fields；按任意空白符拆分 | ✅ 已落地 |
+| `string.from_codepoint` | 内建库 | `(cp: int) -> result<string>` | — | — | — | 根据 Unicode 码点创建字符串 | C 标准库无直接对应，Go 亦无标准库函数，需手动 UTF-8 编码 | ✅ 已落地 |
+| `string.index_any` | 内建库 | `(chars: string) -> int` | — | strpbrk | strings.IndexAny | 返回任意给定字符首次出现的索引 | 对标 C strpbrk，Go strings.IndexAny | ✅ 已落地 |
 | `string.index_of` | 内建库 | `(sub: string) -> int` | — | strstr | strings.Index | 返回子串首次出现的索引，未找到返回 -1 | 对标 C strstr（需计算偏移），Go strings.Index | ✅ 已落地 |
 | `string.is_alnum` | 内建库 | `() -> bool` | — | isalnum | unicode.IsLetter/IsNumber | 判断字符串是否全部由字母或数字组成 | 对标 C isalnum，Go unicode.IsLetter 或 unicode.IsNumber | ✅ 已落地 |
 | `string.is_alpha` | 内建库 | `() -> bool` | — | isalpha | unicode.IsLetter | 判断字符串是否全部由字母组成 | 对标 C isalpha，Go unicode.IsLetter | ✅ 已落地 |
@@ -296,26 +296,26 @@
 | `string.is_lower` | 内建库 | `() -> bool` | — | islower | unicode.IsLower | 判断字符串是否全部由小写字母组成 | 对标 C islower，Go unicode.IsLower | ✅ 已落地 |
 | `string.is_space` | 内建库 | `() -> bool` | — | isspace | unicode.IsSpace | 判断字符串是否全部由空白字符组成 | 对标 C isspace，Go unicode.IsSpace | ✅ 已落地 |
 | `string.is_upper` | 内建库 | `() -> bool` | — | isupper | unicode.IsUpper | 判断字符串是否全部由大写字母组成 | 对标 C isupper，Go unicode.IsUpper | ✅ 已落地 |
-| `string.last_index_any` | 内建库 | `(chars: string) -> int` | — | — | strings.LastIndexAny | 返回任意给定字符最后一次出现的索引 | C 标准库无直接对应，Go 对标 strings.LastIndexAny | ⬜ 计划中 |
+| `string.last_index_any` | 内建库 | `(chars: string) -> int` | — | — | strings.LastIndexAny | 返回任意给定字符最后一次出现的索引 | C 标准库无直接对应，Go 对标 strings.LastIndexAny | ✅ 已落地 |
 | `string.last_index_of` | 内建库 | `(sub: string) -> int` | — | strrstr（非标准） | strings.LastIndex | 返回子串最后一次出现的索引，未找到返回 -1 | C 标准库无 strrstr，Go 对标 strings.LastIndex | ✅ 已落地 |
-| `string.len` | 内建库 | `() -> int` | — | strlen | len（内置） | 返回字符串的字节长度 | 对标 C strlen，Go 内置 len()；返回 byte 数而非 rune 数 | ⬜ 计划中 |
-| `string.map` | 内建库 | `(mapping: func(int) int) -> string` | — | — | strings.Map | 对字符串每个字符应用映射函数并返回新字符串 | C 标准库无直接对应，Go 对标 strings.Map；axlang 不支持闭包，实际受限 | ⬜ 计划中 |
+| `string.len` | 内建库 | `() -> int` | — | strlen | len（内置） | 返回字符串的字节长度 | 对标 C strlen，Go 内置 len()；返回 byte 数而非 rune 数 | ✅ 已落地 |
+| `string.map` | 内建库 | `(mapping: func(int) int) -> string` | — | — | strings.Map | 对字符串每个字符应用映射函数并返回新字符串 | C 标准库无直接对应，Go 对标 strings.Map；axlang 不支持闭包，实际受限 | ✅ 已落地 |
 | `string.repeat` | 内建库 | `(n: int) -> string` | — | — | strings.Repeat | 将字符串重复 n 次 | C 标准库无直接对应，Go 对标 strings.Repeat | ✅ 已落地 |
 | `string.replace` | 内建库 | `(old: string, new: string) -> string` | — | — | strings.Replace | 将字符串中旧子串替换为新子串 | C 标准库无直接对应，Go 对标 strings.Replace；支持限制替换次数 | ✅ 已落地 |
-| `string.split` | 内建库 | `(sep: string) -> string[]` | — | strtok | strings.Split | 按分隔符分割字符串为字符串切片 | 对标 C strtok，Go strings.Split；分隔符本身不保留 | ⬜ 计划中 |
-| `string.split_after` | 内建库 | `(sep: string) -> string[]` | — | — | strings.SplitAfter | 按分隔符分割，保留分隔符在每段末尾 | C 标准库无直接对应，Go 对标 strings.SplitAfter | ⬜ 计划中 |
-| `string.split_n` | 内建库 | `(sep: string, n: int) -> string[]` | — | — | strings.SplitN | 按分隔符分割为最多 n 个字符串 | C 标准库无直接对应，Go 对标 strings.SplitN | ⬜ 计划中 |
+| `string.split` | 内建库 | `(sep: string) -> string[]` | — | strtok | strings.Split | 按分隔符分割字符串为字符串切片 | 对标 C strtok，Go strings.Split；分隔符本身不保留 | ✅ 已落地 |
+| `string.split_after` | 内建库 | `(sep: string) -> string[]` | — | — | strings.SplitAfter | 按分隔符分割，保留分隔符在每段末尾 | C 标准库无直接对应，Go 对标 strings.SplitAfter | ✅ 已落地 |
+| `string.split_n` | 内建库 | `(sep: string, n: int) -> string[]` | — | — | strings.SplitN | 按分隔符分割为最多 n 个字符串 | C 标准库无直接对应，Go 对标 strings.SplitN | ✅ 已落地 |
 | `string.starts_with` | 内建库 | `(prefix: string) -> bool` | — | strncmp | strings.HasPrefix | 判断字符串是否以指定前缀开头 | 对标 C strncmp，Go strings.HasPrefix | ✅ 已落地 |
-| `string.title` | 内建库 | `() -> string` | — | — | strings.Title | 将字符串转换为标题格式（每个单词首字母大写） | C 标准库无直接对应，Go 对标 strings.Title（Go 1.18+ 已废弃，建议 cases.Title） | ⬜ 计划中 |
+| `string.title` | 内建库 | `() -> string` | — | — | strings.Title | 将字符串转换为标题格式（每个单词首字母大写） | C 标准库无直接对应，Go 对标 strings.Title（Go 1.18+ 已废弃，建议 cases.Title） | ✅ 已落地 |
 | `string.to_lower` | 内建库 | `() -> string` | — | tolower | strings.ToLower | 将字符串转换为小写 | 对标 C tolower（逐字符），Go strings.ToLower；仅 ASCII | ✅ 已落地 |
-| `string.to_lower_rune` | 内建库 | `(r: int) -> int` | — | tolower | unicode.ToLower | 将单个 Unicode 码点转换为小写 | 对标 C tolower，Go unicode.ToLower；返回 int 类型码点 | ⬜ 计划中 |
+| `string.to_lower_rune` | 内建库 | `(r: int) -> int` | — | tolower | unicode.ToLower | 将单个 Unicode 码点转换为小写 | 对标 C tolower，Go unicode.ToLower；返回 int 类型码点 | ✅ 已落地 |
 | `string.to_upper` | 内建库 | `() -> string` | — | toupper | strings.ToUpper | 将字符串转换为大写 | 对标 C toupper（逐字符），Go strings.ToUpper；仅 ASCII | ✅ 已落地 |
-| `string.to_upper_rune` | 内建库 | `(r: int) -> int` | — | toupper | unicode.ToUpper | 将单个 Unicode 码点转换为大写 | 对标 C toupper，Go unicode.ToUpper；返回 int 类型码点 | ⬜ 计划中 |
+| `string.to_upper_rune` | 内建库 | `(r: int) -> int` | — | toupper | unicode.ToUpper | 将单个 Unicode 码点转换为大写 | 对标 C toupper，Go unicode.ToUpper；返回 int 类型码点 | ✅ 已落地 |
 | `string.trim` | 内建库 | `() -> string` | — | — | strings.TrimSpace | 去除字符串首尾空白字符 | C 标准库无直接对应，Go 对标 strings.TrimSpace（仅空白符） | ✅ 已落地 |
-| `string.trim_left` | 内建库 | `(cutset: string) -> string` | — | — | strings.TrimLeft | 去除字符串左侧指定字符集 | C 标准库无直接对应，Go 对标 strings.TrimLeft | ⬜ 计划中 |
-| `string.trim_prefix` | 内建库 | `(prefix: string) -> string` | — | — | strings.TrimPrefix | 去除字符串指定前缀 | C 标准库无直接对应，Go 对标 strings.TrimPrefix | ⬜ 计划中 |
-| `string.trim_right` | 内建库 | `(cutset: string) -> string` | — | — | strings.TrimRight | 去除字符串右侧指定字符集 | C 标准库无直接对应，Go 对标 strings.TrimRight | ⬜ 计划中 |
-| `string.trim_suffix` | 内建库 | `(suffix: string) -> string` | — | — | strings.TrimSuffix | 去除字符串指定后缀 | C 标准库无直接对应，Go 对标 strings.TrimSuffix | ⬜ 计划中 |
+| `string.trim_left` | 内建库 | `(cutset: string) -> string` | — | — | strings.TrimLeft | 去除字符串左侧指定字符集 | C 标准库无直接对应，Go 对标 strings.TrimLeft | ✅ 已落地 |
+| `string.trim_prefix` | 内建库 | `(prefix: string) -> string` | — | — | strings.TrimPrefix | 去除字符串指定前缀 | C 标准库无直接对应，Go 对标 strings.TrimPrefix | ✅ 已落地 |
+| `string.trim_right` | 内建库 | `(cutset: string) -> string` | — | — | strings.TrimRight | 去除字符串右侧指定字符集 | C 标准库无直接对应，Go 对标 strings.TrimRight | ✅ 已落地 |
+| `string.trim_suffix` | 内建库 | `(suffix: string) -> string` | — | — | strings.TrimSuffix | 去除字符串指定后缀 | C 标准库无直接对应，Go 对标 strings.TrimSuffix | ✅ 已落地 |
 | `sync.mutex.lock` | 标准库 | `` | — | pthread_mutex_lock | sync.Mutex.Lock | 加互斥锁，保护共享资源 | 对标 C pthread_mutex_lock，Go sync.Mutex.Lock；sync.mutex 结构体方法 | ✅ 已落地 |
 | `sync.mutex.unlock` | 标准库 | `` | — | pthread_mutex_unlock | sync.Mutex.Unlock | 释放互斥锁 | 对标 C pthread_mutex_unlock，Go sync.Mutex.Unlock；sync.mutex 结构体方法 | ✅ 已落地 |
 | `sync.once.do` | 标准库 | `` | — | pthread_once | sync.Once.Do | 确保函数仅执行一次，用于单例初始化 | 对标 C pthread_once，Go 对标 sync.Once.Do；sync.once 结构体方法 | ✅ 已落地 |
@@ -364,7 +364,7 @@
 | 编译器内建函数（保留） | 131 个 | 长期保留在编译器 Rust 端 |
 | 标准库函数（已迁移） | 170 个 | 已在 axc/std/ 下以 ax 源码实现 |
 | 标准库函数（待迁移） | 0 个 | 计划从编译器内建迁移到 ax_stdlib |
-| 已落地函数 | 266 / 301 | — |
+| 已落地函数 | 285 / 301 | — |
 
 
 *更新于 2026-11-25，基于 STDLIB-STATUS.json 自动生成*

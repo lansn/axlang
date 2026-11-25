@@ -802,7 +802,7 @@
         {
           "name": "from_codepoint",
           "signature": "(cp: int) -> result<string>",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "—",
           "function": "根据 Unicode 码点创建字符串",
@@ -824,7 +824,7 @@
         {
           "name": "fields",
           "signature": "(s: string) -> string[]",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "strtok",
           "go_counterpart": "strings.Fields",
           "function": "按空白字符分割字符串为字符串切片",
@@ -870,7 +870,7 @@
         {
           "name": "contains_any",
           "signature": "(chars: string) -> bool",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "strpbrk",
           "go_counterpart": "strings.ContainsAny",
           "function": "判断字符串是否包含任意给定字符",
@@ -881,7 +881,7 @@
         {
           "name": "contains_rune",
           "signature": "(r: int) -> bool",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "strings.ContainsRune",
           "function": "判断字符串是否包含指定 Unicode 码点",
@@ -914,7 +914,7 @@
         {
           "name": "index_any",
           "signature": "(chars: string) -> int",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "strpbrk",
           "go_counterpart": "strings.IndexAny",
           "function": "返回任意给定字符首次出现的索引",
@@ -936,7 +936,7 @@
         {
           "name": "last_index_any",
           "signature": "(chars: string) -> int",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "strings.LastIndexAny",
           "function": "返回任意给定字符最后一次出现的索引",
@@ -947,7 +947,7 @@
         {
           "name": "split",
           "signature": "(sep: string) -> string[]",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "strtok",
           "go_counterpart": "strings.Split",
           "function": "按分隔符分割字符串为字符串切片",
@@ -969,7 +969,7 @@
         {
           "name": "trim_left",
           "signature": "(cutset: string) -> string",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "strings.TrimLeft",
           "function": "去除字符串左侧指定字符集",
@@ -980,7 +980,7 @@
         {
           "name": "trim_right",
           "signature": "(cutset: string) -> string",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "strings.TrimRight",
           "function": "去除字符串右侧指定字符集",
@@ -991,7 +991,7 @@
         {
           "name": "trim_prefix",
           "signature": "(prefix: string) -> string",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "strings.TrimPrefix",
           "function": "去除字符串指定前缀",
@@ -1002,7 +1002,7 @@
         {
           "name": "trim_suffix",
           "signature": "(suffix: string) -> string",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "strings.TrimSuffix",
           "function": "去除字符串指定后缀",
@@ -1013,7 +1013,7 @@
         {
           "name": "split_n",
           "signature": "(sep: string, n: int) -> string[]",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "strings.SplitN",
           "function": "按分隔符分割为最多 n 个字符串",
@@ -1024,7 +1024,7 @@
         {
           "name": "split_after",
           "signature": "(sep: string) -> string[]",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "strings.SplitAfter",
           "function": "按分隔符分割，保留分隔符在每段末尾",
@@ -1035,7 +1035,7 @@
         {
           "name": "title",
           "signature": "() -> string",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "strings.Title",
           "function": "将字符串转换为标题格式（每个单词首字母大写）",
@@ -1046,7 +1046,7 @@
         {
           "name": "map",
           "signature": "(mapping: func(int) int) -> string",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "strings.Map",
           "function": "对字符串每个字符应用映射函数并返回新字符串",
@@ -1101,7 +1101,7 @@
         {
           "name": "len",
           "signature": "() -> int",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "strlen",
           "go_counterpart": "len（内置）",
           "function": "返回字符串的字节长度",
@@ -1178,7 +1178,7 @@
         {
           "name": "equal_fold",
           "signature": "(t: string) -> bool",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "strcasecmp",
           "go_counterpart": "strings.EqualFold",
           "function": "忽略大小写比较两个字符串是否相等",
@@ -1189,7 +1189,7 @@
         {
           "name": "to_upper_rune",
           "signature": "(r: int) -> int",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "toupper",
           "go_counterpart": "unicode.ToUpper",
           "function": "将单个 Unicode 码点转换为大写",
@@ -1200,7 +1200,7 @@
         {
           "name": "to_lower_rune",
           "signature": "(r: int) -> int",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "tolower",
           "go_counterpart": "unicode.ToLower",
           "function": "将单个 Unicode 码点转换为小写",
