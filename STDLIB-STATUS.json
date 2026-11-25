@@ -807,7 +807,8 @@
           "go_counterpart": "—",
           "function": "根据 Unicode 码点创建字符串",
           "description": "C 标准库无直接对应，Go 亦无标准库函数，需手动 UTF-8 编码",
-          "builtin": true
+          "builtin": true,
+          "builtin_plan": "keep"
         },
         {
           "name": "compare",
@@ -817,7 +818,8 @@
           "go_counterpart": "strings.Compare",
           "function": "按字典序比较两个字符串（-1/0/1）",
           "description": "对标 C strcmp，Go strings.Compare",
-          "builtin": true
+          "builtin": true,
+          "builtin_plan": "keep"
         },
         {
           "name": "fields",
@@ -827,7 +829,8 @@
           "go_counterpart": "strings.Fields",
           "function": "按空白字符分割字符串为字符串切片",
           "description": "对标 C strtok，Go strings.Fields；按任意空白符拆分",
-          "builtin": true
+          "builtin": true,
+          "builtin_plan": "keep"
         }
       ],
       "instance_functions": [
@@ -839,7 +842,8 @@
           "go_counterpart": "strings.ToUpper",
           "function": "将字符串转换为大写",
           "description": "对标 C toupper（逐字符），Go strings.ToUpper；仅 ASCII",
-          "builtin": true
+          "builtin": true,
+          "builtin_plan": "keep"
         },
         {
           "name": "to_lower",
@@ -849,7 +853,8 @@
           "go_counterpart": "strings.ToLower",
           "function": "将字符串转换为小写",
           "description": "对标 C tolower（逐字符），Go strings.ToLower；仅 ASCII",
-          "builtin": true
+          "builtin": true,
+          "builtin_plan": "keep"
         },
         {
           "name": "contains",
@@ -859,7 +864,8 @@
           "go_counterpart": "strings.Contains",
           "function": "判断字符串是否包含子串",
           "description": "对标 C strstr，Go strings.Contains",
-          "builtin": true
+          "builtin": true,
+          "builtin_plan": "keep"
         },
         {
           "name": "contains_any",
@@ -869,7 +875,8 @@
           "go_counterpart": "strings.ContainsAny",
           "function": "判断字符串是否包含任意给定字符",
           "description": "对标 C strpbrk，Go strings.ContainsAny",
-          "builtin": true
+          "builtin": true,
+          "builtin_plan": "keep"
         },
         {
           "name": "contains_rune",
@@ -879,7 +886,8 @@
           "go_counterpart": "strings.ContainsRune",
           "function": "判断字符串是否包含指定 Unicode 码点",
           "description": "C 标准库无直接对应，Go 对标 strings.ContainsRune",
-          "builtin": true
+          "builtin": true,
+          "builtin_plan": "keep"
         },
         {
           "name": "count",
@@ -889,7 +897,8 @@
           "go_counterpart": "strings.Count",
           "function": "统计子串在字符串中出现的次数（非重叠）",
           "description": "C 标准库无直接对应，Go 对标 strings.Count",
-          "builtin": true
+          "builtin": true,
+          "builtin_plan": "keep"
         },
         {
           "name": "index_of",
@@ -899,7 +908,8 @@
           "go_counterpart": "strings.Index",
           "function": "返回子串首次出现的索引，未找到返回 -1",
           "description": "对标 C strstr（需计算偏移），Go strings.Index",
-          "builtin": true
+          "builtin": true,
+          "builtin_plan": "keep"
         },
         {
           "name": "index_any",
@@ -909,7 +919,8 @@
           "go_counterpart": "strings.IndexAny",
           "function": "返回任意给定字符首次出现的索引",
           "description": "对标 C strpbrk，Go strings.IndexAny",
-          "builtin": true
+          "builtin": true,
+          "builtin_plan": "keep"
         },
         {
           "name": "last_index_of",
@@ -919,7 +930,8 @@
           "go_counterpart": "strings.LastIndex",
           "function": "返回子串最后一次出现的索引，未找到返回 -1",
           "description": "C 标准库无 strrstr，Go 对标 strings.LastIndex",
-          "builtin": true
+          "builtin": true,
+          "builtin_plan": "keep"
         },
         {
           "name": "last_index_any",
@@ -929,7 +941,8 @@
           "go_counterpart": "strings.LastIndexAny",
           "function": "返回任意给定字符最后一次出现的索引",
           "description": "C 标准库无直接对应，Go 对标 strings.LastIndexAny",
-          "builtin": true
+          "builtin": true,
+          "builtin_plan": "keep"
         },
         {
           "name": "split",
@@ -939,7 +952,8 @@
           "go_counterpart": "strings.Split",
           "function": "按分隔符分割字符串为字符串切片",
           "description": "对标 C strtok，Go strings.Split；分隔符本身不保留",
-          "builtin": true
+          "builtin": true,
+          "builtin_plan": "keep"
         },
         {
           "name": "trim",
@@ -949,7 +963,8 @@
           "go_counterpart": "strings.TrimSpace",
           "function": "去除字符串首尾空白字符",
           "description": "C 标准库无直接对应，Go 对标 strings.TrimSpace（仅空白符）",
-          "builtin": true
+          "builtin": true,
+          "builtin_plan": "keep"
         },
         {
           "name": "trim_left",
@@ -959,7 +974,8 @@
           "go_counterpart": "strings.TrimLeft",
           "function": "去除字符串左侧指定字符集",
           "description": "C 标准库无直接对应，Go 对标 strings.TrimLeft",
-          "builtin": true
+          "builtin": true,
+          "builtin_plan": "keep"
         },
         {
           "name": "trim_right",
@@ -969,7 +985,8 @@
           "go_counterpart": "strings.TrimRight",
           "function": "去除字符串右侧指定字符集",
           "description": "C 标准库无直接对应，Go 对标 strings.TrimRight",
-          "builtin": true
+          "builtin": true,
+          "builtin_plan": "keep"
         },
         {
           "name": "trim_prefix",
@@ -979,7 +996,8 @@
           "go_counterpart": "strings.TrimPrefix",
           "function": "去除字符串指定前缀",
           "description": "C 标准库无直接对应，Go 对标 strings.TrimPrefix",
-          "builtin": true
+          "builtin": true,
+          "builtin_plan": "keep"
         },
         {
           "name": "trim_suffix",
@@ -989,7 +1007,8 @@
           "go_counterpart": "strings.TrimSuffix",
           "function": "去除字符串指定后缀",
           "description": "C 标准库无直接对应，Go 对标 strings.TrimSuffix",
-          "builtin": true
+          "builtin": true,
+          "builtin_plan": "keep"
         },
         {
           "name": "split_n",
@@ -999,7 +1018,8 @@
           "go_counterpart": "strings.SplitN",
           "function": "按分隔符分割为最多 n 个字符串",
           "description": "C 标准库无直接对应，Go 对标 strings.SplitN",
-          "builtin": true
+          "builtin": true,
+          "builtin_plan": "keep"
         },
         {
           "name": "split_after",
@@ -1009,7 +1029,8 @@
           "go_counterpart": "strings.SplitAfter",
           "function": "按分隔符分割，保留分隔符在每段末尾",
           "description": "C 标准库无直接对应，Go 对标 strings.SplitAfter",
-          "builtin": true
+          "builtin": true,
+          "builtin_plan": "keep"
         },
         {
           "name": "title",
@@ -1019,7 +1040,8 @@
           "go_counterpart": "strings.Title",
           "function": "将字符串转换为标题格式（每个单词首字母大写）",
           "description": "C 标准库无直接对应，Go 对标 strings.Title（Go 1.18+ 已废弃，建议 cases.Title）",
-          "builtin": true
+          "builtin": true,
+          "builtin_plan": "keep"
         },
         {
           "name": "map",
@@ -1029,7 +1051,8 @@
           "go_counterpart": "strings.Map",
           "function": "对字符串每个字符应用映射函数并返回新字符串",
           "description": "C 标准库无直接对应，Go 对标 strings.Map；axlang 不支持闭包，实际受限",
-          "builtin": true
+          "builtin": true,
+          "builtin_plan": "keep"
         },
         {
           "name": "replace",
@@ -1039,7 +1062,8 @@
           "go_counterpart": "strings.Replace",
           "function": "将字符串中旧子串替换为新子串",
           "description": "C 标准库无直接对应，Go 对标 strings.Replace；支持限制替换次数",
-          "builtin": true
+          "builtin": true,
+          "builtin_plan": "keep"
         },
         {
           "name": "repeat",
@@ -1049,7 +1073,8 @@
           "go_counterpart": "strings.Repeat",
           "function": "将字符串重复 n 次",
           "description": "C 标准库无直接对应，Go 对标 strings.Repeat",
-          "builtin": true
+          "builtin": true,
+          "builtin_plan": "keep"
         },
         {
           "name": "starts_with",
@@ -1059,7 +1084,8 @@
           "go_counterpart": "strings.HasPrefix",
           "function": "判断字符串是否以指定前缀开头",
           "description": "对标 C strncmp，Go strings.HasPrefix",
-          "builtin": true
+          "builtin": true,
+          "builtin_plan": "keep"
         },
         {
           "name": "ends_with",
@@ -1069,7 +1095,8 @@
           "go_counterpart": "strings.HasSuffix",
           "function": "判断字符串是否以指定后缀结尾",
           "description": "对标 C strncmp，Go strings.HasSuffix",
-          "builtin": true
+          "builtin": true,
+          "builtin_plan": "keep"
         },
         {
           "name": "len",
@@ -1079,7 +1106,8 @@
           "go_counterpart": "len（内置）",
           "function": "返回字符串的字节长度",
           "description": "对标 C strlen，Go 内置 len()；返回 byte 数而非 rune 数",
-          "builtin": true
+          "builtin": true,
+          "builtin_plan": "keep"
         },
         {
           "name": "is_digit",
@@ -1089,7 +1117,8 @@
           "go_counterpart": "unicode.IsDigit",
           "function": "判断字符串是否全部由数字组成",
           "description": "对标 C isdigit，Go unicode.IsDigit（逐字符判断）",
-          "builtin": true
+          "builtin": true,
+          "builtin_plan": "keep"
         },
         {
           "name": "is_alpha",
@@ -1099,7 +1128,8 @@
           "go_counterpart": "unicode.IsLetter",
           "function": "判断字符串是否全部由字母组成",
           "description": "对标 C isalpha，Go unicode.IsLetter",
-          "builtin": true
+          "builtin": true,
+          "builtin_plan": "keep"
         },
         {
           "name": "is_space",
@@ -1109,7 +1139,8 @@
           "go_counterpart": "unicode.IsSpace",
           "function": "判断字符串是否全部由空白字符组成",
           "description": "对标 C isspace，Go unicode.IsSpace",
-          "builtin": true
+          "builtin": true,
+          "builtin_plan": "keep"
         },
         {
           "name": "is_lower",
@@ -1119,7 +1150,8 @@
           "go_counterpart": "unicode.IsLower",
           "function": "判断字符串是否全部由小写字母组成",
           "description": "对标 C islower，Go unicode.IsLower",
-          "builtin": true
+          "builtin": true,
+          "builtin_plan": "keep"
         },
         {
           "name": "is_upper",
@@ -1129,7 +1161,8 @@
           "go_counterpart": "unicode.IsUpper",
           "function": "判断字符串是否全部由大写字母组成",
           "description": "对标 C isupper，Go unicode.IsUpper",
-          "builtin": true
+          "builtin": true,
+          "builtin_plan": "keep"
         },
         {
           "name": "is_alnum",
@@ -1139,7 +1172,8 @@
           "go_counterpart": "unicode.IsLetter/IsNumber",
           "function": "判断字符串是否全部由字母或数字组成",
           "description": "对标 C isalnum，Go unicode.IsLetter 或 unicode.IsNumber",
-          "builtin": true
+          "builtin": true,
+          "builtin_plan": "keep"
         },
         {
           "name": "equal_fold",
@@ -1149,7 +1183,8 @@
           "go_counterpart": "strings.EqualFold",
           "function": "忽略大小写比较两个字符串是否相等",
           "description": "对标 C strcasecmp，Go strings.EqualFold；UTF-8 忽略大小写比较",
-          "builtin": true
+          "builtin": true,
+          "builtin_plan": "keep"
         },
         {
           "name": "to_upper_rune",
@@ -1159,7 +1194,8 @@
           "go_counterpart": "unicode.ToUpper",
           "function": "将单个 Unicode 码点转换为大写",
           "description": "对标 C toupper，Go unicode.ToUpper；返回 int 类型码点",
-          "builtin": true
+          "builtin": true,
+          "builtin_plan": "keep"
         },
         {
           "name": "to_lower_rune",
@@ -1169,7 +1205,8 @@
           "go_counterpart": "unicode.ToLower",
           "function": "将单个 Unicode 码点转换为小写",
           "description": "对标 C tolower，Go unicode.ToLower；返回 int 类型码点",
-          "builtin": true
+          "builtin": true,
+          "builtin_plan": "keep"
         }
       ]
     },
