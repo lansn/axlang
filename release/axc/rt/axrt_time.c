@@ -41,6 +41,11 @@ int64_t ax_time_from_unix_ms(int64_t ms) {
     return ms;
 }
 
+/* time.Now：当前 Unix 毫秒（time 类型，与 ax_now_ms 同值） */
+int64_t ax_time_now(void) {
+    return ax_now_ms();
+}
+
 /* time.UnixMicro：微秒 -> Unix 毫秒 */
 int64_t ax_time_from_unix_us(int64_t us) {
     return us / 1000;
@@ -169,3 +174,17 @@ int64_t ax_time_truncate(int64_t t, int64_t d) {
     return (t / d) * d;
 }
 
+/* time.Now：当前 Unix 毫秒（time 类型） */
+int64_t ax_now_ms(void) {
+#ifdef _WIN32
+    FILETIME ft;
+    GetSystemTimeAsFileTime(&ft);
+    /* 1601-01-01 → 1970-01-01：11644473600 秒 */
+    int64_t t = ((int64_t)ft.dwHighDateTime << 32) | (int64_t)ft.dwLowDateTime;
+    return t / 10000 - 11644473600000LL;
+#else
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return (int64_t)tv.tv_sec * 1000 + tv.tv_usec / 1000;
+#endif
+}

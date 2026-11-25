@@ -755,33 +755,6 @@ double ax_fdiv(double a, double b, const char* f, int l, int c) {
     return r;
 }
 
-/* ================================================================ error */
-
-/* ================================================================ error */
-ax_err ax_err_new(int32_t code, ax_str msg) {
-    ax_err e; e.code = code; e.msg = msg; return e;
-}
-
-/* errors.Is(err, target)：对标 Go errors.Is。
- * axlang error 是扁平值（code+msg），无错误链，故判定两 error 相等即为 Is。 */
-
-/* errors.Is(err, target)：对标 Go errors.Is。
- * axlang error 是扁平值（code+msg），无错误链，故判定两 error 相等即为 Is。 */
-int ax_err_is(ax_err err, ax_err target) {
-    if (err.code != target.code) return 0;
-    return ax_str_eq(err.msg, target.msg);
-}
-
-/* errors.As(err, target)：对标 Go errors.As。
- * 将 err 复制到 target，返回 1。target 必须是 error 类型左值（由 codegen 保证）。 */
-
-/* errors.As(err, target)：对标 Go errors.As。
- * 将 err 复制到 target，返回 1。target 必须是 error 类型左值（由 codegen 保证）。 */
-int ax_err_as(ax_err err, ax_err* target) {
-    *target = err;
-    return 1;
-}
-
 /* ================================================================ 标准库 */
 
 /* 数组原地反转，对标 Go slices.Reverse。data 指向 ax_arr.data，len 为元素个数，esz 为元素字节大小。 */

@@ -3,76 +3,6 @@
 #include "axrt_internal.h"
 
 
-/* ================================================================ 标准库 */
-ax_row ax_db_query(ax_str sql, ax_str arg) {
-    (void)sql;
-    ax_row r; r.kv = NULL; r.n = 0;
-    const char* fx = getenv("AX_DB_FIXTURE");
-    if (!fx) return r;
-    ax_str s = ax_env_utf8("AX_DB_FIXTURE");
-    int64_t n = 0;
-    ax_str* parts = ax_str_split(s, ax_str_from_cstr(","), &n);
-    if (n == 0) return r;
-    /* id 必须匹配 arg；没有 id 字段时视为匹配 */
-    int found_id = 0, matched = 0;
-    for (int64_t i = 0; i < n; i++) {
-        ax_str p = parts[i];
-        int64_t eq = -1;
-        for (int64_t k = 0; k < p.len; k++) if (p.p[k] == '=') { eq = k; break; }
-        if (eq < 0) continue;
-        ax_str key = ax_str_from_bytes(p.p, eq);
-        ax_str val = ax_str_from_bytes(p.p + eq + 1, p.len - eq - 1);
-        if (ax_str_eq(key, ax_str_from_cstr("id"))) {
-            found_id = 1;
-            if (ax_str_eq(val, arg)) matched = 1;
-        }
-    }
-    if (found_id && !matched) return r;
-    r.kv = (ax_str*)ax_alloc((int64_t)sizeof(ax_str) * 2 * n);
-    r.n = n;
-    for (int64_t i = 0; i < n; i++) {
-        ax_str p = parts[i];
-        int64_t eq = -1;
-        for (int64_t k = 0; k < p.len; k++) if (p.p[k] == '=') { eq = k; break; }
-        if (eq < 0) { r.kv[i*2] = p; r.kv[i*2+1] = ax_str_empty(); continue; }
-        r.kv[i*2] = ax_str_from_bytes(p.p, eq);
-        r.kv[i*2+1] = ax_str_from_bytes(p.p + eq + 1, p.len - eq - 1);
-    }
-    return r;
-}
-
-/* db.query(...) 的 result<Row> 形态（§11.3 / RUN-1）。
-   夹具来自环境变量 AX_DB_FIXTURE，形如 "id=1001,name=柴犬粮,price=19.99,stock=10"；
-   命中的行照原样返回，未命中返回 NotFound。 */
-ax_res_row ax_db_query_result(ax_str sql, int64_t arg) {
-    ax_res_row r;
-    memset(&r, 0, sizeof r);
-    if (!getenv("AX_DB_FIXTURE")) {
-        r.tag = 0;
-        r.u.err = ax_err_new(1, AX_S("no db fixture (set AX_DB_FIXTURE)"));
-        return r;
-    }
-    char buf[32];
-    snprintf(buf, sizeof buf, "%" PRId64, (int64_t)arg);
-    ax_str a = ax_str_from_cstr(buf);
-    /* 未命中返回空行（tag=1,n=0）：调用方的 row.empty() 才是"查无此记录"的出口，
-       与 §16.10 RUN-3 一致。 */
-    r.tag = 1;
-    r.u.ok = ax_db_query(sql, a);
-    return r;
-}
-
-
-int ax_row_empty(ax_row r) { return r.n == 0; }
-
-
-ax_str ax_row_get(ax_row r, ax_str key) {
-    for (int64_t i = 0; i < r.n; i++) {
-        if (ax_str_eq(r.kv[i*2], key)) return r.kv[i*2+1];
-    }
-    return ax_str_empty();
-}
-
 /* ================================================================ json（文稿 11.3）
  * 手写递归下降解析器。值域映射：
  *   object → ax_map（string → ax_box*）      array → ax_arr（元素 ax_box*）
@@ -534,17 +464,4 @@ int ax_json_valid(ax_str s) {
     return jjson_valid((const char*)s.p, s.len);
 }
 
-int64_t ax_now_ms(void) {
-#ifdef _WIN32
-    FILETIME ft;
-    GetSystemTimeAsFileTime(&ft);
-    /* 1601-01-01 → 1970-01-01：11644473600 秒 */
-    int64_t t = ((int64_t)ft.dwHighDateTime << 32) | (int64_t)ft.dwLowDateTime;
-    return t / 10000 - 11644473600000LL;
-#else
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    return (int64_t)tv.tv_sec * 1000 + tv.tv_usec / 1000;
-#endif
-}
 
