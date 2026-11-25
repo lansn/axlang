@@ -9,13 +9,13 @@
 
 extern "C" {
     int ax_rand_int(int n);
-    float ax_rand_float(void);
+    float ax_rand_float();
     void ax_rand_seed(int seed);
 }
 
 // ---------- 模块级函数（C 风格命名：小写 + 下划线） ----------
 
-public int int(n: int) {
+public int int(int n) {
     unsafe {
         return ax_rand_int(n)
     }
@@ -27,7 +27,7 @@ public float float() {
     }
 }
 
-public void seed(seed: int) {
+public void seed(int seed) {
     unsafe {
         ax_rand_seed(seed)
     }

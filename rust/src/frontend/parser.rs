@@ -393,6 +393,23 @@ impl<'a> Parser<'a> {
                 Ok(None) => return Ok(vec![]),
                 Err(e) => return Err(e),
             };
+            // 模块级变量声明：小写名→E3024（模块级不能声明变量）；
+            // 大写名→E3030（模块内符号默认私有，需显式 public 导出）
+            if let Stmt::VarDecl { name, .. } = &st.k {
+                let first = name.chars().next();
+                if first.map_or(false, |c| c.is_ascii_uppercase()) {
+                    self.err("E3030", Some(&st.tok), "文稿 9.1",
+                        "模块 `{0}` 没有公开符号 `{1}`（文件内符号默认私有，导出需写 `public`）",
+                        &[name, &""]);
+                    self.sync();
+                    return Ok(vec![]);
+                }
+                self.err("E3024", Some(&st.tok), "文稿 9.4",
+                    "模块级不能声明变量（只能 const）；入口文件的顶层语句会被包成 main，不能带可见性修饰词",
+                    &[]);
+                self.sync();
+                return Ok(vec![]);
+            }
             self.top_stmts.push(st);
             self.nl();
             return Ok(vec![]);
@@ -826,16 +843,18 @@ impl<'a> Parser<'a> {
         }
         let ty = self.parse_type()?;
         let name = self.expect_ident("成员名")?;
-        // 类成员不写可见性修饰词时默认 private，如需对外暴露必须显式写 public
-        if vis.is_none() {
-            vis = Some("private".to_string());
-        }
+        // 类成员不写可见性修饰词时 vis 保持 None，由 sema 阶段报 E3037；
+        // codegen 中该字段被忽略（字段访问可见性由 check_field_vis 统一处理）。
         if self.at("(") {
             let params = self.parse_params()?;
             self.nl();
             let body = if is_abstract {
-                // 抽象方法无方法体，直接以 `;` 结束
-                self.expect(";", None)?;
+                // 抽象方法无方法体，以 `;`、`}` 或换行结束（接口/抽象类方法）
+                if self.at(";") {
+                    self.advance();
+                } else if !self.at("}") {
+                    self.nl();
+                }
                 Block { tok: name.clone(), stmts: Vec::new() }
             } else {
                 self.parse_block()?
@@ -1293,7 +1312,11 @@ impl<'a> Parser<'a> {
                     stmts.push(Box::new(s));
                     self.expect_term();
                 }
-                Ok(None) => self.expect_term(),
+                Ok(None) => {
+                    // 语句被同步跳过（如不支持的 switch 已报 E2010 并跳过整个块），
+                    // 不再 expect_term，避免把下一条语句的起始 token 误报为 E2002。
+                    self.nl();
+                }
                 Err(e) => {
                     self.report(&e);
                     self.sync();
@@ -1310,6 +1333,34 @@ impl<'a> Parser<'a> {
     fn parse_stmt(&mut self) -> PResult<Option<N<Stmt>>> {
         let t = self.tok(0).clone();
         let k = t.kind.clone();
+        // G-21：switch 是保留字但未实现，应报 E2010
+        if k == "switch" || (k == "IDENT" && t.text() == "switch") {
+            let tk = self.tok(0).clone();
+            self.err("E2010", Some(&tk), "文稿 11.1", "不支持 `switch` 语句，请使用 `match`", &[]);
+            self.advance(); // 吃掉 switch
+            // 跳过 switch 语句的剩余部分（包括 {} 块），直到匹配的 } 或行尾/EOF
+            let mut depth = 0usize;
+            while !self.at("EOF") {
+                let kk = self.tok(0).kind.clone();
+                if kk == "{" || kk == "(" || kk == "[" {
+                    depth += 1;
+                    self.advance();
+                } else if kk == "}" || kk == ")" || kk == "]" {
+                    if depth == 0 {
+                        self.advance(); // 吃掉不匹配的右括号
+                        break;
+                    }
+                    depth -= 1;
+                    self.advance();
+                } else if kk == "NL" && depth == 0 {
+                    self.advance();
+                    break;
+                } else {
+                    self.advance();
+                }
+            }
+            return Ok(None);
+        }
         if k == "{" {
             let b = self.parse_block()?;
             return Ok(Some(self.nn(t, Stmt::Block(b))));
@@ -1477,6 +1528,14 @@ impl<'a> Parser<'a> {
             let op = self.advance().kind.clone();
             self.nl();
             let rhs = self.parse_expr()?;
+            // G-19：链式赋值 a = b = c，a = (b = c) 中 b = c 用作表达式，应报 E4001
+            if self.at("=") || self.at("+=") || self.at("-=") || self.at("*=") || self.at("/=") || self.at("%=") {
+                let tk = self.tok(0).clone();
+                self.err("E4001", Some(&tk), "文稿 3.3", "赋值不能作为表达式（不支持链式赋值 `a = b = c`）", &[]);
+                self.advance();
+                self.nl();
+                let _ = self.parse_expr();
+            }
             return Ok(Some(self.nn(
                 t,
                 Stmt::Simple { lhs, op: Some(op), rhs: Some(rhs), incdec: None },
@@ -1530,6 +1589,16 @@ impl<'a> Parser<'a> {
         let t = self.expect("if", None)?;
         self.nl();
         let cond = self.parse_expr()?;
+        self.nl();
+        // G-18：if 条件中不能出现赋值表达式（if a = b），应报 E4001 而非 E2004
+        if self.at("=") || self.at("+=") || self.at("-=") || self.at("*=") || self.at("/=") || self.at("%=") {
+            let tk = self.tok(0).clone();
+            self.err("E4001", Some(&tk), "文稿 3.3", "赋值不能作为表达式（if 条件中不能写 `a = b`，请改为 `a == b`）", &[]);
+            // 跳过赋值右侧表达式，直到 { 或 行尾，避免后续 parse_branch 误报 E2004
+            while !self.at("{") && !self.at("NL") && !self.at("EOF") {
+                self.advance();
+            }
+        }
         self.nl();
         let then_ = self.parse_branch("if 的分支体")?;
         let mut els = None;
@@ -2028,7 +2097,12 @@ impl<'a> Parser<'a> {
         let mut e = self.parse_primary()?;
         loop {
             if self.at(".") {
-                if !self.tok(1).is("IDENT") {
+                let next = &self.tok(1);
+                // 成员名可为标识符，也可为关键字（如 errors.new() 中的 new）；
+                // 排除标点/运算符（如 .( .) .} 等），避免把非成员访问误解析。
+                let is_word = next.is("IDENT")
+                    || next.kind.chars().next().map_or(false, |c| c.is_alphabetic());
+                if !is_word {
                     break;
                 }
                 self.advance();

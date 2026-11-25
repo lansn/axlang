@@ -1,0 +1,25 @@
+// 验证 std.filepath 新落地函数（join/dir/base/ext/split/clean/abs/is_abs）
+import std.filepath
+
+int main() {
+    var j = std.filepath.join(["a", "b", "c"])
+    println("join={j}")
+    var d = std.filepath.dir("a/b/c.txt")
+    println("dir={d}")
+    var b = std.filepath.base("a/b/c.txt")
+    println("base={b}")
+    var e = std.filepath.ext("a/b/c.txt")
+    println("ext={e}")
+    var sp = std.filepath.split("a/b/c.txt")
+    var s0 = sp[0]
+    var s1 = sp[1]
+    println("split0={s0}")
+    println("split1={s1}")
+    var c = std.filepath.clean("a/./b/../c")
+    println("clean={c}")
+    var a = std.filepath.abs("a/b.txt")
+    println("abs={a}")
+    var ia = std.filepath.is_abs("/a/b")
+    println("is_abs={ia}")
+    return 0
+}

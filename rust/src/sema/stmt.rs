@@ -40,7 +40,7 @@ impl<'a> Sema<'a> {
             for name in names {
                 if let Some(v) = s.borrow().names.get(&name) {
                     let vi = v.borrow();
-                    if vi.is_param || vi.is_const || vi.is_used {
+                    if vi.is_param || vi.is_const || vi.is_used || vi.name.starts_with('_') {
                         continue;
                     }
                     unused.push((vi.name.clone(), vi.decl_line));

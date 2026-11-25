@@ -12,7 +12,7 @@ int main() {
     var t = thread(producer, q)
     t.Join()
     int count = 0
-    for i in 0..20 {
+    for _i in 0..20 {
         int? v = q.Pop()
         if v == null {
             break

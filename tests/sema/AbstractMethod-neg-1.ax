@@ -1,4 +1,4 @@
-// EXPECT: E3048
+// EXPECT: E4001
 class Bad {
     public abstract void Foo();
 }

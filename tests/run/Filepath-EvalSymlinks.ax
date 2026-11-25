@@ -1,0 +1,8 @@
+// filepath：EvalSymlinks（对标 Go filepath.EvalSymlinks，C realpath）
+import filepath
+
+int main() {
+    string p = filepath.eval_symlinks("tests/run/__ft__/alpha.txt")
+    println("eval={p}")
+    return 0
+}

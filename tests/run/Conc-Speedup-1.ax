@@ -23,7 +23,7 @@ void sum_part(queue<int> q) {
 int main() {
     // ---------- 单线程基准：顺序求和 4 个 250 万元素数组 ----------
     int sum_single = 0
-    for j in 0..4 {
+    for _j in 0..4 {
         int[] xs = [0]
         for i in 1..PART {
             xs.Push(i)

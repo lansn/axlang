@@ -172,6 +172,9 @@ pub fn module_sig(mod_: &str, name: &str) -> Option<(Vec<Option<Ty>>, Ty)> {
         ("filepath", "clean") => (vec![Some(t_string())], t_string()),
         ("filepath", "abs") => (vec![Some(t_string())], t_string()),
         ("filepath", "is_abs") => (vec![Some(t_string())], t_bool()),
+        ("filepath", "eval_symlinks") => (vec![Some(t_string())], t_string()),
+        ("filepath", "glob") => (vec![Some(t_string())], t_array(t_string(), None)),
+        ("filepath", "walk") => (vec![Some(t_string())], t_array(t_string(), None)),
         _ => return None,
     })
 }
@@ -275,14 +278,8 @@ impl<'a> Sema<'a> {
                     .unwrap_or(false);
                 if in_static {
                     self.err("E3038", &e.tok, "N-21", "静态方法体内没有 `this`（静态方法不属于任何对象）\n  = 访问实例成员请改为实例方法，或通过参数把实例传进来", &[]);
-                    // 仍返回本类类型，避免下游级联报错（一处误用恰好一条诊断）
-                    let gs = self.typedefs[cc as usize].generics.clone();
-                    return t_named(
-                        DefId::Id(cc),
-                        gs.iter()
-                            .map(|(g, _)| Rc::new(TyS::Param(g.clone())) as Ty)
-                            .collect(),
-                    );
+                    // 返回 object 类型，避免下游对本类字段的查找再触发 E3003（一处误用恰好一条诊断）
+                    return t_object();
                 }
                 let gs = self.typedefs[cc as usize].generics.clone();
                 t_named(
@@ -653,6 +650,13 @@ impl<'a> Sema<'a> {
         if op == "&" {
             // &x：x 必须是 place（变量、字段、元素），否则 E7007
             let t = self.check_expr(operand, None);
+            // E7009 前置于 E7007：const 不能可变借用
+            if let Some(res) = self.res_of(operand.id) {
+                if matches!(res, Res::Const(_)) {
+                    self.err("E7009", &e.tok, "O-16", "`const` 不能可变借用，应写 `&const`", &[]);
+                    return t;
+                }
+            }
             if !self.is_place(operand) {
                 self.err("E7007", &e.tok, "O-8", "`&` 只能作用于可写位置（变量、字段、元素）", &[]);
             } else {
@@ -2389,6 +2393,7 @@ impl<'a> Sema<'a> {
             }
             Some(p) => p,
         };
+        let has_ctor = self.typedefs[pd as usize].ctors.get("constructor").is_some();
         let params: Vec<(String, Ty, Option<String>)> = match self.typedefs[pd as usize].ctors.get("constructor").copied() {
             Some(c) => self.funcs[c].params.clone(),
             None => Vec::new(),
@@ -2396,7 +2401,9 @@ impl<'a> Sema<'a> {
         let ptypes: Vec<Ty> = params.iter().map(|p| p.1.clone()).collect();
         let borrows: Vec<Option<String>> = params.iter().map(|p| p.2.clone()).collect();
         self.check_call_args(args, Some(&ptypes), Some(&borrows), e.id);
-        if args.len() != params.len() {
+        // 只有父类有 constructor 时才校验实参个数；无 constructor 时 parent() 本身不应被调用，
+        // 由上层检查（如 E3017 override 缺失）负责报错，避免级联 E4031。
+        if has_ctor && args.len() != params.len() {
             self.err("E4031", &e.tok, "文稿 6.2", "`parent(...)` 需要 {0} 个实参，得到 {1}", &[&params.len(), &args.len()]);
         }
         let s = self.sl(e.id);

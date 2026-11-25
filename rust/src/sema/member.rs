@@ -5,7 +5,7 @@
 use crate::frontend::ast;
 use crate::frontend::ast::Expr;
 use crate::sema::{const_binop, py_repr, ConstVal, ExportSym, Res, Sema};
-use crate::sema::expr::module_sig;
+use crate::sema::expr::{module_sig, pascal_member};
 use crate::types::*;
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
@@ -280,10 +280,10 @@ impl<'a> Sema<'a> {
             if fn_ != name {
                 continue;
             }
-            if vis == "public" {
+            if vis.as_deref() == Some("public") {
                 return;
             }
-            if vis == "protected" {
+            if vis.as_deref() == Some("protected") {
                 let ok = self
                     .cur_class
                     .map_or(false, |c| c == owner || self.is_subclass(c, owner));
@@ -641,7 +641,7 @@ impl<'a> Sema<'a> {
         }
         let s = self.sl(e.id);
         s.mkind = Some("builtin_instance");
-        s.bname = Some(format!("{}.{}", name, mname));
+        s.bname = Some(format!("{}.{}", name.to_ascii_lowercase(), mname));
         ret
     }
 
@@ -875,7 +875,12 @@ impl<'a> Sema<'a> {
                 }
                 return t_object();
             }
-            Some(s) => s,
+            Some(s) => {
+                // 模块成员命名遵循 module_sig 注册的实际名字（内建模块如 file 使用小写下划线名，
+                // std 模块使用 .ax 文件中定义的名字）。不再强制 PascalCase，避免与 module_sig
+                // 的实际注册名冲突。
+                s
+            }
         };
         let (ptypes, ret) = sig;
         // 实参个数校验：必选实参（签名中 Some(...) 的项）不足时报 E4031；
@@ -1857,8 +1862,11 @@ impl<'a> Sema<'a> {
             Some(t) => t,
             None => return None,
         };
+        // 用户调用小写（如 to_string / after），intrinsic 表用 PascalCase（ToString / After）。
+        // 先尝试精确匹配，再尝试把用户名转 PascalCase 后匹配。
+        let pascal = pascal_member(&name);
         let sig = table.into_iter()
-            .find(|(n, ptypes, _)| *n == name && ptypes.len() == args.len());
+            .find(|(n, ptypes, _)| (*n == name || *n == pascal) && ptypes.len() == args.len());
         let (_, ptypes, ret) = match sig {
             Some(s) => s,
             None => return None,

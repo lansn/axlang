@@ -5,7 +5,7 @@
 
 use crate::frontend::ast::{self, Expr, Pat, SPart, Stmt};
 use crate::backend::{cstr, san, tag_of, AX_FAIL, AX_OK};
-use crate::sema::ConstVal;
+use crate::sema::{ConstVal, pascal_member};
 use crate::types::*;
 
 use super::codegen_fn::{BinInfo, FnGen};
@@ -344,7 +344,27 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
         // 单段名：优先作为局部变量/参数解析，返回 C 层名称（v_x / p_x）。
         // var_c 已按是否为参数返回 pv_x / lv_x，直接使用 base 即可。
         if segs.len() == 1 {
-            let (base, _) = self.var_c(e);
+            // 函数引用（如 thread(producer, q1) 中的 producer）：直接返回函数名，无 v_ 前缀
+            if let Some(crate::sema::Res::Func(fid)) = self.res_of(e.id) {
+                return self.cg.fn_name_idx(fid);
+            }
+            // 模块级常量（如 const PART = ...）：直接内联常量值
+            if let Some(crate::sema::Res::Const(c)) = self.res_of(e.id) {
+                let value = c.value.borrow().clone();
+                let ty = c.ty.borrow().clone();
+                return match value {
+                    Some(v) => self.cg.const_c(&v, &ty),
+                    None => "0".to_string(),
+                };
+            }
+            let (base, v) = self.var_c(e);
+            // ref 参数（如 &const int[] xs）：C 层是指针，需解引用才能访问 .len/.data/.v 等字段
+            if let Some(vi) = &v {
+                let b = vi.borrow();
+                if b.is_param && b.borrow.is_some() {
+                    return format!("(*{})", base);
+                }
+            }
             return base;
         }
         let res = self.res_of(e.id);
@@ -2113,6 +2133,9 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             ("filepath", "clean") => format!("ax_filepath_clean({})", a[0]),
             ("filepath", "abs") => format!("ax_filepath_abs({})", a[0]),
             ("filepath", "is_abs") => format!("ax_filepath_is_abs({})", a[0]),
+            ("filepath", "eval_symlinks") => format!("ax_filepath_eval_symlinks({})", a[0]),
+            ("filepath", "glob") => format!("ax_filepath_glob({})", a[0]),
+            ("filepath", "walk") => format!("ax_filepath_walk({})", a[0]),
             /* ---------------- maps 模块（对标 Go maps，K/V 由实参 Map 类型推导） ---------------- */
             // maps.Keys(m) -> K[]：返回键数组（按插入顺序）
             ("maps", "Keys") => {
@@ -2615,6 +2638,8 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             Expr::MethodCall { recv, name, args } => (recv, name, args),
             _ => unreachable!(),
         };
+        // 用户调用可能是小写（如 to_string），intrinsic 表和 codegen 分支用 PascalCase（ToString）。
+        let name_pc = pascal_member(name);
         let rt = self.ty_or_int(recv.id);
         let rv = self.gen(recv, None, false, false);
         let mut a: Vec<String> = Vec::new();
@@ -2625,7 +2650,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
         match &*rt {
             TyS::Str => {
                 let tv = self.declare(&rt, &rv);
-                match name.as_str() {
+                match name_pc.as_str() {
                     "Len" => format!("ax_str_len_cp({})", tv),
                     "ByteLen" => format!("({}).len", tv),
                     "ToString" => tv,
@@ -3138,7 +3163,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             }
             TyS::Named(DefId::Name("time"), _) => {
                 let tv = self.declare(&rt, &rv);
-                match name.as_str() {
+                match name_pc.as_str() {
                     "UnixMs" => tv,
                     "ToString" => format!("ax_time_to_str({})", tv),
                     "Format" => {

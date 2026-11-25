@@ -379,7 +379,7 @@
         {
           "name": "sinh",
           "signature": "(x: float) -> float",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "sinh",
           "go_counterpart": "math.Sinh",
           "function": "双曲正弦",
@@ -389,7 +389,7 @@
         {
           "name": "cosh",
           "signature": "(x: float) -> float",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "cosh",
           "go_counterpart": "math.Cosh",
           "function": "双曲余弦",
@@ -399,7 +399,7 @@
         {
           "name": "tanh",
           "signature": "(x: float) -> float",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "tanh",
           "go_counterpart": "math.Tanh",
           "function": "双曲正切",
@@ -409,7 +409,7 @@
         {
           "name": "asin",
           "signature": "(x: float) -> float",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "asin",
           "go_counterpart": "math.Asin",
           "function": "反正弦（arc sine）",
@@ -419,7 +419,7 @@
         {
           "name": "acos",
           "signature": "(x: float) -> float",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "acos",
           "go_counterpart": "math.Acos",
           "function": "反余弦（arc cosine）",
@@ -429,7 +429,7 @@
         {
           "name": "atan",
           "signature": "(x: float) -> float",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "atan",
           "go_counterpart": "math.Atan",
           "function": "反正切（arc tangent）",
@@ -439,7 +439,7 @@
         {
           "name": "atan2",
           "signature": "(y: float, x: float) -> float",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "atan2",
           "go_counterpart": "math.Atan2",
           "function": "带符号的反正切 atan2(y, x)",
@@ -449,7 +449,7 @@
         {
           "name": "hypot",
           "signature": "(p: float, q: float) -> float",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "hypot",
           "go_counterpart": "math.Hypot",
           "function": "求斜边长 sqrt(x^2+y^2)，避免溢出",
@@ -459,7 +459,7 @@
         {
           "name": "cbrt",
           "signature": "(x: float) -> float",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "cbrt",
           "go_counterpart": "math.Cbrt",
           "function": "求立方根",
@@ -469,7 +469,7 @@
         {
           "name": "trunc",
           "signature": "(x: float) -> float",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "trunc",
           "go_counterpart": "math.Trunc",
           "function": "向零取整（截断小数部分）",
@@ -499,7 +499,7 @@
         {
           "name": "frexp",
           "signature": "(f: float) -> (frac: float, exp: int)",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "frexp",
           "go_counterpart": "math.Frexp",
           "function": "将浮点数分解为尾数和 2 的幂指数",
@@ -1340,7 +1340,7 @@
           "name": "after",
           "signature": "(u: time) -> bool",
           "kind": "instance",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "time.After/Time.After",
           "function": "判断当前时间是否在参数时间之后",
@@ -1351,7 +1351,7 @@
           "name": "before",
           "signature": "(u: time) -> bool",
           "kind": "instance",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "Time.Before",
           "function": "判断当前时间是否在参数时间之前",
@@ -1362,7 +1362,7 @@
           "name": "equal",
           "signature": "(u: time) -> bool",
           "kind": "instance",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "Time.Equal",
           "function": "判断两个时间是否相等",
@@ -1373,7 +1373,7 @@
           "name": "compare",
           "signature": "(u: time) -> int",
           "kind": "instance",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "difftime",
           "go_counterpart": "Time.Compare",
           "function": "比较两个时间大小（-1/0/1）",
@@ -1384,7 +1384,7 @@
           "name": "sub",
           "signature": "(u: time) -> int",
           "kind": "instance",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "difftime",
           "go_counterpart": "Time.Sub",
           "function": "返回两个时间的差值（毫秒）",
@@ -1395,7 +1395,7 @@
           "name": "add",
           "signature": "(d: int) -> time",
           "kind": "instance",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "Time.Add",
           "function": "返回当前时间加上指定毫秒数后的时间",
@@ -1406,7 +1406,7 @@
           "name": "round",
           "signature": "(d: int) -> time",
           "kind": "instance",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "Time.Round",
           "function": "将时间四舍五入到指定的时间段整数倍",
@@ -1417,7 +1417,7 @@
           "name": "truncate",
           "signature": "(d: int) -> time",
           "kind": "instance",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "time.Truncate",
           "function": "将时间向下取整到指定的时间段整数倍",
@@ -1429,7 +1429,7 @@
         {
           "name": "to_string",
           "signature": "() -> string",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "ctime/strftime",
           "go_counterpart": "time.Time.String",
           "function": "将时间格式化为默认字符串表示",
@@ -1439,7 +1439,7 @@
         {
           "name": "format",
           "signature": "(fmt: string) -> string",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "strftime",
           "go_counterpart": "time.Time.Format",
           "function": "按自定义格式字符串格式化时间",
@@ -2528,7 +2528,7 @@
         {
           "name": "join",
           "signature": "(parts: string[]) -> string",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "filepath.Join",
           "function": "将多个路径片段连接为单个路径",
@@ -2538,7 +2538,7 @@
         {
           "name": "dir",
           "signature": "(path: string) -> string",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "dirname",
           "go_counterpart": "filepath.Dir",
           "function": "返回路径的目录部分",
@@ -2548,7 +2548,7 @@
         {
           "name": "base",
           "signature": "(path: string) -> string",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "basename",
           "go_counterpart": "filepath.Base",
           "function": "返回路径的最后一个元素（文件名）",
@@ -2558,7 +2558,7 @@
         {
           "name": "ext",
           "signature": "(path: string) -> string",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "filepath.Ext",
           "function": "返回文件扩展名（包含点）",
@@ -2568,7 +2568,7 @@
         {
           "name": "split",
           "signature": "(path: string) -> string[2]",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "filepath.Split",
           "function": "将路径拆分为目录和文件名两部分",
@@ -2578,7 +2578,7 @@
         {
           "name": "clean",
           "signature": "(path: string) -> string",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "filepath.Clean",
           "function": "规范化路径，删除冗余的斜杠和 '.' '..'",
@@ -2588,7 +2588,7 @@
         {
           "name": "abs",
           "signature": "(path: string) -> string",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "realpath",
           "go_counterpart": "filepath.Abs",
           "function": "返回路径的绝对形式",
@@ -2598,7 +2598,7 @@
         {
           "name": "is_abs",
           "signature": "(path: string) -> bool",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "filepath.IsAbs",
           "function": "判断路径是否为绝对路径",
@@ -2608,22 +2608,24 @@
         {
           "name": "eval_symlinks",
           "signature": "(path: string) -> string",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "realpath",
           "go_counterpart": "filepath.EvalSymlinks",
           "function": "解析符号链接，返回规范路径",
           "description": "对标 C realpath，Go 对标 filepath.EvalSymlinks；递归解析所有软链接",
-          "builtin": false
+          "builtin": false,
+          "note": "标准 C11 + POSIX/Windows API 实现"
         },
         {
           "name": "glob",
           "signature": "(pattern: string) -> string[]",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "glob",
           "go_counterpart": "filepath.Glob",
           "function": "按模式匹配文件名，返回匹配的字符串切片",
           "description": "对标 C glob，Go 对标 filepath.Glob；支持 * ? [...] 通配符",
-          "builtin": false
+          "builtin": false,
+          "note": "标准 C11 + POSIX/Windows API 实现"
         },
         {
           "name": "rel",
@@ -2638,12 +2640,13 @@
         {
           "name": "walk",
           "signature": "(root: string, fn: func) -> int",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "nftw",
           "go_counterpart": "filepath.Walk",
           "function": "递归遍历目录树，对每个文件调用回调",
           "description": "对标 C nftw，Go 对标 filepath.Walk；axlang 不支持闭包，实际受限",
-          "builtin": false
+          "builtin": false,
+          "note": "标准 C11 + POSIX/Windows API 实现"
         }
       ]
     },
@@ -2656,7 +2659,7 @@
         {
           "name": "int",
           "signature": "(n: int) -> int",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "rand",
           "go_counterpart": "rand.Intn",
           "function": "返回 [0, n) 范围内的随机整数",
@@ -2666,7 +2669,7 @@
         {
           "name": "float",
           "signature": "() -> float",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "rand/drand48",
           "go_counterpart": "rand.Float64",
           "function": "返回 [0.0, 1.0) 范围内的随机浮点数",
@@ -2676,7 +2679,7 @@
         {
           "name": "seed",
           "signature": "(seed: int) -> void",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "srand",
           "go_counterpart": "rand.Seed",
           "function": "设置随机数生成器种子",
@@ -3129,7 +3132,7 @@
         {
           "name": "contains",
           "signature": "(s: bytes, sub: bytes) -> bool",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "strstr/memmem",
           "go_counterpart": "bytes.Contains",
           "function": "判断字节切片是否包含子字节切片",
@@ -3139,7 +3142,7 @@
         {
           "name": "equal",
           "signature": "(a: bytes, b: bytes) -> bool",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "memcmp",
           "go_counterpart": "bytes.Equal",
           "function": "判断两个字节切片是否相等",
@@ -3149,7 +3152,7 @@
         {
           "name": "index",
           "signature": "(s: bytes, sub: bytes) -> int",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "strstr/memmem",
           "go_counterpart": "bytes.Index",
           "function": "返回子字节切片首次出现的索引，未找到返回 -1",
@@ -3159,7 +3162,7 @@
         {
           "name": "split",
           "signature": "(s: bytes, sep: bytes) -> bytes[]",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "strtok",
           "go_counterpart": "bytes.Split",
           "function": "按分隔符分割字节切片",
@@ -3169,7 +3172,7 @@
         {
           "name": "trim_space",
           "signature": "(s: bytes) -> bytes",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "bytes.TrimSpace",
           "function": "去除字节切片首尾空白字符",
@@ -3179,7 +3182,7 @@
         {
           "name": "to_upper",
           "signature": "(s: bytes) -> bytes",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "toupper",
           "go_counterpart": "bytes.ToUpper",
           "function": "将字节切片转换为大写",
@@ -3189,7 +3192,7 @@
         {
           "name": "to_lower",
           "signature": "(s: bytes) -> bytes",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "tolower",
           "go_counterpart": "bytes.ToLower",
           "function": "将字节切片转换为小写",
@@ -3199,7 +3202,7 @@
         {
           "name": "repeat",
           "signature": "(s: bytes, count: int) -> bytes",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "bytes.Repeat",
           "function": "将字节切片重复 count 次",
@@ -3217,7 +3220,7 @@
         {
           "name": "new_reader",
           "signature": "(r: File) -> File",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "bufio.NewReader",
           "function": "创建带缓冲的文件读取器",
@@ -3227,7 +3230,7 @@
         {
           "name": "new_writer",
           "signature": "(w: File) -> File",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "bufio.NewWriter",
           "function": "创建带缓冲的文件写入器",
@@ -3237,7 +3240,7 @@
         {
           "name": "scanner",
           "signature": "(r: File) -> File",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "bufio.NewScanner",
           "function": "创建扫描器，按行或自定义分隔符读取",
@@ -3255,7 +3258,7 @@
         {
           "name": "read_all",
           "signature": "(r: Reader) -> string[][]",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "csv.Reader.ReadAll",
           "function": "从 CSV 阅读器读取所有记录为二维字符串切片",
@@ -3265,7 +3268,7 @@
         {
           "name": "write",
           "signature": "(w: Writer, record: string[]) -> int",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "csv.Writer.Write",
           "function": "将一条记录写入 CSV 文件",

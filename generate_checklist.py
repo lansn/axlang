@@ -200,12 +200,13 @@ def generate_markdown(data):
     modules = sorted(data["modules"], key=lambda m: priority_order.get(m.get("priority", "P3"), 3))
 
     # ================================================================
-    # 收集所有函数，按 builtin_plan 分类
+    # 收集所有函数，按 builtin_plan 分类（仅用于统计，不再用于分表）
     # ================================================================
     builtin_keep_funcs = []      # 编译器内建，长期保留（builtin_plan="keep"）
     stdlib_funcs = []            # 标准库函数（builtin=false）
     builtin_migrate_funcs = []   # 计划从内建迁移到标准库（builtin_plan="migrate"）
 
+    all_funcs = []  # 统一函数列表，用于生成单一表格
     for mod in modules:
         mod_name = mod["name"]
         go_counterpart = mod.get("go_counterpart", "—")
@@ -217,166 +218,52 @@ def generate_markdown(data):
             plan = f.get("builtin_plan", "keep")
             if builtin and plan == "keep":
                 builtin_keep_funcs.append(f)
-            elif builtin and plan == "migrate":
-                builtin_migrate_funcs.append(f)
+                f["_type_label"] = "内建库"
             else:
-                stdlib_funcs.append(f)
+                # builtin=false（已迁移标准库）或 builtin_plan="migrate"（计划迁移），
+                # 均归入“标准库”类别显示
+                if builtin and plan == "migrate":
+                    builtin_migrate_funcs.append(f)
+                else:
+                    stdlib_funcs.append(f)
+                f["_type_label"] = "标准库"
+            all_funcs.append(f)
+
+    # 按模块名 → 函数名 排序，便于查找
+    all_funcs.sort(key=lambda f: (f["_mod_name"], f["name"]))
 
     # ================================================================
-    # 第一部分：编译器内建函数（builtin_plan="keep"）
+    # 第一部分：编译器内建函数说明
     # ================================================================
     lines.append("## 一、编译器内建函数（长期保留在 Rust 编译器端）")
     lines.append("")
     lines.append("以下函数涉及编译器魔法（变参、编译期占位符核对、泛型类型推导、运行时反射等），**无法**用纯 ax 语法独立实现，长期保留在编译器 Rust 端，不迁移到 ax_stdlib。")
     lines.append("")
 
-    if builtin_keep_funcs:
-        from collections import OrderedDict
-        builtin_mod_groups = OrderedDict()
-        for f in builtin_keep_funcs:
-            mod_name = f["_mod_name"]
-            builtin_mod_groups.setdefault(mod_name, []).append(f)
-
-        for mod_name, funcs in builtin_mod_groups.items():
-            go_cp = funcs[0]["_mod_go_counterpart"]
-            lines.append(f"### {mod_name}（对标 {go_cp}）")
-            lines.append("")
-
-            kind_groups = {}
-            for f in funcs:
-                k = f.get("kind", "模块级函数")
-                kind_groups.setdefault(k, []).append(f)
-
-            kind_order = ["模块级函数", "静态方法", "实例方法", "模块函数"]
-            for k in kind_order:
-                if k in kind_groups:
-                    group = kind_groups.pop(k)
-                    section_title = {
-                        "模块级函数": "模块级函数",
-                        "静态方法": "静态方法",
-                        "实例方法": "实例方法",
-                        "模块函数": "模块函数",
-                    }[k]
-                    lines.append(f"**{section_title}：**")
-                    lines.append("")
-                    lines.append("| ax.函数 | 类型 | 签名 | 用法举例 | 对标 C | 对标 Go | 函数功能 | 说明 | 状态 |")
-                    lines.append("| ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ----- |")
-                    for f in group:
-                        name = f["name"]
-                        sig = f["signature"]
-                        kind = f.get("kind", k)
-                        mark = status_mark(f["status"])
-                        disp_name = name if mod_name == "builtin" else f"{mod_name}.{name}"
-                        lines.append(f"| `{disp_name}` | {kind}（编译器内建） | `{sig}` | {f['usage_example']} | {f['c_counterpart']} | {f['go_counterpart']} | {f['function']} | {f['description']} | {mark} |")
-                    lines.append("")
-
-            struct_kinds = sorted(k for k in kind_groups if "方法" in k)
-            for k in struct_kinds:
-                group = kind_groups[k]
-                tname = k.split("（")[0] if "（" in k else k
-                lines.append(f"**{tname} 方法：**")
-                lines.append("")
-                lines.append("| ax.函数 | 类型 | 签名 | 用法举例 | 对标 C | 对标 Go | 函数功能 | 说明 | 状态 |")
-                lines.append("| ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ----- |")
-                for f in group:
-                    name = f["name"]
-                    sig = f["signature"]
-                    kind = f.get("kind", k)
-                    mark = status_mark(f["status"])
-                    disp_name = name if mod_name == "builtin" else f"{mod_name}.{name}"
-                    lines.append(f"| `{disp_name}` | {kind}（编译器内建） | `{sig}` | {f['usage_example']} | {f['c_counterpart']} | {f['go_counterpart']} | {f['function']} | {f['description']} | {mark} |")
-                lines.append("")
-
-            lines.append("")
-    else:
-        lines.append("（无编译器内建函数）")
-        lines.append("")
-
-    lines.append("---")
-    lines.append("")
-
     # ================================================================
-    # 第二部分：标准库函数（ax_stdlib）
+    # 第二部分：标准库函数说明
     # ================================================================
     lines.append("## 二、标准库函数（ax_stdlib）")
     lines.append("")
     lines.append("以下函数已迁移至 `axc/std/` 下的 ax 语法源码，通过 `extern \"C\"` 调用 axrt C 原语实现。")
-    lines.append("带 `（待迁移→ax_stdlib）` 标记的函数目前仍在编译器内建，计划未来迁移到标准库。")
     lines.append("")
 
-    all_stdlib = stdlib_funcs + builtin_migrate_funcs
-    if all_stdlib:
-        stdlib_mod_groups = {}
-        for f in all_stdlib:
-            mod_name = f["_mod_name"]
-            stdlib_mod_groups.setdefault(mod_name, []).append(f)
-
-        for mod_name, funcs in stdlib_mod_groups.items():
-            go_cp = funcs[0]["_mod_go_counterpart"]
-            lines.append(f"### {mod_name}（对标 {go_cp}）")
-            lines.append("")
-
-            kind_groups = {}
-            for f in funcs:
-                k = f.get("kind", "模块级函数")
-                kind_groups.setdefault(k, []).append(f)
-
-            kind_order = ["模块级函数", "静态方法", "实例方法", "模块函数"]
-            for k in kind_order:
-                if k in kind_groups:
-                    group = kind_groups.pop(k)
-                    section_title = {
-                        "模块级函数": "模块级函数",
-                        "静态方法": "静态方法",
-                        "实例方法": "实例方法",
-                        "模块函数": "模块函数",
-                    }[k]
-                    lines.append(f"**{section_title}：**")
-                    lines.append("")
-                    lines.append("| ax.函数 | 类型 | 签名 | 用法举例 | 对标 C | 对标 Go | 函数功能 | 说明 | 状态 |")
-                    lines.append("| ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ----- |")
-                    for f in group:
-                        name = f["name"]
-                        sig = f["signature"]
-                        kind = f.get("kind", k)
-                        builtin = f.get("builtin", False)
-                        plan = f.get("builtin_plan", "keep")
-                        if builtin and plan == "migrate":
-                            kind_tag = f"{kind}（待迁移→ax_stdlib）"
-                        else:
-                            kind_tag = f"{kind}（ax_stdlib）"
-                        mark = status_mark(f["status"])
-                        disp_name = name if mod_name == "builtin" else f"{mod_name}.{name}"
-                        lines.append(f"| `{disp_name}` | {kind_tag} | `{sig}` | {f['usage_example']} | {f['c_counterpart']} | {f['go_counterpart']} | {f['function']} | {f['description']} | {mark} |")
-                    lines.append("")
-
-            struct_kinds = sorted(k for k in kind_groups if "方法" in k)
-            for k in struct_kinds:
-                group = kind_groups[k]
-                tname = k.split("（")[0] if "（" in k else k
-                lines.append(f"**{tname} 方法：**")
-                lines.append("")
-                lines.append("| ax.函数 | 类型 | 签名 | 用法举例 | 对标 C | 对标 Go | 函数功能 | 说明 | 状态 |")
-                lines.append("| ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ----- |")
-                for f in group:
-                    name = f["name"]
-                    sig = f["signature"]
-                    kind = f.get("kind", k)
-                    builtin = f.get("builtin", False)
-                    plan = f.get("builtin_plan", "keep")
-                    if builtin and plan == "migrate":
-                        kind_tag = f"{kind}（待迁移→ax_stdlib）"
-                    else:
-                        kind_tag = f"{kind}（ax_stdlib）"
-                    mark = status_mark(f["status"])
-                    disp_name = name if mod_name == "builtin" else f"{mod_name}.{name}"
-                    lines.append(f"| `{disp_name}` | {kind_tag} | `{sig}` | {f['usage_example']} | {f['c_counterpart']} | {f['go_counterpart']} | {f['function']} | {f['description']} | {mark} |")
-                lines.append("")
-
-            lines.append("")
-    else:
-        lines.append("（无标准库函数）")
-        lines.append("")
+    # ================================================================
+    # 统一表格：所有函数按模块名排序，类型列仅显示“内建库”或“标准库”
+    # ================================================================
+    lines.append("### ax 函数清单（统一表格）")
+    lines.append("")
+    lines.append("| ax.函数 | 类型 | 签名 | 用法举例 | 对标 C | 对标 Go | 函数功能 | 说明 | 状态 |")
+    lines.append("| ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ----- |")
+    for f in all_funcs:
+        name = f["name"]
+        sig = f["signature"]
+        mod_name = f["_mod_name"]
+        type_label = f["_type_label"]
+        mark = status_mark(f["status"])
+        disp_name = name if mod_name == "builtin" else f"{mod_name}.{name}"
+        lines.append(f"| `{disp_name}` | {type_label} | `{sig}` | {f['usage_example']} | {f['c_counterpart']} | {f['go_counterpart']} | {f['function']} | {f['description']} | {mark} |")
+    lines.append("")
 
     lines.append("---")
     lines.append("")

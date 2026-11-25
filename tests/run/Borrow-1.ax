@@ -37,7 +37,7 @@ int main() {
 
     // O-09：move 后重新赋值可复活
     var b = new Buf(8)
-    var c = b                // 所有权移走
+    var _c = b               // 所有权移走
     b = new Buf(4)           // 重新赋值复活
     b.Write("xy")            // 合法
     println("b.N={b.N}")

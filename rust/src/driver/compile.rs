@@ -35,21 +35,28 @@ pub fn rt_dir() -> Option<PathBuf> {
     None
 }
 
-/// 收集运行时目录下的所有 axrt_*.c 文件路径。
+/// 收集运行时目录下的所有 axrt_*.c 文件路径（递归进入子目录）。
 pub fn rt_c_files(rt_dir: &std::path::Path) -> Vec<PathBuf> {
     let mut files = Vec::new();
-    if let Ok(entries) = fs::read_dir(rt_dir) {
+    rt_c_files_recursive(rt_dir, &mut files);
+    files.sort();
+    files
+}
+
+/// 递归收集 axrt_*.c 文件。
+fn rt_c_files_recursive(dir: &std::path::Path, files: &mut Vec<PathBuf>) {
+    if let Ok(entries) = fs::read_dir(dir) {
         for entry in entries.flatten() {
             let path = entry.path();
-            if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
+            if path.is_dir() {
+                rt_c_files_recursive(&path, files);
+            } else if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
                 if name.starts_with("axrt_") && name.ends_with(".c") {
                     files.push(path);
                 }
             }
         }
     }
-    files.sort();
-    files
 }
 
 /// 标准库预转译输出目录（axc/stdlib/generated）：存放 *.ax 预转译后的 *.c 文件。

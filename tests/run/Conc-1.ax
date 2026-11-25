@@ -12,7 +12,7 @@ void producer(queue<int> q) {
 int main() {
     queue<int> q = queue<int>()
     var t = thread(producer, q)
-    for i in 0..100 {
+    for _i in 0..100 {
         int? v = q.Pop()
         if v == null {
             break

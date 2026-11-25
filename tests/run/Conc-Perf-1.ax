@@ -32,56 +32,56 @@ int main() {
     int count = 0
 
     // 主线程并发 Pop（不等待 Join，模拟真实并发场景）
-    for i in 0..80000 {
+    for _i in 0..80000 {
         int? v = q1.Pop()
         if v == null {
             break
         }
         count = count + 1
     }
-    for i in 0..80000 {
+    for _i in 0..80000 {
         int? v = q2.Pop()
         if v == null {
             break
         }
         count = count + 1
     }
-    for i in 0..80000 {
+    for _i in 0..80000 {
         int? v = q3.Pop()
         if v == null {
             break
         }
         count = count + 1
     }
-    for i in 0..80000 {
+    for _i in 0..80000 {
         int? v = q4.Pop()
         if v == null {
             break
         }
         count = count + 1
     }
-    for i in 0..80000 {
+    for _i in 0..80000 {
         int? v = q5.Pop()
         if v == null {
             break
         }
         count = count + 1
     }
-    for i in 0..80000 {
+    for _i in 0..80000 {
         int? v = q6.Pop()
         if v == null {
             break
         }
         count = count + 1
     }
-    for i in 0..80000 {
+    for _i in 0..80000 {
         int? v = q7.Pop()
         if v == null {
             break
         }
         count = count + 1
     }
-    for i in 0..80000 {
+    for _i in 0..80000 {
         int? v = q8.Pop()
         if v == null {
             break

@@ -1,0 +1,9 @@
+join=a\b\c
+dir=.
+base=a/b/c.txt
+ext=.txt
+split0=.
+split1=a/b/c.txt
+clean=a/./b/../c
+abs=D:/Project/axlang/a/b.txt
+is_abs=0

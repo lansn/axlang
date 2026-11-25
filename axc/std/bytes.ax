@@ -8,10 +8,10 @@
 // ax 代码中通过 std.bytes.contains(...) 调用模块级函数。
 
 extern "C" {
-    int ax_bytes_contains(bytes s, bytes sub);
-    int ax_bytes_equal(bytes a, bytes b);
+    bool ax_bytes_contains(bytes s, bytes sub);
+    bool ax_bytes_equal(bytes a, bytes b);
     int ax_bytes_index(bytes s, bytes sub);
-    bytes ax_bytes_split(bytes s, bytes sep);
+    bytes[] ax_bytes_split(bytes s, bytes sep);
     bytes ax_bytes_trim_space(bytes s);
     bytes ax_bytes_to_upper(bytes s);
     bytes ax_bytes_to_lower(bytes s);

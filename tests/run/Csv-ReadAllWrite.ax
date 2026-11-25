@@ -1,6 +1,6 @@
 // csv 模块：ReadAll / Write（对标 Go encoding/csv，Reader/Writer 为 File）
 import file
-import csv
+import std.csv
 
 int main() {
     string path = "__ax_csv_test.txt"
@@ -8,16 +8,16 @@ int main() {
     // 写入测试数据
     var f = file.create(path) try
     string[] header = ["name", "age", "city"]
-    csv.write(f, header)
+    std.csv.write(f, header)
     string[] row1 = ["阿蓝", "30", "北京"]
-    csv.write(f, row1)
+    std.csv.write(f, row1)
     string[] row2 = ["Bob", "25", "上海"]
-    csv.write(f, row2)
+    std.csv.write(f, row2)
     f.close()
 
     // 读取并验证
     var g = file.open(path) try
-    var rows = csv.read_all(g)
+    var rows = std.csv.read_all(g)
     g.close()
 
     println("r00={rows[0][0]}")
@@ -33,11 +33,11 @@ int main() {
     // 再追加一行
     var h = file.append(path) try
     string[] row3 = ["Carol", "35", "广州"]
-    csv.write(h, row3)
+    std.csv.write(h, row3)
     h.close()
 
     var i = file.open(path) try
-    var rows2 = csv.read_all(i)
+    var rows2 = std.csv.read_all(i)
     i.close()
 
     println("r30={rows2[3][0]}")

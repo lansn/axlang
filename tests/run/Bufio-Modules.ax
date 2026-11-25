@@ -1,10 +1,10 @@
 // bufio 模块测试（对标 Go bufio，P2，2026-11-24）
 // Reader/Writer/Scanner 均基于 File 句柄（ax_file*），无需新增底层类型
-import bufio
+import std.bufio
 import file
 
 int main() {
-    // 测试 bufio.NewReader：缓冲读取器，对标 Go bufio.NewReader
+    // 测试 std.bufio.new_reader：缓冲读取器，对标 Go bufio.NewReader
     var f = file.create("/tmp/bufio_test.txt") try
     f.write_line("line1")
     f.write_line("line2")
@@ -12,16 +12,16 @@ int main() {
     f.close()
 
     var f2 = file.open("/tmp/bufio_test.txt") try
-    var br = bufio.new_reader(f2)
+    var br = std.bufio.new_reader(f2)
     var l1 = br.read_line()
     println("reader-1={l1}")   // line1
     var l2 = br.read_line()
     println("reader-2={l2}")   // line2
     br.close()
 
-    // 测试 bufio.NewWriter：缓冲写入器，对标 Go bufio.NewWriter
+    // 测试 std.bufio.new_writer：缓冲写入器，对标 Go bufio.NewWriter
     var f3 = file.create("/tmp/bufio_test2.txt") try
-    var bw = bufio.new_writer(f3)
+    var bw = std.bufio.new_writer(f3)
     bw.write_line("buffered write")
     bw.close()
 
@@ -30,9 +30,9 @@ int main() {
     println("writer-1={wl}")   // buffered write
     f4.close()
 
-    // 测试 bufio.Scanner：扫描器，对标 Go bufio.NewScanner
+    // 测试 std.bufio.scanner：扫描器，对标 Go bufio.NewScanner
     var f5 = file.open("/tmp/bufio_test.txt") try
-    var sc = bufio.scanner(f5)
+    var sc = std.bufio.scanner(f5)
     var s1 = sc.read_line()
     println("scanner-1={s1}")  // line1
     sc.close()

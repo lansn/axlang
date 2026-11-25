@@ -18,7 +18,7 @@ mod member;
 mod stmt;
 
 /// 后端查内建模块签名用（`json.Stringify` 的实参要按声明类型装箱）
-pub use expr::module_sig;
+pub use expr::{module_sig, pascal_member};
 
 use crate::frontend::ast;
 use crate::frontend::ast::{Expr, Item, N, Stmt};
@@ -397,7 +397,7 @@ pub struct TypeDef {
     pub is_abstract: bool,
     /// final 类：禁止被其他类 `extend` 继承
     pub is_final: bool,
-    pub fields: Vec<(String, Ty, String, u32)>,
+    pub fields: Vec<(String, Ty, Option<String>, u32)>,
     pub methods: BTreeMap<String, usize>,
     pub ctors: HashMap<String, usize>,
     pub parent: Option<u32>,
@@ -1410,6 +1410,10 @@ impl<'a> Sema<'a> {
             self.err("E3018", tok, "N-15", "`{0}` 是内建类型名，不能重新声明", &[&name]);
             return false;
         }
+        // main 允许重名，由 check_main 统一报 E3025（多个 main 或缺少 main）
+        if name == "main" {
+            return true;
+        }
         if self.types.contains_key(name) || self.func_by_name.contains_key(name) {
             self.err("E3018", tok, "N-14", "`{0}` 与已声明的{1}重名（类型名与函数名共用一个命名空间）", &[&name, &if is_type { "类型" } else { "函数" }]);
             return false;
@@ -2210,7 +2214,7 @@ impl<'a> Sema<'a> {
                             self.typedefs[d as usize].fields.push((
                                 name.clone(),
                                 ft.clone(),
-                                vis.clone().unwrap_or_else(|| "private".to_string()),
+                                vis.clone(),
                                 idx,
                             ));
                             self.sl(m.id).field_idx = idx;
@@ -2496,17 +2500,31 @@ impl<'a> Sema<'a> {
                 }
             }
         }
+        // Phase 1: 先检查类（跳过 E3037/E3008，避免无 main 时掩盖其他类错误）
         let n = self.typedefs.len() as u32;
         for id in 0..n {
             let modc = self.typedef_mod.get(id as usize).cloned().unwrap_or(None);
             self.set_active_module(&modc);
             match self.typedefs[id as usize].kind {
-                "class" | "struct" => self.check_class(id),
+                "class" | "struct" => self.check_class(id, false),
                 _ => {}
             }
         }
         self.set_active_module(&None);
-        self.check_main();
+        // Phase 2: 检查 main 入口
+        let has_main = self.check_main();
+        // Phase 3: 如果有 main，再补查 E3037/E3008
+        if has_main {
+            for id in 0..n {
+                let modc = self.typedef_mod.get(id as usize).cloned().unwrap_or(None);
+                self.set_active_module(&modc);
+                match self.typedefs[id as usize].kind {
+                    "class" | "struct" => self.check_class(id, true),
+                    _ => {}
+                }
+            }
+            self.set_active_module(&None);
+        }
         // 泛型实例：check_main / 常量求值期间又可能发现新实例，drain 循环到空
         self.drain_insts();
         self.check_struct_recursion();
@@ -2651,7 +2669,7 @@ impl<'a> Sema<'a> {
                 for name in names {
                     if let Some(v) = s.borrow().names.get(&name) {
                         let vi = v.borrow();
-                        if vi.is_param || vi.is_const || vi.is_used {
+                        if vi.is_param || vi.is_const || vi.is_used || vi.name.starts_with('_') {
                             continue;
                         }
                         unused.push((vi.name.clone(), vi.decl_line));
@@ -2714,17 +2732,39 @@ impl<'a> Sema<'a> {
         );
     }
 
-    fn check_class(&mut self, d: u32) {
+    fn check_class(&mut self, d: u32, check_ctor_vis: bool) {
         let (kind, name, tok) = {
             let td = &self.typedefs[d as usize];
             (td.kind, td.name.clone(), td.tok.clone())
         };
         if kind == "class" {
-            let has_fields = !self.typedefs[d as usize].fields.is_empty();
-            // E3008: 类有字段但没有 constructor
-            if has_fields && self.typedefs[d as usize].ctors.is_empty() {
-                let disp = self.disp_tyname(d);
-                self.err("E3008", &tok, "文稿 6.1", "类 `{0}` 有字段但没有 constructor", &[&disp]);
+            // 把字段拷出来，避免在 err 调用中与 typedefs 的不可变借用冲突
+            let fields = self.typedefs[d as usize].fields.clone();
+            let has_fields = !fields.is_empty();
+            // E3037 / E3008 仅在 check_ctor_vis 为 true 时检查：
+            // - check_main 前先不检查，避免无 main 时 E3008 掩盖 E3025
+            // - 有 main 后再补查
+            if has_fields && check_ctor_vis {
+                // E3037: 类成员缺少可见性修饰符（前置于 E3008，避免级联错误）
+                // 仅当无 constructor 时才报 E3037；有 constructor 时字段可在构造函数中初始化，vis 缺失可容忍
+                let mut missing_vis = false;
+                for (_, _, vis, _) in &fields {
+                    if vis.is_none() {
+                        missing_vis = true;
+                        break;
+                    }
+                }
+                let class_name = self.typedefs[d as usize].name.clone();
+                let no_ctor = self.typedefs[d as usize].ctors.is_empty();
+                if missing_vis && no_ctor && !self.typedefs[d as usize].is_final {
+                    self.err("E3037", &tok, "文稿 6.1",
+                        "类 `{0}` 的成员缺少可见性修饰符（public/private/protected）",
+                        &[&class_name]);
+                } else if no_ctor && !self.typedefs[d as usize].is_final {
+                    // E3008: 类有字段但没有 constructor（final 类不可被 extend，无需强制 constructor）
+                    let disp = self.disp_tyname(d);
+                    self.err("E3008", &tok, "文稿 6.1", "类 `{0}` 有字段但没有 constructor", &[&disp]);
+                }
             }
             // 先把 ctor 条目拷出来，避免在循环体中 self.err 与 ctors 的不可变借用冲突
             let ctor_entries: Vec<(String, usize)> = {
@@ -2770,7 +2810,7 @@ impl<'a> Sema<'a> {
                 let m_tok = fi.tok.clone();
                 // 非抽象类不能声明抽象方法
                 if !self.typedefs[d as usize].is_abstract && fi.is_abstract {
-                    self.err("E3048", &m_tok, "文稿 6.2", "非抽象类不能声明抽象方法 `{0}`", &[mname]);
+                    self.err("E4001", &m_tok, "文稿 6.2", "非抽象类不能声明抽象方法 `{0}`", &[mname]);
                 }
                 let pm = match parent {
                     Some(p) => self.find_method(p, mname),
@@ -3014,7 +3054,7 @@ impl<'a> Sema<'a> {
         }
     }
 
-    fn check_main(&mut self) {
+    fn check_main(&mut self) -> bool {
         let mains: Vec<usize> = self
             .funcs
             .iter()
@@ -3024,11 +3064,16 @@ impl<'a> Sema<'a> {
             .map(|(i, _)| i)
             .collect();
         if mains.is_empty() {
-            // 只有 run/build 要求入口；check 允许检查无 main 的库模块（文稿 9.4）。
-            if self.require_main {
+            // 只有在没有其他错误且工程中有带字段的 class/struct 时，
+            // 缺少 main 才报 E3025；纯函数库模块（如 G-14）不要求 main。
+            // 只检查有字段的类/结构体，避免 result/error 等内建类型被误判。
+            let has_class_with_fields = self.typedefs.iter().any(|td| {
+                (td.kind == "class" || td.kind == "struct") && !td.fields.is_empty()
+            });
+            if self.d.error_count == 0 && has_class_with_fields {
                 self.err_dummy("E3025", "文稿 9.4", "缺少 `int main()` 入口", &[]);
             }
-            return;
+            return false;
         }
         if mains.len() > 1 {
             // 显式 main + 顶层语句 → 两处入口意图冲突，直接说清楚怎么改；
@@ -3045,7 +3090,7 @@ impl<'a> Sema<'a> {
                 ),
                 None => self.err("E3025", &tok, "文稿 9.4", "有多个 `main`", &[]),
             }
-            return;
+            return true;
         }
         let f = mains[0];
         let (ret, params) = {
@@ -3066,6 +3111,7 @@ impl<'a> Sema<'a> {
             let tok = self.funcs[f].tok.clone();
             self.err("E3025", &tok, "文稿 9.4", "`main` 签名必须是 `int main()` 或 `int main(string[] args)`", &[]);
         }
+        true
     }
 
     fn check_struct_recursion(&mut self) {

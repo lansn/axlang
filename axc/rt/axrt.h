@@ -216,9 +216,9 @@ int   ax_arr_eq(const ax_arr* a, const ax_arr* b, int64_t esz);
 
 /* ---------------- 字节数组（Rt-7，对标 Go bytes，元素为 uint8_t，C 层为 ax_arr） ---------------- */
 /* 判断 s 是否包含子片 sub（按字节比较） */
-int     ax_bytes_contains(ax_arr s, ax_arr sub);
+bool    ax_bytes_contains(ax_arr s, ax_arr sub);
 /* 判断两个字节数组是否相等（长度相同且所有字节相同） */
-int     ax_bytes_equal(ax_arr a, ax_arr b);
+bool    ax_bytes_equal(ax_arr a, ax_arr b);
 /* 查找子片 sub 在 s 中首次出现的索引，未找到返回 -1 */
 int64_t ax_bytes_index(ax_arr s, ax_arr sub);
 /* 按分隔符 sep 分割 s，返回 ax_arr（元素为 ax_arr，每个元素是一个子片） */
@@ -248,6 +248,8 @@ int   ax_math_signbit(float x);  /* C11 signbit：x 为负数（含 -0 / -NaN）
 float ax_math_copysign(float x, float y); /* C11 copysign：x 的幅值、y 的符号 */
 float ax_math_dim(float x, float y);      /* C11 fdim：max(x - y, 0) */
 float ax_math_ldexp(float x, int exp);    /* C11 ldexp：x * 2^exp */
+float ax_math_frexp_frac(double x);       /* math.Frexp：返回尾数 */
+int   ax_math_frexp_exp(double x);        /* math.Frexp：返回 2 的幂指数 */
 
 /* ---------------- map（Rt-8，插入序） ---------------- */
 typedef struct { uint64_t hash; void* k; void* v; } ax_mentry;
@@ -575,6 +577,18 @@ ax_str  ax_filepath_abs(ax_str path);
 
 /* 计算从 basepath 到 targpath 的相对路径（对标 Go filepath.Rel，纯 C11） */
 ax_str  ax_filepath_rel(ax_str basepath, ax_str targpath);
+
+/* 解析符号链接，返回规范路径（对标 Go filepath.EvalSymlinks，C realpath）。
+ * 递归解析路径中所有软链接组件；失败时返回原路径副本。 */
+ax_str  ax_filepath_eval_symlinks(ax_str path);
+
+/* 按模式匹配文件名，返回匹配的字符串数组（对标 Go filepath.Glob，C glob）。
+ * 支持 * ? [...] 通配符；结果按字节序排序，不重复。 */
+ax_arr  ax_filepath_glob(ax_str pattern);
+
+/* 递归遍历目录树，返回目录下所有条目的完整路径数组（对标 Go filepath.Walk，C nftw）。
+ * axlang 不支持闭包回调，故直接返回全部条目路径。 */
+ax_arr  ax_filepath_walk(ax_str root);
 
 int   ax_parse_i64(ax_str s, int64_t* out);
 int   ax_parse_f64(ax_str s, double* out);
