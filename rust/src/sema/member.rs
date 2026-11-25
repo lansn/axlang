@@ -854,6 +854,10 @@ impl<'a> Sema<'a> {
         if m == "sort" && (name == "slice" || name == "slice_stable") {
             return self.check_sort_slice_call(e, args, &name);
         }
+        // reflect.*：编译期类型查询，零运行时开销
+        if m == "reflect" {
+            return self.check_reflect_module_call(e, args, &name);
+        }
         self.check_call_args(args, None, None, e.id);
         // 内建 fmt 模块（文稿 11.2，0.0.27）：Printf 编译期核对占位符，
         // Print/Println 与 print/println 走同一套多实参实现
@@ -965,6 +969,82 @@ impl<'a> Sema<'a> {
         }
         self.sl(e.id).mkind = Some("module");
         t_void()
+    }
+
+    // ---------------------------------------------------------------- reflect 模块
+    //
+    // reflect.* 是编译期类型查询，零运行时开销：
+    // - reflect.type_of(v) -> string：返回 v 的静态类型名称字符串（与 typeof 相同）
+    // - reflect.num_field(v) -> int：返回 v 的结构体字段数量
+
+    /// 处理 reflect.* 模块调用
+    fn check_reflect_module_call(
+        &mut self,
+        e: &ast::EPtr,
+        args: &[ast::N<ast::Arg>],
+        name: &str,
+    ) -> Ty {
+        if args.len() != 1 {
+            self.err(
+                "E4031",
+                &e.tok,
+                "N-20",
+                "`reflect.{0}` 需要 1 个实参，得到 {1}",
+                &[&name, &args.len()],
+            );
+            return match name {
+                "type_of" => t_string(),
+                "num_field" => t_int(),
+                _ => t_object(),
+            };
+        }
+        // 获取实参的实际类型（不 coerce 到 object，保留原始类型信息）
+        let arg_ty = self.check_expr(&args[0].k.expr, None);
+        self.sl(e.id).mkind = Some("module");
+        match name {
+            "type_of" => {
+                let type_name = self.ts(&arg_ty);
+                self.sl(e.id).ckind = Some("type_of");
+                self.sl(e.id).bname = Some(type_name.clone());
+                self.sl(e.id).const_value = Some(ConstVal::Str(type_name));
+                t_string()
+            }
+            "num_field" => {
+                // 只支持结构体类型
+                let field_count = match &*arg_ty {
+                    TyS::Named(DefId::Id(did), _) => {
+                        let td = self.typedefs.get(*did as usize);
+                        match td {
+                            Some(td) if td.kind == "struct" => td.fields.len() as i64,
+                            _ => {
+                                self.err(
+                                    "E4001",
+                                    &args[0].k.expr.tok,
+                                    "T-5",
+                                    "`reflect.num_field` 要求结构体类型，得到 {0}",
+                                    &[&self.ts(&arg_ty)],
+                                );
+                                return t_int();
+                            }
+                        }
+                    }
+                    _ => {
+                        self.err(
+                            "E4001",
+                            &args[0].k.expr.tok,
+                            "T-5",
+                            "`reflect.num_field` 要求结构体类型，得到 {0}",
+                            &[&self.ts(&arg_ty)],
+                        );
+                        return t_int();
+                    }
+                };
+                self.sl(e.id).ckind = Some("num_field");
+                self.sl(e.id).const_value = Some(ConstVal::Int(field_count));
+                t_int()
+            }
+            _ => t_object(),
+        }
     }
 
     // ---------------------------------------------------------------- maps 模块

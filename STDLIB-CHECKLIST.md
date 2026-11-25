@@ -240,8 +240,8 @@
 | `rand.int` | 标准库 | `(n: int) -> int` | — | rand | rand.Intn | 返回 [0, n) 范围内的随机整数 | 对标 C rand，Go math/rand.Intn；n 必须为正数 | ✅ 已落地 |
 | `rand.seed` | 标准库 | `(seed: int) -> void` | — | srand | rand.Seed | 设置随机数生成器种子 | 对标 C srand，Go math/rand.Seed；相同种子产生相同序列 | ✅ 已落地 |
 | `range.step` | 内建库 | `(n: int) -> Range` | range(0, 10).step(2) | — | — | 创建带步进的范围迭代器 | C 标准库无直接对应，Go range 关键字；axlang 语言级特性，n 为步进值 | ✅ 已落地 |
-| `reflect.num_field` | 内建库 | `(v: any) -> int` | reflect.num_field(v) | — | reflect.NumField | 返回结构体的字段数量 | C 标准库无运行时反射，Go 对标 reflect.NumField；axlang 无运行时类型反射，需设计可落地子集 | ⬜ 未落地 |
-| `reflect.type_of` | 内建库 | `(v: any) -> string` | reflect.type_of(v) | — | reflect.TypeOf | 返回任意值的类型名称字符串 | C 标准库无运行时反射，Go 对标 reflect.TypeOf；axlang 无运行时类型反射，需设计可落地子集 | ⬜ 未落地 |
+| `reflect.num_field` | 内建库 | `(v: any) -> int` | reflect.num_field(v) | — | reflect.NumField | 返回结构体的字段数量 | C 标准库无运行时反射，Go 对标 reflect.NumField；axlang 无运行时类型反射，需设计可落地子集 | ✅ 已落地 |
+| `reflect.type_of` | 内建库 | `(v: any) -> string` | reflect.type_of(v) | — | reflect.TypeOf | 返回任意值的类型名称字符串 | C 标准库无运行时反射，Go 对标 reflect.TypeOf；axlang 无运行时类型反射，需设计可落地子集 | ✅ 已落地 |
 | `reflect.value_of` | 内建库 | `(v: any) -> any` | reflect.value_of(v) | — | reflect.ValueOf | 返回任意值的反射值对象 | C 标准库无运行时反射，Go 对标 reflect.ValueOf；axlang 无运行时类型反射，需设计可落地子集 | ⬜ 未落地 |
 | `slices.clone` | 内建库 | `() -> T[]` | arr.clone() | memcpy | slices.Clone | 返回数组的深拷贝副本 | 对标 C memcpy，Go slices.Clone；返回独立的新数组，修改不影响原数组 | ✅ 已落地 |
 | `slices.contains` | 内建库 | `(x: T) -> bool` | slices.contains(arr, x) | — | slices.Contains | 判断数组是否包含指定元素 | C 标准库无直接对应，Go 对标 slices.Contains；线性查找，O(n) | ✅ 已落地 |
@@ -364,7 +364,7 @@
 | 编译器内建函数（保留） | 131 个 | 长期保留在编译器 Rust 端 |
 | 标准库函数（已迁移） | 170 个 | 已在 axc/std/ 下以 ax 源码实现 |
 | 标准库函数（待迁移） | 0 个 | 计划从编译器内建迁移到 ax_stdlib |
-| 已落地函数 | 296 / 301 | — |
+| 已落地函数 | 298 / 301 | — |
 
 
 *更新于 2026-11-25，基于 STDLIB-STATUS.json 自动生成*

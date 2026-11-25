@@ -3565,8 +3565,7 @@
         {
           "name": "type_of",
           "signature": "(v: any) -> string",
-          "status": "not_implemented",
-          "note": "axlang 无运行时类型反射，需设计可落地子集",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "reflect.TypeOf",
           "function": "返回任意值的类型名称字符串",
@@ -3591,8 +3590,7 @@
         {
           "name": "num_field",
           "signature": "(v: any) -> int",
-          "status": "not_implemented",
-          "note": "同上",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "reflect.NumField",
           "function": "返回结构体的字段数量",

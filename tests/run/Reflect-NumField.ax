@@ -1,0 +1,22 @@
+// reflect.num_field：返回结构体字段数量
+import reflect
+
+struct Point {
+    int X
+    int Y
+}
+
+struct Box {
+    Point Tl
+    Point Br
+}
+
+int main() {
+    Point p = Point(1, 2)
+    Box box = Box(Point(0, 0), Point(10, 20))
+
+    println("Point.fields={reflect.num_field(p)}")
+    println("Box.fields={reflect.num_field(box)}")
+
+    return 0
+}

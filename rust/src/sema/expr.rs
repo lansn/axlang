@@ -189,6 +189,9 @@ pub fn module_sig(mod_: &str, name: &str) -> Option<(Vec<Option<Ty>>, Ty)> {
         ("filepath", "eval_symlinks") => (vec![Some(t_string())], t_string()),
         ("filepath", "glob") => (vec![Some(t_string())], t_array(t_string(), None)),
         ("filepath", "walk") => (vec![Some(t_string())], t_array(t_string(), None)),
+        /* reflect 模块：编译期类型查询，零运行时开销 */
+        ("reflect", "type_of") => (vec![Some(t_object())], t_string()),
+        ("reflect", "num_field") => (vec![Some(t_object())], t_int()),
         _ => return None,
     })
 }

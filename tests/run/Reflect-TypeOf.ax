@@ -1,0 +1,23 @@
+// reflect.type_of：编译期返回值的静态类型名称字符串
+import reflect
+
+struct Point {
+    int X
+    int Y
+}
+
+int main() {
+    int a = 42
+    string s = "hello"
+    float f = 3.14
+    bool b = true
+    Point p = Point(1, 2)
+
+    println("int={reflect.type_of(a)}")
+    println("string={reflect.type_of(s)}")
+    println("float={reflect.type_of(f)}")
+    println("bool={reflect.type_of(b)}")
+    println("Point={reflect.type_of(p)}")
+
+    return 0
+}

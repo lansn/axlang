@@ -2117,6 +2117,28 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 ));
                 "0".to_string()
             }
+            ("reflect", "type_of") => {
+                // 编译期常量：直接生成字符串字面量，实参根本不出现在生成代码里
+                let name = self
+                    .cg
+                    .slot(&e.id)
+                    .and_then(|s| s.bname.clone())
+                    .unwrap_or_default();
+                format!("AX_S({})", cstr(&name))
+            }
+            ("reflect", "num_field") => {
+                // 编译期常量：直接生成整数字面量
+                let n = self
+                    .cg
+                    .slot(&e.id)
+                    .and_then(|s| s.const_value.clone())
+                    .and_then(|cv| match cv {
+                        ConstVal::Int(n) => Some(n),
+                        _ => None,
+                    })
+                    .unwrap_or(0);
+                format!("{}", n)
+            }
             ("errors", "new") => format!("ax_err_new(1, {})", a[0]),
             // errors.Is(err, target) -> bool：对标 Go errors.Is，比较 code 和 msg 是否相等
             ("errors", "is") => format!("ax_err_is({}, {})", a[0], a[1]),
