@@ -49,10 +49,10 @@
 
 | ax.函数          | 签名                                 | 对标 C                    | 对标 Go                    | 函数功能           | 说明        | 状态  |
 | -------------- | ---------------------------------- | ------------------------- | -------------------------- | ------------------ | ----------- | ----- |
-| `io.read_line` | `() -> string?` | — | — | 标准 C11 实现 | — | ✅ 已落地 |
-| `io.read_file` | `(path: string) -> result<string>` | — | — | 标准 C11 实现 | — | ✅ 已落地 |
-| `io.write` | `(s: string) -> void` | — | — | 标准 C11 实现 | — | ✅ 已落地 |
-| `io.write_line` | `(s: string) -> void` | — | — | 标准 C11 实现 | — | ✅ 已落地 |
+| `io.read_line` | `() -> string?` | — | io | — | Package io provides basic interfaces to I/O primitives. | ✅ 已落地 |
+| `io.read_file` | `(path: string) -> result<string>` | — | io | — | Package io provides basic interfaces to I/O primitives. | ✅ 已落地 |
+| `io.write` | `(s: string) -> void` | — | io | — | Package io provides basic interfaces to I/O primitives. | ✅ 已落地 |
+| `io.write_line` | `(s: string) -> void` | — | io | — | Package io provides basic interfaces to I/O primitives. | ✅ 已落地 |
 
 
 ### 2. math（对标 Go math / C math.h）
@@ -61,44 +61,44 @@
 
 | ax.函数          | 签名                                 | 对标 C                    | 对标 Go                    | 函数功能           | 说明        | 状态  |
 | -------------- | ---------------------------------- | ------------------------- | -------------------------- | ------------------ | ----------- | ----- |
-| `math.abs` | `(x: float) -> float` | — | — | — | — | ✅ 已落地 |
-| `math.max` | `(a: float, b: float) -> float` | — | — | — | — | ✅ 已落地 |
-| `math.min` | `(a: float, b: float) -> float` | — | — | — | — | ✅ 已落地 |
-| `math.sqrt` | `(x: float) -> float` | — | — | — | — | ✅ 已落地 |
-| `math.pow` | `(a: float, b: float) -> float` | — | — | — | — | ✅ 已落地 |
-| `math.exp` | `(x: float) -> float` | — | — | — | — | ✅ 已落地 |
-| `math.log` | `(x: float) -> float` | — | — | — | — | ✅ 已落地 |
-| `math.sin` | `(x: float) -> float` | — | — | — | — | ✅ 已落地 |
-| `math.cos` | `(x: float) -> float` | — | — | — | — | ✅ 已落地 |
-| `math.tan` | `(x: float) -> float` | — | — | — | — | ✅ 已落地 |
-| `math.ceil` | `(x: float) -> float` | — | — | — | — | ✅ 已落地 |
-| `math.floor` | `(x: float) -> float` | — | — | — | — | ✅ 已落地 |
-| `math.round` | `(x: float) -> float` | — | — | — | — | ✅ 已落地 |
-| `math.sign` | `(x: float) -> int` | — | — | — | — | ✅ 已落地 |
-| `math.mod` | `(x: float, y: float) -> float` | — | — | — | — | ✅ 已落地 |
-| `math.equals` | `(a: float, b: float, eps: float) -> bool` | — | — | — | — | ✅ 已落地 |
-| `math.compare` | `(a: float, b: float) -> int` | — | — | — | — | ✅ 已落地 |
-| `math.exp2` | `(x: float) -> float` | — | — | — | — | ✅ 已落地 |
-| `math.log10` | `(x: float) -> float` | — | — | — | — | ✅ 已落地 |
-| `math.log2` | `(x: float) -> float` | — | — | — | — | ✅ 已落地 |
-| `math.log1p` | `(x: float) -> float` | — | — | — | — | ✅ 已落地 |
-| `math.sinh` | `(x: float) -> float` | — | — | — | — | ✅ 已落地 |
-| `math.cosh` | `(x: float) -> float` | — | — | — | — | ✅ 已落地 |
-| `math.tanh` | `(x: float) -> float` | — | — | — | — | ✅ 已落地 |
-| `math.asin` | `(x: float) -> float` | — | — | — | — | ✅ 已落地 |
-| `math.acos` | `(x: float) -> float` | — | — | — | — | ✅ 已落地 |
-| `math.atan` | `(x: float) -> float` | — | — | — | — | ✅ 已落地 |
-| `math.atan2` | `(y: float, x: float) -> float` | — | — | — | — | ✅ 已落地 |
-| `math.hypot` | `(p: float, q: float) -> float` | — | — | — | — | ✅ 已落地 |
-| `math.cbrt` | `(x: float) -> float` | — | — | — | — | ✅ 已落地 |
-| `math.trunc` | `(x: float) -> float` | — | — | — | — | ✅ 已落地 |
-| `math.is_na_n` | `(f: float) -> bool` | — | — | — | — | ✅ 已落地 |
-| `math.is_inf` | `(f: float, sign: int) -> bool` | — | — | — | — | ✅ 已落地 |
-| `math.frexp` | `(f: float) -> (frac: float, exp: int)` | — | — | — | — | ⬜ 计划中 |
-| `math.ldexp` | `(frac: float, exp: int) -> float` | — | — | — | — | ✅ 已落地 |
-| `math.signbit` | `(f: float) -> bool` | — | — | — | — | ✅ 已落地 |
-| `math.copysign` | `(f: float, sign: float) -> float` | — | — | — | — | ✅ 已落地 |
-| `math.dim` | `(x: float, y: float) -> float` | — | — | — | — | ✅ 已落地 |
+| `math.abs` | `(x: float) -> float` | — | math | — | Package math provides basic constants and mathematical functions. | ✅ 已落地 |
+| `math.max` | `(a: float, b: float) -> float` | — | math | — | Package math provides basic constants and mathematical functions. | ✅ 已落地 |
+| `math.min` | `(a: float, b: float) -> float` | — | math | — | Package math provides basic constants and mathematical functions. | ✅ 已落地 |
+| `math.sqrt` | `(x: float) -> float` | — | math | — | Package math provides basic constants and mathematical functions. | ✅ 已落地 |
+| `math.pow` | `(a: float, b: float) -> float` | — | math | — | Package math provides basic constants and mathematical functions. | ✅ 已落地 |
+| `math.exp` | `(x: float) -> float` | — | math | — | Package math provides basic constants and mathematical functions. | ✅ 已落地 |
+| `math.log` | `(x: float) -> float` | — | math | — | Package math provides basic constants and mathematical functions. | ✅ 已落地 |
+| `math.sin` | `(x: float) -> float` | — | math | — | Package math provides basic constants and mathematical functions. | ✅ 已落地 |
+| `math.cos` | `(x: float) -> float` | — | math | — | Package math provides basic constants and mathematical functions. | ✅ 已落地 |
+| `math.tan` | `(x: float) -> float` | — | math | — | Package math provides basic constants and mathematical functions. | ✅ 已落地 |
+| `math.ceil` | `(x: float) -> float` | — | math | — | Package math provides basic constants and mathematical functions. | ✅ 已落地 |
+| `math.floor` | `(x: float) -> float` | — | math | — | Package math provides basic constants and mathematical functions. | ✅ 已落地 |
+| `math.round` | `(x: float) -> float` | — | math | — | Package math provides basic constants and mathematical functions. | ✅ 已落地 |
+| `math.sign` | `(x: float) -> int` | — | math | — | Package math provides basic constants and mathematical functions. | ✅ 已落地 |
+| `math.mod` | `(x: float, y: float) -> float` | — | math | — | Package math provides basic constants and mathematical functions. | ✅ 已落地 |
+| `math.equals` | `(a: float, b: float, eps: float) -> bool` | — | math | — | Package math provides basic constants and mathematical functions. | ✅ 已落地 |
+| `math.compare` | `(a: float, b: float) -> int` | — | math | — | Package math provides basic constants and mathematical functions. | ✅ 已落地 |
+| `math.exp2` | `(x: float) -> float` | — | math | — | Package math provides basic constants and mathematical functions. | ✅ 已落地 |
+| `math.log10` | `(x: float) -> float` | — | math | — | Package math provides basic constants and mathematical functions. | ✅ 已落地 |
+| `math.log2` | `(x: float) -> float` | — | math | — | Package math provides basic constants and mathematical functions. | ✅ 已落地 |
+| `math.log1p` | `(x: float) -> float` | — | math | — | Package math provides basic constants and mathematical functions. | ✅ 已落地 |
+| `math.sinh` | `(x: float) -> float` | — | math | — | Package math provides basic constants and mathematical functions. | ✅ 已落地 |
+| `math.cosh` | `(x: float) -> float` | — | math | — | Package math provides basic constants and mathematical functions. | ✅ 已落地 |
+| `math.tanh` | `(x: float) -> float` | — | math | — | Package math provides basic constants and mathematical functions. | ✅ 已落地 |
+| `math.asin` | `(x: float) -> float` | — | math | — | Package math provides basic constants and mathematical functions. | ✅ 已落地 |
+| `math.acos` | `(x: float) -> float` | — | math | — | Package math provides basic constants and mathematical functions. | ✅ 已落地 |
+| `math.atan` | `(x: float) -> float` | — | math | — | Package math provides basic constants and mathematical functions. | ✅ 已落地 |
+| `math.atan2` | `(y: float, x: float) -> float` | — | math | — | Package math provides basic constants and mathematical functions. | ✅ 已落地 |
+| `math.hypot` | `(p: float, q: float) -> float` | — | math | — | Package math provides basic constants and mathematical functions. | ✅ 已落地 |
+| `math.cbrt` | `(x: float) -> float` | — | math | — | Package math provides basic constants and mathematical functions. | ✅ 已落地 |
+| `math.trunc` | `(x: float) -> float` | — | math | — | Package math provides basic constants and mathematical functions. | ✅ 已落地 |
+| `math.is_na_n` | `(f: float) -> bool` | — | math | — | Package math provides basic constants and mathematical functions. | ✅ 已落地 |
+| `math.is_inf` | `(f: float, sign: int) -> bool` | — | math | — | Package math provides basic constants and mathematical functions. | ✅ 已落地 |
+| `math.frexp` | `(f: float) -> (frac: float, exp: int)` | — | math | — | Package math provides basic constants and mathematical functions. | ⬜ 计划中 |
+| `math.ldexp` | `(frac: float, exp: int) -> float` | — | math | — | Package math provides basic constants and mathematical functions. | ✅ 已落地 |
+| `math.signbit` | `(f: float) -> bool` | — | math | — | Package math provides basic constants and mathematical functions. | ✅ 已落地 |
+| `math.copysign` | `(f: float, sign: float) -> float` | — | math | — | Package math provides basic constants and mathematical functions. | ✅ 已落地 |
+| `math.dim` | `(x: float, y: float) -> float` | — | math | — | Package math provides basic constants and mathematical functions. | ✅ 已落地 |
 
 
 ### 3. json（对标 Go encoding/json）
@@ -107,10 +107,10 @@
 
 | ax.函数          | 签名                                 | 对标 C                    | 对标 Go                    | 函数功能           | 说明        | 状态  |
 | -------------- | ---------------------------------- | ------------------------- | -------------------------- | ------------------ | ----------- | ----- |
-| `json.parse` | `(s: string) -> result<map<string, object>>` | — | — | — | — | ✅ 已落地 |
-| `json.stringify` | `(v: object) -> string` | — | — | — | — | ✅ 已落地 |
-| `json.marshal_indent` | `(v: object, prefix: string, indent: string) -> string` | — | — | — | — | ✅ 已落地 |
-| `json.valid` | `(s: string) -> bool` | — | — | — | — | ✅ 已落地 |
+| `json.parse` | `(s: string) -> result<map<string, object>>` | — | json | — | Package json implements encoding and decoding of JSON as defined in RFC 7159. | ✅ 已落地 |
+| `json.stringify` | `(v: object) -> string` | — | json | — | Package json implements encoding and decoding of JSON as defined in RFC 7159. | ✅ 已落地 |
+| `json.marshal_indent` | `(v: object, prefix: string, indent: string) -> string` | — | json | — | Package json implements encoding and decoding of JSON as defined in RFC 7159. | ✅ 已落地 |
+| `json.valid` | `(s: string) -> bool` | — | json | — | Package json implements encoding and decoding of JSON as defined in RFC 7159. | ✅ 已落地 |
 
 
 ### 4. file（对标 Go os / C stdio/stdlib）
@@ -119,22 +119,22 @@
 
 | ax.函数          | 签名                                 | 对标 C                    | 对标 Go                    | 函数功能           | 说明        | 状态  |
 | -------------- | ---------------------------------- | ------------------------- | -------------------------- | ------------------ | ----------- | ----- |
-| `file.open` | `(path: string) -> result<File>` | — | — | — | — | ✅ 已落地 |
-| `file.create` | `(path: string) -> result<File>` | — | — | — | — | ✅ 已落地 |
-| `file.append` | `(path: string) -> result<File>` | — | — | — | — | ✅ 已落地 |
-| `file.remove` | `(path: string) -> int` | — | — | — | — | ✅ 已落地 |
-| `file.rename` | `(old: string, new: string) -> int` | — | — | — | — | ✅ 已落地 |
-| `file.exists` | `(path: string) -> int` | — | — | — | — | ✅ 已落地 |
-| `file.mkdir` | `(path: string) -> int` | — | — | — | — | ✅ 已落地 |
-| `file.read_all` | `(path: string) -> result<string>` | — | — | — | — | ✅ 已落地 |
-| `file.write_all` | `(path: string, s: string) -> int` | — | — | — | — | ✅ 已落地 |
-| `file.is_dir` | `(path: string) -> int` | — | — | — | — | ✅ 已落地 |
-| `file.is_file` | `(path: string) -> int` | — | — | — | — | ✅ 已落地 |
-| `file.size` | `(path: string) -> int` | — | — | — | — | ✅ 已落地 |
-| `file.mod_time` | `(path: string) -> int` | — | — | — | — | ✅ 已落地 |
-| `file.chmod` | `(path: string, mode: int) -> int` | — | — | — | — | ✅ 已落地 |
-| `file.chtimes` | `(path: string, atime: int, mtime: int) -> int` | — | — | — | — | ✅ 已落地 |
-| `file.temp_file` | `(dir: string, prefix: string) -> result<File>` | — | — | — | — | ✅ 已落地 |
+| `file.open` | `(path: string) -> result<File>` | — | os | — | Package os provides a platform-independent interface to operating system functionality. | ✅ 已落地 |
+| `file.create` | `(path: string) -> result<File>` | — | os | — | Package os provides a platform-independent interface to operating system functionality. | ✅ 已落地 |
+| `file.append` | `(path: string) -> result<File>` | — | os | — | Package os provides a platform-independent interface to operating system functionality. | ✅ 已落地 |
+| `file.remove` | `(path: string) -> int` | — | os | — | Package os provides a platform-independent interface to operating system functionality. | ✅ 已落地 |
+| `file.rename` | `(old: string, new: string) -> int` | — | os | — | Package os provides a platform-independent interface to operating system functionality. | ✅ 已落地 |
+| `file.exists` | `(path: string) -> int` | — | os | — | Package os provides a platform-independent interface to operating system functionality. | ✅ 已落地 |
+| `file.mkdir` | `(path: string) -> int` | — | os | — | Package os provides a platform-independent interface to operating system functionality. | ✅ 已落地 |
+| `file.read_all` | `(path: string) -> result<string>` | — | os | — | Package os provides a platform-independent interface to operating system functionality. | ✅ 已落地 |
+| `file.write_all` | `(path: string, s: string) -> int` | — | os | — | Package os provides a platform-independent interface to operating system functionality. | ✅ 已落地 |
+| `file.is_dir` | `(path: string) -> int` | — | os | — | Package os provides a platform-independent interface to operating system functionality. | ✅ 已落地 |
+| `file.is_file` | `(path: string) -> int` | — | os | — | Package os provides a platform-independent interface to operating system functionality. | ✅ 已落地 |
+| `file.size` | `(path: string) -> int` | — | os | — | Package os provides a platform-independent interface to operating system functionality. | ✅ 已落地 |
+| `file.mod_time` | `(path: string) -> int` | — | os | — | Package os provides a platform-independent interface to operating system functionality. | ✅ 已落地 |
+| `file.chmod` | `(path: string, mode: int) -> int` | — | os | — | Package os provides a platform-independent interface to operating system functionality. | ✅ 已落地 |
+| `file.chtimes` | `(path: string, atime: int, mtime: int) -> int` | — | os | — | Package os provides a platform-independent interface to operating system functionality. | ✅ 已落地 |
+| `file.temp_file` | `(dir: string, prefix: string) -> result<File>` | — | os | — | Package os provides a platform-independent interface to operating system functionality. | ✅ 已落地 |
 
 
 ### 5. db（对标 axlang 特有，无直接 Go 对标）
@@ -152,48 +152,48 @@
 
 | ax.函数          | 签名                                 | 对标 C                    | 对标 Go                    | 函数功能           | 说明        | 状态  |
 | -------------- | ---------------------------------- | ------------------------- | -------------------------- | ------------------ | ----------- | ----- |
-| `string.from_codepoint` | `(cp: int) -> result<string>` | — | — | — | — | ✅ 已落地 |
-| `string.compare` | `(a: string, b: string) -> int` | — | — | — | — | ✅ 已落地 |
-| `string.fields` | `(s: string) -> string[]` | — | — | — | — | ✅ 已落地 |
+| `string.from_codepoint` | `(cp: int) -> result<string>` | — | strings | — | Package strings implements simple functions to manipulate UTF-8 encoded strings. | ✅ 已落地 |
+| `string.compare` | `(a: string, b: string) -> int` | — | strings | — | Package strings implements simple functions to manipulate UTF-8 encoded strings. | ✅ 已落地 |
+| `string.fields` | `(s: string) -> string[]` | — | strings | — | Package strings implements simple functions to manipulate UTF-8 encoded strings. | ✅ 已落地 |
 
 **实例方法：**
 
 | ax.函数                 | 签名                                     | 对标 C                    | 对标 Go                    | 函数功能           | 说明        | 状态  |
 | --------------------- | -------------------------------------- | ------------------------- | -------------------------- | ------------------ | ----------- | ----- |
-| `string.to_upper` | `() -> string` | — | — | — | — | ✅ 已落地 |
-| `string.to_lower` | `() -> string` | — | — | — | — | ✅ 已落地 |
-| `string.contains` | `(sub: string) -> bool` | — | — | — | — | ✅ 已落地 |
-| `string.contains_any` | `(chars: string) -> bool` | — | — | — | — | ✅ 已落地 |
-| `string.contains_rune` | `(r: int) -> bool` | — | — | — | — | ✅ 已落地 |
-| `string.count` | `(substr: string) -> int` | — | — | — | — | ✅ 已落地 |
-| `string.index_of` | `(sub: string) -> int` | — | — | — | — | ✅ 已落地 |
-| `string.index_any` | `(chars: string) -> int` | — | — | — | — | ✅ 已落地 |
-| `string.last_index_of` | `(sub: string) -> int` | — | — | — | — | ✅ 已落地 |
-| `string.last_index_any` | `(chars: string) -> int` | — | — | — | — | ✅ 已落地 |
-| `string.split` | `(sep: string) -> string[]` | — | — | — | — | ✅ 已落地 |
-| `string.trim` | `() -> string` | — | — | — | — | ✅ 已落地 |
-| `string.trim_left` | `(cutset: string) -> string` | — | — | — | — | ✅ 已落地 |
-| `string.trim_right` | `(cutset: string) -> string` | — | — | — | — | ✅ 已落地 |
-| `string.trim_prefix` | `(prefix: string) -> string` | — | — | — | — | ✅ 已落地 |
-| `string.trim_suffix` | `(suffix: string) -> string` | — | — | — | — | ✅ 已落地 |
-| `string.split_n` | `(sep: string, n: int) -> string[]` | — | — | — | — | ✅ 已落地 |
-| `string.split_after` | `(sep: string) -> string[]` | — | — | — | — | ✅ 已落地 |
-| `string.title` | `() -> string` | — | — | — | — | ✅ 已落地 |
-| `string.map` | `(mapping: func(int) int) -> string` | — | — | — | — | ✅ 已落地 |
-| `string.replace` | `(old: string, new: string) -> string` | — | — | — | — | ✅ 已落地 |
-| `string.repeat` | `(n: int) -> string` | — | — | — | — | ✅ 已落地 |
-| `string.starts_with` | `(prefix: string) -> bool` | — | — | — | — | ✅ 已落地 |
-| `string.ends_with` | `(suffix: string) -> bool` | — | — | — | — | ✅ 已落地 |
-| `string.len` | `() -> int` | — | — | — | — | ✅ 已落地 |
-| `string.is_digit` | `() -> bool` | — | — | — | — | ✅ 已落地 |
-| `string.is_alpha` | `() -> bool` | — | — | — | — | ✅ 已落地 |
-| `string.is_space` | `() -> bool` | — | — | — | — | ✅ 已落地 |
-| `string.is_lower` | `() -> bool` | — | — | — | — | ✅ 已落地 |
-| `string.is_upper` | `() -> bool` | — | — | — | — | ✅ 已落地 |
-| `string.is_alnum` | `() -> bool` | — | — | — | — | ✅ 已落地 |
-| `string.equal_fold` | `(t: string) -> bool` | — | — | — | — | ✅ 已落地 |
-| `string.to_upper_rune` | `(r: int) -> int` | — | — | — | — | ✅ 已落地 |
-| `string.to_lower_rune` | `(r: int) -> int` | — | — | — | — | ✅ 已落地 |
+| `string.to_upper` | `() -> string` | — | strings | — | Package strings implements simple functions to manipulate UTF-8 encoded strings. | ✅ 已落地 |
+| `string.to_lower` | `() -> string` | — | strings | — | Package strings implements simple functions to manipulate UTF-8 encoded strings. | ✅ 已落地 |
+| `string.contains` | `(sub: string) -> bool` | — | strings | — | Package strings implements simple functions to manipulate UTF-8 encoded strings. | ✅ 已落地 |
+| `string.contains_any` | `(chars: string) -> bool` | — | strings | — | Package strings implements simple functions to manipulate UTF-8 encoded strings. | ✅ 已落地 |
+| `string.contains_rune` | `(r: int) -> bool` | — | strings | — | Package strings implements simple functions to manipulate UTF-8 encoded strings. | ✅ 已落地 |
+| `string.count` | `(substr: string) -> int` | — | strings | — | Package strings implements simple functions to manipulate UTF-8 encoded strings. | ✅ 已落地 |
+| `string.index_of` | `(sub: string) -> int` | — | strings | — | Package strings implements simple functions to manipulate UTF-8 encoded strings. | ✅ 已落地 |
+| `string.index_any` | `(chars: string) -> int` | — | strings | — | Package strings implements simple functions to manipulate UTF-8 encoded strings. | ✅ 已落地 |
+| `string.last_index_of` | `(sub: string) -> int` | — | strings | — | Package strings implements simple functions to manipulate UTF-8 encoded strings. | ✅ 已落地 |
+| `string.last_index_any` | `(chars: string) -> int` | — | strings | — | Package strings implements simple functions to manipulate UTF-8 encoded strings. | ✅ 已落地 |
+| `string.split` | `(sep: string) -> string[]` | — | strings | — | Package strings implements simple functions to manipulate UTF-8 encoded strings. | ✅ 已落地 |
+| `string.trim` | `() -> string` | — | strings | — | Package strings implements simple functions to manipulate UTF-8 encoded strings. | ✅ 已落地 |
+| `string.trim_left` | `(cutset: string) -> string` | — | strings | — | Package strings implements simple functions to manipulate UTF-8 encoded strings. | ✅ 已落地 |
+| `string.trim_right` | `(cutset: string) -> string` | — | strings | — | Package strings implements simple functions to manipulate UTF-8 encoded strings. | ✅ 已落地 |
+| `string.trim_prefix` | `(prefix: string) -> string` | — | strings | — | Package strings implements simple functions to manipulate UTF-8 encoded strings. | ✅ 已落地 |
+| `string.trim_suffix` | `(suffix: string) -> string` | — | strings | — | Package strings implements simple functions to manipulate UTF-8 encoded strings. | ✅ 已落地 |
+| `string.split_n` | `(sep: string, n: int) -> string[]` | — | strings | — | Package strings implements simple functions to manipulate UTF-8 encoded strings. | ✅ 已落地 |
+| `string.split_after` | `(sep: string) -> string[]` | — | strings | — | Package strings implements simple functions to manipulate UTF-8 encoded strings. | ✅ 已落地 |
+| `string.title` | `() -> string` | — | strings | — | Package strings implements simple functions to manipulate UTF-8 encoded strings. | ✅ 已落地 |
+| `string.map` | `(mapping: func(int) int) -> string` | — | strings | — | Package strings implements simple functions to manipulate UTF-8 encoded strings. | ✅ 已落地 |
+| `string.replace` | `(old: string, new: string) -> string` | — | strings | — | Package strings implements simple functions to manipulate UTF-8 encoded strings. | ✅ 已落地 |
+| `string.repeat` | `(n: int) -> string` | — | strings | — | Package strings implements simple functions to manipulate UTF-8 encoded strings. | ✅ 已落地 |
+| `string.starts_with` | `(prefix: string) -> bool` | — | strings | — | Package strings implements simple functions to manipulate UTF-8 encoded strings. | ✅ 已落地 |
+| `string.ends_with` | `(suffix: string) -> bool` | — | strings | — | Package strings implements simple functions to manipulate UTF-8 encoded strings. | ✅ 已落地 |
+| `string.len` | `() -> int` | — | strings | — | Package strings implements simple functions to manipulate UTF-8 encoded strings. | ✅ 已落地 |
+| `string.is_digit` | `() -> bool` | — | strings | — | Package strings implements simple functions to manipulate UTF-8 encoded strings. | ✅ 已落地 |
+| `string.is_alpha` | `() -> bool` | — | strings | — | Package strings implements simple functions to manipulate UTF-8 encoded strings. | ✅ 已落地 |
+| `string.is_space` | `() -> bool` | — | strings | — | Package strings implements simple functions to manipulate UTF-8 encoded strings. | ✅ 已落地 |
+| `string.is_lower` | `() -> bool` | — | strings | — | Package strings implements simple functions to manipulate UTF-8 encoded strings. | ✅ 已落地 |
+| `string.is_upper` | `() -> bool` | — | strings | — | Package strings implements simple functions to manipulate UTF-8 encoded strings. | ✅ 已落地 |
+| `string.is_alnum` | `() -> bool` | — | strings | — | Package strings implements simple functions to manipulate UTF-8 encoded strings. | ✅ 已落地 |
+| `string.equal_fold` | `(t: string) -> bool` | — | strings | — | Package strings implements simple functions to manipulate UTF-8 encoded strings. | ✅ 已落地 |
+| `string.to_upper_rune` | `(r: int) -> int` | — | strings | — | Package strings implements simple functions to manipulate UTF-8 encoded strings. | ✅ 已落地 |
+| `string.to_lower_rune` | `(r: int) -> int` | — | strings | — | Package strings implements simple functions to manipulate UTF-8 encoded strings. | ✅ 已落地 |
 
 
 ### 7. time（对标 Go time / C time.h）
@@ -202,31 +202,31 @@
 
 | ax.函数                 | 签名                                     | 对标 C                    | 对标 Go                    | 函数功能           | 说明        | 状态  |
 | --------------------- | -------------------------------------- | ------------------------- | -------------------------- | ------------------ | ----------- | ----- |
-| `time.to_string` | `() -> string` | — | — | — | — | ✅ 已落地 |
-| `time.format` | `(fmt: string) -> string` | — | — | — | — | ✅ 已落地 |
+| `time.to_string` | `() -> string` | — | time | — | Package time provides functionality for measuring and displaying time. | ✅ 已落地 |
+| `time.format` | `(fmt: string) -> string` | — | time | — | Package time provides functionality for measuring and displaying time. | ✅ 已落地 |
 
 | ax.函数 | 类型 | 签名 | 对标 C | 对标 Go | 函数功能 | 说明 | 状态 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ----- |
-| `time.now_ms` | 模块 | `() -> int` | — | — | — | — | ✅ 已落地 |
-| `time.now` | 模块 | `() -> time` | — | — | — | — | ✅ 已落地 |
-| `time.from_unix_ms` | 模块 | `(ms: int) -> time` | — | — | — | — | ✅ 已落地 |
-| `time.sleep` | 模块 | `(ms: int) -> void` | — | — | — | — | ✅ 已落地 |
-| `time.parse` | 模块 | `(s: string, fmt: string) -> result<time>` | — | — | — | — | ✅ 已落地 |
-| `time.unix` | 模块 | `(sec: int, nsec: int) -> time` | — | — | — | — | ✅ 已落地 |
-| `time.unix_milli` | 模块 | `(ms: int) -> time` | — | — | — | — | ✅ 已落地 |
-| `time.unix_micro` | 模块 | `(us: int) -> time` | — | — | — | — | ✅ 已落地 |
-| `time.unix_nano` | 模块 | `(nsec: int) -> time` | — | — | — | — | ✅ 已落地 |
-| `time.since` | 模块 | `(t: time) -> int` | — | — | — | — | ✅ 已落地 |
-| `time.date` | 模块 | `(year, month, day, hour, min, sec, nsec: int) -> time` | — | — | — | — | ✅ 已落地 |
-| `time.until` | 模块 | `(t: time) -> int` | — | — | — | — | ✅ 已落地 |
-| `time.after` | 模块 | `(u: time) -> bool` | — | — | — | — | ✅ 已落地 |
-| `time.before` | 模块 | `(u: time) -> bool` | — | — | — | — | ✅ 已落地 |
-| `time.equal` | 模块 | `(u: time) -> bool` | — | — | — | — | ✅ 已落地 |
-| `time.compare` | 模块 | `(u: time) -> int` | — | — | — | — | ✅ 已落地 |
-| `time.sub` | 模块 | `(u: time) -> int` | — | — | — | — | ✅ 已落地 |
-| `time.add` | 模块 | `(d: int) -> time` | — | — | — | — | ✅ 已落地 |
-| `time.round` | 模块 | `(d: int) -> time` | — | — | — | — | ✅ 已落地 |
-| `time.truncate` | 模块 | `(d: int) -> time` | — | — | — | — | ✅ 已落地 |
+| `time.now_ms` | 模块 | `() -> int` | — | time | — | Package time provides functionality for measuring and displaying time. | ✅ 已落地 |
+| `time.now` | 模块 | `() -> time` | — | time | — | Package time provides functionality for measuring and displaying time. | ✅ 已落地 |
+| `time.from_unix_ms` | 模块 | `(ms: int) -> time` | — | time | — | Package time provides functionality for measuring and displaying time. | ✅ 已落地 |
+| `time.sleep` | 模块 | `(ms: int) -> void` | — | time | — | Package time provides functionality for measuring and displaying time. | ✅ 已落地 |
+| `time.parse` | 模块 | `(s: string, fmt: string) -> result<time>` | — | time | — | Package time provides functionality for measuring and displaying time. | ✅ 已落地 |
+| `time.unix` | 模块 | `(sec: int, nsec: int) -> time` | — | time | — | Package time provides functionality for measuring and displaying time. | ✅ 已落地 |
+| `time.unix_milli` | 模块 | `(ms: int) -> time` | — | time | — | Package time provides functionality for measuring and displaying time. | ✅ 已落地 |
+| `time.unix_micro` | 模块 | `(us: int) -> time` | — | time | — | Package time provides functionality for measuring and displaying time. | ✅ 已落地 |
+| `time.unix_nano` | 模块 | `(nsec: int) -> time` | — | time | — | Package time provides functionality for measuring and displaying time. | ✅ 已落地 |
+| `time.since` | 模块 | `(t: time) -> int` | — | time | — | Package time provides functionality for measuring and displaying time. | ✅ 已落地 |
+| `time.date` | 模块 | `(year, month, day, hour, min, sec, nsec: int) -> time` | — | time | — | Package time provides functionality for measuring and displaying time. | ✅ 已落地 |
+| `time.until` | 模块 | `(t: time) -> int` | — | time | — | Package time provides functionality for measuring and displaying time. | ✅ 已落地 |
+| `time.after` | 模块 | `(u: time) -> bool` | — | time | — | Package time provides functionality for measuring and displaying time. | ✅ 已落地 |
+| `time.before` | 模块 | `(u: time) -> bool` | — | time | — | Package time provides functionality for measuring and displaying time. | ✅ 已落地 |
+| `time.equal` | 模块 | `(u: time) -> bool` | — | time | — | Package time provides functionality for measuring and displaying time. | ✅ 已落地 |
+| `time.compare` | 模块 | `(u: time) -> int` | — | time | — | Package time provides functionality for measuring and displaying time. | ✅ 已落地 |
+| `time.sub` | 模块 | `(u: time) -> int` | — | time | — | Package time provides functionality for measuring and displaying time. | ✅ 已落地 |
+| `time.add` | 模块 | `(d: int) -> time` | — | time | — | Package time provides functionality for measuring and displaying time. | ✅ 已落地 |
+| `time.round` | 模块 | `(d: int) -> time` | — | time | — | Package time provides functionality for measuring and displaying time. | ✅ 已落地 |
+| `time.truncate` | 模块 | `(d: int) -> time` | — | time | — | Package time provides functionality for measuring and displaying time. | ✅ 已落地 |
 
 
 ### 8. decimal（对标 axlang 特有，高精度十进制）
@@ -275,10 +275,10 @@
 
 | ax.函数          | 签名                                 | 对标 C                    | 对标 Go                    | 函数功能           | 说明        | 状态  |
 | -------------- | ---------------------------------- | ------------------------- | -------------------------- | ------------------ | ----------- | ----- |
-| `map.clear` | `() -> void` | — | — | — | — | ✅ 已落地 |
-| `map.remove` | `(key: K) -> void` | — | — | — | — | ✅ 已落地 |
-| `map.==` | `(other: Map) -> bool` | — | — | — | — | ✅ 已落地 |
-| `map.!=` | `(other: Map) -> bool` | — | — | — | — | ✅ 已落地 |
+| `map.clear` | `() -> void` | — | maps | — | Package maps defines various functions useful with maps of any type. | ✅ 已落地 |
+| `map.remove` | `(key: K) -> void` | — | maps | — | Package maps defines various functions useful with maps of any type. | ✅ 已落地 |
+| `map.==` | `(other: Map) -> bool` | — | maps | — | Package maps defines various functions useful with maps of any type. | ✅ 已落地 |
+| `map.!=` | `(other: Map) -> bool` | — | maps | — | Package maps defines various functions useful with maps of any type. | ✅ 已落地 |
 
 
 ### 12. range（对标 Go range）
@@ -296,10 +296,10 @@
 
 | ax.函数          | 签名                                 | 对标 C                    | 对标 Go                    | 函数功能           | 说明        | 状态  |
 | -------------- | ---------------------------------- | ------------------------- | -------------------------- | ------------------ | ----------- | ----- |
-| `thread.push` | `(v: T) -> void` | — | — | — | — | ✅ 已落地 |
-| `thread.pop` | `() -> T?` | — | — | — | — | ✅ 已落地 |
-| `thread.close` | `() -> void` | — | — | — | — | ✅ 已落地 |
-| `thread.join` | `() -> void` | — | — | — | — | ✅ 已落地 |
+| `thread.push` | `(v: T) -> void` | — | sync | — | Package sync provides basic synchronization primitives such as mutual exclusion locks. | ✅ 已落地 |
+| `thread.pop` | `() -> T?` | — | sync | — | Package sync provides basic synchronization primitives such as mutual exclusion locks. | ✅ 已落地 |
+| `thread.close` | `() -> void` | — | sync | — | Package sync provides basic synchronization primitives such as mutual exclusion locks. | ✅ 已落地 |
+| `thread.join` | `() -> void` | — | sync | — | Package sync provides basic synchronization primitives such as mutual exclusion locks. | ✅ 已落地 |
 
 
 ### 14. queue（对标 Go channel）
@@ -317,26 +317,26 @@
 
 | ax.函数          | 签名                                 | 对标 C                    | 对标 Go                    | 函数功能           | 说明        | 状态  |
 | -------------- | ---------------------------------- | ------------------------- | -------------------------- | ------------------ | ----------- | ----- |
-| `os.args` | `() -> string[]` | — | — | — | — | ✅ 已落地 |
-| `os.chdir` | `(path: string) -> int` | — | — | — | — | ✅ 已落地 |
-| `os.environ` | `() -> string[]` | — | — | — | — | ✅ 已落地 |
-| `os.exit` | `(code: int) -> void` | — | — | — | — | ✅ 已落地 |
-| `os.getenv` | `(name: string) -> string` | — | — | — | — | ✅ 已落地 |
-| `os.getpid` | `() -> int` | — | — | — | — | ✅ 已落地 |
-| `os.getppid` | `() -> int` | — | — | — | — | ✅ 已落地 |
-| `os.getwd` | `() -> string` | — | — | — | — | ✅ 已落地 |
-| `os.hostname` | `() -> string` | — | — | — | — | ✅ 已落地 |
-| `os.setenv` | `(name: string, value: string) -> int` | — | — | — | — | ✅ 已落地 |
-| `os.unsetenv` | `(name: string) -> int` | — | — | — | — | ✅ 已落地 |
-| `os.user_home_dir` | `() -> string` | — | — | — | — | ✅ 已落地 |
-| `os.user_cache_dir` | `() -> string` | — | — | — | — | ✅ 已落地 |
-| `os.getpagesize` | `() -> int` | — | — | — | — | ✅ 已落地 |
-| `os.getuid` | `() -> int` | — | — | — | — | ✅ 已落地 |
-| `os.getgid` | `() -> int` | — | — | — | — | ✅ 已落地 |
-| `os.geteuid` | `() -> int` | — | — | — | — | ✅ 已落地 |
-| `os.getegid` | `() -> int` | — | — | — | — | ✅ 已落地 |
-| `os.getgroups` | `() -> int[]` | — | — | — | — | ✅ 已落地 |
-| `os.executable` | `() -> string` | — | — | — | — | ✅ 已落地 |
+| `os.args` | `() -> string[]` | — | os | — | Package os provides a platform-independent interface to operating system functionality. | ✅ 已落地 |
+| `os.chdir` | `(path: string) -> int` | — | os | — | Package os provides a platform-independent interface to operating system functionality. | ✅ 已落地 |
+| `os.environ` | `() -> string[]` | — | os | — | Package os provides a platform-independent interface to operating system functionality. | ✅ 已落地 |
+| `os.exit` | `(code: int) -> void` | — | os | — | Package os provides a platform-independent interface to operating system functionality. | ✅ 已落地 |
+| `os.getenv` | `(name: string) -> string` | — | os | — | Package os provides a platform-independent interface to operating system functionality. | ✅ 已落地 |
+| `os.getpid` | `() -> int` | — | os | — | Package os provides a platform-independent interface to operating system functionality. | ✅ 已落地 |
+| `os.getppid` | `() -> int` | — | os | — | Package os provides a platform-independent interface to operating system functionality. | ✅ 已落地 |
+| `os.getwd` | `() -> string` | — | os | — | Package os provides a platform-independent interface to operating system functionality. | ✅ 已落地 |
+| `os.hostname` | `() -> string` | — | os | — | Package os provides a platform-independent interface to operating system functionality. | ✅ 已落地 |
+| `os.setenv` | `(name: string, value: string) -> int` | — | os | — | Package os provides a platform-independent interface to operating system functionality. | ✅ 已落地 |
+| `os.unsetenv` | `(name: string) -> int` | — | os | — | Package os provides a platform-independent interface to operating system functionality. | ✅ 已落地 |
+| `os.user_home_dir` | `() -> string` | — | os | — | Package os provides a platform-independent interface to operating system functionality. | ✅ 已落地 |
+| `os.user_cache_dir` | `() -> string` | — | os | — | Package os provides a platform-independent interface to operating system functionality. | ✅ 已落地 |
+| `os.getpagesize` | `() -> int` | — | os | — | Package os provides a platform-independent interface to operating system functionality. | ✅ 已落地 |
+| `os.getuid` | `() -> int` | — | os | — | Package os provides a platform-independent interface to operating system functionality. | ✅ 已落地 |
+| `os.getgid` | `() -> int` | — | os | — | Package os provides a platform-independent interface to operating system functionality. | ✅ 已落地 |
+| `os.geteuid` | `() -> int` | — | os | — | Package os provides a platform-independent interface to operating system functionality. | ✅ 已落地 |
+| `os.getegid` | `() -> int` | — | os | — | Package os provides a platform-independent interface to operating system functionality. | ✅ 已落地 |
+| `os.getgroups` | `() -> int[]` | — | os | — | Package os provides a platform-independent interface to operating system functionality. | ✅ 已落地 |
+| `os.executable` | `() -> string` | — | os | — | Package os provides a platform-independent interface to operating system functionality. | ✅ 已落地 |
 
 
 ### 16. strconv（对标 Go strconv）
@@ -345,19 +345,19 @@
 
 | ax.函数          | 签名                                 | 对标 C                    | 对标 Go                    | 函数功能           | 说明        | 状态  |
 | -------------- | ---------------------------------- | ------------------------- | -------------------------- | ------------------ | ----------- | ----- |
-| `strconv.atoi` | `(s: string) -> int` | — | — | — | — | ✅ 已落地 |
-| `strconv.itoa` | `(v: int) -> string` | — | — | — | — | ✅ 已落地 |
-| `strconv.parse_bool` | `(s: string) -> bool` | — | — | — | — | ✅ 已落地 |
-| `strconv.format_bool` | `(v: bool) -> string` | — | — | — | — | ✅ 已落地 |
-| `strconv.parse_float` | `(s: string) -> float` | — | — | — | — | ✅ 已落地 |
-| `strconv.format_float` | `(v: float) -> string` | — | — | — | — | ✅ 已落地 |
-| `strconv.parse_int` | `(s: string, base: int) -> int` | — | — | — | — | ✅ 已落地 |
-| `strconv.format_int` | `(v: int, base: int) -> string` | — | — | — | — | ✅ 已落地 |
-| `strconv.parse_uint` | `(s: string, base: int) -> int` | — | — | — | — | ✅ 已落地 |
-| `strconv.format_uint` | `(v: int, base: int) -> string` | — | — | — | — | ✅ 已落地 |
-| `strconv.can_backquote` | `(s: string) -> bool` | — | — | — | — | ✅ 已落地 |
-| `strconv.quote` | `(s: string) -> string` | — | — | — | — | ✅ 已落地 |
-| `strconv.unquote` | `(s: string) -> string` | — | — | — | — | ✅ 已落地 |
+| `strconv.atoi` | `(s: string) -> int` | — | strconv | — | Package strconv implements conversions to and from string representations of basic data types. | ✅ 已落地 |
+| `strconv.itoa` | `(v: int) -> string` | — | strconv | — | Package strconv implements conversions to and from string representations of basic data types. | ✅ 已落地 |
+| `strconv.parse_bool` | `(s: string) -> bool` | — | strconv | — | Package strconv implements conversions to and from string representations of basic data types. | ✅ 已落地 |
+| `strconv.format_bool` | `(v: bool) -> string` | — | strconv | — | Package strconv implements conversions to and from string representations of basic data types. | ✅ 已落地 |
+| `strconv.parse_float` | `(s: string) -> float` | — | strconv | — | Package strconv implements conversions to and from string representations of basic data types. | ✅ 已落地 |
+| `strconv.format_float` | `(v: float) -> string` | — | strconv | — | Package strconv implements conversions to and from string representations of basic data types. | ✅ 已落地 |
+| `strconv.parse_int` | `(s: string, base: int) -> int` | — | strconv | — | Package strconv implements conversions to and from string representations of basic data types. | ✅ 已落地 |
+| `strconv.format_int` | `(v: int, base: int) -> string` | — | strconv | — | Package strconv implements conversions to and from string representations of basic data types. | ✅ 已落地 |
+| `strconv.parse_uint` | `(s: string, base: int) -> int` | — | strconv | — | Package strconv implements conversions to and from string representations of basic data types. | ✅ 已落地 |
+| `strconv.format_uint` | `(v: int, base: int) -> string` | — | strconv | — | Package strconv implements conversions to and from string representations of basic data types. | ✅ 已落地 |
+| `strconv.can_backquote` | `(s: string) -> bool` | — | strconv | — | Package strconv implements conversions to and from string representations of basic data types. | ✅ 已落地 |
+| `strconv.quote` | `(s: string) -> string` | — | strconv | — | Package strconv implements conversions to and from string representations of basic data types. | ✅ 已落地 |
+| `strconv.unquote` | `(s: string) -> string` | — | strconv | — | Package strconv implements conversions to and from string representations of basic data types. | ✅ 已落地 |
 
 
 ### 17. filepath（对标 Go path/filepath）
@@ -366,18 +366,18 @@
 
 | ax.函数          | 签名                                 | 对标 C                    | 对标 Go                    | 函数功能           | 说明        | 状态  |
 | -------------- | ---------------------------------- | ------------------------- | -------------------------- | ------------------ | ----------- | ----- |
-| `filepath.join` | `(parts: string[]) -> string` | — | — | — | — | ✅ 已落地 |
-| `filepath.dir` | `(path: string) -> string` | — | — | — | — | ✅ 已落地 |
-| `filepath.base` | `(path: string) -> string` | — | — | — | — | ✅ 已落地 |
-| `filepath.ext` | `(path: string) -> string` | — | — | — | — | ✅ 已落地 |
-| `filepath.split` | `(path: string) -> string[2]` | — | — | — | — | ✅ 已落地 |
-| `filepath.clean` | `(path: string) -> string` | — | — | — | — | ✅ 已落地 |
-| `filepath.abs` | `(path: string) -> string` | — | — | — | — | ✅ 已落地 |
-| `filepath.is_abs` | `(path: string) -> bool` | — | — | — | — | ✅ 已落地 |
-| `filepath.eval_symlinks` | `(path: string) -> string` | — | — | — | — | ⬜ 计划中 |
-| `filepath.glob` | `(pattern: string) -> string[]` | — | — | — | — | ⬜ 计划中 |
-| `filepath.rel` | `(basepath, targpath: string) -> string` | — | — | — | — | ✅ 已落地 |
-| `filepath.walk` | `(root: string, fn: func) -> int` | — | — | — | — | ⬜ 计划中 |
+| `filepath.join` | `(parts: string[]) -> string` | — | filepath | — | Package filepath implements utility routines for manipulating filename paths in a way compatible with the target operating system-defined file paths. | ✅ 已落地 |
+| `filepath.dir` | `(path: string) -> string` | — | filepath | — | Package filepath implements utility routines for manipulating filename paths in a way compatible with the target operating system-defined file paths. | ✅ 已落地 |
+| `filepath.base` | `(path: string) -> string` | — | filepath | — | Package filepath implements utility routines for manipulating filename paths in a way compatible with the target operating system-defined file paths. | ✅ 已落地 |
+| `filepath.ext` | `(path: string) -> string` | — | filepath | — | Package filepath implements utility routines for manipulating filename paths in a way compatible with the target operating system-defined file paths. | ✅ 已落地 |
+| `filepath.split` | `(path: string) -> string[2]` | — | filepath | — | Package filepath implements utility routines for manipulating filename paths in a way compatible with the target operating system-defined file paths. | ✅ 已落地 |
+| `filepath.clean` | `(path: string) -> string` | — | filepath | — | Package filepath implements utility routines for manipulating filename paths in a way compatible with the target operating system-defined file paths. | ✅ 已落地 |
+| `filepath.abs` | `(path: string) -> string` | — | filepath | — | Package filepath implements utility routines for manipulating filename paths in a way compatible with the target operating system-defined file paths. | ✅ 已落地 |
+| `filepath.is_abs` | `(path: string) -> bool` | — | filepath | — | Package filepath implements utility routines for manipulating filename paths in a way compatible with the target operating system-defined file paths. | ✅ 已落地 |
+| `filepath.eval_symlinks` | `(path: string) -> string` | — | filepath | — | Package filepath implements utility routines for manipulating filename paths in a way compatible with the target operating system-defined file paths. | ⬜ 计划中 |
+| `filepath.glob` | `(pattern: string) -> string[]` | — | filepath | — | Package filepath implements utility routines for manipulating filename paths in a way compatible with the target operating system-defined file paths. | ⬜ 计划中 |
+| `filepath.rel` | `(basepath, targpath: string) -> string` | — | filepath | — | Package filepath implements utility routines for manipulating filename paths in a way compatible with the target operating system-defined file paths. | ✅ 已落地 |
+| `filepath.walk` | `(root: string, fn: func) -> int` | — | filepath | — | Package filepath implements utility routines for manipulating filename paths in a way compatible with the target operating system-defined file paths. | ⬜ 计划中 |
 
 
 ### 18. rand（对标 Go math/rand）
@@ -386,9 +386,9 @@
 
 | ax.函数          | 签名                                 | 对标 C                    | 对标 Go                    | 函数功能           | 说明        | 状态  |
 | -------------- | ---------------------------------- | ------------------------- | -------------------------- | ------------------ | ----------- | ----- |
-| `rand.int` | `(n: int) -> int` | — | — | — | — | ✅ 已落地 |
-| `rand.float` | `() -> float` | — | — | — | — | ✅ 已落地 |
-| `rand.seed` | `(seed: int) -> void` | — | — | — | — | ✅ 已落地 |
+| `rand.int` | `(n: int) -> int` | — | math/rand | — | — | ✅ 已落地 |
+| `rand.float` | `() -> float` | — | math/rand | — | — | ✅ 已落地 |
+| `rand.seed` | `(seed: int) -> void` | — | math/rand | — | — | ✅ 已落地 |
 
 
 ### 19. fmt（对标 Go fmt / C stdio 格式化）
@@ -397,14 +397,14 @@
 
 | ax.函数          | 签名                                 | 对标 C                    | 对标 Go                    | 函数功能           | 说明        | 状态  |
 | -------------- | ---------------------------------- | ------------------------- | -------------------------- | ------------------ | ----------- | ----- |
-| `fmt.print` | `(args: any...) -> void` | — | — | 通过 print/println 部分实现 | — | 🔄 部分落地 |
-| `fmt.println` | `(args: any...) -> void` | — | — | 同上 | — | 🔄 部分落地 |
-| `fmt.printf` | `(format: string, args: any...) -> void` | — | — | 编译期核对占位符 | — | 🔄 部分落地 |
-| `fmt.sprintf` | `(format: string, args: any...) -> string` | — | — | 标准 C11 实现 | — | ✅ 已落地 |
-| `fmt.sprint` | `(args: any...) -> string` | — | — | 标准 C11 实现 | — | ✅ 已落地 |
-| `fmt.fprintf` | `(w: File, format: string, args: any...) -> int` | — | — | 标准 C11 实现 | — | ✅ 已落地 |
-| `fmt.errorf` | `(format: string, args: any...) -> error` | — | — | 标准 C11 实现 | — | ✅ 已落地 |
-| `fmt.scanf` | `(format: string, args: any...) -> int` | — | — | 标准 C11 实现 | — | ✅ 已落地 |
+| `fmt.print` | `(args: any...) -> void` | — | fmt | — | Package fmt implements formatted I/O with functions analogous to C's printf and scanf. | 🔄 部分落地 |
+| `fmt.println` | `(args: any...) -> void` | — | fmt | — | Package fmt implements formatted I/O with functions analogous to C's printf and scanf. | 🔄 部分落地 |
+| `fmt.printf` | `(format: string, args: any...) -> void` | — | fmt | — | Package fmt implements formatted I/O with functions analogous to C's printf and scanf. | 🔄 部分落地 |
+| `fmt.sprintf` | `(format: string, args: any...) -> string` | — | fmt | — | Package fmt implements formatted I/O with functions analogous to C's printf and scanf. | ✅ 已落地 |
+| `fmt.sprint` | `(args: any...) -> string` | — | fmt | — | Package fmt implements formatted I/O with functions analogous to C's printf and scanf. | ✅ 已落地 |
+| `fmt.fprintf` | `(w: File, format: string, args: any...) -> int` | — | fmt | — | Package fmt implements formatted I/O with functions analogous to C's printf and scanf. | ✅ 已落地 |
+| `fmt.errorf` | `(format: string, args: any...) -> error` | — | fmt | — | Package fmt implements formatted I/O with functions analogous to C's printf and scanf. | ✅ 已落地 |
+| `fmt.scanf` | `(format: string, args: any...) -> int` | — | fmt | — | Package fmt implements formatted I/O with functions analogous to C's printf and scanf. | ✅ 已落地 |
 
 
 ### 20. sort（对标 Go sort）
@@ -413,15 +413,15 @@
 
 | ax.函数          | 签名                                 | 对标 C                    | 对标 Go                    | 函数功能           | 说明        | 状态  |
 | -------------- | ---------------------------------- | ------------------------- | -------------------------- | ------------------ | ----------- | ----- |
-| `sort.ints` | `(a: int[]) -> void` | — | — | — | — | ✅ 已落地 |
-| `sort.strings` | `(a: string[]) -> void` | — | — | — | — | ✅ 已落地 |
-| `sort.float64s` | `(a: float[]) -> void` | — | — | — | — | ✅ 已落地 |
-| `sort.ints_are_sorted` | `(a: int[]) -> bool` | — | — | — | — | ✅ 已落地 |
-| `sort.strings_are_sorted` | `(a: string[]) -> bool` | — | — | — | — | ✅ 已落地 |
-| `sort.search_ints` | `(a: int[], x: int) -> int` | — | — | — | — | ✅ 已落地 |
-| `sort.search_strings` | `(a: string[], x: string) -> int` | — | — | — | — | ✅ 已落地 |
-| `sort.slice` | `(a: any[], less: func(i, j int) bool) -> void` | — | — | axlang 不支持闭包，暂不落地 | — | ⬜ 未落地 |
-| `sort.slice_stable` | `(a: any[], less: func(i, j int) bool) -> void` | — | — | axlang 不支持闭包，暂不落地 | — | ⬜ 未落地 |
+| `sort.ints` | `(a: int[]) -> void` | — | sort | — | Package sort provides primitives for sorting slices and user-defined collections. | ✅ 已落地 |
+| `sort.strings` | `(a: string[]) -> void` | — | sort | — | Package sort provides primitives for sorting slices and user-defined collections. | ✅ 已落地 |
+| `sort.float64s` | `(a: float[]) -> void` | — | sort | — | Package sort provides primitives for sorting slices and user-defined collections. | ✅ 已落地 |
+| `sort.ints_are_sorted` | `(a: int[]) -> bool` | — | sort | — | Package sort provides primitives for sorting slices and user-defined collections. | ✅ 已落地 |
+| `sort.strings_are_sorted` | `(a: string[]) -> bool` | — | sort | — | Package sort provides primitives for sorting slices and user-defined collections. | ✅ 已落地 |
+| `sort.search_ints` | `(a: int[], x: int) -> int` | — | sort | — | Package sort provides primitives for sorting slices and user-defined collections. | ✅ 已落地 |
+| `sort.search_strings` | `(a: string[], x: string) -> int` | — | sort | — | Package sort provides primitives for sorting slices and user-defined collections. | ✅ 已落地 |
+| `sort.slice` | `(a: any[], less: func(i, j int) bool) -> void` | — | sort | — | Package sort provides primitives for sorting slices and user-defined collections. | ⬜ 未落地 |
+| `sort.slice_stable` | `(a: any[], less: func(i, j int) bool) -> void` | — | sort | — | Package sort provides primitives for sorting slices and user-defined collections. | ⬜ 未落地 |
 
 
 ### 21. slices（对标 Go slices (Go 1.21+)）
@@ -430,20 +430,20 @@
 
 | ax.函数          | 签名                                 | 对标 C                    | 对标 Go                    | 函数功能           | 说明        | 状态  |
 | -------------- | ---------------------------------- | ------------------------- | -------------------------- | ------------------ | ----------- | ----- |
-| `slices.contains` | `(x: T) -> bool` | — | — | — | — | ✅ 已落地 |
-| `slices.index` | `(x: T) -> int` | — | — | — | — | ✅ 已落地 |
-| `slices.sort` | `() -> void` | — | — | — | — | ✅ 已落地 |
-| `slices.sort` | `(cmp) -> void` | — | — | 带比较函数，GAP #10 | — | ✅ 已落地 |
-| `slices.reverse` | `() -> void` | — | — | — | — | ✅ 已落地 |
-| `slices.clone` | `() -> T[]` | — | — | — | — | ✅ 已落地 |
-| `slices.insert` | `(i, x) -> void` | — | — | — | — | ✅ 已落地 |
-| `slices.fill` | `(x) -> void` | — | — | — | — | ✅ 已落地 |
-| `slices.resize` | `(n) -> void` | — | — | — | — | ✅ 已落地 |
-| `slices.merge` | `(other) -> void` | — | — | — | — | ✅ 已落地 |
-| `slices.min` | `() -> T` | — | — | — | — | ✅ 已落地 |
-| `slices.max` | `() -> T` | — | — | — | — | ✅ 已落地 |
-| `slices.sum` | `() -> T` | — | — | — | — | ✅ 已落地 |
-| `slices.delete` | `(i, j) -> T[]` | — | — | 与 arr.Remove 语义重复，暂不落地 | — | ⬜ 未落地 |
+| `slices.contains` | `(x: T) -> bool` | — | slices | — | Package slices defines various functions useful with slices of any type. | ✅ 已落地 |
+| `slices.index` | `(x: T) -> int` | — | slices | — | Package slices defines various functions useful with slices of any type. | ✅ 已落地 |
+| `slices.sort` | `() -> void` | — | slices | — | Package slices defines various functions useful with slices of any type. | ✅ 已落地 |
+| `slices.sort` | `(cmp) -> void` | — | slices | — | Package slices defines various functions useful with slices of any type. | ✅ 已落地 |
+| `slices.reverse` | `() -> void` | — | slices | — | Package slices defines various functions useful with slices of any type. | ✅ 已落地 |
+| `slices.clone` | `() -> T[]` | — | slices | — | Package slices defines various functions useful with slices of any type. | ✅ 已落地 |
+| `slices.insert` | `(i, x) -> void` | — | slices | — | Package slices defines various functions useful with slices of any type. | ✅ 已落地 |
+| `slices.fill` | `(x) -> void` | — | slices | — | Package slices defines various functions useful with slices of any type. | ✅ 已落地 |
+| `slices.resize` | `(n) -> void` | — | slices | — | Package slices defines various functions useful with slices of any type. | ✅ 已落地 |
+| `slices.merge` | `(other) -> void` | — | slices | — | Package slices defines various functions useful with slices of any type. | ✅ 已落地 |
+| `slices.min` | `() -> T` | — | slices | — | Package slices defines various functions useful with slices of any type. | ✅ 已落地 |
+| `slices.max` | `() -> T` | — | slices | — | Package slices defines various functions useful with slices of any type. | ✅ 已落地 |
+| `slices.sum` | `() -> T` | — | slices | — | Package slices defines various functions useful with slices of any type. | ✅ 已落地 |
+| `slices.delete` | `(i, j) -> T[]` | — | slices | — | Package slices defines various functions useful with slices of any type. | ⬜ 未落地 |
 
 
 ### 22. maps（对标 Go maps (Go 1.21+)）
@@ -452,13 +452,13 @@
 
 | ax.函数          | 签名                                 | 对标 C                    | 对标 Go                    | 函数功能           | 说明        | 状态  |
 | -------------- | ---------------------------------- | ------------------------- | -------------------------- | ------------------ | ----------- | ----- |
-| `maps.keys` | `(m: Map) -> K[]` | — | — | — | — | ✅ 已落地 |
-| `maps.values` | `(m: Map) -> V[]` | — | — | — | — | ✅ 已落地 |
-| `maps.clone` | `(m: Map) -> Map` | — | — | — | — | ✅ 已落地 |
-| `maps.copy` | `(dst: Map, src: Map) -> void` | — | — | — | — | ✅ 已落地 |
-| `maps.delete` | `(m: Map, key: K) -> void` | — | — | — | — | ✅ 已落地 |
-| `maps.delete_func` | `(m: Map, f: func(K) bool) -> void` | — | — | axlang 不支持闭包，暂不落地 | — | ⬜ 未落地 |
-| `maps.equal` | `(m1: Map, m2: Map) -> bool` | — | — | — | — | ✅ 已落地 |
+| `maps.keys` | `(m: Map) -> K[]` | — | maps | — | Package maps defines various functions useful with maps of any type. | ✅ 已落地 |
+| `maps.values` | `(m: Map) -> V[]` | — | maps | — | Package maps defines various functions useful with maps of any type. | ✅ 已落地 |
+| `maps.clone` | `(m: Map) -> Map` | — | maps | — | Package maps defines various functions useful with maps of any type. | ✅ 已落地 |
+| `maps.copy` | `(dst: Map, src: Map) -> void` | — | maps | — | Package maps defines various functions useful with maps of any type. | ✅ 已落地 |
+| `maps.delete` | `(m: Map, key: K) -> void` | — | maps | — | Package maps defines various functions useful with maps of any type. | ✅ 已落地 |
+| `maps.delete_func` | `(m: Map, f: func(K) bool) -> void` | — | maps | — | Package maps defines various functions useful with maps of any type. | ⬜ 未落地 |
+| `maps.equal` | `(m1: Map, m2: Map) -> bool` | — | maps | — | Package maps defines various functions useful with maps of any type. | ✅ 已落地 |
 
 
 ### 23. unique（对标 Go unique (Go 1.23+)）
@@ -467,8 +467,8 @@
 
 | ax.函数          | 签名                                 | 对标 C                    | 对标 Go                    | 函数功能           | 说明        | 状态  |
 | -------------- | ---------------------------------- | ------------------------- | -------------------------- | ------------------ | ----------- | ----- |
-| `unique.make` | `(v: T) -> Handle[T]` | — | — | — | — | ✅ 已落地 |
-| `unique.value` | `(h: Handle[T]) -> T` | — | — | — | — | ✅ 已落地 |
+| `unique.make` | `(v: T) -> Handle[T]` | — | unique | — | — | ✅ 已落地 |
+| `unique.value` | `(h: Handle[T]) -> T` | — | unique | — | — | ✅ 已落地 |
 
 
 ### 24. bytes（对标 Go bytes）
@@ -477,14 +477,14 @@
 
 | ax.函数          | 签名                                 | 对标 C                    | 对标 Go                    | 函数功能           | 说明        | 状态  |
 | -------------- | ---------------------------------- | ------------------------- | -------------------------- | ------------------ | ----------- | ----- |
-| `bytes.contains` | `(s: bytes, sub: bytes) -> bool` | — | — | — | — | ✅ 已落地 |
-| `bytes.equal` | `(a: bytes, b: bytes) -> bool` | — | — | — | — | ✅ 已落地 |
-| `bytes.index` | `(s: bytes, sub: bytes) -> int` | — | — | — | — | ✅ 已落地 |
-| `bytes.split` | `(s: bytes, sep: bytes) -> bytes[]` | — | — | — | — | ✅ 已落地 |
-| `bytes.trim_space` | `(s: bytes) -> bytes` | — | — | — | — | ✅ 已落地 |
-| `bytes.to_upper` | `(s: bytes) -> bytes` | — | — | — | — | ✅ 已落地 |
-| `bytes.to_lower` | `(s: bytes) -> bytes` | — | — | — | — | ✅ 已落地 |
-| `bytes.repeat` | `(s: bytes, count: int) -> bytes` | — | — | — | — | ✅ 已落地 |
+| `bytes.contains` | `(s: bytes, sub: bytes) -> bool` | — | bytes | — | Package bytes implements functions for the manipulation of byte slices. | ✅ 已落地 |
+| `bytes.equal` | `(a: bytes, b: bytes) -> bool` | — | bytes | — | Package bytes implements functions for the manipulation of byte slices. | ✅ 已落地 |
+| `bytes.index` | `(s: bytes, sub: bytes) -> int` | — | bytes | — | Package bytes implements functions for the manipulation of byte slices. | ✅ 已落地 |
+| `bytes.split` | `(s: bytes, sep: bytes) -> bytes[]` | — | bytes | — | Package bytes implements functions for the manipulation of byte slices. | ✅ 已落地 |
+| `bytes.trim_space` | `(s: bytes) -> bytes` | — | bytes | — | Package bytes implements functions for the manipulation of byte slices. | ✅ 已落地 |
+| `bytes.to_upper` | `(s: bytes) -> bytes` | — | bytes | — | Package bytes implements functions for the manipulation of byte slices. | ✅ 已落地 |
+| `bytes.to_lower` | `(s: bytes) -> bytes` | — | bytes | — | Package bytes implements functions for the manipulation of byte slices. | ✅ 已落地 |
+| `bytes.repeat` | `(s: bytes, count: int) -> bytes` | — | bytes | — | Package bytes implements functions for the manipulation of byte slices. | ✅ 已落地 |
 
 
 ### 25. bufio（对标 Go bufio）
@@ -493,9 +493,9 @@
 
 | ax.函数          | 签名                                 | 对标 C                    | 对标 Go                    | 函数功能           | 说明        | 状态  |
 | -------------- | ---------------------------------- | ------------------------- | -------------------------- | ------------------ | ----------- | ----- |
-| `bufio.new_reader` | `(r: File) -> File` | — | — | — | — | ✅ 已落地 |
-| `bufio.new_writer` | `(w: File) -> File` | — | — | — | — | ✅ 已落地 |
-| `bufio.scanner` | `(r: File) -> File` | — | — | — | — | ✅ 已落地 |
+| `bufio.new_reader` | `(r: File) -> File` | — | bufio | — | Package bufio implements buffered I/O. It wraps an io.Reader or io.Writer object, creating another object (Reader or Writer) that also implements the interface but provides buffering and some help for textual I/O. | ✅ 已落地 |
+| `bufio.new_writer` | `(w: File) -> File` | — | bufio | — | Package bufio implements buffered I/O. It wraps an io.Reader or io.Writer object, creating another object (Reader or Writer) that also implements the interface but provides buffering and some help for textual I/O. | ✅ 已落地 |
+| `bufio.scanner` | `(r: File) -> File` | — | bufio | — | Package bufio implements buffered I/O. It wraps an io.Reader or io.Writer object, creating another object (Reader or Writer) that also implements the interface but provides buffering and some help for textual I/O. | ✅ 已落地 |
 
 
 ### 26. csv（对标 Go encoding/csv）
@@ -504,8 +504,8 @@
 
 | ax.函数          | 签名                                 | 对标 C                    | 对标 Go                    | 函数功能           | 说明        | 状态  |
 | -------------- | ---------------------------------- | ------------------------- | -------------------------- | ------------------ | ----------- | ----- |
-| `csv.read_all` | `(r: Reader) -> string[][]` | — | — | — | — | ✅ 已落地 |
-| `csv.write` | `(w: Writer, record: string[]) -> int` | — | — | — | — | ✅ 已落地 |
+| `csv.read_all` | `(r: Reader) -> string[][]` | — | csv | — | Package csv reads and writes comma-separated values (CSV) files. | ✅ 已落地 |
+| `csv.write` | `(w: Writer, record: string[]) -> int` | — | csv | — | Package csv reads and writes comma-separated values (CSV) files. | ✅ 已落地 |
 
 
 ### 27. errors（对标 Go errors）
@@ -514,9 +514,9 @@
 
 | ax.函数          | 签名                                 | 对标 C                    | 对标 Go                    | 函数功能           | 说明        | 状态  |
 | -------------- | ---------------------------------- | ------------------------- | -------------------------- | ------------------ | ----------- | ----- |
-| `errors.new` | `(msg: string) -> error` | — | — | — | — | ✅ 已落地 |
-| `errors.is` | `(err: error, target: error) -> bool` | — | — | — | — | ✅ 已落地 |
-| `errors.as` | `(err: error, target: error) -> bool` | — | — | axlang 无运行时类型反射，target 限定为 error 类型 | — | ✅ 已落地 |
+| `errors.new` | `(msg: string) -> error` | — | errors | — | Package errors implements functions to manipulate errors. | ✅ 已落地 |
+| `errors.is` | `(err: error, target: error) -> bool` | — | errors | — | Package errors implements functions to manipulate errors. | ✅ 已落地 |
+| `errors.as` | `(err: error, target: error) -> bool` | — | errors | — | Package errors implements functions to manipulate errors. | ✅ 已落地 |
 
 
 ### 28. log（对标 Go log）
@@ -525,9 +525,9 @@
 
 | ax.函数          | 签名                                 | 对标 C                    | 对标 Go                    | 函数功能           | 说明        | 状态  |
 | -------------- | ---------------------------------- | ------------------------- | -------------------------- | ------------------ | ----------- | ----- |
-| `log.print` | `(v: any...) -> void` | — | — | — | — | ✅ 已落地 |
-| `log.printf` | `(format: string, v: any...) -> void` | — | — | — | — | ✅ 已落地 |
-| `log.fatal` | `(v: any...) -> void` | — | — | — | — | ✅ 已落地 |
+| `log.print` | `(v: any...) -> void` | — | log | — | Package log implements a simple logging package. | ✅ 已落地 |
+| `log.printf` | `(format: string, v: any...) -> void` | — | log | — | Package log implements a simple logging package. | ✅ 已落地 |
+| `log.fatal` | `(v: any...) -> void` | — | log | — | Package log implements a simple logging package. | ✅ 已落地 |
 
 
 ### 29. sync（对标 Go sync）
@@ -561,10 +561,10 @@
 
 | ax.函数          | 签名                                 | 对标 C                    | 对标 Go                    | 函数功能           | 说明        | 状态  |
 | -------------- | ---------------------------------- | ------------------------- | -------------------------- | ------------------ | ----------- | ----- |
-| `atomic.add_int` | `(addr: *int, delta: int) -> int` | — | — | — | — | ✅ 已落地 |
-| `atomic.load_int` | `(addr: *int) -> int` | — | — | — | — | ✅ 已落地 |
-| `atomic.store_int` | `(addr: *int, val: int) -> void` | — | — | — | — | ✅ 已落地 |
-| `atomic.compare_and_swap_int` | `(addr: *int, old: int, new: int) -> bool` | — | — | — | — | ✅ 已落地 |
+| `atomic.add_int` | `(addr: *int, delta: int) -> int` | — | atomic | — | Package atomic provides low-level atomic memory primitives useful for implementing synchronization algorithms. | ✅ 已落地 |
+| `atomic.load_int` | `(addr: *int) -> int` | — | atomic | — | Package atomic provides low-level atomic memory primitives useful for implementing synchronization algorithms. | ✅ 已落地 |
+| `atomic.store_int` | `(addr: *int, val: int) -> void` | — | atomic | — | Package atomic provides low-level atomic memory primitives useful for implementing synchronization algorithms. | ✅ 已落地 |
+| `atomic.compare_and_swap_int` | `(addr: *int, old: int, new: int) -> bool` | — | atomic | — | Package atomic provides low-level atomic memory primitives useful for implementing synchronization algorithms. | ✅ 已落地 |
 
 
 ### 31. reflect（对标 Go reflect）
@@ -573,9 +573,9 @@
 
 | ax.函数          | 签名                                 | 对标 C                    | 对标 Go                    | 函数功能           | 说明        | 状态  |
 | -------------- | ---------------------------------- | ------------------------- | -------------------------- | ------------------ | ----------- | ----- |
-| `reflect.type_of` | `(v: any) -> string` | — | — | axlang 无运行时类型反射，需设计可落地子集 | — | ⬜ 未落地 |
-| `reflect.value_of` | `(v: any) -> any` | — | — | 同上 | — | ⬜ 未落地 |
-| `reflect.num_field` | `(v: any) -> int` | — | — | 同上 | — | ⬜ 未落地 |
+| `reflect.type_of` | `(v: any) -> string` | — | reflect | — | Package reflect implements run-time reflection, allowing a program to manipulate objects with arbitrary types. | ⬜ 未落地 |
+| `reflect.value_of` | `(v: any) -> any` | — | reflect | — | Package reflect implements run-time reflection, allowing a program to manipulate objects with arbitrary types. | ⬜ 未落地 |
+| `reflect.num_field` | `(v: any) -> int` | — | reflect | — | Package reflect implements run-time reflection, allowing a program to manipulate objects with arbitrary types. | ⬜ 未落地 |
 
 
 ---
@@ -590,42 +590,42 @@
 
 | ax.函数 | 签名 | 对标 C | 对标 Go | 函数功能 | 说明 | 状态 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ----- |
-| `math.frexp` | `(f: float) -> (frac: float, exp: int)` | — | — | — | — | ⬜ 计划中 |
+| `math.frexp` | `(f: float) -> (frac: float, exp: int)` | — | math | — | Package math provides basic constants and mathematical functions. | ⬜ 计划中 |
 
 #### filepath 扩展
 
 | ax.函数 | 签名 | 对标 C | 对标 Go | 函数功能 | 说明 | 状态 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ----- |
-| `filepath.eval_symlinks` | `(path: string) -> string` | — | — | — | — | ⬜ 计划中 |
-| `filepath.glob` | `(pattern: string) -> string[]` | — | — | — | — | ⬜ 计划中 |
-| `filepath.walk` | `(root: string, fn: func) -> int` | — | — | — | — | ⬜ 计划中 |
+| `filepath.eval_symlinks` | `(path: string) -> string` | — | filepath | — | Package filepath implements utility routines for manipulating filename paths in a way compatible with the target operating system-defined file paths. | ⬜ 计划中 |
+| `filepath.glob` | `(pattern: string) -> string[]` | — | filepath | — | Package filepath implements utility routines for manipulating filename paths in a way compatible with the target operating system-defined file paths. | ⬜ 计划中 |
+| `filepath.walk` | `(root: string, fn: func) -> int` | — | filepath | — | Package filepath implements utility routines for manipulating filename paths in a way compatible with the target operating system-defined file paths. | ⬜ 计划中 |
 
 #### sort 扩展
 
 | ax.函数 | 签名 | 对标 C | 对标 Go | 函数功能 | 说明 | 状态 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ----- |
-| `sort.slice` | `(a: any[], less: func(i, j int) bool) -> void` | — | — | axlang 不支持闭包，暂不落地 | — | ⬜ 未落地 |
-| `sort.slice_stable` | `(a: any[], less: func(i, j int) bool) -> void` | — | — | axlang 不支持闭包，暂不落地 | — | ⬜ 未落地 |
+| `sort.slice` | `(a: any[], less: func(i, j int) bool) -> void` | — | sort | — | Package sort provides primitives for sorting slices and user-defined collections. | ⬜ 未落地 |
+| `sort.slice_stable` | `(a: any[], less: func(i, j int) bool) -> void` | — | sort | — | Package sort provides primitives for sorting slices and user-defined collections. | ⬜ 未落地 |
 
 #### slices 扩展
 
 | ax.函数 | 签名 | 对标 C | 对标 Go | 函数功能 | 说明 | 状态 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ----- |
-| `slices.delete` | `(i, j) -> T[]` | — | — | 与 arr.Remove 语义重复，暂不落地 | — | ⬜ 未落地 |
+| `slices.delete` | `(i, j) -> T[]` | — | slices | — | Package slices defines various functions useful with slices of any type. | ⬜ 未落地 |
 
 #### maps 扩展
 
 | ax.函数 | 签名 | 对标 C | 对标 Go | 函数功能 | 说明 | 状态 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ----- |
-| `maps.delete_func` | `(m: Map, f: func(K) bool) -> void` | — | — | axlang 不支持闭包，暂不落地 | — | ⬜ 未落地 |
+| `maps.delete_func` | `(m: Map, f: func(K) bool) -> void` | — | maps | — | Package maps defines various functions useful with maps of any type. | ⬜ 未落地 |
 
 #### reflect 扩展
 
 | ax.函数 | 签名 | 对标 C | 对标 Go | 函数功能 | 说明 | 状态 |
 | ------ | ------ | ------ | ------ | ------ | ------ | ----- |
-| `reflect.type_of` | `(v: any) -> string` | — | — | axlang 无运行时类型反射，需设计可落地子集 | — | ⬜ 未落地 |
-| `reflect.value_of` | `(v: any) -> any` | — | — | 同上 | — | ⬜ 未落地 |
-| `reflect.num_field` | `(v: any) -> int` | — | — | 同上 | — | ⬜ 未落地 |
+| `reflect.type_of` | `(v: any) -> string` | — | reflect | — | Package reflect implements run-time reflection, allowing a program to manipulate objects with arbitrary types. | ⬜ 未落地 |
+| `reflect.value_of` | `(v: any) -> any` | — | reflect | — | Package reflect implements run-time reflection, allowing a program to manipulate objects with arbitrary types. | ⬜ 未落地 |
+| `reflect.num_field` | `(v: any) -> int` | — | reflect | — | Package reflect implements run-time reflection, allowing a program to manipulate objects with arbitrary types. | ⬜ 未落地 |
 
 ---
 

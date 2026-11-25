@@ -85,17 +85,20 @@ def _normalize_func(f):
         "status": f.get("status", "implemented"),
         "c_counterpart": f.get("c_counterpart", "—"),
         "go_counterpart": f.get("go_counterpart", "—"),
-        "function": f.get("function") or f.get("note") or "—",
+        "function": f.get("function", "—"),
         "description": f.get("description", "—"),
     }
 
 
 def ensure_func_fields(f):
-    """原地补充函数条目缺失的四个新字段，使主数据源 JSON 持久化列名。"""
+    """原地补充函数条目缺失的四个新字段，使主数据源 JSON 持久化列名。
+
+    注意：`function`（函数功能）与 `note` 不做自动映射，避免两列重复。
+    缺失时均以 "—" 占位，待人工填充。
+    """
     f.setdefault("c_counterpart", "—")
     f.setdefault("go_counterpart", "—")
-    if not f.get("function"):
-        f["function"] = f.get("note", "—")
+    f.setdefault("function", "—")
     f.setdefault("description", "—")
 
 

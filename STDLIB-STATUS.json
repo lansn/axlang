@@ -18,9 +18,9 @@
           "status": "implemented",
           "note": "标准 C11 实现",
           "c_counterpart": "—",
-          "go_counterpart": "—",
-          "function": "标准 C11 实现",
-          "description": "—"
+          "go_counterpart": "io",
+          "function": "—",
+          "description": "Package io provides basic interfaces to I/O primitives."
         },
         {
           "name": "read_file",
@@ -28,9 +28,9 @@
           "status": "implemented",
           "note": "标准 C11 实现",
           "c_counterpart": "—",
-          "go_counterpart": "—",
-          "function": "标准 C11 实现",
-          "description": "—"
+          "go_counterpart": "io",
+          "function": "—",
+          "description": "Package io provides basic interfaces to I/O primitives."
         },
         {
           "name": "write",
@@ -38,9 +38,9 @@
           "status": "implemented",
           "note": "标准 C11 实现",
           "c_counterpart": "—",
-          "go_counterpart": "—",
-          "function": "标准 C11 实现",
-          "description": "—"
+          "go_counterpart": "io",
+          "function": "—",
+          "description": "Package io provides basic interfaces to I/O primitives."
         },
         {
           "name": "write_line",
@@ -48,9 +48,9 @@
           "status": "implemented",
           "note": "标准 C11 实现",
           "c_counterpart": "—",
-          "go_counterpart": "—",
-          "function": "标准 C11 实现",
-          "description": "—"
+          "go_counterpart": "io",
+          "function": "—",
+          "description": "Package io provides basic interfaces to I/O primitives."
         }
       ]
     },
@@ -69,9 +69,9 @@
           "status": "partial",
           "note": "通过 print/println 部分实现",
           "c_counterpart": "—",
-          "go_counterpart": "—",
-          "function": "通过 print/println 部分实现",
-          "description": "—"
+          "go_counterpart": "fmt",
+          "function": "—",
+          "description": "Package fmt implements formatted I/O with functions analogous to C's printf and scanf."
         },
         {
           "name": "println",
@@ -79,9 +79,9 @@
           "status": "partial",
           "note": "同上",
           "c_counterpart": "—",
-          "go_counterpart": "—",
-          "function": "同上",
-          "description": "—"
+          "go_counterpart": "fmt",
+          "function": "—",
+          "description": "Package fmt implements formatted I/O with functions analogous to C's printf and scanf."
         },
         {
           "name": "printf",
@@ -89,9 +89,9 @@
           "status": "partial",
           "note": "编译期核对占位符",
           "c_counterpart": "—",
-          "go_counterpart": "—",
-          "function": "编译期核对占位符",
-          "description": "—"
+          "go_counterpart": "fmt",
+          "function": "—",
+          "description": "Package fmt implements formatted I/O with functions analogous to C's printf and scanf."
         },
         {
           "name": "sprintf",
@@ -99,9 +99,9 @@
           "status": "implemented",
           "note": "标准 C11 实现",
           "c_counterpart": "—",
-          "go_counterpart": "—",
-          "function": "标准 C11 实现",
-          "description": "—"
+          "go_counterpart": "fmt",
+          "function": "—",
+          "description": "Package fmt implements formatted I/O with functions analogous to C's printf and scanf."
         },
         {
           "name": "sprint",
@@ -109,9 +109,9 @@
           "status": "implemented",
           "note": "标准 C11 实现",
           "c_counterpart": "—",
-          "go_counterpart": "—",
-          "function": "标准 C11 实现",
-          "description": "—"
+          "go_counterpart": "fmt",
+          "function": "—",
+          "description": "Package fmt implements formatted I/O with functions analogous to C's printf and scanf."
         },
         {
           "name": "fprintf",
@@ -119,9 +119,9 @@
           "status": "implemented",
           "note": "标准 C11 实现",
           "c_counterpart": "—",
-          "go_counterpart": "—",
-          "function": "标准 C11 实现",
-          "description": "—"
+          "go_counterpart": "fmt",
+          "function": "—",
+          "description": "Package fmt implements formatted I/O with functions analogous to C's printf and scanf."
         },
         {
           "name": "errorf",
@@ -129,9 +129,9 @@
           "status": "implemented",
           "note": "标准 C11 实现",
           "c_counterpart": "—",
-          "go_counterpart": "—",
-          "function": "标准 C11 实现",
-          "description": "—"
+          "go_counterpart": "fmt",
+          "function": "—",
+          "description": "Package fmt implements formatted I/O with functions analogous to C's printf and scanf."
         },
         {
           "name": "scanf",
@@ -139,9 +139,9 @@
           "status": "implemented",
           "note": "标准 C11 实现",
           "c_counterpart": "—",
-          "go_counterpart": "—",
-          "function": "标准 C11 实现",
-          "description": "—"
+          "go_counterpart": "fmt",
+          "function": "—",
+          "description": "Package fmt implements formatted I/O with functions analogous to C's printf and scanf."
         }
       ]
     },
@@ -159,342 +159,342 @@
           "signature": "(x: float) -> float",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "math",
           "function": "—",
-          "description": "—"
+          "description": "Package math provides basic constants and mathematical functions."
         },
         {
           "name": "max",
           "signature": "(a: float, b: float) -> float",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "math",
           "function": "—",
-          "description": "—"
+          "description": "Package math provides basic constants and mathematical functions."
         },
         {
           "name": "min",
           "signature": "(a: float, b: float) -> float",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "math",
           "function": "—",
-          "description": "—"
+          "description": "Package math provides basic constants and mathematical functions."
         },
         {
           "name": "sqrt",
           "signature": "(x: float) -> float",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "math",
           "function": "—",
-          "description": "—"
+          "description": "Package math provides basic constants and mathematical functions."
         },
         {
           "name": "pow",
           "signature": "(a: float, b: float) -> float",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "math",
           "function": "—",
-          "description": "—"
+          "description": "Package math provides basic constants and mathematical functions."
         },
         {
           "name": "exp",
           "signature": "(x: float) -> float",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "math",
           "function": "—",
-          "description": "—"
+          "description": "Package math provides basic constants and mathematical functions."
         },
         {
           "name": "log",
           "signature": "(x: float) -> float",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "math",
           "function": "—",
-          "description": "—"
+          "description": "Package math provides basic constants and mathematical functions."
         },
         {
           "name": "sin",
           "signature": "(x: float) -> float",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "math",
           "function": "—",
-          "description": "—"
+          "description": "Package math provides basic constants and mathematical functions."
         },
         {
           "name": "cos",
           "signature": "(x: float) -> float",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "math",
           "function": "—",
-          "description": "—"
+          "description": "Package math provides basic constants and mathematical functions."
         },
         {
           "name": "tan",
           "signature": "(x: float) -> float",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "math",
           "function": "—",
-          "description": "—"
+          "description": "Package math provides basic constants and mathematical functions."
         },
         {
           "name": "ceil",
           "signature": "(x: float) -> float",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "math",
           "function": "—",
-          "description": "—"
+          "description": "Package math provides basic constants and mathematical functions."
         },
         {
           "name": "floor",
           "signature": "(x: float) -> float",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "math",
           "function": "—",
-          "description": "—"
+          "description": "Package math provides basic constants and mathematical functions."
         },
         {
           "name": "round",
           "signature": "(x: float) -> float",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "math",
           "function": "—",
-          "description": "—"
+          "description": "Package math provides basic constants and mathematical functions."
         },
         {
           "name": "sign",
           "signature": "(x: float) -> int",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "math",
           "function": "—",
-          "description": "—"
+          "description": "Package math provides basic constants and mathematical functions."
         },
         {
           "name": "mod",
           "signature": "(x: float, y: float) -> float",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "math",
           "function": "—",
-          "description": "—"
+          "description": "Package math provides basic constants and mathematical functions."
         },
         {
           "name": "equals",
           "signature": "(a: float, b: float, eps: float) -> bool",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "math",
           "function": "—",
-          "description": "—"
+          "description": "Package math provides basic constants and mathematical functions."
         },
         {
           "name": "compare",
           "signature": "(a: float, b: float) -> int",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "math",
           "function": "—",
-          "description": "—"
+          "description": "Package math provides basic constants and mathematical functions."
         },
         {
           "name": "exp2",
           "signature": "(x: float) -> float",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "math",
           "function": "—",
-          "description": "—"
+          "description": "Package math provides basic constants and mathematical functions."
         },
         {
           "name": "log10",
           "signature": "(x: float) -> float",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "math",
           "function": "—",
-          "description": "—"
+          "description": "Package math provides basic constants and mathematical functions."
         },
         {
           "name": "log2",
           "signature": "(x: float) -> float",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "math",
           "function": "—",
-          "description": "—"
+          "description": "Package math provides basic constants and mathematical functions."
         },
         {
           "name": "log1p",
           "signature": "(x: float) -> float",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "math",
           "function": "—",
-          "description": "—"
+          "description": "Package math provides basic constants and mathematical functions."
         },
         {
           "name": "sinh",
           "signature": "(x: float) -> float",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "math",
           "function": "—",
-          "description": "—"
+          "description": "Package math provides basic constants and mathematical functions."
         },
         {
           "name": "cosh",
           "signature": "(x: float) -> float",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "math",
           "function": "—",
-          "description": "—"
+          "description": "Package math provides basic constants and mathematical functions."
         },
         {
           "name": "tanh",
           "signature": "(x: float) -> float",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "math",
           "function": "—",
-          "description": "—"
+          "description": "Package math provides basic constants and mathematical functions."
         },
         {
           "name": "asin",
           "signature": "(x: float) -> float",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "math",
           "function": "—",
-          "description": "—"
+          "description": "Package math provides basic constants and mathematical functions."
         },
         {
           "name": "acos",
           "signature": "(x: float) -> float",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "math",
           "function": "—",
-          "description": "—"
+          "description": "Package math provides basic constants and mathematical functions."
         },
         {
           "name": "atan",
           "signature": "(x: float) -> float",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "math",
           "function": "—",
-          "description": "—"
+          "description": "Package math provides basic constants and mathematical functions."
         },
         {
           "name": "atan2",
           "signature": "(y: float, x: float) -> float",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "math",
           "function": "—",
-          "description": "—"
+          "description": "Package math provides basic constants and mathematical functions."
         },
         {
           "name": "hypot",
           "signature": "(p: float, q: float) -> float",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "math",
           "function": "—",
-          "description": "—"
+          "description": "Package math provides basic constants and mathematical functions."
         },
         {
           "name": "cbrt",
           "signature": "(x: float) -> float",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "math",
           "function": "—",
-          "description": "—"
+          "description": "Package math provides basic constants and mathematical functions."
         },
         {
           "name": "trunc",
           "signature": "(x: float) -> float",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "math",
           "function": "—",
-          "description": "—"
+          "description": "Package math provides basic constants and mathematical functions."
         },
         {
           "name": "is_na_n",
           "signature": "(f: float) -> bool",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "math",
           "function": "—",
-          "description": "—"
+          "description": "Package math provides basic constants and mathematical functions."
         },
         {
           "name": "is_inf",
           "signature": "(f: float, sign: int) -> bool",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "math",
           "function": "—",
-          "description": "—"
+          "description": "Package math provides basic constants and mathematical functions."
         },
         {
           "name": "frexp",
           "signature": "(f: float) -> (frac: float, exp: int)",
           "status": "planned",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "math",
           "function": "—",
-          "description": "—"
+          "description": "Package math provides basic constants and mathematical functions."
         },
         {
           "name": "ldexp",
           "signature": "(frac: float, exp: int) -> float",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "math",
           "function": "—",
-          "description": "—"
+          "description": "Package math provides basic constants and mathematical functions."
         },
         {
           "name": "signbit",
           "signature": "(f: float) -> bool",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "math",
           "function": "—",
-          "description": "—"
+          "description": "Package math provides basic constants and mathematical functions."
         },
         {
           "name": "copysign",
           "signature": "(f: float, sign: float) -> float",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "math",
           "function": "—",
-          "description": "—"
+          "description": "Package math provides basic constants and mathematical functions."
         },
         {
           "name": "dim",
           "signature": "(x: float, y: float) -> float",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "math",
           "function": "—",
-          "description": "—"
+          "description": "Package math provides basic constants and mathematical functions."
         }
       ]
     },
@@ -512,36 +512,36 @@
           "signature": "(s: string) -> result<map<string, object>>",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "json",
           "function": "—",
-          "description": "—"
+          "description": "Package json implements encoding and decoding of JSON as defined in RFC 7159."
         },
         {
           "name": "stringify",
           "signature": "(v: object) -> string",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "json",
           "function": "—",
-          "description": "—"
+          "description": "Package json implements encoding and decoding of JSON as defined in RFC 7159."
         },
         {
           "name": "marshal_indent",
           "signature": "(v: object, prefix: string, indent: string) -> string",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "json",
           "function": "—",
-          "description": "—"
+          "description": "Package json implements encoding and decoding of JSON as defined in RFC 7159."
         },
         {
           "name": "valid",
           "signature": "(s: string) -> bool",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "json",
           "function": "—",
-          "description": "—"
+          "description": "Package json implements encoding and decoding of JSON as defined in RFC 7159."
         }
       ]
     },
@@ -559,144 +559,144 @@
           "signature": "(path: string) -> result<File>",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "os",
           "function": "—",
-          "description": "—"
+          "description": "Package os provides a platform-independent interface to operating system functionality."
         },
         {
           "name": "create",
           "signature": "(path: string) -> result<File>",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "os",
           "function": "—",
-          "description": "—"
+          "description": "Package os provides a platform-independent interface to operating system functionality."
         },
         {
           "name": "append",
           "signature": "(path: string) -> result<File>",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "os",
           "function": "—",
-          "description": "—"
+          "description": "Package os provides a platform-independent interface to operating system functionality."
         },
         {
           "name": "remove",
           "signature": "(path: string) -> int",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "os",
           "function": "—",
-          "description": "—"
+          "description": "Package os provides a platform-independent interface to operating system functionality."
         },
         {
           "name": "rename",
           "signature": "(old: string, new: string) -> int",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "os",
           "function": "—",
-          "description": "—"
+          "description": "Package os provides a platform-independent interface to operating system functionality."
         },
         {
           "name": "exists",
           "signature": "(path: string) -> int",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "os",
           "function": "—",
-          "description": "—"
+          "description": "Package os provides a platform-independent interface to operating system functionality."
         },
         {
           "name": "mkdir",
           "signature": "(path: string) -> int",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "os",
           "function": "—",
-          "description": "—"
+          "description": "Package os provides a platform-independent interface to operating system functionality."
         },
         {
           "name": "read_all",
           "signature": "(path: string) -> result<string>",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "os",
           "function": "—",
-          "description": "—"
+          "description": "Package os provides a platform-independent interface to operating system functionality."
         },
         {
           "name": "write_all",
           "signature": "(path: string, s: string) -> int",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "os",
           "function": "—",
-          "description": "—"
+          "description": "Package os provides a platform-independent interface to operating system functionality."
         },
         {
           "name": "is_dir",
           "signature": "(path: string) -> int",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "os",
           "function": "—",
-          "description": "—"
+          "description": "Package os provides a platform-independent interface to operating system functionality."
         },
         {
           "name": "is_file",
           "signature": "(path: string) -> int",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "os",
           "function": "—",
-          "description": "—"
+          "description": "Package os provides a platform-independent interface to operating system functionality."
         },
         {
           "name": "size",
           "signature": "(path: string) -> int",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "os",
           "function": "—",
-          "description": "—"
+          "description": "Package os provides a platform-independent interface to operating system functionality."
         },
         {
           "name": "mod_time",
           "signature": "(path: string) -> int",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "os",
           "function": "—",
-          "description": "—"
+          "description": "Package os provides a platform-independent interface to operating system functionality."
         },
         {
           "name": "chmod",
           "signature": "(path: string, mode: int) -> int",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "os",
           "function": "—",
-          "description": "—"
+          "description": "Package os provides a platform-independent interface to operating system functionality."
         },
         {
           "name": "chtimes",
           "signature": "(path: string, atime: int, mtime: int) -> int",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "os",
           "function": "—",
-          "description": "—"
+          "description": "Package os provides a platform-independent interface to operating system functionality."
         },
         {
           "name": "temp_file",
           "signature": "(dir: string, prefix: string) -> result<File>",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "os",
           "function": "—",
-          "description": "—"
+          "description": "Package os provides a platform-independent interface to operating system functionality."
         }
       ]
     },
@@ -731,27 +731,27 @@
           "signature": "(cp: int) -> result<string>",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "strings",
           "function": "—",
-          "description": "—"
+          "description": "Package strings implements simple functions to manipulate UTF-8 encoded strings."
         },
         {
           "name": "compare",
           "signature": "(a: string, b: string) -> int",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "strings",
           "function": "—",
-          "description": "—"
+          "description": "Package strings implements simple functions to manipulate UTF-8 encoded strings."
         },
         {
           "name": "fields",
           "signature": "(s: string) -> string[]",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "strings",
           "function": "—",
-          "description": "—"
+          "description": "Package strings implements simple functions to manipulate UTF-8 encoded strings."
         }
       ],
       "instance_functions": [
@@ -760,306 +760,306 @@
           "signature": "() -> string",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "strings",
           "function": "—",
-          "description": "—"
+          "description": "Package strings implements simple functions to manipulate UTF-8 encoded strings."
         },
         {
           "name": "to_lower",
           "signature": "() -> string",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "strings",
           "function": "—",
-          "description": "—"
+          "description": "Package strings implements simple functions to manipulate UTF-8 encoded strings."
         },
         {
           "name": "contains",
           "signature": "(sub: string) -> bool",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "strings",
           "function": "—",
-          "description": "—"
+          "description": "Package strings implements simple functions to manipulate UTF-8 encoded strings."
         },
         {
           "name": "contains_any",
           "signature": "(chars: string) -> bool",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "strings",
           "function": "—",
-          "description": "—"
+          "description": "Package strings implements simple functions to manipulate UTF-8 encoded strings."
         },
         {
           "name": "contains_rune",
           "signature": "(r: int) -> bool",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "strings",
           "function": "—",
-          "description": "—"
+          "description": "Package strings implements simple functions to manipulate UTF-8 encoded strings."
         },
         {
           "name": "count",
           "signature": "(substr: string) -> int",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "strings",
           "function": "—",
-          "description": "—"
+          "description": "Package strings implements simple functions to manipulate UTF-8 encoded strings."
         },
         {
           "name": "index_of",
           "signature": "(sub: string) -> int",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "strings",
           "function": "—",
-          "description": "—"
+          "description": "Package strings implements simple functions to manipulate UTF-8 encoded strings."
         },
         {
           "name": "index_any",
           "signature": "(chars: string) -> int",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "strings",
           "function": "—",
-          "description": "—"
+          "description": "Package strings implements simple functions to manipulate UTF-8 encoded strings."
         },
         {
           "name": "last_index_of",
           "signature": "(sub: string) -> int",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "strings",
           "function": "—",
-          "description": "—"
+          "description": "Package strings implements simple functions to manipulate UTF-8 encoded strings."
         },
         {
           "name": "last_index_any",
           "signature": "(chars: string) -> int",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "strings",
           "function": "—",
-          "description": "—"
+          "description": "Package strings implements simple functions to manipulate UTF-8 encoded strings."
         },
         {
           "name": "split",
           "signature": "(sep: string) -> string[]",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "strings",
           "function": "—",
-          "description": "—"
+          "description": "Package strings implements simple functions to manipulate UTF-8 encoded strings."
         },
         {
           "name": "trim",
           "signature": "() -> string",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "strings",
           "function": "—",
-          "description": "—"
+          "description": "Package strings implements simple functions to manipulate UTF-8 encoded strings."
         },
         {
           "name": "trim_left",
           "signature": "(cutset: string) -> string",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "strings",
           "function": "—",
-          "description": "—"
+          "description": "Package strings implements simple functions to manipulate UTF-8 encoded strings."
         },
         {
           "name": "trim_right",
           "signature": "(cutset: string) -> string",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "strings",
           "function": "—",
-          "description": "—"
+          "description": "Package strings implements simple functions to manipulate UTF-8 encoded strings."
         },
         {
           "name": "trim_prefix",
           "signature": "(prefix: string) -> string",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "strings",
           "function": "—",
-          "description": "—"
+          "description": "Package strings implements simple functions to manipulate UTF-8 encoded strings."
         },
         {
           "name": "trim_suffix",
           "signature": "(suffix: string) -> string",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "strings",
           "function": "—",
-          "description": "—"
+          "description": "Package strings implements simple functions to manipulate UTF-8 encoded strings."
         },
         {
           "name": "split_n",
           "signature": "(sep: string, n: int) -> string[]",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "strings",
           "function": "—",
-          "description": "—"
+          "description": "Package strings implements simple functions to manipulate UTF-8 encoded strings."
         },
         {
           "name": "split_after",
           "signature": "(sep: string) -> string[]",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "strings",
           "function": "—",
-          "description": "—"
+          "description": "Package strings implements simple functions to manipulate UTF-8 encoded strings."
         },
         {
           "name": "title",
           "signature": "() -> string",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "strings",
           "function": "—",
-          "description": "—"
+          "description": "Package strings implements simple functions to manipulate UTF-8 encoded strings."
         },
         {
           "name": "map",
           "signature": "(mapping: func(int) int) -> string",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "strings",
           "function": "—",
-          "description": "—"
+          "description": "Package strings implements simple functions to manipulate UTF-8 encoded strings."
         },
         {
           "name": "replace",
           "signature": "(old: string, new: string) -> string",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "strings",
           "function": "—",
-          "description": "—"
+          "description": "Package strings implements simple functions to manipulate UTF-8 encoded strings."
         },
         {
           "name": "repeat",
           "signature": "(n: int) -> string",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "strings",
           "function": "—",
-          "description": "—"
+          "description": "Package strings implements simple functions to manipulate UTF-8 encoded strings."
         },
         {
           "name": "starts_with",
           "signature": "(prefix: string) -> bool",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "strings",
           "function": "—",
-          "description": "—"
+          "description": "Package strings implements simple functions to manipulate UTF-8 encoded strings."
         },
         {
           "name": "ends_with",
           "signature": "(suffix: string) -> bool",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "strings",
           "function": "—",
-          "description": "—"
+          "description": "Package strings implements simple functions to manipulate UTF-8 encoded strings."
         },
         {
           "name": "len",
           "signature": "() -> int",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "strings",
           "function": "—",
-          "description": "—"
+          "description": "Package strings implements simple functions to manipulate UTF-8 encoded strings."
         },
         {
           "name": "is_digit",
           "signature": "() -> bool",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "strings",
           "function": "—",
-          "description": "—"
+          "description": "Package strings implements simple functions to manipulate UTF-8 encoded strings."
         },
         {
           "name": "is_alpha",
           "signature": "() -> bool",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "strings",
           "function": "—",
-          "description": "—"
+          "description": "Package strings implements simple functions to manipulate UTF-8 encoded strings."
         },
         {
           "name": "is_space",
           "signature": "() -> bool",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "strings",
           "function": "—",
-          "description": "—"
+          "description": "Package strings implements simple functions to manipulate UTF-8 encoded strings."
         },
         {
           "name": "is_lower",
           "signature": "() -> bool",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "strings",
           "function": "—",
-          "description": "—"
+          "description": "Package strings implements simple functions to manipulate UTF-8 encoded strings."
         },
         {
           "name": "is_upper",
           "signature": "() -> bool",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "strings",
           "function": "—",
-          "description": "—"
+          "description": "Package strings implements simple functions to manipulate UTF-8 encoded strings."
         },
         {
           "name": "is_alnum",
           "signature": "() -> bool",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "strings",
           "function": "—",
-          "description": "—"
+          "description": "Package strings implements simple functions to manipulate UTF-8 encoded strings."
         },
         {
           "name": "equal_fold",
           "signature": "(t: string) -> bool",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "strings",
           "function": "—",
-          "description": "—"
+          "description": "Package strings implements simple functions to manipulate UTF-8 encoded strings."
         },
         {
           "name": "to_upper_rune",
           "signature": "(r: int) -> int",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "strings",
           "function": "—",
-          "description": "—"
+          "description": "Package strings implements simple functions to manipulate UTF-8 encoded strings."
         },
         {
           "name": "to_lower_rune",
           "signature": "(r: int) -> int",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "strings",
           "function": "—",
-          "description": "—"
+          "description": "Package strings implements simple functions to manipulate UTF-8 encoded strings."
         }
       ]
     },
@@ -1074,108 +1074,108 @@
           "signature": "() -> int",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "time",
           "function": "—",
-          "description": "—"
+          "description": "Package time provides functionality for measuring and displaying time."
         },
         {
           "name": "now",
           "signature": "() -> time",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "time",
           "function": "—",
-          "description": "—"
+          "description": "Package time provides functionality for measuring and displaying time."
         },
         {
           "name": "from_unix_ms",
           "signature": "(ms: int) -> time",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "time",
           "function": "—",
-          "description": "—"
+          "description": "Package time provides functionality for measuring and displaying time."
         },
         {
           "name": "sleep",
           "signature": "(ms: int) -> void",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "time",
           "function": "—",
-          "description": "—"
+          "description": "Package time provides functionality for measuring and displaying time."
         },
         {
           "name": "parse",
           "signature": "(s: string, fmt: string) -> result<time>",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "time",
           "function": "—",
-          "description": "—"
+          "description": "Package time provides functionality for measuring and displaying time."
         },
         {
           "name": "unix",
           "signature": "(sec: int, nsec: int) -> time",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "time",
           "function": "—",
-          "description": "—"
+          "description": "Package time provides functionality for measuring and displaying time."
         },
         {
           "name": "unix_milli",
           "signature": "(ms: int) -> time",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "time",
           "function": "—",
-          "description": "—"
+          "description": "Package time provides functionality for measuring and displaying time."
         },
         {
           "name": "unix_micro",
           "signature": "(us: int) -> time",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "time",
           "function": "—",
-          "description": "—"
+          "description": "Package time provides functionality for measuring and displaying time."
         },
         {
           "name": "unix_nano",
           "signature": "(nsec: int) -> time",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "time",
           "function": "—",
-          "description": "—"
+          "description": "Package time provides functionality for measuring and displaying time."
         },
         {
           "name": "since",
           "signature": "(t: time) -> int",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "time",
           "function": "—",
-          "description": "—"
+          "description": "Package time provides functionality for measuring and displaying time."
         },
         {
           "name": "date",
           "signature": "(year, month, day, hour, min, sec, nsec: int) -> time",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "time",
           "function": "—",
-          "description": "—"
+          "description": "Package time provides functionality for measuring and displaying time."
         },
         {
           "name": "until",
           "signature": "(t: time) -> int",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "time",
           "function": "—",
-          "description": "—"
+          "description": "Package time provides functionality for measuring and displaying time."
         },
         {
           "name": "after",
@@ -1183,9 +1183,9 @@
           "kind": "instance",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "time",
           "function": "—",
-          "description": "—"
+          "description": "Package time provides functionality for measuring and displaying time."
         },
         {
           "name": "before",
@@ -1193,9 +1193,9 @@
           "kind": "instance",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "time",
           "function": "—",
-          "description": "—"
+          "description": "Package time provides functionality for measuring and displaying time."
         },
         {
           "name": "equal",
@@ -1203,9 +1203,9 @@
           "kind": "instance",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "time",
           "function": "—",
-          "description": "—"
+          "description": "Package time provides functionality for measuring and displaying time."
         },
         {
           "name": "compare",
@@ -1213,9 +1213,9 @@
           "kind": "instance",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "time",
           "function": "—",
-          "description": "—"
+          "description": "Package time provides functionality for measuring and displaying time."
         },
         {
           "name": "sub",
@@ -1223,9 +1223,9 @@
           "kind": "instance",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "time",
           "function": "—",
-          "description": "—"
+          "description": "Package time provides functionality for measuring and displaying time."
         },
         {
           "name": "add",
@@ -1233,9 +1233,9 @@
           "kind": "instance",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "time",
           "function": "—",
-          "description": "—"
+          "description": "Package time provides functionality for measuring and displaying time."
         },
         {
           "name": "round",
@@ -1243,9 +1243,9 @@
           "kind": "instance",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "time",
           "function": "—",
-          "description": "—"
+          "description": "Package time provides functionality for measuring and displaying time."
         },
         {
           "name": "truncate",
@@ -1253,9 +1253,9 @@
           "kind": "instance",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "time",
           "function": "—",
-          "description": "—"
+          "description": "Package time provides functionality for measuring and displaying time."
         }
       ],
       "instance_functions": [
@@ -1264,18 +1264,18 @@
           "signature": "() -> string",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "time",
           "function": "—",
-          "description": "—"
+          "description": "Package time provides functionality for measuring and displaying time."
         },
         {
           "name": "format",
           "signature": "(fmt: string) -> string",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "time",
           "function": "—",
-          "description": "—"
+          "description": "Package time provides functionality for measuring and displaying time."
         }
       ]
     },
@@ -1475,9 +1475,9 @@
           "kind": "instance",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "maps",
           "function": "—",
-          "description": "—"
+          "description": "Package maps defines various functions useful with maps of any type."
         },
         {
           "name": "remove",
@@ -1485,9 +1485,9 @@
           "kind": "instance",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "maps",
           "function": "—",
-          "description": "—"
+          "description": "Package maps defines various functions useful with maps of any type."
         },
         {
           "name": "==",
@@ -1495,9 +1495,9 @@
           "kind": "instance",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "maps",
           "function": "—",
-          "description": "—"
+          "description": "Package maps defines various functions useful with maps of any type."
         },
         {
           "name": "!=",
@@ -1505,9 +1505,9 @@
           "kind": "instance",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "maps",
           "function": "—",
-          "description": "—"
+          "description": "Package maps defines various functions useful with maps of any type."
         }
       ]
     },
@@ -1541,9 +1541,9 @@
           "kind": "instance",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "sync",
           "function": "—",
-          "description": "—"
+          "description": "Package sync provides basic synchronization primitives such as mutual exclusion locks."
         },
         {
           "name": "pop",
@@ -1551,9 +1551,9 @@
           "kind": "instance",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "sync",
           "function": "—",
-          "description": "—"
+          "description": "Package sync provides basic synchronization primitives such as mutual exclusion locks."
         },
         {
           "name": "close",
@@ -1561,9 +1561,9 @@
           "kind": "instance",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "sync",
           "function": "—",
-          "description": "—"
+          "description": "Package sync provides basic synchronization primitives such as mutual exclusion locks."
         },
         {
           "name": "join",
@@ -1571,9 +1571,9 @@
           "kind": "instance",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "sync",
           "function": "—",
-          "description": "—"
+          "description": "Package sync provides basic synchronization primitives such as mutual exclusion locks."
         }
       ]
     },
@@ -1609,180 +1609,180 @@
           "signature": "() -> string[]",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "os",
           "function": "—",
-          "description": "—"
+          "description": "Package os provides a platform-independent interface to operating system functionality."
         },
         {
           "name": "chdir",
           "signature": "(path: string) -> int",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "os",
           "function": "—",
-          "description": "—"
+          "description": "Package os provides a platform-independent interface to operating system functionality."
         },
         {
           "name": "environ",
           "signature": "() -> string[]",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "os",
           "function": "—",
-          "description": "—"
+          "description": "Package os provides a platform-independent interface to operating system functionality."
         },
         {
           "name": "exit",
           "signature": "(code: int) -> void",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "os",
           "function": "—",
-          "description": "—"
+          "description": "Package os provides a platform-independent interface to operating system functionality."
         },
         {
           "name": "getenv",
           "signature": "(name: string) -> string",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "os",
           "function": "—",
-          "description": "—"
+          "description": "Package os provides a platform-independent interface to operating system functionality."
         },
         {
           "name": "getpid",
           "signature": "() -> int",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "os",
           "function": "—",
-          "description": "—"
+          "description": "Package os provides a platform-independent interface to operating system functionality."
         },
         {
           "name": "getppid",
           "signature": "() -> int",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "os",
           "function": "—",
-          "description": "—"
+          "description": "Package os provides a platform-independent interface to operating system functionality."
         },
         {
           "name": "getwd",
           "signature": "() -> string",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "os",
           "function": "—",
-          "description": "—"
+          "description": "Package os provides a platform-independent interface to operating system functionality."
         },
         {
           "name": "hostname",
           "signature": "() -> string",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "os",
           "function": "—",
-          "description": "—"
+          "description": "Package os provides a platform-independent interface to operating system functionality."
         },
         {
           "name": "setenv",
           "signature": "(name: string, value: string) -> int",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "os",
           "function": "—",
-          "description": "—"
+          "description": "Package os provides a platform-independent interface to operating system functionality."
         },
         {
           "name": "unsetenv",
           "signature": "(name: string) -> int",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "os",
           "function": "—",
-          "description": "—"
+          "description": "Package os provides a platform-independent interface to operating system functionality."
         },
         {
           "name": "user_home_dir",
           "signature": "() -> string",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "os",
           "function": "—",
-          "description": "—"
+          "description": "Package os provides a platform-independent interface to operating system functionality."
         },
         {
           "name": "user_cache_dir",
           "signature": "() -> string",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "os",
           "function": "—",
-          "description": "—"
+          "description": "Package os provides a platform-independent interface to operating system functionality."
         },
         {
           "name": "getpagesize",
           "signature": "() -> int",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "os",
           "function": "—",
-          "description": "—"
+          "description": "Package os provides a platform-independent interface to operating system functionality."
         },
         {
           "name": "getuid",
           "signature": "() -> int",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "os",
           "function": "—",
-          "description": "—"
+          "description": "Package os provides a platform-independent interface to operating system functionality."
         },
         {
           "name": "getgid",
           "signature": "() -> int",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "os",
           "function": "—",
-          "description": "—"
+          "description": "Package os provides a platform-independent interface to operating system functionality."
         },
         {
           "name": "geteuid",
           "signature": "() -> int",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "os",
           "function": "—",
-          "description": "—"
+          "description": "Package os provides a platform-independent interface to operating system functionality."
         },
         {
           "name": "getegid",
           "signature": "() -> int",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "os",
           "function": "—",
-          "description": "—"
+          "description": "Package os provides a platform-independent interface to operating system functionality."
         },
         {
           "name": "getgroups",
           "signature": "() -> int[]",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "os",
           "function": "—",
-          "description": "—"
+          "description": "Package os provides a platform-independent interface to operating system functionality."
         },
         {
           "name": "executable",
           "signature": "() -> string",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "os",
           "function": "—",
-          "description": "—"
+          "description": "Package os provides a platform-independent interface to operating system functionality."
         }
       ]
     },
@@ -1800,117 +1800,117 @@
           "signature": "(s: string) -> int",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "strconv",
           "function": "—",
-          "description": "—"
+          "description": "Package strconv implements conversions to and from string representations of basic data types."
         },
         {
           "name": "itoa",
           "signature": "(v: int) -> string",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "strconv",
           "function": "—",
-          "description": "—"
+          "description": "Package strconv implements conversions to and from string representations of basic data types."
         },
         {
           "name": "parse_bool",
           "signature": "(s: string) -> bool",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "strconv",
           "function": "—",
-          "description": "—"
+          "description": "Package strconv implements conversions to and from string representations of basic data types."
         },
         {
           "name": "format_bool",
           "signature": "(v: bool) -> string",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "strconv",
           "function": "—",
-          "description": "—"
+          "description": "Package strconv implements conversions to and from string representations of basic data types."
         },
         {
           "name": "parse_float",
           "signature": "(s: string) -> float",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "strconv",
           "function": "—",
-          "description": "—"
+          "description": "Package strconv implements conversions to and from string representations of basic data types."
         },
         {
           "name": "format_float",
           "signature": "(v: float) -> string",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "strconv",
           "function": "—",
-          "description": "—"
+          "description": "Package strconv implements conversions to and from string representations of basic data types."
         },
         {
           "name": "parse_int",
           "signature": "(s: string, base: int) -> int",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "strconv",
           "function": "—",
-          "description": "—"
+          "description": "Package strconv implements conversions to and from string representations of basic data types."
         },
         {
           "name": "format_int",
           "signature": "(v: int, base: int) -> string",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "strconv",
           "function": "—",
-          "description": "—"
+          "description": "Package strconv implements conversions to and from string representations of basic data types."
         },
         {
           "name": "parse_uint",
           "signature": "(s: string, base: int) -> int",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "strconv",
           "function": "—",
-          "description": "—"
+          "description": "Package strconv implements conversions to and from string representations of basic data types."
         },
         {
           "name": "format_uint",
           "signature": "(v: int, base: int) -> string",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "strconv",
           "function": "—",
-          "description": "—"
+          "description": "Package strconv implements conversions to and from string representations of basic data types."
         },
         {
           "name": "can_backquote",
           "signature": "(s: string) -> bool",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "strconv",
           "function": "—",
-          "description": "—"
+          "description": "Package strconv implements conversions to and from string representations of basic data types."
         },
         {
           "name": "quote",
           "signature": "(s: string) -> string",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "strconv",
           "function": "—",
-          "description": "—"
+          "description": "Package strconv implements conversions to and from string representations of basic data types."
         },
         {
           "name": "unquote",
           "signature": "(s: string) -> string",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "strconv",
           "function": "—",
-          "description": "—"
+          "description": "Package strconv implements conversions to and from string representations of basic data types."
         }
       ]
     },
@@ -1925,108 +1925,108 @@
           "signature": "(parts: string[]) -> string",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "filepath",
           "function": "—",
-          "description": "—"
+          "description": "Package filepath implements utility routines for manipulating filename paths in a way compatible with the target operating system-defined file paths."
         },
         {
           "name": "dir",
           "signature": "(path: string) -> string",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "filepath",
           "function": "—",
-          "description": "—"
+          "description": "Package filepath implements utility routines for manipulating filename paths in a way compatible with the target operating system-defined file paths."
         },
         {
           "name": "base",
           "signature": "(path: string) -> string",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "filepath",
           "function": "—",
-          "description": "—"
+          "description": "Package filepath implements utility routines for manipulating filename paths in a way compatible with the target operating system-defined file paths."
         },
         {
           "name": "ext",
           "signature": "(path: string) -> string",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "filepath",
           "function": "—",
-          "description": "—"
+          "description": "Package filepath implements utility routines for manipulating filename paths in a way compatible with the target operating system-defined file paths."
         },
         {
           "name": "split",
           "signature": "(path: string) -> string[2]",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "filepath",
           "function": "—",
-          "description": "—"
+          "description": "Package filepath implements utility routines for manipulating filename paths in a way compatible with the target operating system-defined file paths."
         },
         {
           "name": "clean",
           "signature": "(path: string) -> string",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "filepath",
           "function": "—",
-          "description": "—"
+          "description": "Package filepath implements utility routines for manipulating filename paths in a way compatible with the target operating system-defined file paths."
         },
         {
           "name": "abs",
           "signature": "(path: string) -> string",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "filepath",
           "function": "—",
-          "description": "—"
+          "description": "Package filepath implements utility routines for manipulating filename paths in a way compatible with the target operating system-defined file paths."
         },
         {
           "name": "is_abs",
           "signature": "(path: string) -> bool",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "filepath",
           "function": "—",
-          "description": "—"
+          "description": "Package filepath implements utility routines for manipulating filename paths in a way compatible with the target operating system-defined file paths."
         },
         {
           "name": "eval_symlinks",
           "signature": "(path: string) -> string",
           "status": "planned",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "filepath",
           "function": "—",
-          "description": "—"
+          "description": "Package filepath implements utility routines for manipulating filename paths in a way compatible with the target operating system-defined file paths."
         },
         {
           "name": "glob",
           "signature": "(pattern: string) -> string[]",
           "status": "planned",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "filepath",
           "function": "—",
-          "description": "—"
+          "description": "Package filepath implements utility routines for manipulating filename paths in a way compatible with the target operating system-defined file paths."
         },
         {
           "name": "rel",
           "signature": "(basepath, targpath: string) -> string",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "filepath",
           "function": "—",
-          "description": "—"
+          "description": "Package filepath implements utility routines for manipulating filename paths in a way compatible with the target operating system-defined file paths."
         },
         {
           "name": "walk",
           "signature": "(root: string, fn: func) -> int",
           "status": "planned",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "filepath",
           "function": "—",
-          "description": "—"
+          "description": "Package filepath implements utility routines for manipulating filename paths in a way compatible with the target operating system-defined file paths."
         }
       ]
     },
@@ -2041,7 +2041,7 @@
           "signature": "(n: int) -> int",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "math/rand",
           "function": "—",
           "description": "—"
         },
@@ -2050,7 +2050,7 @@
           "signature": "() -> float",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "math/rand",
           "function": "—",
           "description": "—"
         },
@@ -2059,7 +2059,7 @@
           "signature": "(seed: int) -> void",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "math/rand",
           "function": "—",
           "description": "—"
         }
@@ -2076,63 +2076,63 @@
           "signature": "(a: int[]) -> void",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "sort",
           "function": "—",
-          "description": "—"
+          "description": "Package sort provides primitives for sorting slices and user-defined collections."
         },
         {
           "name": "strings",
           "signature": "(a: string[]) -> void",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "sort",
           "function": "—",
-          "description": "—"
+          "description": "Package sort provides primitives for sorting slices and user-defined collections."
         },
         {
           "name": "float64s",
           "signature": "(a: float[]) -> void",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "sort",
           "function": "—",
-          "description": "—"
+          "description": "Package sort provides primitives for sorting slices and user-defined collections."
         },
         {
           "name": "ints_are_sorted",
           "signature": "(a: int[]) -> bool",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "sort",
           "function": "—",
-          "description": "—"
+          "description": "Package sort provides primitives for sorting slices and user-defined collections."
         },
         {
           "name": "strings_are_sorted",
           "signature": "(a: string[]) -> bool",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "sort",
           "function": "—",
-          "description": "—"
+          "description": "Package sort provides primitives for sorting slices and user-defined collections."
         },
         {
           "name": "search_ints",
           "signature": "(a: int[], x: int) -> int",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "sort",
           "function": "—",
-          "description": "—"
+          "description": "Package sort provides primitives for sorting slices and user-defined collections."
         },
         {
           "name": "search_strings",
           "signature": "(a: string[], x: string) -> int",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "sort",
           "function": "—",
-          "description": "—"
+          "description": "Package sort provides primitives for sorting slices and user-defined collections."
         },
         {
           "name": "slice",
@@ -2140,9 +2140,9 @@
           "status": "not_implemented",
           "note": "axlang 不支持闭包，暂不落地",
           "c_counterpart": "—",
-          "go_counterpart": "—",
-          "function": "axlang 不支持闭包，暂不落地",
-          "description": "—"
+          "go_counterpart": "sort",
+          "function": "—",
+          "description": "Package sort provides primitives for sorting slices and user-defined collections."
         },
         {
           "name": "slice_stable",
@@ -2150,9 +2150,9 @@
           "status": "not_implemented",
           "note": "axlang 不支持闭包，暂不落地",
           "c_counterpart": "—",
-          "go_counterpart": "—",
-          "function": "axlang 不支持闭包，暂不落地",
-          "description": "—"
+          "go_counterpart": "sort",
+          "function": "—",
+          "description": "Package sort provides primitives for sorting slices and user-defined collections."
         }
       ]
     },
@@ -2168,9 +2168,9 @@
           "kind": "instance",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "slices",
           "function": "—",
-          "description": "—"
+          "description": "Package slices defines various functions useful with slices of any type."
         },
         {
           "name": "index",
@@ -2178,9 +2178,9 @@
           "kind": "instance",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "slices",
           "function": "—",
-          "description": "—"
+          "description": "Package slices defines various functions useful with slices of any type."
         },
         {
           "name": "sort",
@@ -2188,9 +2188,9 @@
           "kind": "instance",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "slices",
           "function": "—",
-          "description": "—"
+          "description": "Package slices defines various functions useful with slices of any type."
         },
         {
           "name": "sort",
@@ -2199,9 +2199,9 @@
           "status": "implemented",
           "note": "带比较函数，GAP #10",
           "c_counterpart": "—",
-          "go_counterpart": "—",
-          "function": "带比较函数，GAP #10",
-          "description": "—"
+          "go_counterpart": "slices",
+          "function": "—",
+          "description": "Package slices defines various functions useful with slices of any type."
         },
         {
           "name": "reverse",
@@ -2209,9 +2209,9 @@
           "kind": "instance",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "slices",
           "function": "—",
-          "description": "—"
+          "description": "Package slices defines various functions useful with slices of any type."
         },
         {
           "name": "clone",
@@ -2219,9 +2219,9 @@
           "kind": "instance",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "slices",
           "function": "—",
-          "description": "—"
+          "description": "Package slices defines various functions useful with slices of any type."
         },
         {
           "name": "insert",
@@ -2229,9 +2229,9 @@
           "kind": "instance",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "slices",
           "function": "—",
-          "description": "—"
+          "description": "Package slices defines various functions useful with slices of any type."
         },
         {
           "name": "fill",
@@ -2239,9 +2239,9 @@
           "kind": "instance",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "slices",
           "function": "—",
-          "description": "—"
+          "description": "Package slices defines various functions useful with slices of any type."
         },
         {
           "name": "resize",
@@ -2249,9 +2249,9 @@
           "kind": "instance",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "slices",
           "function": "—",
-          "description": "—"
+          "description": "Package slices defines various functions useful with slices of any type."
         },
         {
           "name": "merge",
@@ -2259,9 +2259,9 @@
           "kind": "instance",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "slices",
           "function": "—",
-          "description": "—"
+          "description": "Package slices defines various functions useful with slices of any type."
         },
         {
           "name": "min",
@@ -2269,9 +2269,9 @@
           "kind": "instance",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "slices",
           "function": "—",
-          "description": "—"
+          "description": "Package slices defines various functions useful with slices of any type."
         },
         {
           "name": "max",
@@ -2279,9 +2279,9 @@
           "kind": "instance",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "slices",
           "function": "—",
-          "description": "—"
+          "description": "Package slices defines various functions useful with slices of any type."
         },
         {
           "name": "sum",
@@ -2289,9 +2289,9 @@
           "kind": "instance",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "slices",
           "function": "—",
-          "description": "—"
+          "description": "Package slices defines various functions useful with slices of any type."
         },
         {
           "name": "delete",
@@ -2300,9 +2300,9 @@
           "status": "not_implemented",
           "note": "与 arr.Remove 语义重复，暂不落地",
           "c_counterpart": "—",
-          "go_counterpart": "—",
-          "function": "与 arr.Remove 语义重复，暂不落地",
-          "description": "—"
+          "go_counterpart": "slices",
+          "function": "—",
+          "description": "Package slices defines various functions useful with slices of any type."
         }
       ]
     },
@@ -2317,45 +2317,45 @@
           "signature": "(m: Map) -> K[]",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "maps",
           "function": "—",
-          "description": "—"
+          "description": "Package maps defines various functions useful with maps of any type."
         },
         {
           "name": "values",
           "signature": "(m: Map) -> V[]",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "maps",
           "function": "—",
-          "description": "—"
+          "description": "Package maps defines various functions useful with maps of any type."
         },
         {
           "name": "clone",
           "signature": "(m: Map) -> Map",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "maps",
           "function": "—",
-          "description": "—"
+          "description": "Package maps defines various functions useful with maps of any type."
         },
         {
           "name": "copy",
           "signature": "(dst: Map, src: Map) -> void",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "maps",
           "function": "—",
-          "description": "—"
+          "description": "Package maps defines various functions useful with maps of any type."
         },
         {
           "name": "delete",
           "signature": "(m: Map, key: K) -> void",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "maps",
           "function": "—",
-          "description": "—"
+          "description": "Package maps defines various functions useful with maps of any type."
         },
         {
           "name": "delete_func",
@@ -2363,18 +2363,18 @@
           "status": "not_implemented",
           "note": "axlang 不支持闭包，暂不落地",
           "c_counterpart": "—",
-          "go_counterpart": "—",
-          "function": "axlang 不支持闭包，暂不落地",
-          "description": "—"
+          "go_counterpart": "maps",
+          "function": "—",
+          "description": "Package maps defines various functions useful with maps of any type."
         },
         {
           "name": "equal",
           "signature": "(m1: Map, m2: Map) -> bool",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "maps",
           "function": "—",
-          "description": "—"
+          "description": "Package maps defines various functions useful with maps of any type."
         }
       ]
     },
@@ -2389,7 +2389,7 @@
           "signature": "(v: T) -> Handle[T]",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "unique",
           "function": "—",
           "description": "—"
         },
@@ -2398,7 +2398,7 @@
           "signature": "(h: Handle[T]) -> T",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "unique",
           "function": "—",
           "description": "—"
         }
@@ -2415,72 +2415,72 @@
           "signature": "(s: bytes, sub: bytes) -> bool",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "bytes",
           "function": "—",
-          "description": "—"
+          "description": "Package bytes implements functions for the manipulation of byte slices."
         },
         {
           "name": "equal",
           "signature": "(a: bytes, b: bytes) -> bool",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "bytes",
           "function": "—",
-          "description": "—"
+          "description": "Package bytes implements functions for the manipulation of byte slices."
         },
         {
           "name": "index",
           "signature": "(s: bytes, sub: bytes) -> int",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "bytes",
           "function": "—",
-          "description": "—"
+          "description": "Package bytes implements functions for the manipulation of byte slices."
         },
         {
           "name": "split",
           "signature": "(s: bytes, sep: bytes) -> bytes[]",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "bytes",
           "function": "—",
-          "description": "—"
+          "description": "Package bytes implements functions for the manipulation of byte slices."
         },
         {
           "name": "trim_space",
           "signature": "(s: bytes) -> bytes",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "bytes",
           "function": "—",
-          "description": "—"
+          "description": "Package bytes implements functions for the manipulation of byte slices."
         },
         {
           "name": "to_upper",
           "signature": "(s: bytes) -> bytes",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "bytes",
           "function": "—",
-          "description": "—"
+          "description": "Package bytes implements functions for the manipulation of byte slices."
         },
         {
           "name": "to_lower",
           "signature": "(s: bytes) -> bytes",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "bytes",
           "function": "—",
-          "description": "—"
+          "description": "Package bytes implements functions for the manipulation of byte slices."
         },
         {
           "name": "repeat",
           "signature": "(s: bytes, count: int) -> bytes",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "bytes",
           "function": "—",
-          "description": "—"
+          "description": "Package bytes implements functions for the manipulation of byte slices."
         }
       ]
     },
@@ -2495,27 +2495,27 @@
           "signature": "(r: File) -> File",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "bufio",
           "function": "—",
-          "description": "—"
+          "description": "Package bufio implements buffered I/O. It wraps an io.Reader or io.Writer object, creating another object (Reader or Writer) that also implements the interface but provides buffering and some help for textual I/O."
         },
         {
           "name": "new_writer",
           "signature": "(w: File) -> File",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "bufio",
           "function": "—",
-          "description": "—"
+          "description": "Package bufio implements buffered I/O. It wraps an io.Reader or io.Writer object, creating another object (Reader or Writer) that also implements the interface but provides buffering and some help for textual I/O."
         },
         {
           "name": "scanner",
           "signature": "(r: File) -> File",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "bufio",
           "function": "—",
-          "description": "—"
+          "description": "Package bufio implements buffered I/O. It wraps an io.Reader or io.Writer object, creating another object (Reader or Writer) that also implements the interface but provides buffering and some help for textual I/O."
         }
       ]
     },
@@ -2530,18 +2530,18 @@
           "signature": "(r: Reader) -> string[][]",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "csv",
           "function": "—",
-          "description": "—"
+          "description": "Package csv reads and writes comma-separated values (CSV) files."
         },
         {
           "name": "write",
           "signature": "(w: Writer, record: string[]) -> int",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "csv",
           "function": "—",
-          "description": "—"
+          "description": "Package csv reads and writes comma-separated values (CSV) files."
         }
       ]
     },
@@ -2559,18 +2559,18 @@
           "signature": "(msg: string) -> error",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "errors",
           "function": "—",
-          "description": "—"
+          "description": "Package errors implements functions to manipulate errors."
         },
         {
           "name": "is",
           "signature": "(err: error, target: error) -> bool",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "errors",
           "function": "—",
-          "description": "—"
+          "description": "Package errors implements functions to manipulate errors."
         },
         {
           "name": "as",
@@ -2578,9 +2578,9 @@
           "status": "implemented",
           "note": "axlang 无运行时类型反射，target 限定为 error 类型",
           "c_counterpart": "—",
-          "go_counterpart": "—",
-          "function": "axlang 无运行时类型反射，target 限定为 error 类型",
-          "description": "—"
+          "go_counterpart": "errors",
+          "function": "—",
+          "description": "Package errors implements functions to manipulate errors."
         }
       ]
     },
@@ -2595,27 +2595,27 @@
           "signature": "(v: any...) -> void",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "log",
           "function": "—",
-          "description": "—"
+          "description": "Package log implements a simple logging package."
         },
         {
           "name": "printf",
           "signature": "(format: string, v: any...) -> void",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "log",
           "function": "—",
-          "description": "—"
+          "description": "Package log implements a simple logging package."
         },
         {
           "name": "fatal",
           "signature": "(v: any...) -> void",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "log",
           "function": "—",
-          "description": "—"
+          "description": "Package log implements a simple logging package."
         }
       ]
     },
@@ -2678,36 +2678,36 @@
           "signature": "(addr: *int, delta: int) -> int",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "atomic",
           "function": "—",
-          "description": "—"
+          "description": "Package atomic provides low-level atomic memory primitives useful for implementing synchronization algorithms."
         },
         {
           "name": "load_int",
           "signature": "(addr: *int) -> int",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "atomic",
           "function": "—",
-          "description": "—"
+          "description": "Package atomic provides low-level atomic memory primitives useful for implementing synchronization algorithms."
         },
         {
           "name": "store_int",
           "signature": "(addr: *int, val: int) -> void",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "atomic",
           "function": "—",
-          "description": "—"
+          "description": "Package atomic provides low-level atomic memory primitives useful for implementing synchronization algorithms."
         },
         {
           "name": "compare_and_swap_int",
           "signature": "(addr: *int, old: int, new: int) -> bool",
           "status": "implemented",
           "c_counterpart": "—",
-          "go_counterpart": "—",
+          "go_counterpart": "atomic",
           "function": "—",
-          "description": "—"
+          "description": "Package atomic provides low-level atomic memory primitives useful for implementing synchronization algorithms."
         }
       ]
     },
@@ -2723,9 +2723,9 @@
           "status": "not_implemented",
           "note": "axlang 无运行时类型反射，需设计可落地子集",
           "c_counterpart": "—",
-          "go_counterpart": "—",
-          "function": "axlang 无运行时类型反射，需设计可落地子集",
-          "description": "—"
+          "go_counterpart": "reflect",
+          "function": "—",
+          "description": "Package reflect implements run-time reflection, allowing a program to manipulate objects with arbitrary types."
         },
         {
           "name": "value_of",
@@ -2733,9 +2733,9 @@
           "status": "not_implemented",
           "note": "同上",
           "c_counterpart": "—",
-          "go_counterpart": "—",
-          "function": "同上",
-          "description": "—"
+          "go_counterpart": "reflect",
+          "function": "—",
+          "description": "Package reflect implements run-time reflection, allowing a program to manipulate objects with arbitrary types."
         },
         {
           "name": "num_field",
@@ -2743,9 +2743,9 @@
           "status": "not_implemented",
           "note": "同上",
           "c_counterpart": "—",
-          "go_counterpart": "—",
-          "function": "同上",
-          "description": "—"
+          "go_counterpart": "reflect",
+          "function": "—",
+          "description": "Package reflect implements run-time reflection, allowing a program to manipulate objects with arbitrary types."
         }
       ]
     }
