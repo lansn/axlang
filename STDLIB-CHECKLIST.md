@@ -245,7 +245,7 @@
 | `reflect.value_of` | 内建库 | `(v: any) -> any` | reflect.value_of(v) | — | reflect.ValueOf | 返回任意值的反射值对象 | C 标准库无运行时反射，Go 对标 reflect.ValueOf；axlang 无运行时类型反射，需设计可落地子集 | ⬜ 未落地 |
 | `slices.clone` | 内建库 | `() -> T[]` | arr.clone() | memcpy | slices.Clone | 返回数组的深拷贝副本 | 对标 C memcpy，Go slices.Clone；返回独立的新数组，修改不影响原数组 | ✅ 已落地 |
 | `slices.contains` | 内建库 | `(x: T) -> bool` | slices.contains(arr, x) | — | slices.Contains | 判断数组是否包含指定元素 | C 标准库无直接对应，Go 对标 slices.Contains；线性查找，O(n) | ✅ 已落地 |
-| `slices.delete` | 内建库 | `(i, j) -> T[]` | slices.delete(arr, i, j) | memmove | slices.Delete | 删除索引 [i, j) 范围内的元素 | C 标准库无直接对应，Go 对标 slices.Delete；后续元素前移，O(n) | ⬜ 未落地 |
+| `slices.delete` | 内建库 | `(i, j) -> T[]` | arr.delete(i, j) | memmove | slices.Delete | 删除索引 [i, j) 范围内的元素 | C 标准库无直接对应，Go 对标 slices.Delete；后续元素前移，O(n)；底层 ax_arr_delete_range | ✅ 已落地 |
 | `slices.fill` | 内建库 | `(x) -> void` | arr.fill(0) | memset | slices.Fill | 用指定值填充数组所有元素 | 对标 C memset，Go slices.Fill；将所有元素设为相同值，O(n) | ✅ 已落地 |
 | `slices.index` | 内建库 | `(x: T) -> int` | slices.index(arr, x) | — | slices.Index | 返回元素在数组中的索引，未找到返回 -1 | C 标准库无直接对应，Go 对标 slices.Index；线性查找，O(n) | ✅ 已落地 |
 | `slices.insert` | 内建库 | `(i, x) -> void` | arr.insert(0, x) | memmove | slices.Insert | 在指定索引位置插入元素 | C 标准库无直接对应，Go 对标 slices.Insert；后续元素后移，O(n) | ✅ 已落地 |
@@ -262,8 +262,8 @@
 | `sort.ints_are_sorted` | 内建库 | `(a: int[]) -> bool` | sort.ints_are_sorted(arr) | — | sort.IntsAreSorted | 判断 int 数组是否已升序排序 | C 标准库无直接对应，Go 对标 sort.IntsAreSorted；遍历检查，O(n) | ✅ 已落地 |
 | `sort.search_ints` | 内建库 | `(a: int[], x: int) -> int` | sort.search_ints(arr, 5) | bsearch | sort.SearchInts | 在已排序 int 数组中二分查找目标值 | 对标 C bsearch，Go sort.SearchInts；要求数组已排序，返回索引或插入点 | ✅ 已落地 |
 | `sort.search_strings` | 内建库 | `(a: string[], x: string) -> int` | sort.search_strings(arr, "key") | bsearch | sort.SearchStrings | 在已排序 string 数组中二分查找目标字符串 | 对标 C bsearch，Go sort.SearchStrings；要求数组已排序，返回索引或插入点 | ✅ 已落地 |
-| `sort.slice` | 内建库 | `(a: any[], less: func(i, j int) bool) -> void` | sort.slice(arr, func(i, j int) bool { return arr[i] < arr[j] }) | qsort | sort.Slice | 按自定义比较函数对任意类型数组排序 | 对标 C qsort，Go sort.Slice；axlang 不支持闭包，cmp 参数受限，实际可用性有限 | ⬜ 未落地 |
-| `sort.slice_stable` | 内建库 | `(a: any[], less: func(i, j int) bool) -> void` | sort.slice_stable(arr, func(i, j int) bool { return arr[i] < arr[j] }) | — | sort.SliceStable | 稳定排序（相等元素保持原始相对顺序） | C 标准库无稳定排序，Go 对标 sort.SliceStable；axlang 不支持闭包，暂不落地 | ⬜ 未落地 |
+| `sort.slice` | 内建库 | `(a: any[], less: func(i, j int) bool) -> void` | sort.slice(arr, less) | qsort | sort.Slice | 按自定义比较函数对任意类型数组排序 | 对标 C qsort，Go sort.Slice；底层复用 qsort + 文件级比较函数适配器；less 参数须为顶层函数（axlang 不支持闭包） | ✅ 已落地 |
+| `sort.slice_stable` | 内建库 | `(a: any[], less: func(i, j int) bool) -> void` | sort.slice_stable(arr, less) | qsort | sort.SliceStable | 稳定排序（相等元素保持原始相对顺序） | 对标 C qsort，Go sort.SliceStable；底层复用 qsort（C 标准库无稳定排序，同 slice 实现）；less 参数须为顶层函数 | ✅ 已落地 |
 | `sort.strings` | 内建库 | `(a: string[]) -> void` | sort.strings(arr) | qsort | sort.Strings | 对 string 数组升序排序 | 对标 C qsort，Go sort.Strings；按字典序原地排序 | ✅ 已落地 |
 | `sort.strings_are_sorted` | 内建库 | `(a: string[]) -> bool` | sort.strings_are_sorted(arr) | — | sort.StringsAreSorted | 判断 string 数组是否已升序排序 | C 标准库无直接对应，Go 对标 sort.StringsAreSorted；遍历检查，O(n) | ✅ 已落地 |
 | `strconv.atoi` | 标准库 | `(s: string) -> int` | — | atoi | strconv.Atoi | 将字符串解析为整数 | 对标 C atoi，Go strconv.Atoi；解析失败返回 0 和错误 | ✅ 已落地 |
@@ -364,7 +364,7 @@
 | 编译器内建函数（保留） | 131 个 | 长期保留在编译器 Rust 端 |
 | 标准库函数（已迁移） | 170 个 | 已在 axc/std/ 下以 ax 源码实现 |
 | 标准库函数（待迁移） | 0 个 | 计划从编译器内建迁移到 ax_stdlib |
-| 已落地函数 | 293 / 301 | — |
+| 已落地函数 | 296 / 301 | — |
 
 
 *更新于 2026-11-25，基于 STDLIB-STATUS.json 自动生成*

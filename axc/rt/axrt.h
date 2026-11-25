@@ -524,6 +524,7 @@ void    ax_arr_fill(ax_arr* a, const void* v, int64_t esz);
 void    ax_arr_resize(ax_arr* a, int64_t n, int64_t esz);
 /* 数组合并：将 b 的所有元素追加到 a 末尾 */
 void    ax_arr_merge(ax_arr* a, const ax_arr* b, int64_t esz);
+void    ax_arr_delete_range(ax_arr* a, int64_t i, int64_t j, int64_t esz, const char* f, int l, int c);
 /* int[] 聚合：求最小/最大/求和，空数组分别返回 0/0/0 */
 int64_t ax_arr_min_int(const int64_t* data, int64_t len);
 int64_t ax_arr_max_int(const int64_t* data, int64_t len);

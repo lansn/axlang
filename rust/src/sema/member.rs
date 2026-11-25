@@ -849,6 +849,11 @@ impl<'a> Sema<'a> {
         if m == "unique" {
             return self.check_unique_module_call(e, args, &name);
         }
+        // sort.slice / sort.slice_stable：泛型数组排序，第一个实参为任意类型数组 T[]，
+        // 第二个实参为比较函数 func(T, T) -> int，T 由第一个实参推导。
+        if m == "sort" && (name == "slice" || name == "slice_stable") {
+            return self.check_sort_slice_call(e, args, &name);
+        }
         self.check_call_args(args, None, None, e.id);
         // 内建 fmt 模块（文稿 11.2，0.0.27）：Printf 编译期核对占位符，
         // Print/Println 与 print/println 走同一套多实参实现
@@ -905,6 +910,61 @@ impl<'a> Sema<'a> {
         }
         self.sl(e.id).mkind = Some("module");
         ret
+    }
+
+    // ---------------------------------------------------------------- sort.slice / sort.slice_stable
+    //
+    // sort.slice(arr, cmp) / sort.slice_stable(arr, cmp)：按自定义比较函数对任意类型数组排序。
+    // module_sig 无法表达「第一个实参为 T[]，第二个实参为 func(T,T)->int，T 由第一个实参推导」
+    // 的泛型签名，故在此提前拦截，自行做类型推导与检查。
+
+    fn check_sort_slice_call(
+        &mut self,
+        e: &ast::EPtr,
+        args: &[ast::N<ast::Arg>],
+        name: &str,
+    ) -> Ty {
+        self.check_call_args(args, None, None, e.id);
+        if args.len() < 2 {
+            self.err(
+                "E4031",
+                &e.tok,
+                "N-20",
+                "`sort.{0}` 需要 2 个实参，得到 {1}",
+                &[&name, &args.len()],
+            );
+            return t_void();
+        }
+        // 第一个实参必须是数组 T[]
+        let arr_ty = self.check_expr(&args[0].k.expr, None);
+        let et = match &*arr_ty {
+            TyS::Array(et, _) => et.clone(),
+            _ => {
+                self.err(
+                    "E4001",
+                    &args[0].k.expr.tok,
+                    "T-5",
+                    "`sort.{0}` 第一个实参必须是数组，得到 {1}",
+                    &[&name, &self.ts(&arr_ty)],
+                );
+                return t_void();
+            }
+        };
+        // 第二个实参必须是 func(T, T) -> int
+        let cmp_ty = self.check_expr(&args[1].k.expr, None);
+        let expected_cmp = t_fn(vec![et.clone(), et.clone()], t_int());
+        let r = assignable(&cmp_ty, &expected_cmp, self, true);
+        if !matches!(r, AssignResult::Yes | AssignResult::Conv(_)) {
+            self.err(
+                "E4001",
+                &args[1].k.expr.tok,
+                "T-5",
+                "`sort.{0}` 比较函数期望 func({1}, {1}) -> int，得到 {2}",
+                &[&name, &self.ts(&et), &self.ts(&cmp_ty)],
+            );
+        }
+        self.sl(e.id).mkind = Some("module");
+        t_void()
     }
 
     // ---------------------------------------------------------------- maps 模块
@@ -1710,6 +1770,8 @@ impl<'a> Sema<'a> {
                     ("Push", vec![el.clone()], t_void()),
                     ("Pop", vec![], el.clone()),
                     ("Remove", vec![t_int()], t_void()),
+                    /* 删除索引 [i, j) 范围内的元素，对标 Go slices.Delete */
+                    ("Delete", vec![t_int(), t_int()], t_void()),
                     ("Clear", vec![], t_void()),
                     ("At", vec![t_int()], t_nullable(el.clone())),
                     ("Contains", vec![el.clone()], t_bool()),

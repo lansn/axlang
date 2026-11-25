@@ -356,6 +356,20 @@ void ax_arr_remove(ax_arr* a, int64_t i, int64_t esz, const char* f, int l, int 
 }
 
 
+void ax_arr_delete_range(ax_arr* a, int64_t i, int64_t j, int64_t esz, const char* f, int l, int c) {
+    if (i < 0 || i > a->len)
+        ax_trap(R_INDEX, f, l, c, "delete start index %" PRId64 ", len %" PRId64, i, a->len);
+    if (j < i || j > a->len)
+        ax_trap(R_INDEX, f, l, c, "delete end index %" PRId64 ", start %" PRId64 ", len %" PRId64, j, i, a->len);
+    if (i == j) return;
+    int64_t n = j - i;
+    memmove((uint8_t*)a->data + i * esz,
+            (uint8_t*)a->data + j * esz,
+            (size_t)((a->len - j) * esz));
+    a->len -= n;
+}
+
+
 void ax_arr_clear(ax_arr* a) { a->len = 0; }
 
 

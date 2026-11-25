@@ -142,6 +142,20 @@ pub fn module_sig(mod_: &str, name: &str) -> Option<(Vec<Option<Ty>>, Ty)> {
         ("sort", "strings_are_sorted") => (vec![Some(t_array(t_string(), None))], t_bool()),
         ("sort", "search_ints") => (vec![Some(t_array(t_int(), None)), Some(t_int())], t_int()),
         ("sort", "search_strings") => (vec![Some(t_array(t_string(), None)), Some(t_string())], t_int()),
+        ("sort", "slice") => (
+            vec![
+                Some(t_array(t_object(), None)),
+                Some(t_fn(vec![t_int(), t_int()], t_int())),
+            ],
+            t_void(),
+        ),
+        ("sort", "slice_stable") => (
+            vec![
+                Some(t_array(t_object(), None)),
+                Some(t_fn(vec![t_int(), t_int()], t_int())),
+            ],
+            t_void(),
+        ),
         ("errors", "new") => (vec![Some(t_string())], t_error()),
         ("errors", "is") => (vec![Some(t_error()), Some(t_error())], t_bool()),
         ("errors", "as") => (vec![Some(t_error()), Some(t_error())], t_bool()),

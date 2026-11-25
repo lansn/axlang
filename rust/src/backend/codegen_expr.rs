@@ -2082,6 +2082,41 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 let arr = self.declare(&t_array(t_string(), None), &a[0]);
                 format!("ax_sort_search_strings((ax_str*){}.data, {}.len, {})", arr, arr, a[1])
             }
+            /* sort.slice / sort.slice_stable：按自定义比较函数对任意类型数组排序。
+               底层复用 qsort + 文件级比较函数适配器（与 arr.sort(cmp) 相同）。 */
+            ("sort", "slice") | ("sort", "slice_stable") => {
+                let arr_ty = self.ty_or_int(args[0].k.expr.id);
+                let et = match &*arr_ty {
+                    TyS::Array(et, _) => et.clone(),
+                    _ => t_object(),
+                };
+                let etc = self.cg.ct(&et);
+                let tv = self.declare(&arr_ty, &a[0]);
+                let uid = self.tmpn();
+                let ctx = format!("axsort_ctx_{}", uid);
+                let cmpfn = format!("axsort_cmp_{}", uid);
+                let fnty_ty = t_fn(vec![et.clone(), et.clone()], t_int());
+                self.cg.need(&fnty_ty);
+                let fnty = format!("axfn_{}", self.cg.cn(&fnty_ty));
+                self.cg
+                    .fn_decls
+                    .push(format!("static int {}(const void*, const void*);", cmpfn));
+                self.cg
+                    .fn_decls
+                    .push(format!("static {} {};", fnty, ctx));
+                self.cg.extra_fns.push(format!(
+                    "static int {cmpfn}(const void* a_, const void* b_) {{\n  {etc} va_; {etc} vb_;\n  memcpy(&va_, a_, sizeof({etc}));\n  memcpy(&vb_, b_, sizeof({etc}));\n  return (int){ctx}(va_, vb_);\n}}",
+                    cmpfn = cmpfn,
+                    ctx = ctx,
+                    etc = etc
+                ));
+                self.emit(format!("{ctx} = {cmp};", ctx = ctx, cmp = a[1]));
+                self.emit(format!(
+                    "qsort({0}.data, (size_t){0}.len, (size_t)sizeof({1}), {2});",
+                    tv, etc, cmpfn
+                ));
+                "0".to_string()
+            }
             ("errors", "new") => format!("ax_err_new(1, {})", a[0]),
             // errors.Is(err, target) -> bool：对标 Go errors.Is，比较 code 和 msg 是否相等
             ("errors", "is") => format!("ax_err_is({}, {})", a[0], a[1]),
@@ -2837,15 +2872,15 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 // 字段访问）时直接寻址；否则 declare 出来的临时副本被改完即弃
                 // （ax_arr 按值赋，改副本不影响原变量），表现为 push/pop 静默失效。
                 let tv = if matches!(
-                    name.as_str(),
-                    "Push" | "Pop" | "Remove" | "Clear" | "Sort" | "Insert" | "Fill" | "Resize" | "Merge"
+                    name_pc.as_str(),
+                    "Push" | "Pop" | "Remove" | "Delete" | "Clear" | "Sort" | "Insert" | "Fill" | "Resize" | "Merge"
                 ) && Self::is_lvalue(recv)
                 {
                     format!("({})", rv)
                 } else {
                     self.declare(&rt, &rv)
                 };
-                match name.as_str() {
+                match name_pc.as_str() {
                     // 定长数组没有 .len 成员：长度是类型的一部分，直接编译期常数
                     "Len" => match &*rt {
                         TyS::Array(_, Some(n)) => format!("((int64_t){})", n),
@@ -2877,6 +2912,16 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                         self.emit(format!(
                             "ax_arr_remove(&{}, {}, (int64_t)sizeof({}), {});",
                             tv, a[0], etc, pa
+                        ));
+                        "0".to_string()
+                    }
+                    "Delete" => {
+                        // 删除索引 [i, j) 范围内的元素，对标 Go slices.Delete
+                        let etc = self.cg.ct(&et);
+                        let pa = self.pos_args(&e.tok);
+                        self.emit(format!(
+                            "ax_arr_delete_range(&{}, {}, {}, (int64_t)sizeof({}), {});",
+                            tv, a[0], a[1], etc, pa
                         ));
                         "0".to_string()
                     }

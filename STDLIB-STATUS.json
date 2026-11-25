@@ -2781,28 +2781,26 @@
         {
           "name": "slice",
           "signature": "(a: any[], less: func(i, j int) bool) -> void",
-          "status": "not_implemented",
-          "note": "axlang 不支持闭包，暂不落地",
+          "status": "implemented",
           "c_counterpart": "qsort",
           "go_counterpart": "sort.Slice",
           "function": "按自定义比较函数对任意类型数组排序",
-          "description": "对标 C qsort，Go sort.Slice；axlang 不支持闭包，cmp 参数受限，实际可用性有限",
+          "description": "对标 C qsort，Go sort.Slice；底层复用 qsort + 文件级比较函数适配器；less 参数须为顶层函数（axlang 不支持闭包）",
           "builtin": true,
           "builtin_plan": "keep",
-          "usage_example": "sort.slice(arr, func(i, j int) bool { return arr[i] < arr[j] })"
+          "usage_example": "sort.slice(arr, less)"
         },
         {
           "name": "slice_stable",
           "signature": "(a: any[], less: func(i, j int) bool) -> void",
-          "status": "not_implemented",
-          "note": "axlang 不支持闭包，暂不落地",
-          "c_counterpart": "—",
+          "status": "implemented",
+          "c_counterpart": "qsort",
           "go_counterpart": "sort.SliceStable",
           "function": "稳定排序（相等元素保持原始相对顺序）",
-          "description": "C 标准库无稳定排序，Go 对标 sort.SliceStable；axlang 不支持闭包，暂不落地",
+          "description": "对标 C qsort，Go sort.SliceStable；底层复用 qsort（C 标准库无稳定排序，同 slice 实现）；less 参数须为顶层函数",
           "builtin": true,
           "builtin_plan": "keep",
-          "usage_example": "sort.slice_stable(arr, func(i, j int) bool { return arr[i] < arr[j] })"
+          "usage_example": "sort.slice_stable(arr, less)"
         }
       ]
     },
@@ -2986,15 +2984,14 @@
           "name": "delete",
           "signature": "(i, j) -> T[]",
           "kind": "instance",
-          "status": "not_implemented",
-          "note": "与 arr.Remove 语义重复，暂不落地",
+          "status": "implemented",
           "c_counterpart": "memmove",
           "go_counterpart": "slices.Delete",
           "function": "删除索引 [i, j) 范围内的元素",
-          "description": "C 标准库无直接对应，Go 对标 slices.Delete；后续元素前移，O(n)",
+          "description": "C 标准库无直接对应，Go 对标 slices.Delete；后续元素前移，O(n)；底层 ax_arr_delete_range",
           "builtin": true,
           "builtin_plan": "keep",
-          "usage_example": "slices.delete(arr, i, j)"
+          "usage_example": "arr.delete(i, j)"
         }
       ]
     },

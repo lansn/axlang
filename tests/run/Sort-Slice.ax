@@ -1,0 +1,26 @@
+// sort.slice：按自定义比较函数对 int 数组排序（模块级函数）
+import sort
+
+int lessInt(int a, int b) {
+    if a < b { return -1 }
+    if a > b { return 1 }
+    return 0
+}
+
+int greaterInt(int a, int b) {
+    if a > b { return -1 }
+    if a < b { return 1 }
+    return 0
+}
+
+int main() {
+    int[] xs = [5, 3, 9, 1, 7]
+    sort.slice(xs, lessInt)
+    println("{xs[0]} {xs[1]} {xs[2]} {xs[3]} {xs[4]}")
+
+    int[] ys = [5, 3, 9, 1, 7]
+    sort.slice(ys, greaterInt)
+    println("{ys[0]} {ys[1]} {ys[2]} {ys[3]} {ys[4]}")
+
+    return 0
+}
