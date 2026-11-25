@@ -99,12 +99,12 @@
 | `csv.write` | 标准库 | `(w: Writer, record: string[]) -> int` | — | — | csv.Writer.Write | 将一条记录写入 CSV 文件 | C 标准库无 CSV 写入器，Go 对标 encoding/csv.Writer.Write；返回写入状态 | ✅ 已落地 |
 | `db.query` | 内建库 | `(sql: string) -> result<Row>` | db.query("SELECT * FROM t") | — | — | 执行 SQL 查询并返回结果集 | axlang 特有模块，无标准 C/Go 对应；依赖底层数据库驱动实现 | ⬜ 计划中 |
 | `decimal.divide` | 内建库 | `(other: decimal, rounding: Rounding) -> decimal` | d.divide(e, Rounding.HalfUp) | — | — | 高精度除法，支持自定义舍入模式 | 对标 C 无直接对应，需自定义 decimal 实现 | ✅ 已落地 |
-| `decimal.parse` | 内建库 | `(s: string) -> result<decimal>` | decimal.parse("123.45") | — | — | 将字符串解析为高精度十进制数 | axlang 特有模块，无标准 C/Go 对应；依赖自定义 decimal 实现 | ⬜ 计划中 |
+| `decimal.parse` | 内建库 | `(s: string) -> result<decimal>` | decimal.parse("123.45") | ax_dec_parse | — | 将字符串解析为高精度十进制数 | axlang 特有模块，无标准 C/Go 对应；依赖自定义 decimal 实现 | ✅ 已落地 |
 | `decimal.round` | 内建库 | `(digits: int, rounding: Rounding) -> decimal` | d.round(2, Rounding.HalfUp) | — | — | 按指定精度和舍入模式四舍五入 | 对标 C 无直接对应，需自定义 decimal 实现 | ✅ 已落地 |
 | `decimal.to_string` | 内建库 | `() -> string` | d.to_string() | — | — | 将 decimal 转换为字符串表示 | 对标 C sprintf，Go fmt.Sprintf | ✅ 已落地 |
-| `decimal.truncate` | 内建库 | `(v: int) -> int8` | decimal.truncate(v) | — | — | 将十进制数截断为整数（int8/int16/int32） | axlang 特有模块，无标准 C/Go 对应；重载支持三种整数宽度 | ⬜ 计划中 |
-| `decimal.truncate` | 内建库 | `(v: int) -> int16` | decimal.truncate(v) | — | — | 将十进制数截断为整数（int8/int16/int32） | axlang 特有模块，无标准 C/Go 对应；重载支持三种整数宽度 | ⬜ 计划中 |
-| `decimal.truncate` | 内建库 | `(v: int) -> int32` | decimal.truncate(v) | — | — | 将十进制数截断为整数（int8/int16/int32） | axlang 特有模块，无标准 C/Go 对应；重载支持三种整数宽度 | ⬜ 计划中 |
+| `decimal.truncate` | 内建库 | `(v: int) -> int8` | d.truncate(8) | ax_narrow(ax_dec_to_i64) | — | 将十进制数截断为整数（int8/int16/int32） | axlang 特有模块，无标准 C/Go 对应；重载支持三种整数宽度 | ✅ 已落地 |
+| `decimal.truncate` | 内建库 | `(v: int) -> int16` | d.truncate(16) | ax_narrow(ax_dec_to_i64) | — | 将十进制数截断为整数（int8/int16/int32） | axlang 特有模块，无标准 C/Go 对应；重载支持三种整数宽度 | ✅ 已落地 |
+| `decimal.truncate` | 内建库 | `(v: int) -> int32` | d.truncate(32) | ax_narrow(ax_dec_to_i64) | — | 将十进制数截断为整数（int8/int16/int32） | axlang 特有模块，无标准 C/Go 对应；重载支持三种整数宽度 | ✅ 已落地 |
 | `errors.as` | 标准库 | `(err: error, target: error) -> bool` | — | — | errors.As | 将错误解析为目标类型 | C 标准库无 error 类型，Go 对标 errors.As；axlang 无运行时反射，target 限定为 error 类型 | ✅ 已落地 |
 | `errors.is` | 标准库 | `(err: error, target: error) -> bool` | — | — | errors.Is | 判断错误是否与目标错误匹配（支持链式包装） | C 标准库无 error 类型，Go 对标 errors.Is；axlang 无运行时反射，target 限定为 error 类型 | ✅ 已落地 |
 | `errors.new` | 标准库 | `(msg: string) -> error` | — | — | errors.New | 根据消息字符串创建 error 对象 | C 标准库无 error 类型，Go 对标 errors.New；返回 axlang error 类型 | ✅ 已落地 |
@@ -364,7 +364,7 @@
 | 编译器内建函数（保留） | 131 个 | 长期保留在编译器 Rust 端 |
 | 标准库函数（已迁移） | 170 个 | 已在 axc/std/ 下以 ax 源码实现 |
 | 标准库函数（待迁移） | 0 个 | 计划从编译器内建迁移到 ax_stdlib |
-| 已落地函数 | 285 / 301 | — |
+| 已落地函数 | 289 / 301 | — |
 
 
 *更新于 2026-11-25，基于 STDLIB-STATUS.json 自动生成*

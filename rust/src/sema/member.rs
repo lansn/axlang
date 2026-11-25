@@ -1766,6 +1766,9 @@ impl<'a> Sema<'a> {
                     ],
                     t_decimal(),
                 ),
+                // 将 decimal 截断为整数，v 为目标整数位宽（8/16/32），
+                // 对应 C：ax_narrow(ax_dec_to_i64(d, ...), (int)v, 1, ...)
+                ("Truncate", vec![t_int()], t_int()),
                 ("ToString", vec![], t_string()),
             ]),
             TyS::Int(..) | TyS::Float => {

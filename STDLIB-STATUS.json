@@ -1452,14 +1452,14 @@
       "name": "decimal",
       "priority": "P0",
       "go_counterpart": "axlang 特有，高精度十进制",
-      "status": "partial",
+      "status": "implemented",
       "functions": [
         {
           "name": "parse",
           "signature": "(s: string) -> result<decimal>",
           "kind": "static",
-          "status": "planned",
-          "c_counterpart": "—",
+          "status": "implemented",
+          "c_counterpart": "ax_dec_parse",
           "go_counterpart": "—",
           "function": "将字符串解析为高精度十进制数",
           "description": "axlang 特有模块，无标准 C/Go 对应；依赖自定义 decimal 实现",
@@ -1471,40 +1471,40 @@
           "name": "truncate",
           "signature": "(v: int) -> int8",
           "kind": "instance",
-          "status": "planned",
-          "c_counterpart": "—",
+          "status": "implemented",
+          "c_counterpart": "ax_narrow(ax_dec_to_i64)",
           "go_counterpart": "—",
           "function": "将十进制数截断为整数（int8/int16/int32）",
           "description": "axlang 特有模块，无标准 C/Go 对应；重载支持三种整数宽度",
           "builtin": true,
           "builtin_plan": "keep",
-          "usage_example": "decimal.truncate(v)"
+          "usage_example": "d.truncate(8)"
         },
         {
           "name": "truncate",
           "signature": "(v: int) -> int16",
           "kind": "instance",
-          "status": "planned",
-          "c_counterpart": "—",
+          "status": "implemented",
+          "c_counterpart": "ax_narrow(ax_dec_to_i64)",
           "go_counterpart": "—",
           "function": "将十进制数截断为整数（int8/int16/int32）",
           "description": "axlang 特有模块，无标准 C/Go 对应；重载支持三种整数宽度",
           "builtin": true,
           "builtin_plan": "keep",
-          "usage_example": "decimal.truncate(v)"
+          "usage_example": "d.truncate(16)"
         },
         {
           "name": "truncate",
           "signature": "(v: int) -> int32",
           "kind": "instance",
-          "status": "planned",
-          "c_counterpart": "—",
+          "status": "implemented",
+          "c_counterpart": "ax_narrow(ax_dec_to_i64)",
           "go_counterpart": "—",
           "function": "将十进制数截断为整数（int8/int16/int32）",
           "description": "axlang 特有模块，无标准 C/Go 对应；重载支持三种整数宽度",
           "builtin": true,
           "builtin_plan": "keep",
-          "usage_example": "decimal.truncate(v)"
+          "usage_example": "d.truncate(32)"
         },
         {
           "name": "round",

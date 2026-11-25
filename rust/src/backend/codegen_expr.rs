@@ -3117,7 +3117,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             }
             TyS::Decimal => {
                 let tv = self.declare(&rt, &rv);
-                match name.as_str() {
+                match name_pc.as_str() {
                     "ToString" => format!("ax_dec_to_str({})", tv),
                     "Round" => format!(
                         "ax_dec_round({}, (int32_t)({}), (int)({}))",
@@ -3127,6 +3127,13 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                         "ax_dec_div_round({}, {}, (int32_t)({}), (int)({}))",
                         tv, a[0], a[1], a[2]
                     ),
+                    "Truncate" => {
+                        let pa = self.pos_args(&e.tok);
+                        format!(
+                            "ax_narrow(ax_dec_to_i64({}, {}), (int)({}), 1, {})",
+                            tv, pa, a[0], pa
+                        )
+                    }
                     _ => "0".to_string(),
                 }
             }

@@ -1,0 +1,10 @@
+// decimal.parse 正例：将字符串解析为高精度十进制数
+int main() {
+    decimal d1 = decimal.parse("123.45") try
+    decimal d2 = decimal.parse("-3.14") try
+    decimal d3 = decimal.parse("1e2") try
+    println("d1={d1}")
+    println("d2={d2}")
+    println("d3={d3}")
+    return 0
+}
