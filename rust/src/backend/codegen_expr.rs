@@ -3139,31 +3139,40 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             }
             TyS::Int(..) => {
                 let tv = self.declare(&rt, &rv);
-                match name.as_str() {
+                match name_pc.as_str() {
                     "ToString" => format!("ax_str_of_int((int64_t){})", tv),
                     "WrappingAdd" => {
                         format!("(int64_t)((uint64_t){} + (uint64_t)({}))", tv, a[0])
+                    }
+                    "Divide" => {
+                        format!("({} / {})", tv, a[0])
                     }
                     _ => "0".to_string(),
                 }
             }
             TyS::Float => {
                 let tv = self.declare(&rt, &rv);
-                match name.as_str() {
+                match name_pc.as_str() {
                     "ToString" => format!("ax_str_of_f64({})", tv),
+                    "Round" => {
+                        format!("round({} * pow(10.0, {})) / pow(10.0, {})", tv, a[0], a[0])
+                    }
+                    "Divide" => {
+                        format!("({} / {})", tv, a[0])
+                    }
                     _ => "0".to_string(),
                 }
             }
             TyS::Bool => {
                 let tv = self.declare(&rt, &rv);
-                match name.as_str() {
+                match name_pc.as_str() {
                     "ToString" => format!("ax_str_of_bool({})", tv),
                     _ => "0".to_string(),
                 }
             }
             TyS::Enum(_) => {
                 let tv = self.declare(&rt, &rv);
-                match name.as_str() {
+                match name_pc.as_str() {
                     "ToString" => self.enum_name_expr(recv, &tv),
                     _ => "0".to_string(),
                 }

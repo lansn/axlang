@@ -144,10 +144,10 @@
 | `fmt.scanf` | 标准库 | `(format: string, args: any...) -> int` | — | scanf | fmt.Scan | 从标准输入读取并按格式解析 | 对标 C scanf，Go fmt.Scan；从 stdin 读取格式化输入 | ✅ 已落地 |
 | `fmt.sprint` | 标准库 | `(args: any...) -> string` | — | snprintf/sprintf | fmt.Sprint | 将任意参数格式化为字符串返回 | 对标 C snprintf，Go fmt.Sprint；不输出，仅返回字符串 | ✅ 已落地 |
 | `fmt.sprintf` | 标准库 | `(format: string, args: any...) -> string` | — | sprintf | fmt.Sprintf | 按格式字符串格式化并返回字符串 | 对标 C sprintf，Go fmt.Sprintf；结果以字符串返回而非输出 | ✅ 已落地 |
-| `int/float/bool/enum.divide` | 内建库 | `(other: T) -> T` | x.divide(y) | — | — | 除法运算（泛型） | C 标准库无直接对应，Go 亦无标准库函数；axlang 语言级泛型方法 | ⬜ 计划中 |
-| `int/float/bool/enum.round` | 内建库 | `(digits: int) -> float` | x.round(2) | round | math.Round | 将浮点数四舍五入到指定小数位数 | 对标 C round，Go math.Round；泛型类型方法，digits 为小数位数 | ⬜ 计划中 |
-| `int/float/bool/enum.to_string` | 内建库 | `() -> string` | x.to_string() | — | strconv.Itoa/FormatFloat | 将数值转换为字符串 | C 标准库需 sprintf/itoa，Go 对标 strconv 包；泛型类型方法 | ⬜ 计划中 |
-| `int/float/bool/enum.wrapping_add` | 内建库 | `(other: T) -> T` | x.wrapping_add(y) | — | — | 带环绕的加法（溢出时回绕） | C 标准库无直接对应，Go 亦无标准库函数；axlang 语言级泛型方法 | ⬜ 计划中 |
+| `int/float/bool/enum.divide` | 内建库 | `(other: T) -> T` | x.divide(y) | / | — | 除法运算（泛型） | C 标准库 / 运算符，Go / 运算符；axlang 语言级泛型方法 | ✅ 已落地 |
+| `int/float/bool/enum.round` | 内建库 | `(digits: int) -> float` | x.round(2) | round/pow | math.Round | 将浮点数四舍五入到指定小数位数 | 对标 C round/pow，Go math.Round；仅 Float 类型，digits 为小数位数 | ✅ 已落地 |
+| `int/float/bool/enum.to_string` | 内建库 | `() -> string` | x.to_string() | ax_str_of_int/ax_str_of_f64/ax_str_of_bool/enum_name | strconv.Itoa/FormatFloat | 将数值转换为字符串 | C 标准库需 sprintf/itoa，Go 对标 strconv 包；泛型类型方法 | ✅ 已落地 |
+| `int/float/bool/enum.wrapping_add` | 内建库 | `(other: T) -> T` | x.wrapping_add(y) | uint64_t 溢出回绕 | — | 带环绕的加法（溢出时回绕） | C 标准库无直接对应，Go 亦无标准库函数；axlang 语言级泛型方法 | ✅ 已落地 |
 | `io.read_file` | 标准库 | `(path: string) -> result<string>` | — | fread | os.ReadFile | 读取整个文件内容并返回字符串 | 对标 C fread，Go os.ReadFile；一次性读取全部文件到内存 | ✅ 已落地 |
 | `io.read_line` | 标准库 | `() -> string?` | — | fgets | bufio.Scanner.Text | 逐行读取文件内容，返回一行字符串 | 对标 C fgets，Go bufio.Scanner.Text；读取直到换行符或文件结束 | ✅ 已落地 |
 | `io.write` | 标准库 | `(s: string) -> void` | — | fwrite/puts | fmt.Fprint/io.WriteString | 将字符串写入标准输出 | 对标 C fwrite/puts，Go fmt.Fprint；不自动换行 | ✅ 已落地 |
@@ -364,7 +364,7 @@
 | 编译器内建函数（保留） | 131 个 | 长期保留在编译器 Rust 端 |
 | 标准库函数（已迁移） | 170 个 | 已在 axc/std/ 下以 ax 源码实现 |
 | 标准库函数（待迁移） | 0 个 | 计划从编译器内建迁移到 ax_stdlib |
-| 已落地函数 | 289 / 301 | — |
+| 已落地函数 | 293 / 301 | — |
 
 
 *更新于 2026-11-25，基于 STDLIB-STATUS.json 自动生成*

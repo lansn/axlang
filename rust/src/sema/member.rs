@@ -1772,16 +1772,22 @@ impl<'a> Sema<'a> {
                 ("ToString", vec![], t_string()),
             ]),
             TyS::Int(..) | TyS::Float => {
-                if name == "ToString" {
+                let pascal = pascal_member(&name);
+                if name == "ToString" || pascal == "ToString" {
                     Some(vec![("ToString", vec![], t_string())])
-                } else if name == "WrappingAdd" && matches!(&**rt, TyS::Int(..)) {
+                } else if (name == "WrappingAdd" || pascal == "WrappingAdd") && matches!(&**rt, TyS::Int(..)) {
                     Some(vec![("WrappingAdd", vec![rt.clone()], rt.clone())])
+                } else if (name == "Round" || pascal == "Round") && matches!(&**rt, TyS::Float) {
+                    Some(vec![("Round", vec![t_int()], t_float())])
+                } else if name == "Divide" || pascal == "Divide" {
+                    Some(vec![("Divide", vec![rt.clone()], rt.clone())])
                 } else {
                     None
                 }
             }
             TyS::Bool | TyS::Enum(..) => {
-                if name == "ToString" {
+                let pascal = pascal_member(&name);
+                if name == "ToString" || pascal == "ToString" {
                     Some(vec![("ToString", vec![], t_string())])
                 } else {
                     None
