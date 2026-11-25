@@ -16,25 +16,41 @@
           "name": "read_line",
           "signature": "() -> string?",
           "status": "implemented",
-          "note": "标准 C11 实现"
+          "note": "标准 C11 实现",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "标准 C11 实现",
+          "description": "—"
         },
         {
           "name": "read_file",
           "signature": "(path: string) -> result<string>",
           "status": "implemented",
-          "note": "标准 C11 实现"
+          "note": "标准 C11 实现",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "标准 C11 实现",
+          "description": "—"
         },
         {
           "name": "write",
           "signature": "(s: string) -> void",
           "status": "implemented",
-          "note": "标准 C11 实现"
+          "note": "标准 C11 实现",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "标准 C11 实现",
+          "description": "—"
         },
         {
           "name": "write_line",
           "signature": "(s: string) -> void",
           "status": "implemented",
-          "note": "标准 C11 实现"
+          "note": "标准 C11 实现",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "标准 C11 实现",
+          "description": "—"
         }
       ]
     },
@@ -51,49 +67,81 @@
           "name": "print",
           "signature": "(args: any...) -> void",
           "status": "partial",
-          "note": "通过 print/println 部分实现"
+          "note": "通过 print/println 部分实现",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "通过 print/println 部分实现",
+          "description": "—"
         },
         {
           "name": "println",
           "signature": "(args: any...) -> void",
           "status": "partial",
-          "note": "同上"
+          "note": "同上",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "同上",
+          "description": "—"
         },
         {
           "name": "printf",
           "signature": "(format: string, args: any...) -> void",
           "status": "partial",
-          "note": "编译期核对占位符"
+          "note": "编译期核对占位符",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "编译期核对占位符",
+          "description": "—"
         },
         {
           "name": "sprintf",
           "signature": "(format: string, args: any...) -> string",
           "status": "implemented",
-          "note": "标准 C11 实现"
+          "note": "标准 C11 实现",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "标准 C11 实现",
+          "description": "—"
         },
         {
           "name": "sprint",
           "signature": "(args: any...) -> string",
           "status": "implemented",
-          "note": "标准 C11 实现"
+          "note": "标准 C11 实现",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "标准 C11 实现",
+          "description": "—"
         },
         {
           "name": "fprintf",
           "signature": "(w: File, format: string, args: any...) -> int",
           "status": "implemented",
-          "note": "标准 C11 实现"
+          "note": "标准 C11 实现",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "标准 C11 实现",
+          "description": "—"
         },
         {
           "name": "errorf",
           "signature": "(format: string, args: any...) -> error",
           "status": "implemented",
-          "note": "标准 C11 实现"
+          "note": "标准 C11 实现",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "标准 C11 实现",
+          "description": "—"
         },
         {
           "name": "scanf",
           "signature": "(format: string, args: any...) -> int",
           "status": "implemented",
-          "note": "标准 C11 实现"
+          "note": "标准 C11 实现",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "标准 C11 实现",
+          "description": "—"
         }
       ]
     },
@@ -109,192 +157,344 @@
         {
           "name": "abs",
           "signature": "(x: float) -> float",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "max",
           "signature": "(a: float, b: float) -> float",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "min",
           "signature": "(a: float, b: float) -> float",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "sqrt",
           "signature": "(x: float) -> float",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "pow",
           "signature": "(a: float, b: float) -> float",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "exp",
           "signature": "(x: float) -> float",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "log",
           "signature": "(x: float) -> float",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "sin",
           "signature": "(x: float) -> float",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "cos",
           "signature": "(x: float) -> float",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "tan",
           "signature": "(x: float) -> float",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "ceil",
           "signature": "(x: float) -> float",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "floor",
           "signature": "(x: float) -> float",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "round",
           "signature": "(x: float) -> float",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "sign",
           "signature": "(x: float) -> int",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "mod",
           "signature": "(x: float, y: float) -> float",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "equals",
           "signature": "(a: float, b: float, eps: float) -> bool",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "compare",
           "signature": "(a: float, b: float) -> int",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "exp2",
           "signature": "(x: float) -> float",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "log10",
           "signature": "(x: float) -> float",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "log2",
           "signature": "(x: float) -> float",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "log1p",
           "signature": "(x: float) -> float",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "sinh",
           "signature": "(x: float) -> float",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "cosh",
           "signature": "(x: float) -> float",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "tanh",
           "signature": "(x: float) -> float",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "asin",
           "signature": "(x: float) -> float",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "acos",
           "signature": "(x: float) -> float",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "atan",
           "signature": "(x: float) -> float",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "atan2",
           "signature": "(y: float, x: float) -> float",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "hypot",
           "signature": "(p: float, q: float) -> float",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "cbrt",
           "signature": "(x: float) -> float",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "trunc",
           "signature": "(x: float) -> float",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "is_na_n",
           "signature": "(f: float) -> bool",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "is_inf",
           "signature": "(f: float, sign: int) -> bool",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "frexp",
           "signature": "(f: float) -> (frac: float, exp: int)",
-          "status": "planned"
+          "status": "planned",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "ldexp",
           "signature": "(frac: float, exp: int) -> float",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "signbit",
           "signature": "(f: float) -> bool",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "copysign",
           "signature": "(f: float, sign: float) -> float",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "dim",
           "signature": "(x: float, y: float) -> float",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         }
       ]
     },
@@ -310,22 +510,38 @@
         {
           "name": "parse",
           "signature": "(s: string) -> result<map<string, object>>",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "stringify",
           "signature": "(v: object) -> string",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "marshal_indent",
           "signature": "(v: object, prefix: string, indent: string) -> string",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "valid",
           "signature": "(s: string) -> bool",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         }
       ]
     },
@@ -341,82 +557,146 @@
         {
           "name": "open",
           "signature": "(path: string) -> result<File>",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "create",
           "signature": "(path: string) -> result<File>",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "append",
           "signature": "(path: string) -> result<File>",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "remove",
           "signature": "(path: string) -> int",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "rename",
           "signature": "(old: string, new: string) -> int",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "exists",
           "signature": "(path: string) -> int",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "mkdir",
           "signature": "(path: string) -> int",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "read_all",
           "signature": "(path: string) -> result<string>",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "write_all",
           "signature": "(path: string, s: string) -> int",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "is_dir",
           "signature": "(path: string) -> int",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "is_file",
           "signature": "(path: string) -> int",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "size",
           "signature": "(path: string) -> int",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "mod_time",
           "signature": "(path: string) -> int",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "chmod",
           "signature": "(path: string, mode: int) -> int",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "chtimes",
           "signature": "(path: string, atime: int, mtime: int) -> int",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "temp_file",
           "signature": "(dir: string, prefix: string) -> result<File>",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         }
       ]
     },
@@ -429,7 +709,11 @@
         {
           "name": "query",
           "signature": "(sql: string) -> result<Row>",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         }
       ]
     },
@@ -445,189 +729,337 @@
         {
           "name": "from_codepoint",
           "signature": "(cp: int) -> result<string>",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "compare",
           "signature": "(a: string, b: string) -> int",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "fields",
           "signature": "(s: string) -> string[]",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         }
       ],
       "instance_functions": [
         {
           "name": "to_upper",
           "signature": "() -> string",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "to_lower",
           "signature": "() -> string",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "contains",
           "signature": "(sub: string) -> bool",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "contains_any",
           "signature": "(chars: string) -> bool",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "contains_rune",
           "signature": "(r: int) -> bool",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "count",
           "signature": "(substr: string) -> int",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "index_of",
           "signature": "(sub: string) -> int",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "index_any",
           "signature": "(chars: string) -> int",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "last_index_of",
           "signature": "(sub: string) -> int",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "last_index_any",
           "signature": "(chars: string) -> int",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "split",
           "signature": "(sep: string) -> string[]",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "trim",
           "signature": "() -> string",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "trim_left",
           "signature": "(cutset: string) -> string",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "trim_right",
           "signature": "(cutset: string) -> string",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "trim_prefix",
           "signature": "(prefix: string) -> string",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "trim_suffix",
           "signature": "(suffix: string) -> string",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "split_n",
           "signature": "(sep: string, n: int) -> string[]",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "split_after",
           "signature": "(sep: string) -> string[]",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "title",
           "signature": "() -> string",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "map",
           "signature": "(mapping: func(int) int) -> string",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "replace",
           "signature": "(old: string, new: string) -> string",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "repeat",
           "signature": "(n: int) -> string",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "starts_with",
           "signature": "(prefix: string) -> bool",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "ends_with",
           "signature": "(suffix: string) -> bool",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "len",
           "signature": "() -> int",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "is_digit",
           "signature": "() -> bool",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "is_alpha",
           "signature": "() -> bool",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "is_space",
           "signature": "() -> bool",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "is_lower",
           "signature": "() -> bool",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "is_upper",
           "signature": "() -> bool",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "is_alnum",
           "signature": "() -> bool",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "equal_fold",
           "signature": "(t: string) -> bool",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "to_upper_rune",
           "signature": "(r: int) -> int",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "to_lower_rune",
           "signature": "(r: int) -> int",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         }
       ]
     },
@@ -640,122 +1072,210 @@
         {
           "name": "now_ms",
           "signature": "() -> int",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "now",
           "signature": "() -> time",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "from_unix_ms",
           "signature": "(ms: int) -> time",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "sleep",
           "signature": "(ms: int) -> void",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "parse",
           "signature": "(s: string, fmt: string) -> result<time>",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "unix",
           "signature": "(sec: int, nsec: int) -> time",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "unix_milli",
           "signature": "(ms: int) -> time",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "unix_micro",
           "signature": "(us: int) -> time",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "unix_nano",
           "signature": "(nsec: int) -> time",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "since",
           "signature": "(t: time) -> int",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "date",
           "signature": "(year, month, day, hour, min, sec, nsec: int) -> time",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "until",
           "signature": "(t: time) -> int",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "after",
           "signature": "(u: time) -> bool",
           "kind": "instance",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "before",
           "signature": "(u: time) -> bool",
           "kind": "instance",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "equal",
           "signature": "(u: time) -> bool",
           "kind": "instance",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "compare",
           "signature": "(u: time) -> int",
           "kind": "instance",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "sub",
           "signature": "(u: time) -> int",
           "kind": "instance",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "add",
           "signature": "(d: int) -> time",
           "kind": "instance",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "round",
           "signature": "(d: int) -> time",
           "kind": "instance",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "truncate",
           "signature": "(d: int) -> time",
           "kind": "instance",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         }
       ],
       "instance_functions": [
         {
           "name": "to_string",
           "signature": "() -> string",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "format",
           "signature": "(fmt: string) -> string",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         }
       ]
     },
@@ -769,25 +1289,41 @@
           "name": "parse",
           "signature": "(s: string) -> result<decimal>",
           "kind": "static",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "truncate",
           "signature": "(v: int) -> int8",
           "kind": "instance",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "truncate",
           "signature": "(v: int) -> int16",
           "kind": "instance",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "truncate",
           "signature": "(v: int) -> int32",
           "kind": "instance",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         }
       ]
     },
@@ -801,25 +1337,41 @@
           "name": "to_string",
           "signature": "() -> string",
           "kind": "instance",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "wrapping_add",
           "signature": "(other: T) -> T",
           "kind": "instance",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "round",
           "signature": "(digits: int) -> float",
           "kind": "instance",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "divide",
           "signature": "(other: T) -> T",
           "kind": "instance",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         }
       ]
     },
@@ -833,49 +1385,81 @@
           "name": "push",
           "signature": "(elem: T) -> void",
           "kind": "instance",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "pop",
           "signature": "() -> T?",
           "kind": "instance",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "remove",
           "signature": "(index: int) -> void",
           "kind": "instance",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "clear",
           "signature": "() -> void",
           "kind": "instance",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "to_string",
           "signature": "() -> string",
           "kind": "instance",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "==",
           "signature": "(other: T[]) -> bool",
           "kind": "instance",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "!=",
           "signature": "(other: T[]) -> bool",
           "kind": "instance",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "切片",
           "signature": "[lo..hi] / [lo..=hi]",
           "kind": "syntax",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         }
       ]
     },
@@ -889,25 +1473,41 @@
           "name": "clear",
           "signature": "() -> void",
           "kind": "instance",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "remove",
           "signature": "(key: K) -> void",
           "kind": "instance",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "==",
           "signature": "(other: Map) -> bool",
           "kind": "instance",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "!=",
           "signature": "(other: Map) -> bool",
           "kind": "instance",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         }
       ]
     },
@@ -921,7 +1521,11 @@
           "name": "step",
           "signature": "(n: int) -> Range",
           "kind": "instance",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         }
       ]
     },
@@ -935,25 +1539,41 @@
           "name": "push",
           "signature": "(v: T) -> void",
           "kind": "instance",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "pop",
           "signature": "() -> T?",
           "kind": "instance",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "close",
           "signature": "() -> void",
           "kind": "instance",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "join",
           "signature": "() -> void",
           "kind": "instance",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         }
       ]
     },
@@ -967,7 +1587,11 @@
           "name": "try_pop",
           "signature": "() -> T?",
           "kind": "instance",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         }
       ]
     },
@@ -983,102 +1607,182 @@
         {
           "name": "args",
           "signature": "() -> string[]",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "chdir",
           "signature": "(path: string) -> int",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "environ",
           "signature": "() -> string[]",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "exit",
           "signature": "(code: int) -> void",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "getenv",
           "signature": "(name: string) -> string",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "getpid",
           "signature": "() -> int",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "getppid",
           "signature": "() -> int",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "getwd",
           "signature": "() -> string",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "hostname",
           "signature": "() -> string",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "setenv",
           "signature": "(name: string, value: string) -> int",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "unsetenv",
           "signature": "(name: string) -> int",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "user_home_dir",
           "signature": "() -> string",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "user_cache_dir",
           "signature": "() -> string",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "getpagesize",
           "signature": "() -> int",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "getuid",
           "signature": "() -> int",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "getgid",
           "signature": "() -> int",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "geteuid",
           "signature": "() -> int",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "getegid",
           "signature": "() -> int",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "getgroups",
           "signature": "() -> int[]",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "executable",
           "signature": "() -> string",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         }
       ]
     },
@@ -1094,67 +1798,119 @@
         {
           "name": "atoi",
           "signature": "(s: string) -> int",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "itoa",
           "signature": "(v: int) -> string",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "parse_bool",
           "signature": "(s: string) -> bool",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "format_bool",
           "signature": "(v: bool) -> string",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "parse_float",
           "signature": "(s: string) -> float",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "format_float",
           "signature": "(v: float) -> string",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "parse_int",
           "signature": "(s: string, base: int) -> int",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "format_int",
           "signature": "(v: int, base: int) -> string",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "parse_uint",
           "signature": "(s: string, base: int) -> int",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "format_uint",
           "signature": "(v: int, base: int) -> string",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "can_backquote",
           "signature": "(s: string) -> bool",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "quote",
           "signature": "(s: string) -> string",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "unquote",
           "signature": "(s: string) -> string",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         }
       ]
     },
@@ -1167,62 +1923,110 @@
         {
           "name": "join",
           "signature": "(parts: string[]) -> string",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "dir",
           "signature": "(path: string) -> string",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "base",
           "signature": "(path: string) -> string",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "ext",
           "signature": "(path: string) -> string",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "split",
           "signature": "(path: string) -> string[2]",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "clean",
           "signature": "(path: string) -> string",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "abs",
           "signature": "(path: string) -> string",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "is_abs",
           "signature": "(path: string) -> bool",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "eval_symlinks",
           "signature": "(path: string) -> string",
-          "status": "planned"
+          "status": "planned",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "glob",
           "signature": "(pattern: string) -> string[]",
-          "status": "planned"
+          "status": "planned",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "rel",
           "signature": "(basepath, targpath: string) -> string",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "walk",
           "signature": "(root: string, fn: func) -> int",
-          "status": "planned"
+          "status": "planned",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         }
       ]
     },
@@ -1235,17 +2039,29 @@
         {
           "name": "int",
           "signature": "(n: int) -> int",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "float",
           "signature": "() -> float",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "seed",
           "signature": "(seed: int) -> void",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         }
       ]
     },
@@ -1258,49 +2074,85 @@
         {
           "name": "ints",
           "signature": "(a: int[]) -> void",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "strings",
           "signature": "(a: string[]) -> void",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "float64s",
           "signature": "(a: float[]) -> void",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "ints_are_sorted",
           "signature": "(a: int[]) -> bool",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "strings_are_sorted",
           "signature": "(a: string[]) -> bool",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "search_ints",
           "signature": "(a: int[], x: int) -> int",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "search_strings",
           "signature": "(a: string[], x: string) -> int",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "slice",
           "signature": "(a: any[], less: func(i, j int) bool) -> void",
           "status": "not_implemented",
-          "note": "axlang 不支持闭包，暂不落地"
+          "note": "axlang 不支持闭包，暂不落地",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "axlang 不支持闭包，暂不落地",
+          "description": "—"
         },
         {
           "name": "slice_stable",
           "signature": "(a: any[], less: func(i, j int) bool) -> void",
           "status": "not_implemented",
-          "note": "axlang 不支持闭包，暂不落地"
+          "note": "axlang 不支持闭包，暂不落地",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "axlang 不支持闭包，暂不落地",
+          "description": "—"
         }
       ]
     },
@@ -1314,87 +2166,143 @@
           "name": "contains",
           "signature": "(x: T) -> bool",
           "kind": "instance",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "index",
           "signature": "(x: T) -> int",
           "kind": "instance",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "sort",
           "signature": "() -> void",
           "kind": "instance",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "sort",
           "signature": "(cmp) -> void",
           "kind": "instance",
           "status": "implemented",
-          "note": "带比较函数，GAP #10"
+          "note": "带比较函数，GAP #10",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "带比较函数，GAP #10",
+          "description": "—"
         },
         {
           "name": "reverse",
           "signature": "() -> void",
           "kind": "instance",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "clone",
           "signature": "() -> T[]",
           "kind": "instance",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "insert",
           "signature": "(i, x) -> void",
           "kind": "instance",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "fill",
           "signature": "(x) -> void",
           "kind": "instance",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "resize",
           "signature": "(n) -> void",
           "kind": "instance",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "merge",
           "signature": "(other) -> void",
           "kind": "instance",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "min",
           "signature": "() -> T",
           "kind": "instance",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "max",
           "signature": "() -> T",
           "kind": "instance",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "sum",
           "signature": "() -> T",
           "kind": "instance",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "delete",
           "signature": "(i, j) -> T[]",
           "kind": "instance",
           "status": "not_implemented",
-          "note": "与 arr.Remove 语义重复，暂不落地"
+          "note": "与 arr.Remove 语义重复，暂不落地",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "与 arr.Remove 语义重复，暂不落地",
+          "description": "—"
         }
       ]
     },
@@ -1407,38 +2315,66 @@
         {
           "name": "keys",
           "signature": "(m: Map) -> K[]",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "values",
           "signature": "(m: Map) -> V[]",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "clone",
           "signature": "(m: Map) -> Map",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "copy",
           "signature": "(dst: Map, src: Map) -> void",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "delete",
           "signature": "(m: Map, key: K) -> void",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "delete_func",
           "signature": "(m: Map, f: func(K) bool) -> void",
           "status": "not_implemented",
-          "note": "axlang 不支持闭包，暂不落地"
+          "note": "axlang 不支持闭包，暂不落地",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "axlang 不支持闭包，暂不落地",
+          "description": "—"
         },
         {
           "name": "equal",
           "signature": "(m1: Map, m2: Map) -> bool",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         }
       ]
     },
@@ -1451,12 +2387,20 @@
         {
           "name": "make",
           "signature": "(v: T) -> Handle[T]",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "value",
           "signature": "(h: Handle[T]) -> T",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         }
       ]
     },
@@ -1469,42 +2413,74 @@
         {
           "name": "contains",
           "signature": "(s: bytes, sub: bytes) -> bool",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "equal",
           "signature": "(a: bytes, b: bytes) -> bool",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "index",
           "signature": "(s: bytes, sub: bytes) -> int",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "split",
           "signature": "(s: bytes, sep: bytes) -> bytes[]",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "trim_space",
           "signature": "(s: bytes) -> bytes",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "to_upper",
           "signature": "(s: bytes) -> bytes",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "to_lower",
           "signature": "(s: bytes) -> bytes",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "repeat",
           "signature": "(s: bytes, count: int) -> bytes",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         }
       ]
     },
@@ -1517,17 +2493,29 @@
         {
           "name": "new_reader",
           "signature": "(r: File) -> File",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "new_writer",
           "signature": "(w: File) -> File",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "scanner",
           "signature": "(r: File) -> File",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         }
       ]
     },
@@ -1540,12 +2528,20 @@
         {
           "name": "read_all",
           "signature": "(r: Reader) -> string[][]",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "write",
           "signature": "(w: Writer, record: string[]) -> int",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         }
       ]
     },
@@ -1561,18 +2557,30 @@
         {
           "name": "new",
           "signature": "(msg: string) -> error",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "is",
           "signature": "(err: error, target: error) -> bool",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "as",
           "signature": "(err: error, target: error) -> bool",
           "status": "implemented",
-          "note": "axlang 无运行时类型反射，target 限定为 error 类型"
+          "note": "axlang 无运行时类型反射，target 限定为 error 类型",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "axlang 无运行时类型反射，target 限定为 error 类型",
+          "description": "—"
         }
       ]
     },
@@ -1585,17 +2593,29 @@
         {
           "name": "print",
           "signature": "(v: any...) -> void",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "printf",
           "signature": "(format: string, v: any...) -> void",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "fatal",
           "signature": "(v: any...) -> void",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         }
       ]
     },
@@ -1656,22 +2676,38 @@
         {
           "name": "add_int",
           "signature": "(addr: *int, delta: int) -> int",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "load_int",
           "signature": "(addr: *int) -> int",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "store_int",
           "signature": "(addr: *int, val: int) -> void",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         },
         {
           "name": "compare_and_swap_int",
           "signature": "(addr: *int, old: int, new: int) -> bool",
-          "status": "implemented"
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "—",
+          "description": "—"
         }
       ]
     },
@@ -1685,19 +2721,31 @@
           "name": "type_of",
           "signature": "(v: any) -> string",
           "status": "not_implemented",
-          "note": "axlang 无运行时类型反射，需设计可落地子集"
+          "note": "axlang 无运行时类型反射，需设计可落地子集",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "axlang 无运行时类型反射，需设计可落地子集",
+          "description": "—"
         },
         {
           "name": "value_of",
           "signature": "(v: any) -> any",
           "status": "not_implemented",
-          "note": "同上"
+          "note": "同上",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "同上",
+          "description": "—"
         },
         {
           "name": "num_field",
           "signature": "(v: any) -> int",
           "status": "not_implemented",
-          "note": "同上"
+          "note": "同上",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "同上",
+          "description": "—"
         }
       ]
     }

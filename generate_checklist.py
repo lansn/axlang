@@ -58,18 +58,45 @@ def save_json(data):
 
 
 def collect_functions(module):
-    """从模块对象中收集所有函数条目（functions / static_functions / instance_functions / module_functions / types[].methods）。"""
+    """从模块对象中收集所有函数条目（functions / static_functions / instance_functions / module_functions / types[].methods）。
+
+    每个返回条目保证包含以下字段（缺失时补默认值）：
+      name, signature, status, c_counterpart(对标 C), go_counterpart(对标 Go),
+      function(函数功能), description(说明)
+    """
     funcs = []
     for key in ("functions", "static_functions", "instance_functions", "module_functions"):
         if key in module and isinstance(module[key], list):
             for f in module[key]:
-                funcs.append(f)
+                funcs.append(_normalize_func(f))
     if "types" in module and isinstance(module["types"], list):
         for t in module["types"]:
             if "methods" in t and isinstance(t["methods"], list):
                 for m in t["methods"]:
-                    funcs.append({"name": m, "signature": "", "status": "implemented", "note": ""})
+                    funcs.append(_normalize_func({"name": m, "signature": "", "status": "implemented", "note": ""}))
     return funcs
+
+
+def _normalize_func(f):
+    """补全函数条目缺失的对标/功能/说明字段（返回新 dict，不修改原对象）。"""
+    return {
+        "name": f.get("name", ""),
+        "signature": f.get("signature", ""),
+        "status": f.get("status", "implemented"),
+        "c_counterpart": f.get("c_counterpart", "—"),
+        "go_counterpart": f.get("go_counterpart", "—"),
+        "function": f.get("function") or f.get("note") or "—",
+        "description": f.get("description", "—"),
+    }
+
+
+def ensure_func_fields(f):
+    """原地补充函数条目缺失的四个新字段，使主数据源 JSON 持久化列名。"""
+    f.setdefault("c_counterpart", "—")
+    f.setdefault("go_counterpart", "—")
+    if not f.get("function"):
+        f["function"] = f.get("note", "—")
+    f.setdefault("description", "—")
 
 
 def status_mark(status):
@@ -152,48 +179,62 @@ def generate_markdown(data):
         lines.append(f"### {len([l for l in lines if l.startswith('### ')]) + 1}. {mod_name}（对标 {go_counterpart}）")
         lines.append("")
 
-        # 判断是否有 static / instance / module 区分
+        # 判断是否有 static / instance / module / functions 区分
         has_static = "static_functions" in mod
         has_instance = "instance_functions" in mod
         has_module_funcs = "module_functions" in mod
+        has_funcs = "functions" in mod
         has_types = "types" in mod
+
+        if has_funcs:
+            lines.append("**模块级函数：**")
+            lines.append("")
+            lines.append("| ax.函数          | 签名                                 | 对标 C                    | 对标 Go                    | 函数功能           | 说明        | 状态  |")
+            lines.append("| -------------- | ---------------------------------- | ------------------------- | -------------------------- | ------------------ | ----------- | ----- |")
+            for f in mod["functions"]:
+                f = _normalize_func(f)
+                name = f["name"]
+                sig = f["signature"]
+                mark = status_mark(f["status"])
+                lines.append(f"| `{mod_name}.{name}` | `{sig}` | {f['c_counterpart']} | {f['go_counterpart']} | {f['function']} | {f['description']} | {mark} |")
+            lines.append("")
 
         if has_static:
             lines.append("**静态方法：**")
             lines.append("")
-            lines.append("| ax.函数          | 签名                                 | 对标                                       | 函数功能/用途           | 状态 | 说明        |")
-            lines.append("| -------------- | ---------------------------------- | ---------------------------------------- | ----------------- | -- | --------- |")
+            lines.append("| ax.函数          | 签名                                 | 对标 C                    | 对标 Go                    | 函数功能           | 说明        | 状态  |")
+            lines.append("| -------------- | ---------------------------------- | ------------------------- | -------------------------- | ------------------ | ----------- | ----- |")
             for f in mod["static_functions"]:
+                f = _normalize_func(f)
                 name = f["name"]
-                sig = f.get("signature", "")
-                note = f.get("note", "")
-                mark = status_mark(f.get("status", "implemented"))
-                lines.append(f"| `{mod_name}.{name}` | `{sig}` | — | {note} | {mark} | 标准 C11 实现 |")
+                sig = f["signature"]
+                mark = status_mark(f["status"])
+                lines.append(f"| `{mod_name}.{name}` | `{sig}` | {f['c_counterpart']} | {f['go_counterpart']} | {f['function']} | {f['description']} | {mark} |")
             lines.append("")
 
         if has_instance:
             lines.append("**实例方法：**")
             lines.append("")
-            lines.append("| ax.函数                 | 签名                                     | 对标                                 | 函数功能/用途     | 状态 | 说明        |")
-            lines.append("| --------------------- | -------------------------------------- | ---------------------------------- | ----------- | -- | --------- |")
+            lines.append("| ax.函数                 | 签名                                     | 对标 C                    | 对标 Go                    | 函数功能           | 说明        | 状态  |")
+            lines.append("| --------------------- | -------------------------------------- | ------------------------- | -------------------------- | ------------------ | ----------- | ----- |")
             for f in mod["instance_functions"]:
+                f = _normalize_func(f)
                 name = f["name"]
-                sig = f.get("signature", "")
-                note = f.get("note", "")
-                mark = status_mark(f.get("status", "implemented"))
-                lines.append(f"| `{mod_name}.{name}` | `{sig}` | — | {note} | {mark} | 标准 C11 实现 |")
+                sig = f["signature"]
+                mark = status_mark(f["status"])
+                lines.append(f"| `{mod_name}.{name}` | `{sig}` | {f['c_counterpart']} | {f['go_counterpart']} | {f['function']} | {f['description']} | {mark} |")
             lines.append("")
 
         if has_module_funcs:
-            lines.append("| ax.函数 | 类型 | 签名 | 对标 | 函数功能/用途 | 状态 | 说明 |")
-            lines.append("| ------ | ------ | ------ | ------ | ------ | ------ | ------ |")
+            lines.append("| ax.函数 | 类型 | 签名 | 对标 C | 对标 Go | 函数功能 | 说明 | 状态 |")
+            lines.append("| ------ | ------ | ------ | ------ | ------ | ------ | ------ | ----- |")
             for f in mod["module_functions"]:
+                f = _normalize_func(f)
                 name = f["name"]
-                sig = f.get("signature", "")
+                sig = f["signature"]
                 kind = f.get("kind", "模块")
-                note = f.get("note", "")
-                mark = status_mark(f.get("status", "implemented"))
-                lines.append(f"| `{mod_name}.{name}` | {kind} | `{sig}` | — | {note} | {mark} | 标准 C11 实现 |")
+                mark = status_mark(f["status"])
+                lines.append(f"| `{mod_name}.{name}` | {kind} | `{sig}` | {f['c_counterpart']} | {f['go_counterpart']} | {f['function']} | {f['description']} | {mark} |")
             lines.append("")
 
         if has_types:
@@ -231,14 +272,13 @@ def generate_markdown(data):
                 lines.append("")
             lines.append(f"#### {mod_name} 扩展")
             lines.append("")
-            lines.append("| ax.函数 | 签名 | 对标 | 函数功能/用途 | 状态 |")
-            lines.append("| ------ | ------ | ------ | ------ | ------ |")
+            lines.append("| ax.函数 | 签名 | 对标 C | 对标 Go | 函数功能 | 说明 | 状态 |")
+            lines.append("| ------ | ------ | ------ | ------ | ------ | ------ | ----- |")
             for f in pending_funcs:
                 name = f["name"]
-                sig = f.get("signature", "")
-                note = f.get("note", "")
-                mark = status_mark(f.get("status", "implemented"))
-                lines.append(f"| `{mod_name}.{name}` | `{sig}` | — | {note} | {mark} |")
+                sig = f["signature"]
+                mark = status_mark(f["status"])
+                lines.append(f"| `{mod_name}.{name}` | `{sig}` | {f['c_counterpart']} | {f['go_counterpart']} | {f['function']} | {f['description']} | {mark} |")
             lines.append("")
 
     if not pending:
@@ -279,6 +319,20 @@ def main():
 
     # 转换所有函数名为小写 C 风格
     convert_names_in_obj(data)
+
+    # 为每个函数条目补充四个新列名（对标 C / 对标 Go / 函数功能 / 说明），
+    # 使主数据源 JSON 持久化这些列；缺失时以 "—" 占位，现有 note 映射为函数功能。
+    for mod in data["modules"]:
+        for key in ("functions", "static_functions", "instance_functions", "module_functions"):
+            if key in mod and isinstance(mod[key], list):
+                for f in mod[key]:
+                    ensure_func_fields(f)
+        if "types" in mod and isinstance(mod["types"], list):
+            for t in mod["types"]:
+                if "methods" in t and isinstance(t["methods"], list):
+                    for m in t["methods"]:
+                        if isinstance(m, dict):
+                            ensure_func_fields(m)
 
     # 回写 JSON（主数据源保持一致）
     save_json(data)
