@@ -2023,13 +2023,6 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             ("os", "setenv") => format!("ax_os_setenv({}, {})", a[0], a[1]),
             ("os", "unsetenv") => format!("ax_os_unsetenv({})", a[0]),
             ("os", "user_home_dir") => "ax_os_user_home_dir()".to_string(),
-            /* ---------------- rand 模块 ---------------- */
-            ("rand", "int") => format!("ax_rand_int({})", a[0]),
-            ("rand", "float") => "ax_rand_float()".to_string(),
-            ("rand", "seed") => {
-                self.emit(format!("ax_rand_seed({});", a[0]));
-                "0".to_string()
-            }
             /* atomic 模块（单段名，向后兼容；std.atomic 现已改为 axc/std/atomic.ax） */
             ("atomic", "add_int") => format!("ax_std_atomic_add_int(&{}, {})", a[0], a[1]),
             ("atomic", "load_int") => format!("ax_std_atomic_load_int(&{})", a[0]),
@@ -2069,8 +2062,6 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 let arr = self.declare(&t_array(t_string(), None), &a[0]);
                 format!("ax_sort_search_strings((ax_str*){}.data, {}.len, {})", arr, arr, a[1])
             }
-            ("csv", "read_all") => format!("ax_csv_read_all({})", a[0]),
-            ("csv", "write") => format!("ax_csv_write({}, {})", a[0], a[1]),
             ("errors", "new") => format!("ax_err_new(1, {})", a[0]),
             // errors.Is(err, target) -> bool：对标 Go errors.Is，比较 code 和 msg 是否相等
             ("errors", "is") => format!("ax_err_is({}, {})", a[0], a[1]),
@@ -2084,30 +2075,6 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 };
                 format!("ax_err_as({}, {})", a[0], tgt)
             }
-            /* ---------------- bytes 模块（对标 Go bytes，2026-11-24；P2。bytes 操作 ax_arr，元素为 uint8_t） ---------------- */
-            // bytes.Contains(s, sub) -> bool
-            ("bytes", "contains") => format!("ax_bytes_contains({}, {})", a[0], a[1]),
-            // bytes.Equal(a, b) -> bool
-            ("bytes", "equal") => format!("ax_bytes_equal({}, {})", a[0], a[1]),
-            // bytes.Index(s, sub) -> int
-            ("bytes", "index") => format!("ax_bytes_index({}, {})", a[0], a[1]),
-            // bytes.Split(s, sep) -> bytes[]
-            ("bytes", "split") => format!("ax_bytes_split({}, {})", a[0], a[1]),
-            // bytes.TrimSpace(s) -> bytes
-            ("bytes", "trim_space") => format!("ax_bytes_trim_space({})", a[0]),
-            // bytes.ToUpper(s) -> bytes
-            ("bytes", "to_upper") => format!("ax_bytes_to_upper({})", a[0]),
-            // bytes.ToLower(s) -> bytes
-            ("bytes", "to_lower") => format!("ax_bytes_to_lower({})", a[0]),
-            // bytes.Repeat(s, count) -> bytes
-            ("bytes", "repeat") => format!("ax_bytes_repeat({}, {})", a[0], a[1]),
-            /* ---------------- bufio 模块（对标 Go bufio，P2。Reader/Writer 为 File 句柄 ax_file*） ---------------- */
-            // bufio.NewReader(f: File) -> File：创建缓冲读取器，对标 Go bufio.NewReader
-            ("bufio", "new_reader") => format!("ax_file_buf_reader({})", a[0]),
-            // bufio.NewWriter(f: File) -> File：创建缓冲写入器，对标 Go bufio.NewWriter
-            ("bufio", "new_writer") => format!("ax_file_buf_writer({})", a[0]),
-            // bufio.Scanner(f: File) -> File：创建扫描器，对标 Go bufio.NewScanner
-            ("bufio", "scanner") => format!("ax_file_buf_scanner({})", a[0]),
             /* ---------------- strconv 模块 ---------------- */
             ("strconv", "atoi") => {
                 format!("({{ int64_t v_; ax_parse_i64({}, &v_) ? v_ : 0; }})", a[0])

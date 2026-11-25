@@ -20,7 +20,8 @@
           "c_counterpart": "fgets",
           "go_counterpart": "bufio.Scanner.Text",
           "function": "逐行读取文件内容，返回一行字符串",
-          "description": "对标 C fgets，Go bufio.Scanner.Text；读取直到换行符或文件结束"
+          "description": "对标 C fgets，Go bufio.Scanner.Text；读取直到换行符或文件结束",
+          "builtin": false
         },
         {
           "name": "read_file",
@@ -30,7 +31,8 @@
           "c_counterpart": "fread",
           "go_counterpart": "os.ReadFile",
           "function": "读取整个文件内容并返回字符串",
-          "description": "对标 C fread，Go os.ReadFile；一次性读取全部文件到内存"
+          "description": "对标 C fread，Go os.ReadFile；一次性读取全部文件到内存",
+          "builtin": false
         },
         {
           "name": "write",
@@ -40,7 +42,8 @@
           "c_counterpart": "fwrite/puts",
           "go_counterpart": "fmt.Fprint/io.WriteString",
           "function": "将字符串写入标准输出",
-          "description": "对标 C fwrite/puts，Go fmt.Fprint；不自动换行"
+          "description": "对标 C fwrite/puts，Go fmt.Fprint；不自动换行",
+          "builtin": false
         },
         {
           "name": "write_line",
@@ -50,7 +53,8 @@
           "c_counterpart": "fputs/puts",
           "go_counterpart": "fmt.Fprintln",
           "function": "将字符串写入标准输出并换行",
-          "description": "对标 C fputs/puts，Go fmt.Fprintln；自动追加换行符"
+          "description": "对标 C fputs/puts，Go fmt.Fprintln；自动追加换行符",
+          "builtin": false
         }
       ]
     },
@@ -71,7 +75,8 @@
           "c_counterpart": "printf",
           "go_counterpart": "fmt.Print",
           "function": "格式化输出任意参数到标准输出",
-          "description": "对标 C printf，Go fmt.Print；参数间自动添加空格"
+          "description": "对标 C printf，Go fmt.Print；参数间自动添加空格",
+          "builtin": false
         },
         {
           "name": "println",
@@ -81,7 +86,8 @@
           "c_counterpart": "printf/puts",
           "go_counterpart": "fmt.Println",
           "function": "格式化输出并换行",
-          "description": "对标 C printf/puts，Go fmt.Println；自动换行"
+          "description": "对标 C printf/puts，Go fmt.Println；自动换行",
+          "builtin": false
         },
         {
           "name": "printf",
@@ -91,7 +97,8 @@
           "c_counterpart": "printf",
           "go_counterpart": "fmt.Printf",
           "function": "按格式字符串格式化输出",
-          "description": "对标 C printf，Go fmt.Printf；编译期核对占位符"
+          "description": "对标 C printf，Go fmt.Printf；编译期核对占位符",
+          "builtin": false
         },
         {
           "name": "sprintf",
@@ -101,7 +108,8 @@
           "c_counterpart": "sprintf",
           "go_counterpart": "fmt.Sprintf",
           "function": "按格式字符串格式化并返回字符串",
-          "description": "对标 C sprintf，Go fmt.Sprintf；结果以字符串返回而非输出"
+          "description": "对标 C sprintf，Go fmt.Sprintf；结果以字符串返回而非输出",
+          "builtin": false
         },
         {
           "name": "sprint",
@@ -111,7 +119,8 @@
           "c_counterpart": "snprintf/sprintf",
           "go_counterpart": "fmt.Sprint",
           "function": "将任意参数格式化为字符串返回",
-          "description": "对标 C snprintf，Go fmt.Sprint；不输出，仅返回字符串"
+          "description": "对标 C snprintf，Go fmt.Sprint；不输出，仅返回字符串",
+          "builtin": false
         },
         {
           "name": "fprintf",
@@ -121,7 +130,8 @@
           "c_counterpart": "fprintf",
           "go_counterpart": "fmt.Fprintf",
           "function": "将格式化内容写入文件句柄",
-          "description": "对标 C fprintf，Go fmt.Fprintf；第一个参数为文件对象"
+          "description": "对标 C fprintf，Go fmt.Fprintf；第一个参数为文件对象",
+          "builtin": false
         },
         {
           "name": "errorf",
@@ -131,7 +141,8 @@
           "c_counterpart": "fprintf(stderr)",
           "go_counterpart": "fmt.Errorf",
           "function": "格式化错误信息并返回 error 类型",
-          "description": "对标 C fprintf(stderr)，Go fmt.Errorf；用于构造错误对象"
+          "description": "对标 C fprintf(stderr)，Go fmt.Errorf；用于构造错误对象",
+          "builtin": false
         },
         {
           "name": "scanf",
@@ -141,7 +152,8 @@
           "c_counterpart": "scanf",
           "go_counterpart": "fmt.Scan",
           "function": "从标准输入读取并按格式解析",
-          "description": "对标 C scanf，Go fmt.Scan；从 stdin 读取格式化输入"
+          "description": "对标 C scanf，Go fmt.Scan；从 stdin 读取格式化输入",
+          "builtin": false
         }
       ]
     },
@@ -161,7 +173,8 @@
           "c_counterpart": "fabs",
           "go_counterpart": "math.Abs",
           "function": "求浮点数的绝对值",
-          "description": "对标 C fabs，Go math.Abs；返回 \\|x\\|"
+          "description": "对标 C fabs，Go math.Abs；返回 \\|x\\|",
+          "builtin": false
         },
         {
           "name": "max",
@@ -170,7 +183,8 @@
           "c_counterpart": "fmax",
           "go_counterpart": "math.Max",
           "function": "返回两个浮点数中的较大值",
-          "description": "对标 C fmax，Go math.Max"
+          "description": "对标 C fmax，Go math.Max",
+          "builtin": false
         },
         {
           "name": "min",
@@ -179,7 +193,8 @@
           "c_counterpart": "fmin",
           "go_counterpart": "math.Min",
           "function": "返回两个浮点数中的较小值",
-          "description": "对标 C fmin，Go math.Min"
+          "description": "对标 C fmin，Go math.Min",
+          "builtin": false
         },
         {
           "name": "sqrt",
@@ -188,7 +203,8 @@
           "c_counterpart": "sqrt",
           "go_counterpart": "math.Sqrt",
           "function": "求平方根",
-          "description": "对标 C sqrt，Go math.Sqrt；x 必须非负"
+          "description": "对标 C sqrt，Go math.Sqrt；x 必须非负",
+          "builtin": false
         },
         {
           "name": "pow",
@@ -197,7 +213,8 @@
           "c_counterpart": "pow",
           "go_counterpart": "math.Pow",
           "function": "求幂次 x^y",
-          "description": "对标 C pow，Go math.Pow"
+          "description": "对标 C pow，Go math.Pow",
+          "builtin": false
         },
         {
           "name": "exp",
@@ -206,7 +223,8 @@
           "c_counterpart": "exp",
           "go_counterpart": "math.Exp",
           "function": "求自然指数 e^x",
-          "description": "对标 C exp，Go math.Exp"
+          "description": "对标 C exp，Go math.Exp",
+          "builtin": false
         },
         {
           "name": "log",
@@ -215,7 +233,8 @@
           "c_counterpart": "log",
           "go_counterpart": "math.Log",
           "function": "求自然对数 ln(x)",
-          "description": "对标 C log，Go math.Log；x 必须正数"
+          "description": "对标 C log，Go math.Log；x 必须正数",
+          "builtin": false
         },
         {
           "name": "sin",
@@ -224,7 +243,8 @@
           "c_counterpart": "sin",
           "go_counterpart": "math.Sin",
           "function": "正弦函数",
-          "description": "对标 C sin，Go math.Sin；参数单位为弧度"
+          "description": "对标 C sin，Go math.Sin；参数单位为弧度",
+          "builtin": false
         },
         {
           "name": "cos",
@@ -233,7 +253,8 @@
           "c_counterpart": "cos",
           "go_counterpart": "math.Cos",
           "function": "余弦函数",
-          "description": "对标 C cos，Go math.Cos；参数单位为弧度"
+          "description": "对标 C cos，Go math.Cos；参数单位为弧度",
+          "builtin": false
         },
         {
           "name": "tan",
@@ -242,7 +263,8 @@
           "c_counterpart": "tan",
           "go_counterpart": "math.Tan",
           "function": "正切函数",
-          "description": "对标 C tan，Go math.Tan；参数单位为弧度"
+          "description": "对标 C tan，Go math.Tan；参数单位为弧度",
+          "builtin": false
         },
         {
           "name": "ceil",
@@ -251,7 +273,8 @@
           "c_counterpart": "ceil",
           "go_counterpart": "math.Ceil",
           "function": "向上取整",
-          "description": "对标 C ceil，Go math.Ceil；返回不小于 x 的最小整数"
+          "description": "对标 C ceil，Go math.Ceil；返回不小于 x 的最小整数",
+          "builtin": false
         },
         {
           "name": "floor",
@@ -260,7 +283,8 @@
           "c_counterpart": "floor",
           "go_counterpart": "math.Floor",
           "function": "向下取整",
-          "description": "对标 C floor，Go math.Floor；返回不大于 x 的最大整数"
+          "description": "对标 C floor，Go math.Floor；返回不大于 x 的最大整数",
+          "builtin": false
         },
         {
           "name": "round",
@@ -269,7 +293,8 @@
           "c_counterpart": "round",
           "go_counterpart": "math.Round",
           "function": "四舍五入取整",
-          "description": "对标 C round，Go math.Round；半远离零"
+          "description": "对标 C round，Go math.Round；半远离零",
+          "builtin": false
         },
         {
           "name": "sign",
@@ -278,7 +303,8 @@
           "c_counterpart": "—",
           "go_counterpart": "—",
           "function": "返回数值的符号（正1/负-1/零0）",
-          "description": "C 标准库无直接对应函数，需自行实现；Go 亦无 math.Sign"
+          "description": "C 标准库无直接对应函数，需自行实现；Go 亦无 math.Sign",
+          "builtin": false
         },
         {
           "name": "mod",
@@ -287,7 +313,8 @@
           "c_counterpart": "fmod",
           "go_counterpart": "math.Mod",
           "function": "浮点数取余（结果符号同被除数）",
-          "description": "对标 C fmod，Go math.Mod；y 为 0 时返回 NaN"
+          "description": "对标 C fmod，Go math.Mod；y 为 0 时返回 NaN",
+          "builtin": false
         },
         {
           "name": "equals",
@@ -296,7 +323,8 @@
           "c_counterpart": "—",
           "go_counterpart": "—",
           "function": "在容差范围内判断两个浮点数是否相等",
-          "description": "C/Go 标准库无直接对应函数，需按 \\|a-b\\| <= eps 自行判断"
+          "description": "C/Go 标准库无直接对应函数，需按 \\|a-b\\| <= eps 自行判断",
+          "builtin": false
         },
         {
           "name": "compare",
@@ -305,7 +333,8 @@
           "c_counterpart": "—",
           "go_counterpart": "—",
           "function": "比较两个浮点数大小（-1/0/1）",
-          "description": "C/Go 标准库无直接对应函数，需手动比较"
+          "description": "C/Go 标准库无直接对应函数，需手动比较",
+          "builtin": false
         },
         {
           "name": "exp2",
@@ -314,7 +343,8 @@
           "c_counterpart": "exp2",
           "go_counterpart": "—",
           "function": "求以 2 为底的指数 2^x",
-          "description": "对标 C exp2，Go 标准库无 math.Exp2"
+          "description": "对标 C exp2，Go 标准库无 math.Exp2",
+          "builtin": false
         },
         {
           "name": "log10",
@@ -323,7 +353,8 @@
           "c_counterpart": "log10",
           "go_counterpart": "math.Log10",
           "function": "求以 10 为底的对数",
-          "description": "对标 C log10，Go math.Log10"
+          "description": "对标 C log10，Go math.Log10",
+          "builtin": false
         },
         {
           "name": "log2",
@@ -332,7 +363,8 @@
           "c_counterpart": "log2",
           "go_counterpart": "math.Log2",
           "function": "求以 2 为底的对数",
-          "description": "对标 C log2，Go math.Log2"
+          "description": "对标 C log2，Go math.Log2",
+          "builtin": false
         },
         {
           "name": "log1p",
@@ -341,7 +373,8 @@
           "c_counterpart": "log1p",
           "go_counterpart": "math.Log1p",
           "function": "求 ln(1+x)，适用于 x 很小时的精度保持",
-          "description": "对标 C log1p，Go math.Log1p"
+          "description": "对标 C log1p，Go math.Log1p",
+          "builtin": false
         },
         {
           "name": "sinh",
@@ -350,7 +383,8 @@
           "c_counterpart": "sinh",
           "go_counterpart": "math.Sinh",
           "function": "双曲正弦",
-          "description": "对标 C sinh，Go math.Sinh"
+          "description": "对标 C sinh，Go math.Sinh",
+          "builtin": false
         },
         {
           "name": "cosh",
@@ -359,7 +393,8 @@
           "c_counterpart": "cosh",
           "go_counterpart": "math.Cosh",
           "function": "双曲余弦",
-          "description": "对标 C cosh，Go math.Cosh"
+          "description": "对标 C cosh，Go math.Cosh",
+          "builtin": false
         },
         {
           "name": "tanh",
@@ -368,7 +403,8 @@
           "c_counterpart": "tanh",
           "go_counterpart": "math.Tanh",
           "function": "双曲正切",
-          "description": "对标 C tanh，Go math.Tanh"
+          "description": "对标 C tanh，Go math.Tanh",
+          "builtin": false
         },
         {
           "name": "asin",
@@ -377,7 +413,8 @@
           "c_counterpart": "asin",
           "go_counterpart": "math.Asin",
           "function": "反正弦（arc sine）",
-          "description": "对标 C asin，Go math.Asin；返回弧度"
+          "description": "对标 C asin，Go math.Asin；返回弧度",
+          "builtin": false
         },
         {
           "name": "acos",
@@ -386,7 +423,8 @@
           "c_counterpart": "acos",
           "go_counterpart": "math.Acos",
           "function": "反余弦（arc cosine）",
-          "description": "对标 C acos，Go math.Acos；返回弧度"
+          "description": "对标 C acos，Go math.Acos；返回弧度",
+          "builtin": false
         },
         {
           "name": "atan",
@@ -395,7 +433,8 @@
           "c_counterpart": "atan",
           "go_counterpart": "math.Atan",
           "function": "反正切（arc tangent）",
-          "description": "对标 C atan，Go math.Atan；返回弧度"
+          "description": "对标 C atan，Go math.Atan；返回弧度",
+          "builtin": false
         },
         {
           "name": "atan2",
@@ -404,7 +443,8 @@
           "c_counterpart": "atan2",
           "go_counterpart": "math.Atan2",
           "function": "带符号的反正切 atan2(y, x)",
-          "description": "对标 C atan2，Go math.Atan2；考虑象限"
+          "description": "对标 C atan2，Go math.Atan2；考虑象限",
+          "builtin": false
         },
         {
           "name": "hypot",
@@ -413,7 +453,8 @@
           "c_counterpart": "hypot",
           "go_counterpart": "math.Hypot",
           "function": "求斜边长 sqrt(x^2+y^2)，避免溢出",
-          "description": "对标 C hypot，Go math.Hypot"
+          "description": "对标 C hypot，Go math.Hypot",
+          "builtin": false
         },
         {
           "name": "cbrt",
@@ -422,7 +463,8 @@
           "c_counterpart": "cbrt",
           "go_counterpart": "math.Cbrt",
           "function": "求立方根",
-          "description": "对标 C cbrt，Go math.Cbrt"
+          "description": "对标 C cbrt，Go math.Cbrt",
+          "builtin": false
         },
         {
           "name": "trunc",
@@ -431,7 +473,8 @@
           "c_counterpart": "trunc",
           "go_counterpart": "math.Trunc",
           "function": "向零取整（截断小数部分）",
-          "description": "对标 C trunc，Go math.Trunc"
+          "description": "对标 C trunc，Go math.Trunc",
+          "builtin": false
         },
         {
           "name": "is_na_n",
@@ -440,7 +483,8 @@
           "c_counterpart": "isnan",
           "go_counterpart": "math.IsNaN",
           "function": "判断是否为非数（NaN）",
-          "description": "对标 C isnan，Go math.IsNaN；axlang 将 IsNaN 转为 snake_case 后名称为 is_na_n"
+          "description": "对标 C isnan，Go math.IsNaN；axlang 将 IsNaN 转为 snake_case 后名称为 is_na_n",
+          "builtin": false
         },
         {
           "name": "is_inf",
@@ -449,7 +493,8 @@
           "c_counterpart": "isinf",
           "go_counterpart": "math.IsInf",
           "function": "判断是否为无穷大，sign 参数控制正/负/任意",
-          "description": "对标 C isinf，Go math.IsInf；sign>0 只判 +Inf，sign<0 只判 -Inf，sign==0 判任意"
+          "description": "对标 C isinf，Go math.IsInf；sign>0 只判 +Inf，sign<0 只判 -Inf，sign==0 判任意",
+          "builtin": false
         },
         {
           "name": "frexp",
@@ -458,7 +503,8 @@
           "c_counterpart": "frexp",
           "go_counterpart": "math.Frexp",
           "function": "将浮点数分解为尾数和 2 的幂指数",
-          "description": "对标 C frexpf，Go math.Frexp；axlang 暂不支持指针参数，分两步调用 ax_math_frexp / ax_math_frexp_exp"
+          "description": "对标 C frexpf，Go math.Frexp；axlang 暂不支持指针参数，分两步调用 ax_math_frexp / ax_math_frexp_exp",
+          "builtin": false
         },
         {
           "name": "ldexp",
@@ -467,7 +513,8 @@
           "c_counterpart": "ldexp",
           "go_counterpart": "math.Ldexp",
           "function": "计算 x * 2^exp，即从尾数和指数重建浮点数",
-          "description": "对标 C ldexp，Go math.Ldexp；与 frexp 互逆"
+          "description": "对标 C ldexp，Go math.Ldexp；与 frexp 互逆",
+          "builtin": false
         },
         {
           "name": "signbit",
@@ -476,7 +523,8 @@
           "c_counterpart": "signbit",
           "go_counterpart": "math.Signbit",
           "function": "判断浮点数符号位是否为负（含 -0 / -NaN）",
-          "description": "对标 C signbit，Go math.Signbit"
+          "description": "对标 C signbit，Go math.Signbit",
+          "builtin": false
         },
         {
           "name": "copysign",
@@ -485,7 +533,8 @@
           "c_counterpart": "copysign",
           "go_counterpart": "math.Copysign",
           "function": "返回 x 的幅值和 y 的符号组成的浮点数",
-          "description": "对标 C copysign，Go math.Copysign"
+          "description": "对标 C copysign，Go math.Copysign",
+          "builtin": false
         },
         {
           "name": "dim",
@@ -494,7 +543,8 @@
           "c_counterpart": "fdim",
           "go_counterpart": "math.Dim",
           "function": "返回 max(x - y, 0)，即正差值",
-          "description": "对标 C fdim，Go math.Dim"
+          "description": "对标 C fdim，Go math.Dim",
+          "builtin": false
         }
       ]
     },
@@ -514,7 +564,8 @@
           "c_counterpart": "—",
           "go_counterpart": "json.Unmarshal",
           "function": "将 JSON 字符串解析为 map<string, object>",
-          "description": "C 标准库无 JSON 解析器，Go 对标 encoding/json.Unmarshal"
+          "description": "C 标准库无 JSON 解析器，Go 对标 encoding/json.Unmarshal",
+          "builtin": false
         },
         {
           "name": "stringify",
@@ -523,7 +574,8 @@
           "c_counterpart": "—",
           "go_counterpart": "json.Marshal",
           "function": "将对象序列化为 JSON 字符串",
-          "description": "C 标准库无 JSON 序列化，Go 对标 encoding/json.Marshal"
+          "description": "C 标准库无 JSON 序列化，Go 对标 encoding/json.Marshal",
+          "builtin": false
         },
         {
           "name": "marshal_indent",
@@ -532,7 +584,8 @@
           "c_counterpart": "—",
           "go_counterpart": "json.MarshalIndent",
           "function": "将对象序列化为带缩进的 JSON 字符串",
-          "description": "C 标准库无对应，Go 对标 encoding/json.MarshalIndent"
+          "description": "C 标准库无对应，Go 对标 encoding/json.MarshalIndent",
+          "builtin": false
         },
         {
           "name": "valid",
@@ -541,7 +594,8 @@
           "c_counterpart": "—",
           "go_counterpart": "json.Valid",
           "function": "判断字符串是否为合法 JSON",
-          "description": "C 标准库无对应，Go 对标 encoding/json.Valid"
+          "description": "C 标准库无对应，Go 对标 encoding/json.Valid",
+          "builtin": false
         }
       ]
     },
@@ -561,7 +615,8 @@
           "c_counterpart": "fopen",
           "go_counterpart": "os.Open",
           "function": "打开文件并返回文件句柄",
-          "description": "对标 C fopen，Go os.Open；返回 result<File> 类型"
+          "description": "对标 C fopen，Go os.Open；返回 result<File> 类型",
+          "builtin": false
         },
         {
           "name": "create",
@@ -570,7 +625,8 @@
           "c_counterpart": "fopen(w)",
           "go_counterpart": "os.Create",
           "function": "创建或截断文件并返回句柄",
-          "description": "对标 C fopen(w 模式)，Go os.Create"
+          "description": "对标 C fopen(w 模式)，Go os.Create",
+          "builtin": false
         },
         {
           "name": "append",
@@ -579,7 +635,8 @@
           "c_counterpart": "fopen(a)",
           "go_counterpart": "os.OpenFile(append)",
           "function": "以追加模式打开文件",
-          "description": "对标 C fopen(a 模式)，Go os.OpenFile 追加标志"
+          "description": "对标 C fopen(a 模式)，Go os.OpenFile 追加标志",
+          "builtin": false
         },
         {
           "name": "remove",
@@ -588,7 +645,8 @@
           "c_counterpart": "remove",
           "go_counterpart": "os.Remove",
           "function": "删除文件或目录",
-          "description": "对标 C remove，Go os.Remove"
+          "description": "对标 C remove，Go os.Remove",
+          "builtin": false
         },
         {
           "name": "rename",
@@ -597,7 +655,8 @@
           "c_counterpart": "rename",
           "go_counterpart": "os.Rename",
           "function": "重命名或移动文件",
-          "description": "对标 C rename，Go os.Rename"
+          "description": "对标 C rename，Go os.Rename",
+          "builtin": false
         },
         {
           "name": "exists",
@@ -606,7 +665,8 @@
           "c_counterpart": "access/stat",
           "go_counterpart": "os.Stat",
           "function": "判断路径是否存在",
-          "description": "对标 C access/stat，Go os.Stat；返回 1 表示存在，0 表示不存在"
+          "description": "对标 C access/stat，Go os.Stat；返回 1 表示存在，0 表示不存在",
+          "builtin": false
         },
         {
           "name": "mkdir",
@@ -615,7 +675,8 @@
           "c_counterpart": "mkdir",
           "go_counterpart": "os.Mkdir",
           "function": "创建目录",
-          "description": "对标 C mkdir，Go os.Mkdir"
+          "description": "对标 C mkdir，Go os.Mkdir",
+          "builtin": false
         },
         {
           "name": "read_all",
@@ -624,7 +685,8 @@
           "c_counterpart": "fread",
           "go_counterpart": "os.ReadFile",
           "function": "读取文件全部内容并返回字符串",
-          "description": "对标 C fread，Go os.ReadFile；返回 result<string>"
+          "description": "对标 C fread，Go os.ReadFile；返回 result<string>",
+          "builtin": false
         },
         {
           "name": "write_all",
@@ -633,7 +695,8 @@
           "c_counterpart": "fwrite",
           "go_counterpart": "os.WriteFile",
           "function": "将字符串全部写入文件",
-          "description": "对标 C fwrite，Go os.WriteFile；返回写入字节数"
+          "description": "对标 C fwrite，Go os.WriteFile；返回写入字节数",
+          "builtin": false
         },
         {
           "name": "is_dir",
@@ -642,7 +705,8 @@
           "c_counterpart": "stat/S_ISDIR",
           "go_counterpart": "os.IsDir/Stat.IsDir",
           "function": "判断路径是否为目录",
-          "description": "对标 C stat+S_ISDIR 宏，Go os.IsDir 或 os.Stat().IsDir()"
+          "description": "对标 C stat+S_ISDIR 宏，Go os.IsDir 或 os.Stat().IsDir()",
+          "builtin": false
         },
         {
           "name": "is_file",
@@ -651,7 +715,8 @@
           "c_counterpart": "stat/S_ISREG",
           "go_counterpart": "Stat.IsRegular",
           "function": "判断路径是否为普通文件",
-          "description": "对标 C stat+S_ISREG 宏，Go os.FileInfo.IsRegular()"
+          "description": "对标 C stat+S_ISREG 宏，Go os.FileInfo.IsRegular()",
+          "builtin": false
         },
         {
           "name": "size",
@@ -660,7 +725,8 @@
           "c_counterpart": "stat/st_size",
           "go_counterpart": "Stat.Size",
           "function": "获取文件大小（字节）",
-          "description": "对标 C stat 结构体 st_size 字段，Go os.FileInfo.Size()"
+          "description": "对标 C stat 结构体 st_size 字段，Go os.FileInfo.Size()",
+          "builtin": false
         },
         {
           "name": "mod_time",
@@ -669,7 +735,8 @@
           "c_counterpart": "stat/st_mtime",
           "go_counterpart": "Stat.ModTime",
           "function": "获取文件最后修改时间",
-          "description": "对标 C stat 结构体 st_mtime 字段，Go os.FileInfo.ModTime()"
+          "description": "对标 C stat 结构体 st_mtime 字段，Go os.FileInfo.ModTime()",
+          "builtin": false
         },
         {
           "name": "chmod",
@@ -678,7 +745,8 @@
           "c_counterpart": "chmod",
           "go_counterpart": "os.Chmod",
           "function": "修改文件权限模式",
-          "description": "对标 C chmod，Go os.Chmod"
+          "description": "对标 C chmod，Go os.Chmod",
+          "builtin": false
         },
         {
           "name": "chtimes",
@@ -687,7 +755,8 @@
           "c_counterpart": "utime",
           "go_counterpart": "os.Chtimes",
           "function": "修改文件访问时间和修改时间",
-          "description": "对标 C utime，Go os.Chtimes"
+          "description": "对标 C utime，Go os.Chtimes",
+          "builtin": false
         },
         {
           "name": "temp_file",
@@ -696,7 +765,8 @@
           "c_counterpart": "tmpfile",
           "go_counterpart": "os.CreateTemp",
           "function": "创建临时文件并返回句柄",
-          "description": "对标 C tmpfile，Go os.CreateTemp；自动生成唯一临时文件名"
+          "description": "对标 C tmpfile，Go os.CreateTemp；自动生成唯一临时文件名",
+          "builtin": false
         }
       ]
     },
@@ -713,7 +783,10 @@
           "c_counterpart": "—",
           "go_counterpart": "—",
           "function": "执行 SQL 查询并返回结果集",
-          "description": "axlang 特有模块，无标准 C/Go 对应；依赖底层数据库驱动实现"
+          "description": "axlang 特有模块，无标准 C/Go 对应；依赖底层数据库驱动实现",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "db.query(\"SELECT * FROM t\")"
         }
       ]
     },
@@ -733,7 +806,8 @@
           "c_counterpart": "—",
           "go_counterpart": "—",
           "function": "根据 Unicode 码点创建字符串",
-          "description": "C 标准库无直接对应，Go 亦无标准库函数，需手动 UTF-8 编码"
+          "description": "C 标准库无直接对应，Go 亦无标准库函数，需手动 UTF-8 编码",
+          "builtin": true
         },
         {
           "name": "compare",
@@ -742,7 +816,8 @@
           "c_counterpart": "strcmp",
           "go_counterpart": "strings.Compare",
           "function": "按字典序比较两个字符串（-1/0/1）",
-          "description": "对标 C strcmp，Go strings.Compare"
+          "description": "对标 C strcmp，Go strings.Compare",
+          "builtin": true
         },
         {
           "name": "fields",
@@ -751,7 +826,8 @@
           "c_counterpart": "strtok",
           "go_counterpart": "strings.Fields",
           "function": "按空白字符分割字符串为字符串切片",
-          "description": "对标 C strtok，Go strings.Fields；按任意空白符拆分"
+          "description": "对标 C strtok，Go strings.Fields；按任意空白符拆分",
+          "builtin": true
         }
       ],
       "instance_functions": [
@@ -762,7 +838,8 @@
           "c_counterpart": "toupper",
           "go_counterpart": "strings.ToUpper",
           "function": "将字符串转换为大写",
-          "description": "对标 C toupper（逐字符），Go strings.ToUpper；仅 ASCII"
+          "description": "对标 C toupper（逐字符），Go strings.ToUpper；仅 ASCII",
+          "builtin": true
         },
         {
           "name": "to_lower",
@@ -771,7 +848,8 @@
           "c_counterpart": "tolower",
           "go_counterpart": "strings.ToLower",
           "function": "将字符串转换为小写",
-          "description": "对标 C tolower（逐字符），Go strings.ToLower；仅 ASCII"
+          "description": "对标 C tolower（逐字符），Go strings.ToLower；仅 ASCII",
+          "builtin": true
         },
         {
           "name": "contains",
@@ -780,7 +858,8 @@
           "c_counterpart": "strstr",
           "go_counterpart": "strings.Contains",
           "function": "判断字符串是否包含子串",
-          "description": "对标 C strstr，Go strings.Contains"
+          "description": "对标 C strstr，Go strings.Contains",
+          "builtin": true
         },
         {
           "name": "contains_any",
@@ -789,7 +868,8 @@
           "c_counterpart": "strpbrk",
           "go_counterpart": "strings.ContainsAny",
           "function": "判断字符串是否包含任意给定字符",
-          "description": "对标 C strpbrk，Go strings.ContainsAny"
+          "description": "对标 C strpbrk，Go strings.ContainsAny",
+          "builtin": true
         },
         {
           "name": "contains_rune",
@@ -798,7 +878,8 @@
           "c_counterpart": "—",
           "go_counterpart": "strings.ContainsRune",
           "function": "判断字符串是否包含指定 Unicode 码点",
-          "description": "C 标准库无直接对应，Go 对标 strings.ContainsRune"
+          "description": "C 标准库无直接对应，Go 对标 strings.ContainsRune",
+          "builtin": true
         },
         {
           "name": "count",
@@ -807,7 +888,8 @@
           "c_counterpart": "—",
           "go_counterpart": "strings.Count",
           "function": "统计子串在字符串中出现的次数（非重叠）",
-          "description": "C 标准库无直接对应，Go 对标 strings.Count"
+          "description": "C 标准库无直接对应，Go 对标 strings.Count",
+          "builtin": true
         },
         {
           "name": "index_of",
@@ -816,7 +898,8 @@
           "c_counterpart": "strstr",
           "go_counterpart": "strings.Index",
           "function": "返回子串首次出现的索引，未找到返回 -1",
-          "description": "对标 C strstr（需计算偏移），Go strings.Index"
+          "description": "对标 C strstr（需计算偏移），Go strings.Index",
+          "builtin": true
         },
         {
           "name": "index_any",
@@ -825,7 +908,8 @@
           "c_counterpart": "strpbrk",
           "go_counterpart": "strings.IndexAny",
           "function": "返回任意给定字符首次出现的索引",
-          "description": "对标 C strpbrk，Go strings.IndexAny"
+          "description": "对标 C strpbrk，Go strings.IndexAny",
+          "builtin": true
         },
         {
           "name": "last_index_of",
@@ -834,7 +918,8 @@
           "c_counterpart": "strrstr（非标准）",
           "go_counterpart": "strings.LastIndex",
           "function": "返回子串最后一次出现的索引，未找到返回 -1",
-          "description": "C 标准库无 strrstr，Go 对标 strings.LastIndex"
+          "description": "C 标准库无 strrstr，Go 对标 strings.LastIndex",
+          "builtin": true
         },
         {
           "name": "last_index_any",
@@ -843,7 +928,8 @@
           "c_counterpart": "—",
           "go_counterpart": "strings.LastIndexAny",
           "function": "返回任意给定字符最后一次出现的索引",
-          "description": "C 标准库无直接对应，Go 对标 strings.LastIndexAny"
+          "description": "C 标准库无直接对应，Go 对标 strings.LastIndexAny",
+          "builtin": true
         },
         {
           "name": "split",
@@ -852,7 +938,8 @@
           "c_counterpart": "strtok",
           "go_counterpart": "strings.Split",
           "function": "按分隔符分割字符串为字符串切片",
-          "description": "对标 C strtok，Go strings.Split；分隔符本身不保留"
+          "description": "对标 C strtok，Go strings.Split；分隔符本身不保留",
+          "builtin": true
         },
         {
           "name": "trim",
@@ -861,7 +948,8 @@
           "c_counterpart": "—",
           "go_counterpart": "strings.TrimSpace",
           "function": "去除字符串首尾空白字符",
-          "description": "C 标准库无直接对应，Go 对标 strings.TrimSpace（仅空白符）"
+          "description": "C 标准库无直接对应，Go 对标 strings.TrimSpace（仅空白符）",
+          "builtin": true
         },
         {
           "name": "trim_left",
@@ -870,7 +958,8 @@
           "c_counterpart": "—",
           "go_counterpart": "strings.TrimLeft",
           "function": "去除字符串左侧指定字符集",
-          "description": "C 标准库无直接对应，Go 对标 strings.TrimLeft"
+          "description": "C 标准库无直接对应，Go 对标 strings.TrimLeft",
+          "builtin": true
         },
         {
           "name": "trim_right",
@@ -879,7 +968,8 @@
           "c_counterpart": "—",
           "go_counterpart": "strings.TrimRight",
           "function": "去除字符串右侧指定字符集",
-          "description": "C 标准库无直接对应，Go 对标 strings.TrimRight"
+          "description": "C 标准库无直接对应，Go 对标 strings.TrimRight",
+          "builtin": true
         },
         {
           "name": "trim_prefix",
@@ -888,7 +978,8 @@
           "c_counterpart": "—",
           "go_counterpart": "strings.TrimPrefix",
           "function": "去除字符串指定前缀",
-          "description": "C 标准库无直接对应，Go 对标 strings.TrimPrefix"
+          "description": "C 标准库无直接对应，Go 对标 strings.TrimPrefix",
+          "builtin": true
         },
         {
           "name": "trim_suffix",
@@ -897,7 +988,8 @@
           "c_counterpart": "—",
           "go_counterpart": "strings.TrimSuffix",
           "function": "去除字符串指定后缀",
-          "description": "C 标准库无直接对应，Go 对标 strings.TrimSuffix"
+          "description": "C 标准库无直接对应，Go 对标 strings.TrimSuffix",
+          "builtin": true
         },
         {
           "name": "split_n",
@@ -906,7 +998,8 @@
           "c_counterpart": "—",
           "go_counterpart": "strings.SplitN",
           "function": "按分隔符分割为最多 n 个字符串",
-          "description": "C 标准库无直接对应，Go 对标 strings.SplitN"
+          "description": "C 标准库无直接对应，Go 对标 strings.SplitN",
+          "builtin": true
         },
         {
           "name": "split_after",
@@ -915,7 +1008,8 @@
           "c_counterpart": "—",
           "go_counterpart": "strings.SplitAfter",
           "function": "按分隔符分割，保留分隔符在每段末尾",
-          "description": "C 标准库无直接对应，Go 对标 strings.SplitAfter"
+          "description": "C 标准库无直接对应，Go 对标 strings.SplitAfter",
+          "builtin": true
         },
         {
           "name": "title",
@@ -924,7 +1018,8 @@
           "c_counterpart": "—",
           "go_counterpart": "strings.Title",
           "function": "将字符串转换为标题格式（每个单词首字母大写）",
-          "description": "C 标准库无直接对应，Go 对标 strings.Title（Go 1.18+ 已废弃，建议 cases.Title）"
+          "description": "C 标准库无直接对应，Go 对标 strings.Title（Go 1.18+ 已废弃，建议 cases.Title）",
+          "builtin": true
         },
         {
           "name": "map",
@@ -933,7 +1028,8 @@
           "c_counterpart": "—",
           "go_counterpart": "strings.Map",
           "function": "对字符串每个字符应用映射函数并返回新字符串",
-          "description": "C 标准库无直接对应，Go 对标 strings.Map；axlang 不支持闭包，实际受限"
+          "description": "C 标准库无直接对应，Go 对标 strings.Map；axlang 不支持闭包，实际受限",
+          "builtin": true
         },
         {
           "name": "replace",
@@ -942,7 +1038,8 @@
           "c_counterpart": "—",
           "go_counterpart": "strings.Replace",
           "function": "将字符串中旧子串替换为新子串",
-          "description": "C 标准库无直接对应，Go 对标 strings.Replace；支持限制替换次数"
+          "description": "C 标准库无直接对应，Go 对标 strings.Replace；支持限制替换次数",
+          "builtin": true
         },
         {
           "name": "repeat",
@@ -951,7 +1048,8 @@
           "c_counterpart": "—",
           "go_counterpart": "strings.Repeat",
           "function": "将字符串重复 n 次",
-          "description": "C 标准库无直接对应，Go 对标 strings.Repeat"
+          "description": "C 标准库无直接对应，Go 对标 strings.Repeat",
+          "builtin": true
         },
         {
           "name": "starts_with",
@@ -960,7 +1058,8 @@
           "c_counterpart": "strncmp",
           "go_counterpart": "strings.HasPrefix",
           "function": "判断字符串是否以指定前缀开头",
-          "description": "对标 C strncmp，Go strings.HasPrefix"
+          "description": "对标 C strncmp，Go strings.HasPrefix",
+          "builtin": true
         },
         {
           "name": "ends_with",
@@ -969,7 +1068,8 @@
           "c_counterpart": "strncmp",
           "go_counterpart": "strings.HasSuffix",
           "function": "判断字符串是否以指定后缀结尾",
-          "description": "对标 C strncmp，Go strings.HasSuffix"
+          "description": "对标 C strncmp，Go strings.HasSuffix",
+          "builtin": true
         },
         {
           "name": "len",
@@ -978,7 +1078,8 @@
           "c_counterpart": "strlen",
           "go_counterpart": "len（内置）",
           "function": "返回字符串的字节长度",
-          "description": "对标 C strlen，Go 内置 len()；返回 byte 数而非 rune 数"
+          "description": "对标 C strlen，Go 内置 len()；返回 byte 数而非 rune 数",
+          "builtin": true
         },
         {
           "name": "is_digit",
@@ -987,7 +1088,8 @@
           "c_counterpart": "isdigit",
           "go_counterpart": "unicode.IsDigit",
           "function": "判断字符串是否全部由数字组成",
-          "description": "对标 C isdigit，Go unicode.IsDigit（逐字符判断）"
+          "description": "对标 C isdigit，Go unicode.IsDigit（逐字符判断）",
+          "builtin": true
         },
         {
           "name": "is_alpha",
@@ -996,7 +1098,8 @@
           "c_counterpart": "isalpha",
           "go_counterpart": "unicode.IsLetter",
           "function": "判断字符串是否全部由字母组成",
-          "description": "对标 C isalpha，Go unicode.IsLetter"
+          "description": "对标 C isalpha，Go unicode.IsLetter",
+          "builtin": true
         },
         {
           "name": "is_space",
@@ -1005,7 +1108,8 @@
           "c_counterpart": "isspace",
           "go_counterpart": "unicode.IsSpace",
           "function": "判断字符串是否全部由空白字符组成",
-          "description": "对标 C isspace，Go unicode.IsSpace"
+          "description": "对标 C isspace，Go unicode.IsSpace",
+          "builtin": true
         },
         {
           "name": "is_lower",
@@ -1014,7 +1118,8 @@
           "c_counterpart": "islower",
           "go_counterpart": "unicode.IsLower",
           "function": "判断字符串是否全部由小写字母组成",
-          "description": "对标 C islower，Go unicode.IsLower"
+          "description": "对标 C islower，Go unicode.IsLower",
+          "builtin": true
         },
         {
           "name": "is_upper",
@@ -1023,7 +1128,8 @@
           "c_counterpart": "isupper",
           "go_counterpart": "unicode.IsUpper",
           "function": "判断字符串是否全部由大写字母组成",
-          "description": "对标 C isupper，Go unicode.IsUpper"
+          "description": "对标 C isupper，Go unicode.IsUpper",
+          "builtin": true
         },
         {
           "name": "is_alnum",
@@ -1032,7 +1138,8 @@
           "c_counterpart": "isalnum",
           "go_counterpart": "unicode.IsLetter/IsNumber",
           "function": "判断字符串是否全部由字母或数字组成",
-          "description": "对标 C isalnum，Go unicode.IsLetter 或 unicode.IsNumber"
+          "description": "对标 C isalnum，Go unicode.IsLetter 或 unicode.IsNumber",
+          "builtin": true
         },
         {
           "name": "equal_fold",
@@ -1041,7 +1148,8 @@
           "c_counterpart": "strcasecmp",
           "go_counterpart": "strings.EqualFold",
           "function": "忽略大小写比较两个字符串是否相等",
-          "description": "对标 C strcasecmp，Go strings.EqualFold；UTF-8 忽略大小写比较"
+          "description": "对标 C strcasecmp，Go strings.EqualFold；UTF-8 忽略大小写比较",
+          "builtin": true
         },
         {
           "name": "to_upper_rune",
@@ -1050,7 +1158,8 @@
           "c_counterpart": "toupper",
           "go_counterpart": "unicode.ToUpper",
           "function": "将单个 Unicode 码点转换为大写",
-          "description": "对标 C toupper，Go unicode.ToUpper；返回 int 类型码点"
+          "description": "对标 C toupper，Go unicode.ToUpper；返回 int 类型码点",
+          "builtin": true
         },
         {
           "name": "to_lower_rune",
@@ -1059,7 +1168,8 @@
           "c_counterpart": "tolower",
           "go_counterpart": "unicode.ToLower",
           "function": "将单个 Unicode 码点转换为小写",
-          "description": "对标 C tolower，Go unicode.ToLower；返回 int 类型码点"
+          "description": "对标 C tolower，Go unicode.ToLower；返回 int 类型码点",
+          "builtin": true
         }
       ]
     },
@@ -1076,7 +1186,8 @@
           "c_counterpart": "clock_gettime/time",
           "go_counterpart": "time.Now().UnixMilli",
           "function": "返回当前 Unix 时间戳（毫秒）",
-          "description": "对标 C clock_gettime/time，Go time.Now().UnixMilli()；返回 int 毫秒数"
+          "description": "对标 C clock_gettime/time，Go time.Now().UnixMilli()；返回 int 毫秒数",
+          "builtin": false
         },
         {
           "name": "now",
@@ -1085,7 +1196,8 @@
           "c_counterpart": "time",
           "go_counterpart": "time.Now",
           "function": "返回当前本地时间",
-          "description": "对标 C time()，Go time.Now()；返回 time 类型（C 层 int64_t 毫秒）"
+          "description": "对标 C time()，Go time.Now()；返回 time 类型（C 层 int64_t 毫秒）",
+          "builtin": false
         },
         {
           "name": "from_unix_ms",
@@ -1094,7 +1206,8 @@
           "c_counterpart": "—",
           "go_counterpart": "time.UnixMilli",
           "function": "根据毫秒级 Unix 时间戳创建时间",
-          "description": "C 标准库无直接对应，Go 对标 time.UnixMilli()"
+          "description": "C 标准库无直接对应，Go 对标 time.UnixMilli()",
+          "builtin": false
         },
         {
           "name": "sleep",
@@ -1103,7 +1216,8 @@
           "c_counterpart": "sleep/usleep",
           "go_counterpart": "time.Sleep",
           "function": "使当前协程/线程休眠指定毫秒数",
-          "description": "对标 C sleep/usleep，Go time.Sleep；阻塞当前执行流"
+          "description": "对标 C sleep/usleep，Go time.Sleep；阻塞当前执行流",
+          "builtin": false
         },
         {
           "name": "parse",
@@ -1112,7 +1226,8 @@
           "c_counterpart": "strptime",
           "go_counterpart": "time.Parse",
           "function": "解析格式化的时间字符串为 time 对象",
-          "description": "对标 C strptime，Go time.Parse；返回 result<time> 类型，解析失败返回错误"
+          "description": "对标 C strptime，Go time.Parse；返回 result<time> 类型，解析失败返回错误",
+          "builtin": false
         },
         {
           "name": "unix",
@@ -1121,7 +1236,8 @@
           "c_counterpart": "—",
           "go_counterpart": "time.Unix",
           "function": "根据秒和纳秒创建时间",
-          "description": "C 标准库无直接对应，Go 对标 time.Unix(sec, nsec)"
+          "description": "C 标准库无直接对应，Go 对标 time.Unix(sec, nsec)",
+          "builtin": false
         },
         {
           "name": "unix_milli",
@@ -1130,7 +1246,8 @@
           "c_counterpart": "—",
           "go_counterpart": "time.UnixMilli",
           "function": "根据毫秒创建时间",
-          "description": "C 标准库无直接对应，Go 对标 time.UnixMilli(ms)"
+          "description": "C 标准库无直接对应，Go 对标 time.UnixMilli(ms)",
+          "builtin": false
         },
         {
           "name": "unix_micro",
@@ -1139,7 +1256,8 @@
           "c_counterpart": "—",
           "go_counterpart": "time.UnixMicro",
           "function": "根据微秒创建时间",
-          "description": "C 标准库无直接对应，Go 对标 time.UnixMicro(us)"
+          "description": "C 标准库无直接对应，Go 对标 time.UnixMicro(us)",
+          "builtin": false
         },
         {
           "name": "unix_nano",
@@ -1148,7 +1266,8 @@
           "c_counterpart": "—",
           "go_counterpart": "time.UnixNano",
           "function": "根据纳秒创建时间",
-          "description": "C 标准库无直接对应，Go 对标 time.UnixNano(nsec)"
+          "description": "C 标准库无直接对应，Go 对标 time.UnixNano(nsec)",
+          "builtin": false
         },
         {
           "name": "since",
@@ -1157,7 +1276,8 @@
           "c_counterpart": "difftime",
           "go_counterpart": "time.Since",
           "function": "返回从指定时间到当前时间的毫秒差",
-          "description": "对标 C difftime，Go time.Since；返回 int 毫秒数，当前时间减去参数时间"
+          "description": "对标 C difftime，Go time.Since；返回 int 毫秒数，当前时间减去参数时间",
+          "builtin": false
         },
         {
           "name": "date",
@@ -1166,7 +1286,8 @@
           "c_counterpart": "mktime",
           "go_counterpart": "time.Date",
           "function": "按年月日时分秒纳秒创建时间",
-          "description": "对标 C mktime，Go time.Date；参数均为 int 类型"
+          "description": "对标 C mktime，Go time.Date；参数均为 int 类型",
+          "builtin": false
         },
         {
           "name": "until",
@@ -1175,7 +1296,8 @@
           "c_counterpart": "difftime",
           "go_counterpart": "time.Until",
           "function": "返回从当前时间到指定时间的毫秒差",
-          "description": "对标 C difftime，Go time.Until；返回 int，参数时间减去当前时间"
+          "description": "对标 C difftime，Go time.Until；返回 int，参数时间减去当前时间",
+          "builtin": false
         },
         {
           "name": "after",
@@ -1185,7 +1307,8 @@
           "c_counterpart": "—",
           "go_counterpart": "time.After/Time.After",
           "function": "判断当前时间是否在参数时间之后",
-          "description": "C 标准库无直接对应，Go 对标 time.Time.After() 方法"
+          "description": "C 标准库无直接对应，Go 对标 time.Time.After() 方法",
+          "builtin": false
         },
         {
           "name": "before",
@@ -1195,7 +1318,8 @@
           "c_counterpart": "—",
           "go_counterpart": "Time.Before",
           "function": "判断当前时间是否在参数时间之前",
-          "description": "C 标准库无直接对应，Go 对标 time.Time.Before() 方法"
+          "description": "C 标准库无直接对应，Go 对标 time.Time.Before() 方法",
+          "builtin": false
         },
         {
           "name": "equal",
@@ -1205,7 +1329,8 @@
           "c_counterpart": "—",
           "go_counterpart": "Time.Equal",
           "function": "判断两个时间是否相等",
-          "description": "C 标准库无直接对应，Go 对标 time.Time.Equal() 方法"
+          "description": "C 标准库无直接对应，Go 对标 time.Time.Equal() 方法",
+          "builtin": false
         },
         {
           "name": "compare",
@@ -1215,7 +1340,8 @@
           "c_counterpart": "difftime",
           "go_counterpart": "Time.Compare",
           "function": "比较两个时间大小（-1/0/1）",
-          "description": "对标 C difftime，Go time.Time.Compare()；返回 -1/0/1"
+          "description": "对标 C difftime，Go time.Time.Compare()；返回 -1/0/1",
+          "builtin": false
         },
         {
           "name": "sub",
@@ -1225,7 +1351,8 @@
           "c_counterpart": "difftime",
           "go_counterpart": "Time.Sub",
           "function": "返回两个时间的差值（毫秒）",
-          "description": "对标 C difftime，Go time.Time.Sub()；返回当前时间减去参数时间的毫秒数"
+          "description": "对标 C difftime，Go time.Time.Sub()；返回当前时间减去参数时间的毫秒数",
+          "builtin": false
         },
         {
           "name": "add",
@@ -1235,7 +1362,8 @@
           "c_counterpart": "—",
           "go_counterpart": "Time.Add",
           "function": "返回当前时间加上指定毫秒数后的时间",
-          "description": "C 标准库无直接对应，Go 对标 time.Time.Add(duration)"
+          "description": "C 标准库无直接对应，Go 对标 time.Time.Add(duration)",
+          "builtin": false
         },
         {
           "name": "round",
@@ -1245,7 +1373,8 @@
           "c_counterpart": "—",
           "go_counterpart": "Time.Round",
           "function": "将时间四舍五入到指定的时间段整数倍",
-          "description": "C 标准库无直接对应，Go 对标 time.Time.Round() 方法"
+          "description": "C 标准库无直接对应，Go 对标 time.Time.Round() 方法",
+          "builtin": false
         },
         {
           "name": "truncate",
@@ -1255,7 +1384,8 @@
           "c_counterpart": "—",
           "go_counterpart": "time.Truncate",
           "function": "将时间向下取整到指定的时间段整数倍",
-          "description": "C 标准库无直接对应，Go 对标 time.Truncate() 方法"
+          "description": "C 标准库无直接对应，Go 对标 time.Truncate() 方法",
+          "builtin": false
         }
       ],
       "instance_functions": [
@@ -1266,7 +1396,8 @@
           "c_counterpart": "ctime/strftime",
           "go_counterpart": "time.Time.String",
           "function": "将时间格式化为默认字符串表示",
-          "description": "对标 C ctime/strftime，Go time.Time.String()；输出类似 '2006-01-02 15:04:05'"
+          "description": "对标 C ctime/strftime，Go time.Time.String()；输出类似 '2006-01-02 15:04:05'",
+          "builtin": false
         },
         {
           "name": "format",
@@ -1275,7 +1406,8 @@
           "c_counterpart": "strftime",
           "go_counterpart": "time.Time.Format",
           "function": "按自定义格式字符串格式化时间",
-          "description": "对标 C strftime，Go time.Time.Format；axlang 使用 Go 风格格式串（如 '2006-01-02'）"
+          "description": "对标 C strftime，Go time.Time.Format；axlang 使用 Go 风格格式串（如 '2006-01-02'）",
+          "builtin": false
         }
       ]
     },
@@ -1293,7 +1425,10 @@
           "c_counterpart": "—",
           "go_counterpart": "—",
           "function": "将字符串解析为高精度十进制数",
-          "description": "axlang 特有模块，无标准 C/Go 对应；依赖自定义 decimal 实现"
+          "description": "axlang 特有模块，无标准 C/Go 对应；依赖自定义 decimal 实现",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "decimal.parse(\"123.45\")"
         },
         {
           "name": "truncate",
@@ -1303,7 +1438,10 @@
           "c_counterpart": "—",
           "go_counterpart": "—",
           "function": "将十进制数截断为整数（int8/int16/int32）",
-          "description": "axlang 特有模块，无标准 C/Go 对应；重载支持三种整数宽度"
+          "description": "axlang 特有模块，无标准 C/Go 对应；重载支持三种整数宽度",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "decimal.truncate(v)"
         },
         {
           "name": "truncate",
@@ -1313,7 +1451,10 @@
           "c_counterpart": "—",
           "go_counterpart": "—",
           "function": "将十进制数截断为整数（int8/int16/int32）",
-          "description": "axlang 特有模块，无标准 C/Go 对应；重载支持三种整数宽度"
+          "description": "axlang 特有模块，无标准 C/Go 对应；重载支持三种整数宽度",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "decimal.truncate(v)"
         },
         {
           "name": "truncate",
@@ -1323,7 +1464,49 @@
           "c_counterpart": "—",
           "go_counterpart": "—",
           "function": "将十进制数截断为整数（int8/int16/int32）",
-          "description": "axlang 特有模块，无标准 C/Go 对应；重载支持三种整数宽度"
+          "description": "axlang 特有模块，无标准 C/Go 对应；重载支持三种整数宽度",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "decimal.truncate(v)"
+        },
+        {
+          "name": "round",
+          "signature": "(digits: int, rounding: Rounding) -> decimal",
+          "kind": "instance",
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "按指定精度和舍入模式四舍五入",
+          "description": "对标 C 无直接对应，需自定义 decimal 实现",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "d.round(2, Rounding.HalfUp)"
+        },
+        {
+          "name": "divide",
+          "signature": "(other: decimal, rounding: Rounding) -> decimal",
+          "kind": "instance",
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "高精度除法，支持自定义舍入模式",
+          "description": "对标 C 无直接对应，需自定义 decimal 实现",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "d.divide(e, Rounding.HalfUp)"
+        },
+        {
+          "name": "to_string",
+          "signature": "() -> string",
+          "kind": "instance",
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "将 decimal 转换为字符串表示",
+          "description": "对标 C sprintf，Go fmt.Sprintf",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "d.to_string()"
         }
       ]
     },
@@ -1341,7 +1524,10 @@
           "c_counterpart": "—",
           "go_counterpart": "strconv.Itoa/FormatFloat",
           "function": "将数值转换为字符串",
-          "description": "C 标准库需 sprintf/itoa，Go 对标 strconv 包；泛型类型方法"
+          "description": "C 标准库需 sprintf/itoa，Go 对标 strconv 包；泛型类型方法",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "x.to_string()"
         },
         {
           "name": "wrapping_add",
@@ -1351,7 +1537,10 @@
           "c_counterpart": "—",
           "go_counterpart": "—",
           "function": "带环绕的加法（溢出时回绕）",
-          "description": "C 标准库无直接对应，Go 亦无标准库函数；axlang 语言级泛型方法"
+          "description": "C 标准库无直接对应，Go 亦无标准库函数；axlang 语言级泛型方法",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "x.wrapping_add(y)"
         },
         {
           "name": "round",
@@ -1361,7 +1550,10 @@
           "c_counterpart": "round",
           "go_counterpart": "math.Round",
           "function": "将浮点数四舍五入到指定小数位数",
-          "description": "对标 C round，Go math.Round；泛型类型方法，digits 为小数位数"
+          "description": "对标 C round，Go math.Round；泛型类型方法，digits 为小数位数",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "x.round(2)"
         },
         {
           "name": "divide",
@@ -1371,7 +1563,10 @@
           "c_counterpart": "—",
           "go_counterpart": "—",
           "function": "除法运算（泛型）",
-          "description": "C 标准库无直接对应，Go 亦无标准库函数；axlang 语言级泛型方法"
+          "description": "C 标准库无直接对应，Go 亦无标准库函数；axlang 语言级泛型方法",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "x.divide(y)"
         }
       ]
     },
@@ -1385,81 +1580,300 @@
           "name": "push",
           "signature": "(elem: T) -> void",
           "kind": "instance",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "realloc/memcpy",
           "go_counterpart": "append",
           "function": "在数组末尾追加元素",
-          "description": "对标 C realloc+memcpy 扩容，Go 内置 append()；动态数组扩容"
+          "description": "对标 C realloc+memcpy 扩容，Go 内置 append()；动态数组扩容",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "arr.push(1)"
         },
         {
           "name": "pop",
           "signature": "() -> T?",
           "kind": "instance",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "—",
           "function": "移除并返回数组最后一个元素",
-          "description": "C 标准库无直接对应，Go 亦无标准库函数；返回 T? 可选类型"
+          "description": "C 标准库无直接对应，Go 亦无标准库函数；返回 T? 可选类型",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "arr.pop()"
         },
         {
           "name": "remove",
           "signature": "(index: int) -> void",
           "kind": "instance",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "memmove",
           "go_counterpart": "—",
           "function": "按索引移除数组元素",
-          "description": "对标 C memmove 后移元素，Go 需手动切片删除；索引越界可能 panic"
+          "description": "对标 C memmove 后移元素，Go 需手动切片删除；索引越界可能 panic",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "arr.remove(0)"
         },
         {
           "name": "clear",
           "signature": "() -> void",
           "kind": "instance",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "memset",
           "go_counterpart": "—",
           "function": "清空数组所有元素",
-          "description": "对标 C memset 清零，Go 可通过重新赋值空切片实现；长度归零但容量保留"
+          "description": "对标 C memset 清零，Go 可通过重新赋值空切片实现；长度归零但容量保留",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "arr.clear()"
         },
         {
           "name": "to_string",
           "signature": "() -> string",
           "kind": "instance",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "fmt.Sprintf",
           "function": "将数组转换为字符串表示",
-          "description": "C 标准库无直接对应，Go 对标 fmt.Sprintf('%v', slice)；格式如 [1 2 3]"
+          "description": "C 标准库无直接对应，Go 对标 fmt.Sprintf('%v', slice)；格式如 [1 2 3]",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "arr.to_string()"
         },
         {
           "name": "==",
           "signature": "(other: T[]) -> bool",
           "kind": "instance",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "memcmp",
           "go_counterpart": "reflect.DeepEqual",
           "function": "判断两个数组是否相等（逐元素比较）",
-          "description": "对标 C memcmp，Go reflect.DeepEqual 或手动逐元素比较；同类型数组可比较"
+          "description": "对标 C memcmp，Go reflect.DeepEqual 或手动逐元素比较；同类型数组可比较",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "arr1 == arr2"
         },
         {
           "name": "!=",
           "signature": "(other: T[]) -> bool",
           "kind": "instance",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "memcmp",
           "go_counterpart": "—",
           "function": "判断两个数组是否不相等",
-          "description": "对标 C memcmp 取反，Go 无直接对应；等价于 !(a == b)"
+          "description": "对标 C memcmp 取反，Go 无直接对应；等价于 !(a == b)",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "arr1 != arr2"
         },
         {
           "name": "切片",
           "signature": "[lo..hi] / [lo..=hi]",
           "kind": "syntax",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "切片表达式 s[lo:hi]",
           "function": "数组切片操作，获取子数组视图",
-          "description": "C 标准库无直接对应（指针偏移），Go 切片表达式；支持 [lo..hi] 和 [lo..=hi] 两种语法"
+          "description": "C 标准库无直接对应（指针偏移），Go 切片表达式；支持 [lo..hi] 和 [lo..=hi] 两种语法",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "arr[1..3]"
+        },
+        {
+          "name": "len",
+          "signature": "() -> int",
+          "kind": "instance",
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "len",
+          "function": "返回数组元素个数",
+          "description": "对标 C sizeof/arr_len，Go 内置 len()；返回元素数量",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "arr.len()"
+        },
+        {
+          "name": "at",
+          "signature": "(index: int) -> T?",
+          "kind": "instance",
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "按索引访问数组元素，越界返回 null",
+          "description": "安全访问数组元素，越界返回 T? 可选类型",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "arr.at(0)"
+        },
+        {
+          "name": "contains",
+          "signature": "(elem: T) -> bool",
+          "kind": "instance",
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "判断数组是否包含指定元素",
+          "description": "线性查找，返回是否存在指定元素",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "arr.contains(5)"
+        },
+        {
+          "name": "index",
+          "signature": "(elem: T) -> int",
+          "kind": "instance",
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "返回元素首次出现的索引，未找到返回 -1",
+          "description": "线性查找元素索引",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "arr.index(5)"
+        },
+        {
+          "name": "sort",
+          "signature": "() -> void",
+          "kind": "instance",
+          "status": "implemented",
+          "c_counterpart": "qsort",
+          "go_counterpart": "sort.Ints",
+          "function": "对数组元素升序排序",
+          "description": "对标 C qsort，Go sort.Ints；原地排序",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "arr.sort()"
+        },
+        {
+          "name": "sort",
+          "signature": "(cmp) -> void",
+          "kind": "instance",
+          "status": "implemented",
+          "c_counterpart": "qsort_r",
+          "go_counterpart": "sort.Slice",
+          "function": "按自定义比较函数对数组排序",
+          "description": "支持自定义比较函数，但 axlang 不支持闭包，实际受限",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "arr.sort(func(a, b int) bool { ... })"
+        },
+        {
+          "name": "reverse",
+          "signature": "() -> void",
+          "kind": "instance",
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "sort.Reverse",
+          "function": "将数组元素反转",
+          "description": "原地反转数组元素顺序",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "arr.reverse()"
+        },
+        {
+          "name": "clone",
+          "signature": "() -> T[]",
+          "kind": "instance",
+          "status": "implemented",
+          "c_counterpart": "memcpy",
+          "go_counterpart": "—",
+          "function": "返回数组的深拷贝副本",
+          "description": "返回独立的新数组副本，原数组不受影响",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "arr.clone()"
+        },
+        {
+          "name": "insert",
+          "signature": "(index: int, elem: T) -> void",
+          "kind": "instance",
+          "status": "implemented",
+          "c_counterpart": "memmove",
+          "go_counterpart": "append",
+          "function": "在指定索引处插入元素",
+          "description": "在索引处插入元素，后续元素后移",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "arr.insert(0, 1)"
+        },
+        {
+          "name": "fill",
+          "signature": "(elem: T) -> void",
+          "kind": "instance",
+          "status": "implemented",
+          "c_counterpart": "memset",
+          "go_counterpart": "—",
+          "function": "用指定值填充所有元素",
+          "description": "将数组所有元素设为指定值",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "arr.fill(0)"
+        },
+        {
+          "name": "resize",
+          "signature": "(n: int) -> void",
+          "kind": "instance",
+          "status": "implemented",
+          "c_counterpart": "realloc",
+          "go_counterpart": "—",
+          "function": "调整数组长度",
+          "description": "不足时零初始化，超出时截断",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "arr.resize(10)"
+        },
+        {
+          "name": "merge",
+          "signature": "(other: T[]) -> void",
+          "kind": "instance",
+          "status": "implemented",
+          "c_counterpart": "memcpy",
+          "go_counterpart": "append",
+          "function": "将另一个数组合并到当前数组",
+          "description": "将其他数组的所有元素追加到末尾",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "arr.merge(other)"
+        },
+        {
+          "name": "min",
+          "signature": "() -> T",
+          "kind": "instance",
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "返回数组中的最小值",
+          "description": "仅适用于可比较类型（int/float 等）",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "arr.min()"
+        },
+        {
+          "name": "max",
+          "signature": "() -> T",
+          "kind": "instance",
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "返回数组中的最大值",
+          "description": "仅适用于可比较类型（int/float 等）",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "arr.max()"
+        },
+        {
+          "name": "sum",
+          "signature": "() -> T",
+          "kind": "instance",
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "返回数组所有元素之和",
+          "description": "仅适用于数值类型（int/float 等）",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "arr.sum()"
         }
       ]
     },
@@ -1473,41 +1887,105 @@
           "name": "clear",
           "signature": "() -> void",
           "kind": "instance",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "maps.Clear",
           "function": "清空 map 中所有键值对",
-          "description": "C 标准库无 map 类型，Go 对标 maps.Clear（Go 1.21+）；删除所有条目"
+          "description": "C 标准库无 map 类型，Go 对标 maps.Clear（Go 1.21+）；删除所有条目",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "m.clear()"
         },
         {
           "name": "remove",
           "signature": "(key: K) -> void",
           "kind": "instance",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "delete/maps.Delete",
           "function": "删除 map 中指定键的条目",
-          "description": "C 标准库无 map 类型，Go 对标 delete() 内置或 maps.Delete；键不存在时不报错"
+          "description": "C 标准库无 map 类型，Go 对标 delete() 内置或 maps.Delete；键不存在时不报错",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "m.remove(\"key\")"
         },
         {
           "name": "==",
           "signature": "(other: Map) -> bool",
           "kind": "instance",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "maps.Equal",
           "function": "判断两个 map 是否相等（相同键值对）",
-          "description": "C 标准库无 map 类型，Go 对标 maps.Equal；键值对完全相同即相等"
+          "description": "C 标准库无 map 类型，Go 对标 maps.Equal；键值对完全相同即相等",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "m1 == m2"
         },
         {
           "name": "!=",
           "signature": "(other: Map) -> bool",
           "kind": "instance",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "—",
           "function": "判断两个 map 是否不相等",
-          "description": "C 标准库无 map 类型，Go 无直接对应；等价于 !(m1 == m2)"
+          "description": "C 标准库无 map 类型，Go 无直接对应；等价于 !(m1 == m2)",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "m1 != m2"
+        },
+        {
+          "name": "len",
+          "signature": "() -> int",
+          "kind": "instance",
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "len",
+          "function": "返回 map 的键值对数量",
+          "description": "对标 C 无直接对应，Go 内置 len()",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "m.len()"
+        },
+        {
+          "name": "get",
+          "signature": "(key: K) -> V?",
+          "kind": "instance",
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "按键获取 map 值，未找到返回 null",
+          "description": "安全访问 map 元素，键不存在返回 V? 可选类型",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "m.get(\"key\")"
+        },
+        {
+          "name": "keys",
+          "signature": "() -> K[]",
+          "kind": "instance",
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "maps.Keys",
+          "function": "返回 map 中所有键的切片",
+          "description": "C 标准库无 map 类型，Go 对标 maps.Keys；返回 K[] 类型，顺序不固定",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "m.keys()"
+        },
+        {
+          "name": "has",
+          "signature": "(key: K) -> bool",
+          "kind": "instance",
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "判断 map 是否包含指定键",
+          "description": "检查 map 中是否存在指定键",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "m.has(\"key\")"
         }
       ]
     },
@@ -1521,11 +1999,14 @@
           "name": "step",
           "signature": "(n: int) -> Range",
           "kind": "instance",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "—",
           "function": "创建带步进的范围迭代器",
-          "description": "C 标准库无直接对应，Go range 关键字；axlang 语言级特性，n 为步进值"
+          "description": "C 标准库无直接对应，Go range 关键字；axlang 语言级特性，n 为步进值",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "range(0, 10).step(2)"
         }
       ]
     },
@@ -1539,41 +2020,53 @@
           "name": "push",
           "signature": "(v: T) -> void",
           "kind": "instance",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "ch <- v",
           "function": "向通道发送数据（阻塞）",
-          "description": "C 标准库无通道，Go 对标 chan 发送操作；channel 阻塞式写入"
+          "description": "C 标准库无通道，Go 对标 chan 发送操作；channel 阻塞式写入",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "ch.push(v)"
         },
         {
           "name": "pop",
           "signature": "() -> T?",
           "kind": "instance",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "<-ch",
           "function": "从通道接收数据（阻塞）",
-          "description": "C 标准库无通道，Go 对标 chan 接收操作；返回 T? 可选类型"
+          "description": "C 标准库无通道，Go 对标 chan 接收操作；返回 T? 可选类型",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "ch.pop()"
         },
         {
           "name": "close",
           "signature": "() -> void",
           "kind": "instance",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "close(ch)",
           "function": "关闭通道，禁止后续发送",
-          "description": "C 标准库无通道，Go 对标 close() 内置；关闭后只能读不能写"
+          "description": "C 标准库无通道，Go 对标 close() 内置；关闭后只能读不能写",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "ch.close()"
         },
         {
           "name": "join",
           "signature": "() -> void",
           "kind": "instance",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "pthread_join",
           "go_counterpart": "sync.WaitGroup.Wait",
           "function": "等待线程/协程结束",
-          "description": "对标 C pthread_join，Go 对标 sync.WaitGroup.Wait；阻塞等待完成"
+          "description": "对标 C pthread_join，Go 对标 sync.WaitGroup.Wait；阻塞等待完成",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "ch.join()"
         }
       ]
     },
@@ -1587,11 +2080,53 @@
           "name": "try_pop",
           "signature": "() -> T?",
           "kind": "instance",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "select/default",
           "function": "非阻塞地从队列取出元素，空队列返回 T? 无值",
-          "description": "C 标准库无直接对应，Go 对标 select + default 语句；非阻塞尝试出队"
+          "description": "C 标准库无直接对应，Go 对标 select + default 语句；非阻塞尝试出队",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "q.try_pop()"
+        },
+        {
+          "name": "push",
+          "signature": "(v: T) -> void",
+          "kind": "instance",
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "将元素入队",
+          "description": "向队列尾部添加元素",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "q.push(v)"
+        },
+        {
+          "name": "pop",
+          "signature": "() -> T?",
+          "kind": "instance",
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "将元素出队",
+          "description": "从队列头部移除并返回元素，空队列返回 null",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "q.pop()"
+        },
+        {
+          "name": "close",
+          "signature": "() -> void",
+          "kind": "instance",
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "—",
+          "function": "关闭队列",
+          "description": "关闭队列，后续无法入队",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "q.close()"
         }
       ]
     },
@@ -1611,7 +2146,8 @@
           "c_counterpart": "argv",
           "go_counterpart": "os.Args",
           "function": "获取命令行参数字符串切片",
-          "description": "对标 C main 的 argv 参数，Go os.Args；第一个元素通常为程序名"
+          "description": "对标 C main 的 argv 参数，Go os.Args；第一个元素通常为程序名",
+          "builtin": false
         },
         {
           "name": "chdir",
@@ -1620,7 +2156,8 @@
           "c_counterpart": "chdir",
           "go_counterpart": "os.Chdir",
           "function": "更改当前工作目录",
-          "description": "对标 C chdir，Go os.Chdir；返回 0 表示成功，非 0 表示失败"
+          "description": "对标 C chdir，Go os.Chdir；返回 0 表示成功，非 0 表示失败",
+          "builtin": false
         },
         {
           "name": "environ",
@@ -1629,7 +2166,8 @@
           "c_counterpart": "environ",
           "go_counterpart": "os.Environ",
           "function": "获取所有环境变量字符串切片",
-          "description": "对标 C environ 全局变量，Go os.Environ；返回 'KEY=VALUE' 格式的字符串数组"
+          "description": "对标 C environ 全局变量，Go os.Environ；返回 'KEY=VALUE' 格式的字符串数组",
+          "builtin": false
         },
         {
           "name": "exit",
@@ -1638,7 +2176,8 @@
           "c_counterpart": "exit",
           "go_counterpart": "os.Exit",
           "function": "终止当前进程并返回退出码",
-          "description": "对标 C exit，Go os.Exit；立即终止程序，不执行 defer"
+          "description": "对标 C exit，Go os.Exit；立即终止程序，不执行 defer",
+          "builtin": false
         },
         {
           "name": "getenv",
@@ -1647,7 +2186,8 @@
           "c_counterpart": "getenv",
           "go_counterpart": "os.Getenv",
           "function": "获取指定环境变量的值",
-          "description": "对标 C getenv，Go os.Getenv；环境变量不存在时返回空字符串"
+          "description": "对标 C getenv，Go os.Getenv；环境变量不存在时返回空字符串",
+          "builtin": false
         },
         {
           "name": "getpid",
@@ -1656,7 +2196,8 @@
           "c_counterpart": "getpid",
           "go_counterpart": "os.Getpid",
           "function": "获取当前进程 ID",
-          "description": "对标 C getpid，Go os.Getpid；返回进程标识符（整数）"
+          "description": "对标 C getpid，Go os.Getpid；返回进程标识符（整数）",
+          "builtin": false
         },
         {
           "name": "getppid",
@@ -1665,7 +2206,8 @@
           "c_counterpart": "getppid",
           "go_counterpart": "os.Getppid",
           "function": "获取父进程 ID",
-          "description": "对标 C getppid，Go os.Getppid；返回父进程标识符（整数）"
+          "description": "对标 C getppid，Go os.Getppid；返回父进程标识符（整数）",
+          "builtin": false
         },
         {
           "name": "getwd",
@@ -1674,7 +2216,8 @@
           "c_counterpart": "getcwd",
           "go_counterpart": "os.Getwd",
           "function": "获取当前工作目录路径",
-          "description": "对标 C getcwd，Go os.Getwd；返回绝对路径字符串"
+          "description": "对标 C getcwd，Go os.Getwd；返回绝对路径字符串",
+          "builtin": false
         },
         {
           "name": "hostname",
@@ -1683,7 +2226,8 @@
           "c_counterpart": "gethostname",
           "go_counterpart": "os.Hostname",
           "function": "获取主机名",
-          "description": "对标 C gethostname，Go os.Hostname；返回系统主机名字符串"
+          "description": "对标 C gethostname，Go os.Hostname；返回系统主机名字符串",
+          "builtin": false
         },
         {
           "name": "setenv",
@@ -1692,7 +2236,8 @@
           "c_counterpart": "setenv",
           "go_counterpart": "os.Setenv",
           "function": "设置环境变量",
-          "description": "对标 C setenv，Go os.Setenv；返回 0 表示成功，非 0 表示失败"
+          "description": "对标 C setenv，Go os.Setenv；返回 0 表示成功，非 0 表示失败",
+          "builtin": false
         },
         {
           "name": "unsetenv",
@@ -1701,7 +2246,8 @@
           "c_counterpart": "unsetenv",
           "go_counterpart": "os.Unsetenv",
           "function": "删除环境变量",
-          "description": "对标 C unsetenv，Go os.Unsetenv；返回 0 表示成功，非 0 表示失败"
+          "description": "对标 C unsetenv，Go os.Unsetenv；返回 0 表示成功，非 0 表示失败",
+          "builtin": false
         },
         {
           "name": "user_home_dir",
@@ -1710,7 +2256,8 @@
           "c_counterpart": "getenv(HOME)",
           "go_counterpart": "os.UserHomeDir",
           "function": "获取当前用户的家目录路径",
-          "description": "对标 C getenv('HOME')，Go os.UserHomeDir；Windows 对应 %USERPROFILE%"
+          "description": "对标 C getenv('HOME')，Go os.UserHomeDir；Windows 对应 %USERPROFILE%",
+          "builtin": false
         },
         {
           "name": "user_cache_dir",
@@ -1719,7 +2266,8 @@
           "c_counterpart": "—",
           "go_counterpart": "os.UserCacheDir",
           "function": "获取用户缓存目录路径",
-          "description": "C 标准库无直接对应，Go 对标 os.UserCacheDir；跨平台缓存目录"
+          "description": "C 标准库无直接对应，Go 对标 os.UserCacheDir；跨平台缓存目录",
+          "builtin": false
         },
         {
           "name": "getpagesize",
@@ -1728,7 +2276,8 @@
           "c_counterpart": "sysconf(_SC_PAGESIZE)",
           "go_counterpart": "—",
           "function": "获取系统页面大小（字节）",
-          "description": "对标 C sysconf(_SC_PAGESIZE)，Go 标准库无直接对应；通常返回 4096"
+          "description": "对标 C sysconf(_SC_PAGESIZE)，Go 标准库无直接对应；通常返回 4096",
+          "builtin": false
         },
         {
           "name": "getuid",
@@ -1737,7 +2286,8 @@
           "c_counterpart": "getuid",
           "go_counterpart": "—",
           "function": "获取当前用户 ID（Unix 特有）",
-          "description": "对标 C getuid，Go 标准库无直接对应；Windows 不支持"
+          "description": "对标 C getuid，Go 标准库无直接对应；Windows 不支持",
+          "builtin": false
         },
         {
           "name": "getgid",
@@ -1746,7 +2296,8 @@
           "c_counterpart": "getgid",
           "go_counterpart": "—",
           "function": "获取当前组 ID（Unix 特有）",
-          "description": "对标 C getgid，Go 标准库无直接对应；Windows 不支持"
+          "description": "对标 C getgid，Go 标准库无直接对应；Windows 不支持",
+          "builtin": false
         },
         {
           "name": "geteuid",
@@ -1755,7 +2306,8 @@
           "c_counterpart": "geteuid",
           "go_counterpart": "—",
           "function": "获取有效用户 ID（Unix 特有）",
-          "description": "对标 C geteuid，Go 标准库无直接对应；Windows 不支持"
+          "description": "对标 C geteuid，Go 标准库无直接对应；Windows 不支持",
+          "builtin": false
         },
         {
           "name": "getegid",
@@ -1764,7 +2316,8 @@
           "c_counterpart": "getegid",
           "go_counterpart": "—",
           "function": "获取有效组 ID（Unix 特有）",
-          "description": "对标 C getegid，Go 标准库无直接对应；Windows 不支持"
+          "description": "对标 C getegid，Go 标准库无直接对应；Windows 不支持",
+          "builtin": false
         },
         {
           "name": "getgroups",
@@ -1773,7 +2326,8 @@
           "c_counterpart": "getgroups",
           "go_counterpart": "—",
           "function": "获取当前用户所属的组 ID 列表",
-          "description": "对标 C getgroups，Go 标准库无直接对应；返回 int[] 数组"
+          "description": "对标 C getgroups，Go 标准库无直接对应；返回 int[] 数组",
+          "builtin": false
         },
         {
           "name": "executable",
@@ -1782,7 +2336,8 @@
           "c_counterpart": "—",
           "go_counterpart": "os.Executable",
           "function": "获取当前可执行文件路径",
-          "description": "C 标准库无直接对应，Go 对标 os.Executable；返回程序本身的绝对路径"
+          "description": "C 标准库无直接对应，Go 对标 os.Executable；返回程序本身的绝对路径",
+          "builtin": false
         }
       ]
     },
@@ -1802,7 +2357,8 @@
           "c_counterpart": "atoi",
           "go_counterpart": "strconv.Atoi",
           "function": "将字符串解析为整数",
-          "description": "对标 C atoi，Go strconv.Atoi；解析失败返回 0 和错误"
+          "description": "对标 C atoi，Go strconv.Atoi；解析失败返回 0 和错误",
+          "builtin": false
         },
         {
           "name": "itoa",
@@ -1811,7 +2367,8 @@
           "c_counterpart": "itoa/sprintf",
           "go_counterpart": "strconv.Itoa",
           "function": "将整数格式化为字符串",
-          "description": "C 标准库无标准 itoa（需 sprintf 或自实现），Go 对标 strconv.Itoa"
+          "description": "C 标准库无标准 itoa（需 sprintf 或自实现），Go 对标 strconv.Itoa",
+          "builtin": false
         },
         {
           "name": "parse_bool",
@@ -1820,7 +2377,8 @@
           "c_counterpart": "—",
           "go_counterpart": "strconv.ParseBool",
           "function": "将字符串解析为布尔值",
-          "description": "C 标准库无直接对应，Go 对标 strconv.ParseBool；接受 '1','t','T','TRUE','true' 等"
+          "description": "C 标准库无直接对应，Go 对标 strconv.ParseBool；接受 '1','t','T','TRUE','true' 等",
+          "builtin": false
         },
         {
           "name": "format_bool",
@@ -1829,7 +2387,8 @@
           "c_counterpart": "—",
           "go_counterpart": "strconv.FormatBool",
           "function": "将布尔值格式化为字符串",
-          "description": "C 标准库无直接对应，Go 对标 strconv.FormatBool；返回 'true' 或 'false'"
+          "description": "C 标准库无直接对应，Go 对标 strconv.FormatBool；返回 'true' 或 'false'",
+          "builtin": false
         },
         {
           "name": "parse_float",
@@ -1838,7 +2397,8 @@
           "c_counterpart": "atof/strtod",
           "go_counterpart": "strconv.ParseFloat",
           "function": "将字符串解析为浮点数",
-          "description": "对标 C atof/strtod，Go strconv.ParseFloat；返回 float 类型"
+          "description": "对标 C atof/strtod，Go strconv.ParseFloat；返回 float 类型",
+          "builtin": false
         },
         {
           "name": "format_float",
@@ -1847,7 +2407,8 @@
           "c_counterpart": "snprintf('%f')",
           "go_counterpart": "strconv.FormatFloat",
           "function": "将浮点数格式化为字符串",
-          "description": "对标 C snprintf %f，Go strconv.FormatFloat；支持精度控制"
+          "description": "对标 C snprintf %f，Go strconv.FormatFloat；支持精度控制",
+          "builtin": false
         },
         {
           "name": "parse_int",
@@ -1856,7 +2417,8 @@
           "c_counterpart": "atoi/strtol",
           "go_counterpart": "strconv.ParseInt",
           "function": "按指定进制将字符串解析为整数",
-          "description": "对标 C strtol，Go strconv.ParseInt；base 参数指定进制（2-36）"
+          "description": "对标 C strtol，Go strconv.ParseInt；base 参数指定进制（2-36）",
+          "builtin": false
         },
         {
           "name": "format_int",
@@ -1865,7 +2427,8 @@
           "c_counterpart": "itoa/snprintf",
           "go_counterpart": "strconv.FormatInt",
           "function": "将整数按指定进制格式化为字符串",
-          "description": "C 标准库无标准 itoa，Go 对标 strconv.FormatInt；base 参数指定进制"
+          "description": "C 标准库无标准 itoa，Go 对标 strconv.FormatInt；base 参数指定进制",
+          "builtin": false
         },
         {
           "name": "parse_uint",
@@ -1874,7 +2437,8 @@
           "c_counterpart": "strtoul",
           "go_counterpart": "strconv.ParseUint",
           "function": "按指定进制将字符串解析为无符号整数",
-          "description": "对标 C strtoul，Go strconv.ParseUint；base 参数指定进制（2-36）"
+          "description": "对标 C strtoul，Go strconv.ParseUint；base 参数指定进制（2-36）",
+          "builtin": false
         },
         {
           "name": "format_uint",
@@ -1883,7 +2447,8 @@
           "c_counterpart": "utoa/snprintf",
           "go_counterpart": "strconv.FormatUint",
           "function": "将无符号整数按指定进制格式化为字符串",
-          "description": "C 标准库无标准 utoa，Go 对标 strconv.FormatUint；base 参数指定进制"
+          "description": "C 标准库无标准 utoa，Go 对标 strconv.FormatUint；base 参数指定进制",
+          "builtin": false
         },
         {
           "name": "can_backquote",
@@ -1892,7 +2457,8 @@
           "c_counterpart": "—",
           "go_counterpart": "strconv.CanBackquote",
           "function": "判断字符串是否可用反引号（原始字符串）表示",
-          "description": "C 标准库无直接对应，Go 对标 strconv.CanBackquote；检查是否包含反引号或非打印字符"
+          "description": "C 标准库无直接对应，Go 对标 strconv.CanBackquote；检查是否包含反引号或非打印字符",
+          "builtin": false
         },
         {
           "name": "quote",
@@ -1901,7 +2467,8 @@
           "c_counterpart": "—",
           "go_counterpart": "strconv.Quote",
           "function": "将字符串加双引号并转义，生成 Go 字符串字面量",
-          "description": "C 标准库无直接对应，Go 对标 strconv.Quote；输出可直接用于 Go 源码"
+          "description": "C 标准库无直接对应，Go 对标 strconv.Quote；输出可直接用于 Go 源码",
+          "builtin": false
         },
         {
           "name": "unquote",
@@ -1910,7 +2477,8 @@
           "c_counterpart": "—",
           "go_counterpart": "strconv.Unquote",
           "function": "解析带引号的字符串字面量，去除转义",
-          "description": "C 标准库无直接对应，Go 对标 strconv.Unquote；处理双引号和反引号字符串"
+          "description": "C 标准库无直接对应，Go 对标 strconv.Unquote；处理双引号和反引号字符串",
+          "builtin": false
         }
       ]
     },
@@ -1927,7 +2495,8 @@
           "c_counterpart": "—",
           "go_counterpart": "filepath.Join",
           "function": "将多个路径片段连接为单个路径",
-          "description": "C 标准库无直接对应，Go 对标 filepath.Join；自动处理平台分隔符"
+          "description": "C 标准库无直接对应，Go 对标 filepath.Join；自动处理平台分隔符",
+          "builtin": false
         },
         {
           "name": "dir",
@@ -1936,7 +2505,8 @@
           "c_counterpart": "dirname",
           "go_counterpart": "filepath.Dir",
           "function": "返回路径的目录部分",
-          "description": "对标 C dirname 命令/函数，Go 对标 filepath.Dir；去掉最后一个元素"
+          "description": "对标 C dirname 命令/函数，Go 对标 filepath.Dir；去掉最后一个元素",
+          "builtin": false
         },
         {
           "name": "base",
@@ -1945,7 +2515,8 @@
           "c_counterpart": "basename",
           "go_counterpart": "filepath.Base",
           "function": "返回路径的最后一个元素（文件名）",
-          "description": "对标 C basename 命令/函数，Go 对标 filepath.Base；去掉目录部分"
+          "description": "对标 C basename 命令/函数，Go 对标 filepath.Base；去掉目录部分",
+          "builtin": false
         },
         {
           "name": "ext",
@@ -1954,7 +2525,8 @@
           "c_counterpart": "—",
           "go_counterpart": "filepath.Ext",
           "function": "返回文件扩展名（包含点）",
-          "description": "C 标准库无直接对应，Go 对标 filepath.Ext；返回 '.ext' 格式，无扩展名返回空字符串"
+          "description": "C 标准库无直接对应，Go 对标 filepath.Ext；返回 '.ext' 格式，无扩展名返回空字符串",
+          "builtin": false
         },
         {
           "name": "split",
@@ -1963,7 +2535,8 @@
           "c_counterpart": "—",
           "go_counterpart": "filepath.Split",
           "function": "将路径拆分为目录和文件名两部分",
-          "description": "C 标准库无直接对应，Go 对标 filepath.Split；返回 string[2] 数组"
+          "description": "C 标准库无直接对应，Go 对标 filepath.Split；返回 string[2] 数组",
+          "builtin": false
         },
         {
           "name": "clean",
@@ -1972,7 +2545,8 @@
           "c_counterpart": "—",
           "go_counterpart": "filepath.Clean",
           "function": "规范化路径，删除冗余的斜杠和 '.' '..'",
-          "description": "C 标准库无直接对应，Go 对标 filepath.Clean；返回最短等价路径"
+          "description": "C 标准库无直接对应，Go 对标 filepath.Clean；返回最短等价路径",
+          "builtin": false
         },
         {
           "name": "abs",
@@ -1981,7 +2555,8 @@
           "c_counterpart": "realpath",
           "go_counterpart": "filepath.Abs",
           "function": "返回路径的绝对形式",
-          "description": "对标 C realpath，Go 对标 filepath.Abs；基于当前工作目录解析相对路径"
+          "description": "对标 C realpath，Go 对标 filepath.Abs；基于当前工作目录解析相对路径",
+          "builtin": false
         },
         {
           "name": "is_abs",
@@ -1990,7 +2565,8 @@
           "c_counterpart": "—",
           "go_counterpart": "filepath.IsAbs",
           "function": "判断路径是否为绝对路径",
-          "description": "C 标准库无直接对应，Go 对标 filepath.IsAbs；检查是否以根目录开头"
+          "description": "C 标准库无直接对应，Go 对标 filepath.IsAbs；检查是否以根目录开头",
+          "builtin": false
         },
         {
           "name": "eval_symlinks",
@@ -1999,7 +2575,8 @@
           "c_counterpart": "realpath",
           "go_counterpart": "filepath.EvalSymlinks",
           "function": "解析符号链接，返回规范路径",
-          "description": "对标 C realpath，Go 对标 filepath.EvalSymlinks；递归解析所有软链接"
+          "description": "对标 C realpath，Go 对标 filepath.EvalSymlinks；递归解析所有软链接",
+          "builtin": false
         },
         {
           "name": "glob",
@@ -2008,7 +2585,8 @@
           "c_counterpart": "glob",
           "go_counterpart": "filepath.Glob",
           "function": "按模式匹配文件名，返回匹配的字符串切片",
-          "description": "对标 C glob，Go 对标 filepath.Glob；支持 * ? [...] 通配符"
+          "description": "对标 C glob，Go 对标 filepath.Glob；支持 * ? [...] 通配符",
+          "builtin": false
         },
         {
           "name": "rel",
@@ -2017,7 +2595,8 @@
           "c_counterpart": "—",
           "go_counterpart": "filepath.Rel",
           "function": "返回从 basepath 到 targpath 的相对路径",
-          "description": "C 标准库无直接对应，Go 对标 filepath.Rel；计算两个路径间的相对关系"
+          "description": "C 标准库无直接对应，Go 对标 filepath.Rel；计算两个路径间的相对关系",
+          "builtin": false
         },
         {
           "name": "walk",
@@ -2026,7 +2605,8 @@
           "c_counterpart": "nftw",
           "go_counterpart": "filepath.Walk",
           "function": "递归遍历目录树，对每个文件调用回调",
-          "description": "对标 C nftw，Go 对标 filepath.Walk；axlang 不支持闭包，实际受限"
+          "description": "对标 C nftw，Go 对标 filepath.Walk；axlang 不支持闭包，实际受限",
+          "builtin": false
         }
       ]
     },
@@ -2043,7 +2623,8 @@
           "c_counterpart": "rand",
           "go_counterpart": "rand.Intn",
           "function": "返回 [0, n) 范围内的随机整数",
-          "description": "对标 C rand，Go math/rand.Intn；n 必须为正数"
+          "description": "对标 C rand，Go math/rand.Intn；n 必须为正数",
+          "builtin": false
         },
         {
           "name": "float",
@@ -2052,7 +2633,8 @@
           "c_counterpart": "rand/drand48",
           "go_counterpart": "rand.Float64",
           "function": "返回 [0.0, 1.0) 范围内的随机浮点数",
-          "description": "对标 C drand48，Go math/rand.Float64；伪随机数生成"
+          "description": "对标 C drand48，Go math/rand.Float64；伪随机数生成",
+          "builtin": false
         },
         {
           "name": "seed",
@@ -2061,7 +2643,8 @@
           "c_counterpart": "srand",
           "go_counterpart": "rand.Seed",
           "function": "设置随机数生成器种子",
-          "description": "对标 C srand，Go math/rand.Seed；相同种子产生相同序列"
+          "description": "对标 C srand，Go math/rand.Seed；相同种子产生相同序列",
+          "builtin": false
         }
       ]
     },
@@ -2074,65 +2657,86 @@
         {
           "name": "ints",
           "signature": "(a: int[]) -> void",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "qsort",
           "go_counterpart": "sort.Ints",
           "function": "对 int 数组升序排序",
-          "description": "对标 C qsort，Go sort.Ints；原地排序，默认升序"
+          "description": "对标 C qsort，Go sort.Ints；原地排序，默认升序",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "sort.ints(arr)"
         },
         {
           "name": "strings",
           "signature": "(a: string[]) -> void",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "qsort",
           "go_counterpart": "sort.Strings",
           "function": "对 string 数组升序排序",
-          "description": "对标 C qsort，Go sort.Strings；按字典序原地排序"
+          "description": "对标 C qsort，Go sort.Strings；按字典序原地排序",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "sort.strings(arr)"
         },
         {
           "name": "float64s",
           "signature": "(a: float[]) -> void",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "qsort",
           "go_counterpart": "sort.Float64s",
           "function": "对 float 数组升序排序",
-          "description": "对标 C qsort，Go sort.Float64s；原地排序，默认升序"
+          "description": "对标 C qsort，Go sort.Float64s；原地排序，默认升序",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "sort.float64s(arr)"
         },
         {
           "name": "ints_are_sorted",
           "signature": "(a: int[]) -> bool",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "sort.IntsAreSorted",
           "function": "判断 int 数组是否已升序排序",
-          "description": "C 标准库无直接对应，Go 对标 sort.IntsAreSorted；遍历检查，O(n)"
+          "description": "C 标准库无直接对应，Go 对标 sort.IntsAreSorted；遍历检查，O(n)",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "sort.ints_are_sorted(arr)"
         },
         {
           "name": "strings_are_sorted",
           "signature": "(a: string[]) -> bool",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "sort.StringsAreSorted",
           "function": "判断 string 数组是否已升序排序",
-          "description": "C 标准库无直接对应，Go 对标 sort.StringsAreSorted；遍历检查，O(n)"
+          "description": "C 标准库无直接对应，Go 对标 sort.StringsAreSorted；遍历检查，O(n)",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "sort.strings_are_sorted(arr)"
         },
         {
           "name": "search_ints",
           "signature": "(a: int[], x: int) -> int",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "bsearch",
           "go_counterpart": "sort.SearchInts",
           "function": "在已排序 int 数组中二分查找目标值",
-          "description": "对标 C bsearch，Go sort.SearchInts；要求数组已排序，返回索引或插入点"
+          "description": "对标 C bsearch，Go sort.SearchInts；要求数组已排序，返回索引或插入点",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "sort.search_ints(arr, 5)"
         },
         {
           "name": "search_strings",
           "signature": "(a: string[], x: string) -> int",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "bsearch",
           "go_counterpart": "sort.SearchStrings",
           "function": "在已排序 string 数组中二分查找目标字符串",
-          "description": "对标 C bsearch，Go sort.SearchStrings；要求数组已排序，返回索引或插入点"
+          "description": "对标 C bsearch，Go sort.SearchStrings；要求数组已排序，返回索引或插入点",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "sort.search_strings(arr, \"key\")"
         },
         {
           "name": "slice",
@@ -2142,7 +2746,10 @@
           "c_counterpart": "qsort",
           "go_counterpart": "sort.Slice",
           "function": "按自定义比较函数对任意类型数组排序",
-          "description": "对标 C qsort，Go sort.Slice；axlang 不支持闭包，cmp 参数受限，实际可用性有限"
+          "description": "对标 C qsort，Go sort.Slice；axlang 不支持闭包，cmp 参数受限，实际可用性有限",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "sort.slice(arr, func(i, j int) bool { return arr[i] < arr[j] })"
         },
         {
           "name": "slice_stable",
@@ -2152,7 +2759,10 @@
           "c_counterpart": "—",
           "go_counterpart": "sort.SliceStable",
           "function": "稳定排序（相等元素保持原始相对顺序）",
-          "description": "C 标准库无稳定排序，Go 对标 sort.SliceStable；axlang 不支持闭包，暂不落地"
+          "description": "C 标准库无稳定排序，Go 对标 sort.SliceStable；axlang 不支持闭包，暂不落地",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "sort.slice_stable(arr, func(i, j int) bool { return arr[i] < arr[j] })"
         }
       ]
     },
@@ -2166,132 +2776,171 @@
           "name": "contains",
           "signature": "(x: T) -> bool",
           "kind": "instance",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "slices.Contains",
           "function": "判断数组是否包含指定元素",
-          "description": "C 标准库无直接对应，Go 对标 slices.Contains；线性查找，O(n)"
+          "description": "C 标准库无直接对应，Go 对标 slices.Contains；线性查找，O(n)",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "slices.contains(arr, x)"
         },
         {
           "name": "index",
           "signature": "(x: T) -> int",
           "kind": "instance",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "slices.Index",
           "function": "返回元素在数组中的索引，未找到返回 -1",
-          "description": "C 标准库无直接对应，Go 对标 slices.Index；线性查找，O(n)"
+          "description": "C 标准库无直接对应，Go 对标 slices.Index；线性查找，O(n)",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "slices.index(arr, x)"
         },
         {
           "name": "sort",
           "signature": "() -> void",
           "kind": "instance",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "qsort",
           "go_counterpart": "slices.Sort",
           "function": "对数组原地升序排序",
-          "description": "对标 C qsort，Go slices.Sort；支持 int[]/string[] 默认升序，cmp 重载支持自定义比较"
+          "description": "对标 C qsort，Go slices.Sort；支持 int[]/string[] 默认升序，cmp 重载支持自定义比较",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "arr.sort()"
         },
         {
           "name": "sort",
           "signature": "(cmp) -> void",
           "kind": "instance",
-          "status": "planned",
+          "status": "implemented",
           "note": "带比较函数，GAP #10",
           "c_counterpart": "qsort",
           "go_counterpart": "slices.Sort",
           "function": "对数组原地升序排序",
-          "description": "对标 C qsort，Go slices.Sort；支持 int[]/string[] 默认升序，cmp 重载支持自定义比较"
+          "description": "对标 C qsort，Go slices.Sort；支持 int[]/string[] 默认升序，cmp 重载支持自定义比较",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "arr.sort()"
         },
         {
           "name": "reverse",
           "signature": "() -> void",
           "kind": "instance",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "slices.Reverse",
           "function": "原地反转数组元素顺序",
-          "description": "C 标准库无直接对应，Go 对标 slices.Reverse；首尾元素交换，O(n/2)"
+          "description": "C 标准库无直接对应，Go 对标 slices.Reverse；首尾元素交换，O(n/2)",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "arr.reverse()"
         },
         {
           "name": "clone",
           "signature": "() -> T[]",
           "kind": "instance",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "memcpy",
           "go_counterpart": "slices.Clone",
           "function": "返回数组的深拷贝副本",
-          "description": "对标 C memcpy，Go slices.Clone；返回独立的新数组，修改不影响原数组"
+          "description": "对标 C memcpy，Go slices.Clone；返回独立的新数组，修改不影响原数组",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "arr.clone()"
         },
         {
           "name": "insert",
           "signature": "(i, x) -> void",
           "kind": "instance",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "memmove",
           "go_counterpart": "slices.Insert",
           "function": "在指定索引位置插入元素",
-          "description": "C 标准库无直接对应，Go 对标 slices.Insert；后续元素后移，O(n)"
+          "description": "C 标准库无直接对应，Go 对标 slices.Insert；后续元素后移，O(n)",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "arr.insert(0, x)"
         },
         {
           "name": "fill",
           "signature": "(x) -> void",
           "kind": "instance",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "memset",
           "go_counterpart": "slices.Fill",
           "function": "用指定值填充数组所有元素",
-          "description": "对标 C memset，Go slices.Fill；将所有元素设为相同值，O(n)"
+          "description": "对标 C memset，Go slices.Fill；将所有元素设为相同值，O(n)",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "arr.fill(0)"
         },
         {
           "name": "resize",
           "signature": "(n) -> void",
           "kind": "instance",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "realloc",
           "go_counterpart": "—",
           "function": "调整数组长度，扩容时填充零值",
-          "description": "对标 C realloc，Go 标准库无直接对应；缩短时截断，扩长时补零"
+          "description": "对标 C realloc，Go 标准库无直接对应；缩短时截断，扩长时补零",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "arr.resize(10)"
         },
         {
           "name": "merge",
           "signature": "(other) -> void",
           "kind": "instance",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "memcpy",
           "go_counterpart": "slices.Concat",
           "function": "将另一数组追加到当前数组末尾",
-          "description": "对标 C memcpy 追加，Go 对标 slices.Concat；原地修改当前数组"
+          "description": "对标 C memcpy 追加，Go 对标 slices.Concat；原地修改当前数组",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "arr.merge(other)"
         },
         {
           "name": "min",
           "signature": "() -> T",
           "kind": "instance",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "slices.Min",
           "function": "返回数组中的最小值",
-          "description": "C 标准库无直接对应，Go 对标 slices.Min；支持 int[]/float[]，遍历查找，O(n)"
+          "description": "C 标准库无直接对应，Go 对标 slices.Min；支持 int[]/float[]，遍历查找，O(n)",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "arr.min()"
         },
         {
           "name": "max",
           "signature": "() -> T",
           "kind": "instance",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "slices.Max",
           "function": "返回数组中的最大值",
-          "description": "C 标准库无直接对应，Go 对标 slices.Max；支持 int[]/float[]，遍历查找，O(n)"
+          "description": "C 标准库无直接对应，Go 对标 slices.Max；支持 int[]/float[]，遍历查找，O(n)",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "arr.max()"
         },
         {
           "name": "sum",
           "signature": "() -> T",
           "kind": "instance",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "—",
           "function": "返回数组元素之和",
-          "description": "C 标准库无直接对应，Go 标准库无 slices.Sum；遍历累加，O(n)"
+          "description": "C 标准库无直接对应，Go 标准库无 slices.Sum；遍历累加，O(n)",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "arr.sum()"
         },
         {
           "name": "delete",
@@ -2302,7 +2951,10 @@
           "c_counterpart": "memmove",
           "go_counterpart": "slices.Delete",
           "function": "删除索引 [i, j) 范围内的元素",
-          "description": "C 标准库无直接对应，Go 对标 slices.Delete；后续元素前移，O(n)"
+          "description": "C 标准库无直接对应，Go 对标 slices.Delete；后续元素前移，O(n)",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "slices.delete(arr, i, j)"
         }
       ]
     },
@@ -2315,47 +2967,62 @@
         {
           "name": "keys",
           "signature": "(m: Map) -> K[]",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "maps.Keys",
           "function": "返回 map 中所有键的切片",
-          "description": "C 标准库无 map 类型，Go 对标 maps.Keys；返回 K[] 类型，顺序不固定"
+          "description": "C 标准库无 map 类型，Go 对标 maps.Keys；返回 K[] 类型，顺序不固定",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "maps.keys(m)"
         },
         {
           "name": "values",
           "signature": "(m: Map) -> V[]",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "maps.Values",
           "function": "返回 map 中所有值的切片",
-          "description": "C 标准库无 map 类型，Go 对标 maps.Values；返回 V[] 类型，顺序不固定"
+          "description": "C 标准库无 map 类型，Go 对标 maps.Values；返回 V[] 类型，顺序不固定",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "maps.values(m)"
         },
         {
           "name": "clone",
           "signature": "(m: Map) -> Map",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "maps.Clone",
           "function": "返回 map 的深拷贝副本",
-          "description": "C 标准库无 map 类型，Go 对标 maps.Clone；返回独立的新 map"
+          "description": "C 标准库无 map 类型，Go 对标 maps.Clone；返回独立的新 map",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "maps.clone(m)"
         },
         {
           "name": "copy",
           "signature": "(dst: Map, src: Map) -> void",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "maps.Copy",
           "function": "将 src map 的所有键值对复制到 dst map",
-          "description": "C 标准库无 map 类型，Go 对标 maps.Copy；覆盖 dst 中已有的键"
+          "description": "C 标准库无 map 类型，Go 对标 maps.Copy；覆盖 dst 中已有的键",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "maps.copy(dst, src)"
         },
         {
           "name": "delete",
           "signature": "(m: Map, key: K) -> void",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "delete/maps.Delete",
           "function": "删除 map 中指定键的条目",
-          "description": "C 标准库无 map 类型，Go 对标 delete() 内置或 maps.Delete；键不存在时不报错"
+          "description": "C 标准库无 map 类型，Go 对标 delete() 内置或 maps.Delete；键不存在时不报错",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "maps.delete(m, key)"
         },
         {
           "name": "delete_func",
@@ -2365,16 +3032,22 @@
           "c_counterpart": "—",
           "go_counterpart": "maps.DeleteFunc",
           "function": "删除满足条件的所有键值对",
-          "description": "C 标准库无 map 类型，Go 对标 maps.DeleteFunc；axlang 不支持闭包，暂不落地"
+          "description": "C 标准库无 map 类型，Go 对标 maps.DeleteFunc；axlang 不支持闭包，暂不落地",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "maps.delete_func(m, func(k) bool { ... })"
         },
         {
           "name": "equal",
           "signature": "(m1: Map, m2: Map) -> bool",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "maps.Equal",
           "function": "判断两个 map 是否相等（相同键值对）",
-          "description": "C 标准库无 map 类型，Go 对标 maps.Equal；键值对完全相同即相等"
+          "description": "C 标准库无 map 类型，Go 对标 maps.Equal；键值对完全相同即相等",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "maps.equal(m1, m2)"
         }
       ]
     },
@@ -2387,20 +3060,26 @@
         {
           "name": "make",
           "signature": "(v: T) -> Handle[T]",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "unique.Make",
           "function": "根据值创建唯一句柄 Handle[T]，相同值共享同一句柄",
-          "description": "C 标准库无直接对应，Go 对标 unique.Make；Handle[T] 装箱类型，支持值比较去重"
+          "description": "C 标准库无直接对应，Go 对标 unique.Make；Handle[T] 装箱类型，支持值比较去重",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "unique.make(v)"
         },
         {
           "name": "value",
           "signature": "(h: Handle[T]) -> T",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "unique.Value",
           "function": "从 Handle[T] 解出原始值 T",
-          "description": "C 标准库无直接对应，Go 对标 unique.Value；解箱操作，返回内层类型 T"
+          "description": "C 标准库无直接对应，Go 对标 unique.Value；解箱操作，返回内层类型 T",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "unique.value(h)"
         }
       ]
     },
@@ -2417,7 +3096,8 @@
           "c_counterpart": "strstr/memmem",
           "go_counterpart": "bytes.Contains",
           "function": "判断字节切片是否包含子字节切片",
-          "description": "对标 C memmem（非标准）或 strstr，Go 对标 bytes.Contains；字节级查找"
+          "description": "对标 C memmem（非标准）或 strstr，Go 对标 bytes.Contains；字节级查找",
+          "builtin": false
         },
         {
           "name": "equal",
@@ -2426,7 +3106,8 @@
           "c_counterpart": "memcmp",
           "go_counterpart": "bytes.Equal",
           "function": "判断两个字节切片是否相等",
-          "description": "对标 C memcmp，Go 对标 bytes.Equal；长度和内容完全相同即相等"
+          "description": "对标 C memcmp，Go 对标 bytes.Equal；长度和内容完全相同即相等",
+          "builtin": false
         },
         {
           "name": "index",
@@ -2435,7 +3116,8 @@
           "c_counterpart": "strstr/memmem",
           "go_counterpart": "bytes.Index",
           "function": "返回子字节切片首次出现的索引，未找到返回 -1",
-          "description": "对标 C memmem（非标准），Go 对标 bytes.Index；字节级查找"
+          "description": "对标 C memmem（非标准），Go 对标 bytes.Index；字节级查找",
+          "builtin": false
         },
         {
           "name": "split",
@@ -2444,7 +3126,8 @@
           "c_counterpart": "strtok",
           "go_counterpart": "bytes.Split",
           "function": "按分隔符分割字节切片",
-          "description": "对标 C strtok，Go 对标 bytes.Split；分隔符本身不保留，返回 bytes[] 切片"
+          "description": "对标 C strtok，Go 对标 bytes.Split；分隔符本身不保留，返回 bytes[] 切片",
+          "builtin": false
         },
         {
           "name": "trim_space",
@@ -2453,7 +3136,8 @@
           "c_counterpart": "—",
           "go_counterpart": "bytes.TrimSpace",
           "function": "去除字节切片首尾空白字符",
-          "description": "C 标准库无直接对应，Go 对标 bytes.TrimSpace；空白包括空格、制表符、换行符等"
+          "description": "C 标准库无直接对应，Go 对标 bytes.TrimSpace；空白包括空格、制表符、换行符等",
+          "builtin": false
         },
         {
           "name": "to_upper",
@@ -2462,7 +3146,8 @@
           "c_counterpart": "toupper",
           "go_counterpart": "bytes.ToUpper",
           "function": "将字节切片转换为大写",
-          "description": "对标 C toupper（逐字节），Go 对标 bytes.ToUpper；仅 ASCII 字母"
+          "description": "对标 C toupper（逐字节），Go 对标 bytes.ToUpper；仅 ASCII 字母",
+          "builtin": false
         },
         {
           "name": "to_lower",
@@ -2471,7 +3156,8 @@
           "c_counterpart": "tolower",
           "go_counterpart": "bytes.ToLower",
           "function": "将字节切片转换为小写",
-          "description": "对标 C tolower（逐字节），Go 对标 bytes.ToLower；仅 ASCII 字母"
+          "description": "对标 C tolower（逐字节），Go 对标 bytes.ToLower；仅 ASCII 字母",
+          "builtin": false
         },
         {
           "name": "repeat",
@@ -2480,7 +3166,8 @@
           "c_counterpart": "—",
           "go_counterpart": "bytes.Repeat",
           "function": "将字节切片重复 count 次",
-          "description": "C 标准库无直接对应，Go 对标 bytes.Repeat；返回新的重复后的字节切片"
+          "description": "C 标准库无直接对应，Go 对标 bytes.Repeat；返回新的重复后的字节切片",
+          "builtin": false
         }
       ]
     },
@@ -2497,7 +3184,8 @@
           "c_counterpart": "—",
           "go_counterpart": "bufio.NewReader",
           "function": "创建带缓冲的文件读取器",
-          "description": "C 标准库无直接对应，Go 对标 bufio.NewReader；基于 File 句柄 ax_file*"
+          "description": "C 标准库无直接对应，Go 对标 bufio.NewReader；基于 File 句柄 ax_file*",
+          "builtin": false
         },
         {
           "name": "new_writer",
@@ -2506,7 +3194,8 @@
           "c_counterpart": "—",
           "go_counterpart": "bufio.NewWriter",
           "function": "创建带缓冲的文件写入器",
-          "description": "C 标准库无直接对应，Go 对标 bufio.NewWriter；基于 File 句柄 ax_file*"
+          "description": "C 标准库无直接对应，Go 对标 bufio.NewWriter；基于 File 句柄 ax_file*",
+          "builtin": false
         },
         {
           "name": "scanner",
@@ -2515,7 +3204,8 @@
           "c_counterpart": "—",
           "go_counterpart": "bufio.NewScanner",
           "function": "创建扫描器，按行或自定义分隔符读取",
-          "description": "C 标准库无直接对应，Go 对标 bufio.NewScanner；基于 File 句柄 ax_file*"
+          "description": "C 标准库无直接对应，Go 对标 bufio.NewScanner；基于 File 句柄 ax_file*",
+          "builtin": false
         }
       ]
     },
@@ -2532,7 +3222,8 @@
           "c_counterpart": "—",
           "go_counterpart": "csv.Reader.ReadAll",
           "function": "从 CSV 阅读器读取所有记录为二维字符串切片",
-          "description": "C 标准库无 CSV 解析器，Go 对标 encoding/csv.Reader.ReadAll；返回 string[][]"
+          "description": "C 标准库无 CSV 解析器，Go 对标 encoding/csv.Reader.ReadAll；返回 string[][]",
+          "builtin": false
         },
         {
           "name": "write",
@@ -2541,7 +3232,8 @@
           "c_counterpart": "—",
           "go_counterpart": "csv.Writer.Write",
           "function": "将一条记录写入 CSV 文件",
-          "description": "C 标准库无 CSV 写入器，Go 对标 encoding/csv.Writer.Write；返回写入状态"
+          "description": "C 标准库无 CSV 写入器，Go 对标 encoding/csv.Writer.Write；返回写入状态",
+          "builtin": false
         }
       ]
     },
@@ -2561,7 +3253,8 @@
           "c_counterpart": "—",
           "go_counterpart": "errors.New",
           "function": "根据消息字符串创建 error 对象",
-          "description": "C 标准库无 error 类型，Go 对标 errors.New；返回 axlang error 类型"
+          "description": "C 标准库无 error 类型，Go 对标 errors.New；返回 axlang error 类型",
+          "builtin": false
         },
         {
           "name": "is",
@@ -2570,7 +3263,8 @@
           "c_counterpart": "—",
           "go_counterpart": "errors.Is",
           "function": "判断错误是否与目标错误匹配（支持链式包装）",
-          "description": "C 标准库无 error 类型，Go 对标 errors.Is；axlang 无运行时反射，target 限定为 error 类型"
+          "description": "C 标准库无 error 类型，Go 对标 errors.Is；axlang 无运行时反射，target 限定为 error 类型",
+          "builtin": false
         },
         {
           "name": "as",
@@ -2580,7 +3274,8 @@
           "c_counterpart": "—",
           "go_counterpart": "errors.As",
           "function": "将错误解析为目标类型",
-          "description": "C 标准库无 error 类型，Go 对标 errors.As；axlang 无运行时反射，target 限定为 error 类型"
+          "description": "C 标准库无 error 类型，Go 对标 errors.As；axlang 无运行时反射，target 限定为 error 类型",
+          "builtin": false
         }
       ]
     },
@@ -2593,29 +3288,38 @@
         {
           "name": "print",
           "signature": "(v: any...) -> void",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "printf/fputs",
           "go_counterpart": "log.Print",
           "function": "输出日志到标准输出",
-          "description": "对标 C printf/fputs，Go log.Print；输出带时间戳的普通日志"
+          "description": "对标 C printf/fputs，Go log.Print；输出带时间戳的普通日志",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "log.print(\"info\", \"started\")"
         },
         {
           "name": "printf",
           "signature": "(format: string, v: any...) -> void",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "printf/fprintf",
           "go_counterpart": "log.Printf",
           "function": "按格式输出格式化日志",
-          "description": "对标 C printf/fprintf，Go log.Printf；支持格式化占位符"
+          "description": "对标 C printf/fprintf，Go log.Printf；支持格式化占位符",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "log.printf(\"count=%d\", n)"
         },
         {
           "name": "fatal",
           "signature": "(v: any...) -> void",
-          "status": "planned",
+          "status": "implemented",
           "c_counterpart": "printf+exit",
           "go_counterpart": "log.Fatal",
           "function": "输出致命日志并退出程序",
-          "description": "对标 C printf+exit(1)，Go log.Fatal；输出后调用 os.Exit(1) 终止程序"
+          "description": "对标 C printf+exit(1)，Go log.Fatal；输出后调用 os.Exit(1) 终止程序",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "log.fatal(\"error\", err)"
         }
       ]
     },
@@ -2640,7 +3344,8 @@
               "go_counterpart": "sync.Mutex.Lock",
               "function": "加互斥锁，保护共享资源",
               "description": "对标 C pthread_mutex_lock，Go sync.Mutex.Lock；sync.mutex 结构体方法",
-              "note": ""
+              "note": "",
+              "builtin": false
             },
             {
               "name": "unlock",
@@ -2650,7 +3355,8 @@
               "go_counterpart": "sync.Mutex.Unlock",
               "function": "释放互斥锁",
               "description": "对标 C pthread_mutex_unlock，Go sync.Mutex.Unlock；sync.mutex 结构体方法",
-              "note": ""
+              "note": "",
+              "builtin": false
             }
           ]
         },
@@ -2666,7 +3372,8 @@
               "go_counterpart": "sync.Mutex.Lock",
               "function": "加互斥锁，保护共享资源",
               "description": "对标 C pthread_mutex_lock，Go sync.Mutex.Lock；sync.mutex 结构体方法",
-              "note": ""
+              "note": "",
+              "builtin": false
             },
             {
               "name": "unlock",
@@ -2676,7 +3383,8 @@
               "go_counterpart": "sync.Mutex.Unlock",
               "function": "释放互斥锁",
               "description": "对标 C pthread_mutex_unlock，Go sync.Mutex.Unlock；sync.mutex 结构体方法",
-              "note": ""
+              "note": "",
+              "builtin": false
             },
             {
               "name": "rlock",
@@ -2686,7 +3394,8 @@
               "go_counterpart": "sync.RWMutex.RLock",
               "function": "加读锁，允许并发读取",
               "description": "对标 C pthread_rwlock_rdlock，Go sync.RWMutex.RLock；sync.rwmutex 结构体方法",
-              "note": ""
+              "note": "",
+              "builtin": false
             },
             {
               "name": "runlock",
@@ -2696,7 +3405,8 @@
               "go_counterpart": "sync.RWMutex.RUnlock",
               "function": "释放读锁",
               "description": "对标 C pthread_rwlock_unlock，Go sync.RWMutex.RUnlock；sync.rwmutex 结构体方法",
-              "note": ""
+              "note": "",
+              "builtin": false
             }
           ]
         },
@@ -2712,7 +3422,8 @@
               "go_counterpart": "sync.WaitGroup.Add",
               "function": "给等待组增加计数器",
               "description": "C 标准库无直接对应，Go 对标 sync.WaitGroup.Add；sync.wait_group 结构体方法",
-              "note": ""
+              "note": "",
+              "builtin": false
             },
             {
               "name": "done",
@@ -2722,7 +3433,8 @@
               "go_counterpart": "sync.WaitGroup.Done",
               "function": "等待组计数器减 1，表示任务完成",
               "description": "C 标准库无直接对应，Go 对标 sync.WaitGroup.Done；sync.wait_group 结构体方法",
-              "note": ""
+              "note": "",
+              "builtin": false
             },
             {
               "name": "wait",
@@ -2732,7 +3444,8 @@
               "go_counterpart": "sync.WaitGroup.Wait",
               "function": "阻塞等待等待组计数器归零",
               "description": "对标 C pthread_join/条件变量，Go 对标 sync.WaitGroup.Wait；sync.wait_group 结构体方法",
-              "note": ""
+              "note": "",
+              "builtin": false
             }
           ]
         },
@@ -2748,7 +3461,8 @@
               "go_counterpart": "sync.Once.Do",
               "function": "确保函数仅执行一次，用于单例初始化",
               "description": "对标 C pthread_once，Go 对标 sync.Once.Do；sync.once 结构体方法",
-              "note": ""
+              "note": "",
+              "builtin": false
             }
           ]
         }
@@ -2770,7 +3484,8 @@
           "c_counterpart": "atomic_fetch_add",
           "go_counterpart": "atomic.AddInt64",
           "function": "原子地将增量加到整数地址并返回原值",
-          "description": "对标 C atomic_fetch_add（<stdatomic.h>），Go sync/atomic.AddInt64；基于 C11 原子类型"
+          "description": "对标 C atomic_fetch_add（<stdatomic.h>），Go sync/atomic.AddInt64；基于 C11 原子类型",
+          "builtin": false
         },
         {
           "name": "load_int",
@@ -2779,7 +3494,8 @@
           "c_counterpart": "atomic_load",
           "go_counterpart": "atomic.LoadInt64",
           "function": "原子地读取整数地址的值",
-          "description": "对标 C atomic_load，Go sync/atomic.LoadInt64；基于 C11 原子类型"
+          "description": "对标 C atomic_load，Go sync/atomic.LoadInt64；基于 C11 原子类型",
+          "builtin": false
         },
         {
           "name": "store_int",
@@ -2788,7 +3504,8 @@
           "c_counterpart": "atomic_store",
           "go_counterpart": "atomic.StoreInt64",
           "function": "原子地将值写入整数地址",
-          "description": "对标 C atomic_store，Go sync/atomic.StoreInt64；基于 C11 原子类型"
+          "description": "对标 C atomic_store，Go sync/atomic.StoreInt64；基于 C11 原子类型",
+          "builtin": false
         },
         {
           "name": "compare_and_swap_int",
@@ -2797,7 +3514,8 @@
           "c_counterpart": "atomic_compare_exchange",
           "go_counterpart": "atomic.CompareAndSwapInt64",
           "function": "原地比较并交换：若当前值等于 old 则更新为 new",
-          "description": "对标 C atomic_compare_exchange_strong，Go sync/atomic.CompareAndSwapInt64；基于 C11 原子类型"
+          "description": "对标 C atomic_compare_exchange_strong，Go sync/atomic.CompareAndSwapInt64；基于 C11 原子类型",
+          "builtin": false
         }
       ]
     },
@@ -2815,7 +3533,10 @@
           "c_counterpart": "—",
           "go_counterpart": "reflect.TypeOf",
           "function": "返回任意值的类型名称字符串",
-          "description": "C 标准库无运行时反射，Go 对标 reflect.TypeOf；axlang 无运行时类型反射，需设计可落地子集"
+          "description": "C 标准库无运行时反射，Go 对标 reflect.TypeOf；axlang 无运行时类型反射，需设计可落地子集",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "reflect.type_of(v)"
         },
         {
           "name": "value_of",
@@ -2825,7 +3546,10 @@
           "c_counterpart": "—",
           "go_counterpart": "reflect.ValueOf",
           "function": "返回任意值的反射值对象",
-          "description": "C 标准库无运行时反射，Go 对标 reflect.ValueOf；axlang 无运行时类型反射，需设计可落地子集"
+          "description": "C 标准库无运行时反射，Go 对标 reflect.ValueOf；axlang 无运行时类型反射，需设计可落地子集",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "reflect.value_of(v)"
         },
         {
           "name": "num_field",
@@ -2835,7 +3559,69 @@
           "c_counterpart": "—",
           "go_counterpart": "reflect.NumField",
           "function": "返回结构体的字段数量",
-          "description": "C 标准库无运行时反射，Go 对标 reflect.NumField；axlang 无运行时类型反射，需设计可落地子集"
+          "description": "C 标准库无运行时反射，Go 对标 reflect.NumField；axlang 无运行时类型反射，需设计可落地子集",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "reflect.num_field(v)"
+        }
+      ]
+    },
+    {
+      "name": "builtin",
+      "priority": "P0",
+      "go_counterpart": "axlang language builtins",
+      "status": "implemented",
+      "translation": "compiler_builtin",
+      "source": "compiler_runtime",
+      "generated": "none",
+      "functions": [
+        {
+          "name": "print",
+          "signature": "(args: any...) -> void",
+          "status": "implemented",
+          "c_counterpart": "printf",
+          "go_counterpart": "fmt.Print",
+          "function": "输出任意参数到标准输出，参数间自动添加空格",
+          "description": "axlang 语言内建原语，长期保留在编译器 Rust 端；对标 C printf，Go fmt.Print",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "print(\"hello\", 42, true)"
+        },
+        {
+          "name": "println",
+          "signature": "(args: any...) -> void",
+          "status": "implemented",
+          "c_counterpart": "printf+putc",
+          "go_counterpart": "fmt.Println",
+          "function": "输出任意参数到标准输出并换行，参数间自动添加空格",
+          "description": "axlang 语言内建原语，长期保留在编译器 Rust 端；对标 C printf+putc，Go fmt.Println",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "println(\"hello\", \"world\")"
+        },
+        {
+          "name": "sizeof",
+          "signature": "(T) -> int",
+          "status": "implemented",
+          "c_counterpart": "sizeof",
+          "go_counterpart": "unsafe.Sizeof",
+          "function": "返回类型或表达式的字节大小",
+          "description": "axlang 语言内建原语，长期保留在编译器 Rust 端；对标 C sizeof，Go unsafe.Sizeof；编译期求值",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "sizeof(int)"
+        },
+        {
+          "name": "typeof",
+          "signature": "(v: any) -> string",
+          "status": "implemented",
+          "c_counterpart": "—",
+          "go_counterpart": "reflect.TypeOf",
+          "function": "返回值的类型名称字符串",
+          "description": "axlang 语言内建原语，长期保留在编译器 Rust 端；对标 Go reflect.TypeOf；无运行时反射，编译期求值",
+          "builtin": true,
+          "builtin_plan": "keep",
+          "usage_example": "typeof(42)"
         }
       ]
     }
