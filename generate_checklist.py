@@ -57,23 +57,53 @@ def save_json(data):
         f.write("\n")
 
 
+def _key_to_kind(key):
+    """将 JSON 中的函数字段名映射为人类可读的类型标签。"""
+    mapping = {
+        "functions": "模块级函数",
+        "static_functions": "静态方法",
+        "instance_functions": "实例方法",
+        "module_functions": "模块函数",
+    }
+    return mapping.get(key, key)
+
+
 def collect_functions(module):
     """从模块对象中收集所有函数条目（functions / static_functions / instance_functions / module_functions / types[].methods）。
 
     每个返回条目保证包含以下字段（缺失时补默认值）：
       name, signature, status, c_counterpart(对标 C), go_counterpart(对标 Go),
-      function(函数功能), description(说明)
+      function(函数功能), description(说明), kind(函数类型标签)
     """
     funcs = []
     for key in ("functions", "static_functions", "instance_functions", "module_functions"):
         if key in module and isinstance(module[key], list):
+            kind_label = _key_to_kind(key)
             for f in module[key]:
-                funcs.append(_normalize_func(f))
+                entry = _normalize_func(f)
+                entry["kind"] = kind_label
+                funcs.append(entry)
     if "types" in module and isinstance(module["types"], list):
         for t in module["types"]:
-            if "methods" in t and isinstance(t["methods"], list):
-                for m in t["methods"]:
-                    funcs.append(_normalize_func({"name": m, "signature": "", "status": "implemented", "note": ""}))
+            tname = t.get("name", "?")
+            tkind = t.get("kind", "struct")
+            methods = t.get("methods", [])
+            if isinstance(methods, list):
+                kind_label = f"{tname}（{tkind}）方法"
+                for m in methods:
+                    if isinstance(m, dict):
+                        entry = _normalize_func(m)
+                        entry["name"] = f"{tname}.{m.get('name', '')}"
+                        entry["kind"] = kind_label
+                        entry["type_name"] = tname
+                        funcs.append(entry)
+                    elif isinstance(m, str):
+                        # 向后兼容：字符串形式的方法名
+                        entry = _normalize_func({"name": m, "signature": "", "status": "implemented", "note": ""})
+                        entry["name"] = f"{tname}.{m}"
+                        entry["kind"] = kind_label
+                        entry["type_name"] = tname
+                        funcs.append(entry)
     return funcs
 
 
@@ -87,6 +117,7 @@ def _normalize_func(f):
         "go_counterpart": f.get("go_counterpart", "—"),
         "function": f.get("function", "—"),
         "description": f.get("description", "—"),
+        "kind": f.get("kind", "模块级函数"),
     }
 
 
@@ -182,76 +213,52 @@ def generate_markdown(data):
         lines.append(f"### {len([l for l in lines if l.startswith('### ')]) + 1}. {mod_name}（对标 {go_counterpart}）")
         lines.append("")
 
-        # 判断是否有 static / instance / module / functions 区分
-        has_static = "static_functions" in mod
-        has_instance = "instance_functions" in mod
-        has_module_funcs = "module_functions" in mod
-        has_funcs = "functions" in mod
-        has_types = "types" in mod
+        # 按 kind 分组：模块级函数 / 静态方法 / 实例方法 / 模块函数 / 结构体方法
+        kind_order = ["模块级函数", "静态方法", "实例方法", "模块函数"]
+        kind_groups = {}
+        for f in funcs:
+            k = f.get("kind", "模块级函数")
+            kind_groups.setdefault(k, []).append(f)
 
-        if has_funcs:
-            lines.append("**模块级函数：**")
-            lines.append("")
-            lines.append("| ax.函数          | 签名                                 | 对标 C                    | 对标 Go                    | 函数功能           | 说明        | 状态  |")
-            lines.append("| -------------- | ---------------------------------- | ------------------------- | -------------------------- | ------------------ | ----------- | ----- |")
-            for f in mod["functions"]:
-                f = _normalize_func(f)
-                name = f["name"]
-                sig = f["signature"]
-                mark = status_mark(f["status"])
-                lines.append(f"| `{mod_name}.{name}` | `{sig}` | {f['c_counterpart']} | {f['go_counterpart']} | {f['function']} | {f['description']} | {mark} |")
-            lines.append("")
+        # 先输出标准分类（按固定顺序）
+        for k in kind_order:
+            if k in kind_groups:
+                group = kind_groups.pop(k)
+                section_title = {
+                    "模块级函数": "模块级函数",
+                    "静态方法": "静态方法",
+                    "实例方法": "实例方法",
+                    "模块函数": "模块函数",
+                }[k]
+                lines.append(f"**{section_title}：**")
+                lines.append("")
+                lines.append("| ax.函数          | 类型           | 签名                                 | 对标 C                    | 对标 Go                    | 函数功能           | 说明        | 状态  |")
+                lines.append("| -------------- | -------------- | ---------------------------------- | ------------------------- | -------------------------- | ------------------ | ----------- | ----- |")
+                for f in group:
+                    name = f["name"]
+                    sig = f["signature"]
+                    kind = f.get("kind", k)
+                    mark = status_mark(f["status"])
+                    lines.append(f"| `{mod_name}.{name}` | {kind} | `{sig}` | {f['c_counterpart']} | {f['go_counterpart']} | {f['function']} | {f['description']} | {mark} |")
+                lines.append("")
 
-        if has_static:
-            lines.append("**静态方法：**")
+        # 再输出结构体方法（每个类型单独一个小节）
+        struct_kinds = sorted(k for k in kind_groups if "方法" in k)
+        for k in struct_kinds:
+            group = kind_groups[k]
+            # 从 kind 标签提取类型名，如 "mutex（struct）方法" → "mutex"
+            tname = k.split("（")[0] if "（" in k else k
+            lines.append(f"**{tname} 方法：**")
             lines.append("")
-            lines.append("| ax.函数          | 签名                                 | 对标 C                    | 对标 Go                    | 函数功能           | 说明        | 状态  |")
-            lines.append("| -------------- | ---------------------------------- | ------------------------- | -------------------------- | ------------------ | ----------- | ----- |")
-            for f in mod["static_functions"]:
-                f = _normalize_func(f)
-                name = f["name"]
-                sig = f["signature"]
-                mark = status_mark(f["status"])
-                lines.append(f"| `{mod_name}.{name}` | `{sig}` | {f['c_counterpart']} | {f['go_counterpart']} | {f['function']} | {f['description']} | {mark} |")
-            lines.append("")
-
-        if has_instance:
-            lines.append("**实例方法：**")
-            lines.append("")
-            lines.append("| ax.函数                 | 签名                                     | 对标 C                    | 对标 Go                    | 函数功能           | 说明        | 状态  |")
-            lines.append("| --------------------- | -------------------------------------- | ------------------------- | -------------------------- | ------------------ | ----------- | ----- |")
-            for f in mod["instance_functions"]:
-                f = _normalize_func(f)
-                name = f["name"]
-                sig = f["signature"]
-                mark = status_mark(f["status"])
-                lines.append(f"| `{mod_name}.{name}` | `{sig}` | {f['c_counterpart']} | {f['go_counterpart']} | {f['function']} | {f['description']} | {mark} |")
-            lines.append("")
-
-        if has_module_funcs:
             lines.append("| ax.函数 | 类型 | 签名 | 对标 C | 对标 Go | 函数功能 | 说明 | 状态 |")
             lines.append("| ------ | ------ | ------ | ------ | ------ | ------ | ------ | ----- |")
-            for f in mod["module_functions"]:
-                f = _normalize_func(f)
+            for f in group:
                 name = f["name"]
                 sig = f["signature"]
-                kind = f.get("kind", "模块")
+                kind = f.get("kind", k)
                 mark = status_mark(f["status"])
                 lines.append(f"| `{mod_name}.{name}` | {kind} | `{sig}` | {f['c_counterpart']} | {f['go_counterpart']} | {f['function']} | {f['description']} | {mark} |")
             lines.append("")
-
-        if has_types:
-            for t in mod["types"]:
-                tname = t["name"]
-                kind = t.get("kind", "struct")
-                methods = t.get("methods", [])
-                if methods:
-                    lines.append(f"**{tname}（{kind}）方法：**")
-                    lines.append("")
-                    for m in methods:
-                        mark = status_mark("implemented")
-                        lines.append(f"- `{mod_name}.{tname}.{m}` — {mark}")
-                    lines.append("")
 
         lines.append("")
 
@@ -275,13 +282,14 @@ def generate_markdown(data):
                 lines.append("")
             lines.append(f"#### {mod_name} 扩展")
             lines.append("")
-            lines.append("| ax.函数 | 签名 | 对标 C | 对标 Go | 函数功能 | 说明 | 状态 |")
-            lines.append("| ------ | ------ | ------ | ------ | ------ | ------ | ----- |")
+            lines.append("| ax.函数 | 类型 | 签名 | 对标 C | 对标 Go | 函数功能 | 说明 | 状态 |")
+            lines.append("| ------ | ------ | ------ | ------ | ------ | ------ | ------ | ----- |")
             for f in pending_funcs:
                 name = f["name"]
                 sig = f["signature"]
+                kind = f.get("kind", "模块级函数")
                 mark = status_mark(f["status"])
-                lines.append(f"| `{mod_name}.{name}` | `{sig}` | {f['c_counterpart']} | {f['go_counterpart']} | {f['function']} | {f['description']} | {mark} |")
+                lines.append(f"| `{mod_name}.{name}` | {kind} | `{sig}` | {f['c_counterpart']} | {f['go_counterpart']} | {f['function']} | {f['description']} | {mark} |")
             lines.append("")
 
     if not pending:
