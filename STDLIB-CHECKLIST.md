@@ -61,7 +61,7 @@
 
 | ax.函数          | 签名                                 | 对标 C                    | 对标 Go                    | 函数功能           | 说明        | 状态  |
 | -------------- | ---------------------------------- | ------------------------- | -------------------------- | ------------------ | ----------- | ----- |
-| `math.abs` | `(x: float) -> float` | fabs | math.Abs | 求浮点数的绝对值 | 对标 C fabs，Go math.Abs；返回 |x| | ✅ 已落地 |
+| `math.abs` | `(x: float) -> float` | fabs | math.Abs | 求浮点数的绝对值 | 对标 C fabs，Go math.Abs；返回 \|x\| | ✅ 已落地 |
 | `math.max` | `(a: float, b: float) -> float` | fmax | math.Max | 返回两个浮点数中的较大值 | 对标 C fmax，Go math.Max | ✅ 已落地 |
 | `math.min` | `(a: float, b: float) -> float` | fmin | math.Min | 返回两个浮点数中的较小值 | 对标 C fmin，Go math.Min | ✅ 已落地 |
 | `math.sqrt` | `(x: float) -> float` | sqrt | math.Sqrt | 求平方根 | 对标 C sqrt，Go math.Sqrt；x 必须非负 | ✅ 已落地 |
@@ -76,7 +76,7 @@
 | `math.round` | `(x: float) -> float` | round | math.Round | 四舍五入取整 | 对标 C round，Go math.Round；半远离零 | ✅ 已落地 |
 | `math.sign` | `(x: float) -> int` | — | — | 返回数值的符号（正1/负-1/零0） | C 标准库无直接对应函数，需自行实现；Go 亦无 math.Sign | ✅ 已落地 |
 | `math.mod` | `(x: float, y: float) -> float` | fmod | math.Mod | 浮点数取余（结果符号同被除数） | 对标 C fmod，Go math.Mod；y 为 0 时返回 NaN | ✅ 已落地 |
-| `math.equals` | `(a: float, b: float, eps: float) -> bool` | — | — | 在容差范围内判断两个浮点数是否相等 | C/Go 标准库无直接对应函数，需按 |a-b| <= eps 自行判断 | ✅ 已落地 |
+| `math.equals` | `(a: float, b: float, eps: float) -> bool` | — | — | 在容差范围内判断两个浮点数是否相等 | C/Go 标准库无直接对应函数，需按 \|a-b\| <= eps 自行判断 | ✅ 已落地 |
 | `math.compare` | `(a: float, b: float) -> int` | — | — | 比较两个浮点数大小（-1/0/1） | C/Go 标准库无直接对应函数，需手动比较 | ✅ 已落地 |
 | `math.exp2` | `(x: float) -> float` | exp2 | — | 求以 2 为底的指数 2^x | 对标 C exp2，Go 标准库无 math.Exp2 | ✅ 已落地 |
 | `math.log10` | `(x: float) -> float` | log10 | math.Log10 | 求以 10 为底的对数 | 对标 C log10，Go math.Log10 | ✅ 已落地 |
@@ -633,8 +633,8 @@
 
 | 阶段 | 已完成 | 待完成 |
 | --- | --- | --- |
-| 已落地模块 | io, json, file, db, decimal, int/float/bool/enum, array, map, range, thread, queue, strconv, rand, slices, maps, unique, bytes, bufio, csv, errors, log, sync, atomic | 共 23 个模块 |
-| 待落地模块 | math, string, time, os, filepath, fmt, sort, reflect | 共 8 个模块 |
+| 已落地模块 | io, json, file, db, string, time, decimal, int/float/bool/enum, array, map, range, thread, queue, os, strconv, rand, unique, bytes, bufio, csv, errors, log, sync, atomic | 共 24 个模块 |
+| 待落地模块 | math, filepath, fmt, sort, slices, maps, reflect | 共 7 个模块 |
 | 已落地函数 | 258 / 272 | — |
 
 
