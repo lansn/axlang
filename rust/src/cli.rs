@@ -390,7 +390,7 @@ pub fn parse_args(argv: &[String]) -> Opts {
             }
             "--emit=c" | "-c" => o.emit_c = true,
             "-Werror" => o.werror = true,
-            "--keep" => o.keep = true,
+            "-k" | "--keep" => o.keep = true,
             "--" => after_dashdash = true,
             _ => {
                 if let Some(v) = a.strip_prefix("--diag=") {
@@ -435,7 +435,7 @@ pub fn print_help() {
     println!("  -Werror             警告视为错误");
     println!("  --cc=<path>         指定 C 编译器");
     println!("  --lang=en|zh        诊断文案语言（默认 en；也可用 AXC_LANG 环境变量或 axc.toml）");
-    println!("  --keep              保留构建目录（排查生成代码用）");
+    println!("  -k | --keep         保留构建目录（排查生成代码用）");
     println!("  --kind=exe|shared   产物类型：exe（默认可执行文件）或 shared（动态链接库 .dll/.so/.dylib）");
     println!("  -v, -V, --version   打印版本号后退出");
 }
