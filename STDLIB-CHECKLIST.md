@@ -170,7 +170,7 @@
 | `maps.clone` | 内建库 | `(m: Map) -> Map` | maps.clone(m) | — | maps.Clone | 返回 map 的深拷贝副本 | C 标准库无 map 类型，Go 对标 maps.Clone；返回独立的新 map | ✅ 已落地 |
 | `maps.copy` | 内建库 | `(dst: Map, src: Map) -> void` | maps.copy(dst, src) | — | maps.Copy | 将 src map 的所有键值对复制到 dst map | C 标准库无 map 类型，Go 对标 maps.Copy；覆盖 dst 中已有的键 | ✅ 已落地 |
 | `maps.delete` | 内建库 | `(m: Map, key: K) -> void` | maps.delete(m, key) | — | delete/maps.Delete | 删除 map 中指定键的条目 | C 标准库无 map 类型，Go 对标 delete() 内置或 maps.Delete；键不存在时不报错 | ✅ 已落地 |
-| `maps.delete_func` | 内建库 | `(m: Map, f: func(K) bool) -> void` | maps.delete_func(m, func(k) bool { ... }) | — | maps.DeleteFunc | 删除满足条件的所有键值对 | C 标准库无 map 类型，Go 对标 maps.DeleteFunc；axlang 不支持闭包，暂不落地 | ⬜ 未落地 |
+| `maps.delete_func` | 内建库 | `(m: Map, f: func(K) bool) -> void` | maps.delete_func(m, func(k) bool { ... }) | — | maps.DeleteFunc | 删除满足条件的所有键值对 | C 标准库无 map 类型，Go 对标 maps.DeleteFunc；利用 axlang 函数值参数与 file-level callback adapter 模式实现闭包回调 | ✅ 已落地 |
 | `maps.equal` | 内建库 | `(m1: Map, m2: Map) -> bool` | maps.equal(m1, m2) | — | maps.Equal | 判断两个 map 是否相等（相同键值对） | C 标准库无 map 类型，Go 对标 maps.Equal；键值对完全相同即相等 | ✅ 已落地 |
 | `maps.keys` | 内建库 | `(m: Map) -> K[]` | maps.keys(m) | — | maps.Keys | 返回 map 中所有键的切片 | C 标准库无 map 类型，Go 对标 maps.Keys；返回 K[] 类型，顺序不固定 | ✅ 已落地 |
 | `maps.values` | 内建库 | `(m: Map) -> V[]` | maps.values(m) | — | maps.Values | 返回 map 中所有值的切片 | C 标准库无 map 类型，Go 对标 maps.Values；返回 V[] 类型，顺序不固定 | ✅ 已落地 |
@@ -364,7 +364,7 @@
 | 编译器内建函数（保留） | 131 个 | 长期保留在编译器 Rust 端 |
 | 标准库函数（已迁移） | 170 个 | 已在 axc/std/ 下以 ax 源码实现 |
 | 标准库函数（待迁移） | 0 个 | 计划从编译器内建迁移到 ax_stdlib |
-| 已落地函数 | 298 / 301 | — |
+| 已落地函数 | 299 / 301 | — |
 
 
-*更新于 2026-11-25，基于 STDLIB-STATUS.json 自动生成*
+*更新于 2026-11-26，基于 STDLIB-STATUS.json 自动生成*

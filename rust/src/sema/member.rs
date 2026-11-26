@@ -1130,6 +1130,32 @@ impl<'a> Sema<'a> {
                 self.sl(e.id).mkind = Some("module");
                 t_void()
             }
+            // maps.DeleteFunc(m: Map<K,V>, f: func(K) bool) -> void：
+            // 删除所有使 f(key) 为 true 的键值对。K 由第一个实参推导。
+            "delete_func" => {
+                if args.len() < 2 {
+                    return self.maps_not_map_err(e, name);
+                }
+                let (kt, _vt) = match self.maps_arg_kv(&args[0]) {
+                    Some(kv) => kv,
+                    None => return self.maps_not_map_err(e, name),
+                };
+                // 第二个实参必须是 func(K) -> bool
+                let f_ty = self.check_expr(&args[1].k.expr, None);
+                let expected_f = t_fn(vec![kt.clone()], t_bool());
+                let r = assignable(&f_ty, &expected_f, self, true);
+                if !matches!(r, AssignResult::Yes | AssignResult::Conv(_)) {
+                    self.err(
+                        "E4001",
+                        &args[1].k.expr.tok,
+                        "T-5",
+                        "maps.delete_func 期望 func({0}) -> bool，得到 {1}",
+                        &[&self.ts(&kt), &self.ts(&f_ty)],
+                    );
+                }
+                self.sl(e.id).mkind = Some("module");
+                t_void()
+            }
             // maps.Equal(m1: Map<K,V>, m2: Map<K,V>) -> bool
             "equal" => {
                 if args.len() < 2 {
@@ -1145,7 +1171,7 @@ impl<'a> Sema<'a> {
                     "E3003",
                     &e.tok,
                     "文稿 9.2",
-                    "模块 `maps` 没有符号 `{0}`（可用：keys/values/clone/copy/delete/equal）",
+                    "模块 `maps` 没有符号 `{0}`（可用：keys/values/clone/copy/delete/delete_func/equal）",
                     &[&name],
                 );
                 return t_object();

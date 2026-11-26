@@ -272,6 +272,7 @@ int   ax_map_has(ax_map* m, const void* k);
 void  ax_map_put(ax_map* m, const void* k, const void* v);
 void  ax_map_remove(ax_map* m, const void* k);
 void  ax_map_clear(ax_map* m);
+void  ax_map_delete_func(ax_map* m, int (*f)(const void* k, void* ctx), void* ctx);
 /* 返回所有键的副本组成的 ax_arr（按插入顺序，元素大小为 m->ksz） */
 ax_arr ax_map_keys(ax_map* m);
 

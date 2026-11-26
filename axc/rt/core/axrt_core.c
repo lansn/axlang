@@ -539,6 +539,17 @@ void ax_map_clear(ax_map* m) {
 }
 
 
+void ax_map_delete_func(ax_map* m, int (*f)(const void* k, void* ctx), void* ctx) {
+    ax_arr keys = ax_map_keys(m);
+    for (int64_t i = 0; i < keys.len; i++) {
+        const void* k = (const uint8_t*)keys.data + i * m->ksz;
+        if (f(k, ctx)) {
+            ax_map_remove(m, k);
+        }
+    }
+}
+
+
 ax_arr ax_map_keys(ax_map* m) {
     ax_arr keys;
     ax_arr_init(&keys);

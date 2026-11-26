@@ -3064,12 +3064,11 @@
         {
           "name": "delete_func",
           "signature": "(m: Map, f: func(K) bool) -> void",
-          "status": "not_implemented",
-          "note": "axlang 不支持闭包，暂不落地",
+          "status": "implemented",
           "c_counterpart": "—",
           "go_counterpart": "maps.DeleteFunc",
           "function": "删除满足条件的所有键值对",
-          "description": "C 标准库无 map 类型，Go 对标 maps.DeleteFunc；axlang 不支持闭包，暂不落地",
+          "description": "C 标准库无 map 类型，Go 对标 maps.DeleteFunc；利用 axlang 函数值参数与 file-level callback adapter 模式实现闭包回调",
           "builtin": true,
           "builtin_plan": "keep",
           "usage_example": "maps.delete_func(m, func(k) bool { ... })"

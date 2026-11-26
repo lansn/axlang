@@ -2251,6 +2251,43 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 self.emit(format!("ax_map_remove(&{}, &{});", tv, kv));
                 "0".to_string()
             }
+            // maps.DeleteFunc(m, f: func(K) bool) -> void：
+            // 删除所有使 f(key) 为 true 的键值对。K 由第一个实参推导。
+            ("maps", "delete_func") => {
+                let map_ty = self.ty_or_int(args[0].k.expr.id);
+                let kt = match &*map_ty {
+                    TyS::Map(k, _) => k.clone(),
+                    _ => t_int(),
+                };
+                let etc = self.cg.ct(&kt);
+                let tv = if Self::is_lvalue(&args[0].k.expr) {
+                    a[0].clone()
+                } else {
+                    self.declare(&map_ty, &a[0])
+                };
+                let uid = self.tmpn();
+                let ctx = format!("axmap_delete_ctx_{}", uid);
+                let cb = format!("axmap_delete_cb_{}", uid);
+                let fnty = t_fn(vec![kt.clone()], t_bool());
+                self.cg.need(&fnty);
+                let fnty_name = format!("axfn_{}", self.cg.cn(&fnty));
+                self.cg
+                    .fn_decls
+                    .push(format!("static int {}(const void*, void*);", cb));
+                self.cg
+                    .fn_decls
+                    .push(format!("static {} {};", fnty_name, ctx));
+                self.cg.extra_fns.push(format!(
+                    "static int {cb}(const void* k_, void* ctx_) {{\n  {etc} k;\n  memcpy(&k, k_, sizeof({etc}));\n  return (int){ctx}(k);\n}}",
+                    cb = cb, etc = etc, ctx = ctx
+                ));
+                self.emit(format!("{ctx} = {f};", ctx = ctx, f = a[1]));
+                self.emit(format!(
+                    "ax_map_delete_func(&{}, {}, NULL);",
+                    tv, cb
+                ));
+                "0".to_string()
+            }
             // maps.Equal(m1, m2) -> bool：判断两个 map 是否相等
             ("maps", "Equal") => {
                 let map1_ty = self.ty_or_int(args[0].k.expr.id);
