@@ -13,7 +13,7 @@
       "generated": "axc/stdlib/generated/io.c",
       "functions": [
         {
-          "name": "read_line",
+          "name": "readLine",
           "signature": "() -> string?",
           "status": "implemented",
           "note": "标准 C11 实现",
@@ -24,7 +24,7 @@
           "builtin": false
         },
         {
-          "name": "read_file",
+          "name": "readFile",
           "signature": "(path: string) -> result<string>",
           "status": "implemented",
           "note": "标准 C11 实现",
@@ -46,7 +46,7 @@
           "builtin": false
         },
         {
-          "name": "write_line",
+          "name": "writeLine",
           "signature": "(s: string) -> void",
           "status": "implemented",
           "note": "标准 C11 实现",
@@ -477,7 +477,7 @@
           "builtin": false
         },
         {
-          "name": "is_na_n",
+          "name": "isNaN",
           "signature": "(f: float) -> bool",
           "status": "implemented",
           "c_counterpart": "isnan",
@@ -487,7 +487,7 @@
           "builtin": false
         },
         {
-          "name": "is_inf",
+          "name": "isInf",
           "signature": "(f: float, sign: int) -> bool",
           "status": "implemented",
           "c_counterpart": "isinf",
@@ -578,7 +578,7 @@
           "builtin": false
         },
         {
-          "name": "marshal_indent",
+          "name": "marshalIndent",
           "signature": "(v: object, prefix: string, indent: string) -> string",
           "status": "implemented",
           "c_counterpart": "—",
@@ -679,7 +679,7 @@
           "builtin": false
         },
         {
-          "name": "read_all",
+          "name": "readAll",
           "signature": "(path: string) -> result<string>",
           "status": "implemented",
           "c_counterpart": "fread",
@@ -689,7 +689,7 @@
           "builtin": false
         },
         {
-          "name": "write_all",
+          "name": "writeAll",
           "signature": "(path: string, s: string) -> int",
           "status": "implemented",
           "c_counterpart": "fwrite",
@@ -699,7 +699,7 @@
           "builtin": false
         },
         {
-          "name": "is_dir",
+          "name": "isDir",
           "signature": "(path: string) -> int",
           "status": "implemented",
           "c_counterpart": "stat/S_ISDIR",
@@ -709,7 +709,7 @@
           "builtin": false
         },
         {
-          "name": "is_file",
+          "name": "isFile",
           "signature": "(path: string) -> int",
           "status": "implemented",
           "c_counterpart": "stat/S_ISREG",
@@ -729,7 +729,7 @@
           "builtin": false
         },
         {
-          "name": "mod_time",
+          "name": "modTime",
           "signature": "(path: string) -> int",
           "status": "implemented",
           "c_counterpart": "stat/st_mtime",
@@ -759,7 +759,7 @@
           "builtin": false
         },
         {
-          "name": "temp_file",
+          "name": "tempFile",
           "signature": "(dir: string, prefix: string) -> result<File>",
           "status": "implemented",
           "c_counterpart": "tmpfile",
@@ -1533,7 +1533,7 @@
           "usage_example": "d.divide(e, Rounding.HalfUp)"
         },
         {
-          "name": "to_string",
+          "name": "toString",
           "signature": "() -> string",
           "kind": "instance",
           "status": "implemented",
@@ -1554,7 +1554,7 @@
       "status": "implemented",
       "functions": [
         {
-          "name": "to_string",
+          "name": "toString",
           "signature": "() -> string",
           "kind": "instance",
           "status": "implemented",
@@ -1567,7 +1567,7 @@
           "usage_example": "x.toString()"
         },
         {
-          "name": "wrapping_add",
+          "name": "wrappingAdd",
           "signature": "(other: T) -> T",
           "kind": "instance",
           "status": "implemented",
@@ -1666,7 +1666,7 @@
           "usage_example": "arr.clear()"
         },
         {
-          "name": "to_string",
+          "name": "toString",
           "signature": "() -> string",
           "kind": "instance",
           "status": "implemented",
@@ -2114,7 +2114,7 @@
       "status": "partial",
       "functions": [
         {
-          "name": "try_pop",
+          "name": "tryPop",
           "signature": "() -> T?",
           "kind": "instance",
           "status": "implemented",
@@ -2287,7 +2287,7 @@
           "builtin": false
         },
         {
-          "name": "user_home_dir",
+          "name": "userHomeDir",
           "signature": "() -> string",
           "status": "implemented",
           "c_counterpart": "getenv(HOME)",
@@ -2297,7 +2297,7 @@
           "builtin": false
         },
         {
-          "name": "user_cache_dir",
+          "name": "userCacheDir",
           "signature": "() -> string",
           "status": "implemented",
           "c_counterpart": "—",
@@ -2408,7 +2408,7 @@
           "builtin": false
         },
         {
-          "name": "parse_bool",
+          "name": "parseBool",
           "signature": "(s: string) -> bool",
           "status": "implemented",
           "c_counterpart": "—",
@@ -2418,7 +2418,7 @@
           "builtin": false
         },
         {
-          "name": "format_bool",
+          "name": "formatBool",
           "signature": "(v: bool) -> string",
           "status": "implemented",
           "c_counterpart": "—",
@@ -2428,7 +2428,7 @@
           "builtin": false
         },
         {
-          "name": "parse_float",
+          "name": "parseFloat",
           "signature": "(s: string) -> float",
           "status": "implemented",
           "c_counterpart": "atof/strtod",
@@ -2438,7 +2438,7 @@
           "builtin": false
         },
         {
-          "name": "format_float",
+          "name": "formatFloat",
           "signature": "(v: float) -> string",
           "status": "implemented",
           "c_counterpart": "snprintf('%f')",
@@ -2448,7 +2448,7 @@
           "builtin": false
         },
         {
-          "name": "parse_int",
+          "name": "parseInt",
           "signature": "(s: string, base: int) -> int",
           "status": "implemented",
           "c_counterpart": "atoi/strtol",
@@ -2458,7 +2458,7 @@
           "builtin": false
         },
         {
-          "name": "format_int",
+          "name": "formatInt",
           "signature": "(v: int, base: int) -> string",
           "status": "implemented",
           "c_counterpart": "itoa/snprintf",
@@ -2468,7 +2468,7 @@
           "builtin": false
         },
         {
-          "name": "parse_uint",
+          "name": "parseUint",
           "signature": "(s: string, base: int) -> int",
           "status": "implemented",
           "c_counterpart": "strtoul",
@@ -2478,7 +2478,7 @@
           "builtin": false
         },
         {
-          "name": "format_uint",
+          "name": "formatUint",
           "signature": "(v: int, base: int) -> string",
           "status": "implemented",
           "c_counterpart": "utoa/snprintf",
@@ -2488,7 +2488,7 @@
           "builtin": false
         },
         {
-          "name": "can_backquote",
+          "name": "canBackquote",
           "signature": "(s: string) -> bool",
           "status": "implemented",
           "c_counterpart": "—",
@@ -2596,7 +2596,7 @@
           "builtin": false
         },
         {
-          "name": "is_abs",
+          "name": "isAbs",
           "signature": "(path: string) -> bool",
           "status": "implemented",
           "c_counterpart": "—",
@@ -2606,7 +2606,7 @@
           "builtin": false
         },
         {
-          "name": "eval_symlinks",
+          "name": "evalSymlinks",
           "signature": "(path: string) -> string",
           "status": "implemented",
           "c_counterpart": "realpath",
@@ -2731,7 +2731,7 @@
           "usage_example": "sort.float64s(arr)"
         },
         {
-          "name": "ints_are_sorted",
+          "name": "intsAreSorted",
           "signature": "(a: int[]) -> bool",
           "status": "implemented",
           "c_counterpart": "—",
@@ -2743,7 +2743,7 @@
           "usage_example": "sort.intsAreSorted(arr)"
         },
         {
-          "name": "strings_are_sorted",
+          "name": "stringsAreSorted",
           "signature": "(a: string[]) -> bool",
           "status": "implemented",
           "c_counterpart": "—",
@@ -2755,7 +2755,7 @@
           "usage_example": "sort.stringsAreSorted(arr)"
         },
         {
-          "name": "search_ints",
+          "name": "searchInts",
           "signature": "(a: int[], x: int) -> int",
           "status": "implemented",
           "c_counterpart": "bsearch",
@@ -2767,7 +2767,7 @@
           "usage_example": "sort.searchInts(arr, 5)"
         },
         {
-          "name": "search_strings",
+          "name": "searchStrings",
           "signature": "(a: string[], x: string) -> int",
           "status": "implemented",
           "c_counterpart": "bsearch",
@@ -2791,7 +2791,7 @@
           "usage_example": "sort.slice(arr, less)"
         },
         {
-          "name": "slice_stable",
+          "name": "sliceStable",
           "signature": "(a: any[], less: func(i, j int) bool) -> void",
           "status": "implemented",
           "c_counterpart": "qsort",
@@ -3062,7 +3062,7 @@
           "usage_example": "maps.delete(m, key)"
         },
         {
-          "name": "delete_func",
+          "name": "deleteFunc",
           "signature": "(m: Map, f: func(K) bool) -> void",
           "status": "implemented",
           "c_counterpart": "—",
@@ -3166,7 +3166,7 @@
           "builtin": false
         },
         {
-          "name": "trim_space",
+          "name": "trimSpace",
           "signature": "(s: bytes) -> bytes",
           "status": "implemented",
           "c_counterpart": "—",
@@ -3176,7 +3176,7 @@
           "builtin": false
         },
         {
-          "name": "to_upper",
+          "name": "toUpper",
           "signature": "(s: bytes) -> bytes",
           "status": "implemented",
           "c_counterpart": "toupper",
@@ -3186,7 +3186,7 @@
           "builtin": false
         },
         {
-          "name": "to_lower",
+          "name": "toLower",
           "signature": "(s: bytes) -> bytes",
           "status": "implemented",
           "c_counterpart": "tolower",
@@ -3214,7 +3214,7 @@
       "status": "partial",
       "functions": [
         {
-          "name": "new_reader",
+          "name": "newReader",
           "signature": "(r: File) -> File",
           "status": "implemented",
           "c_counterpart": "—",
@@ -3224,7 +3224,7 @@
           "builtin": false
         },
         {
-          "name": "new_writer",
+          "name": "newWriter",
           "signature": "(w: File) -> File",
           "status": "implemented",
           "c_counterpart": "—",
@@ -3252,7 +3252,7 @@
       "status": "partial",
       "functions": [
         {
-          "name": "read_all",
+          "name": "readAll",
           "signature": "(r: Reader) -> string[][]",
           "status": "implemented",
           "c_counterpart": "—",
@@ -3514,7 +3514,7 @@
       "generated": "axc/stdlib/generated/atomic.c",
       "functions": [
         {
-          "name": "add_int",
+          "name": "addInt",
           "signature": "(addr: *int, delta: int) -> int",
           "status": "implemented",
           "c_counterpart": "atomic_fetch_add",
@@ -3524,7 +3524,7 @@
           "builtin": false
         },
         {
-          "name": "load_int",
+          "name": "loadInt",
           "signature": "(addr: *int) -> int",
           "status": "implemented",
           "c_counterpart": "atomic_load",
@@ -3534,7 +3534,7 @@
           "builtin": false
         },
         {
-          "name": "store_int",
+          "name": "storeInt",
           "signature": "(addr: *int, val: int) -> void",
           "status": "implemented",
           "c_counterpart": "atomic_store",
@@ -3544,7 +3544,7 @@
           "builtin": false
         },
         {
-          "name": "compare_and_swap_int",
+          "name": "compareAndSwapInt",
           "signature": "(addr: *int, old: int, new: int) -> bool",
           "status": "implemented",
           "c_counterpart": "atomic_compare_exchange",
@@ -3562,7 +3562,7 @@
       "status": "not_implemented",
       "functions": [
         {
-          "name": "type_of",
+          "name": "typeOf",
           "signature": "(v: any) -> string",
           "status": "implemented",
           "c_counterpart": "—",
@@ -3574,7 +3574,7 @@
           "usage_example": "reflect.typeOf(v)"
         },
         {
-          "name": "value_of",
+          "name": "valueOf",
           "signature": "(v: any) -> any",
           "status": "not_implemented",
           "note": "同上",
@@ -3587,7 +3587,7 @@
           "usage_example": "reflect.valueOf(v)"
         },
         {
-          "name": "num_field",
+          "name": "numField",
           "signature": "(v: any) -> int",
           "status": "implemented",
           "c_counterpart": "—",

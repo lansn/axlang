@@ -169,7 +169,7 @@ def generate_markdown(data):
     lines.append("> 1. **提交推送**：Git commit + **GitHub 推 `main` 分支**、**Gitee 推 `master` 分支**（两者不可混淆；分别执行 `git push github main` 和 `git push origin main:master`）")
     lines.append("> 1. **更新文档**：本清单状态标记，`MEMORY.md` 同步更新，追加工作日志")
     lines.append("")
-    lines.append("> **生成说明**：本文档由 `generate_checklist.py` 从 `STDLIB-STATUS.json` 自动生成，请勿手动编辑。函数名均为小写 C 风格（snake_case）。")
+    lines.append("> **生成说明**：本文档由 `generate_checklist.py` 从 `STDLIB-STATUS.json` 自动生成，请勿手动编辑。函数名均为 camelCase 风格。")
     lines.append("")
     lines.append("---")
     lines.append("")
@@ -294,9 +294,6 @@ def generate_markdown(data):
 def main():
     data = load_json()
 
-    # 转换所有函数名为小写 C 风格
-    convert_names_in_obj(data)
-
     # 为每个函数条目补充四个新列名（对标 C / 对标 Go / 函数功能 / 说明），
     # 使主数据源 JSON 持久化这些列；缺失时以 "—" 占位，现有 note 映射为函数功能。
     for mod in data["modules"]:
@@ -311,7 +308,7 @@ def main():
                         if isinstance(m, dict):
                             ensure_func_fields(m)
 
-    # 回写 JSON（主数据源保持一致）
+    # 回写 JSON（主数据源保持 camelCase，不再转为 snake_case）
     save_json(data)
 
     # 生成 Markdown

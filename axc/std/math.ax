@@ -4,7 +4,7 @@
 // 对标 Go math / C math.h。ax 层仅包装 axrt C 原语及 C 标准库 math.h 函数，
 // 通过 extern "C" 声明 + unsafe 块调用，不引入 ax 编译器内建能力。
 //
-// 导出函数命名采用 C 风格：全部小写，下划线分隔，如 abs / sin / is_nan。
+// 导出函数命名采用 camelCase 风格，如 abs / sin / isNaN。
 // ax 代码中通过 std.math.abs(...) 调用模块级函数。
 
 extern "C" {
@@ -185,13 +185,13 @@ public float log1p(float x) {
     }
 }
 
-public int isnan(float x) {
+public int isNaN(float x) {
     unsafe {
         return ax_math_isnan(x)
     }
 }
 
-public int isinf(float x, int sign) {
+public int isInf(float x, int sign) {
     unsafe {
         return ax_math_isinf(x, sign)
     }

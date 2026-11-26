@@ -5,4 +5,4 @@ sqrt=4.0
 pow=8.0
 sin=0.0
 cos=1.0
-isnan=0
+isNaN=0

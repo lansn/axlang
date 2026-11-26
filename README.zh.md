@@ -123,7 +123,7 @@ io、fmt、math、json、file、os、strconv、string、sync、atomic、errors�
 
 标准库函数名统一采用小写 C 风格（snake_case，下划线分隔），例如：
 - `io.read_line`、`io.read_file`、`io.write`、`io.write_line`
-- `math.abs`、`math.max`、`math.sqrt`、`math.pow`、`math.sin`、`math.cos`、`math.tan`、`math.exp`、`math.log`、`math.isnan`、`math.isinf`
+- `math.abs`、`math.max`、`math.sqrt`、`math.pow`、`math.sin`、`math.cos`、`math.tan`、`math.exp`、`math.log`、`math.isNaN`、`math.isInf`
 - `json.parse`、`json.stringify`、`json.marshal_indent`、`json.valid`
 - `os.getenv`、`os.exit`、`os.getwd`、`os.chdir`、`os.getpid`、`os.getppid`、`os.hostname`、`os.setenv`、`os.unsetenv`
 - `strconv.atoi`、`strconv.itoa`、`strconv.parse_bool`、`strconv.format_bool`、`strconv.parse_float`、`strconv.format_float`、`strconv.parse_int`、`strconv.format_int`、`strconv.parse_uint`、`strconv.format_uint`、`strconv.can_backquote`、`strconv.quote`、`strconv.unquote`
