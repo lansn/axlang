@@ -346,6 +346,10 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
         if segs.len() == 1 {
             // 函数引用（如 thread(producer, q1) 中的 producer）：直接返回函数名，无 v_ 前缀
             if let Some(crate::sema::Res::Func(fid)) = self.res_of(e.id) {
+                // 单态化实例：slot.func 指向实例，使用实例名（GX-04 泛型函数值实例化）
+                if let Some(inst_fid) = self.cg.slot(&e.id).and_then(|sl| sl.func) {
+                    return self.cg.fn_name_idx(inst_fid);
+                }
                 return self.cg.fn_name_idx(fid);
             }
             // 模块级常量（如 const PART = ...）：直接内联常量值
@@ -358,10 +362,14 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 };
             }
             let (base, v) = self.var_c(e);
-            // ref 参数（如 &const int[] xs）：C 层是指针，需解引用才能访问 .len/.data/.v 等字段
+            // ref 参数（如 &const int[] xs）：C 层是指针，需解引用才能访问 .len/.data/.v 等字段。
+            // 若 base 已带 .v（可空拆箱），需只对基名解引用：(*p_s).v 而非 (*p_s.v)。
             if let Some(vi) = &v {
                 let b = vi.borrow();
                 if b.is_param && b.borrow.is_some() {
+                    if let Some(base_name) = base.strip_suffix(".v") {
+                        return format!("(*{}).v", base_name);
+                    }
                     return format!("(*{})", base);
                 }
             }

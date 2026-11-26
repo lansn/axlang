@@ -19,12 +19,14 @@
     python tests/runtests.py                    跑全部
     python tests/runtests.py sema own           只跑指定类别
     python tests/runtests.py -v                 打印每条结果
+    python tests/runtests.py -j 8               开 8 线程并行跑（默认串行）
     python tests/runtests.py --axc=xxx.exe      指定编译器（默认自动探测）
 
 编译器探测顺序：`--axc=` → `rust/target/release/axc[.exe]` → `dist/axc[.exe]`。
 """
 from __future__ import annotations
 
+import concurrent.futures
 import json
 import os
 import subprocess
@@ -139,8 +141,20 @@ def run_positive(path, be, stem=None):
         want_out = read(os.path.join(os.path.dirname(path), stem + ".out"))
     if want_out is not None:
         got = r.stdout.decode("utf-8", "replace").replace("\r\n", "\n")
-        if got != want_out.replace("\r\n", "\n"):
-            return False, "stdout 不符\n  期望: %r\n  实得: %r" % (want_out, got)
+        want_lines = want_out.replace("\r\n", "\n").split("\n")
+        got_lines = got.split("\n")
+        # 去掉尾部空行
+        while want_lines and want_lines[-1] == "":
+            want_lines.pop()
+        while got_lines and got_lines[-1] == "":
+            got_lines.pop()
+        if len(want_lines) != len(got_lines):
+            return False, "stdout 行数不符\n  期望: %r\n  实得: %r" % (want_out, got)
+        for i, (wl, gl) in enumerate(zip(want_lines, got_lines)):
+            if "<DYNAMIC>" in wl:
+                continue  # 动态值行（如 pid、timestamp），跳过比较
+            if wl != gl:
+                return False, "stdout 第 %d 行不符\n  期望: %r\n  实得: %r" % (i + 1, wl, gl)
     want_exit = int((read(base + ".exit", "0") or "0").strip())
     if r.returncode != want_exit:
         return False, "退出码 %d，期望 %d" % (r.returncode, want_exit)
@@ -168,31 +182,47 @@ def find_axc():
 def main(argv):
     verbose = "-v" in argv
     axc = None
+    jobs = 1
+    auto_jobs = False  # -j 单独出现时，按用例数自动分档
     rest = []
-    for a in argv:
+    i = 0
+    while i < len(argv):
+        a = argv[i]
         if a.startswith("--axc="):
             axc = a.split("=", 1)[1]
+        elif a == "-j":
+            i += 1
+            if i < len(argv) and argv[i].lstrip("-").isdigit():
+                jobs = int(argv[i])
+            else:
+                auto_jobs = True
+        elif a.startswith("--jobs="):
+            jobs = int(a.split("=", 1)[1])
+        elif a.startswith("-j") and len(a) > 2:
+            jobs = int(a[2:])
         else:
             rest.append(a)
+        i += 1
     axc = axc or find_axc()
     if not axc:
         print("找不到编译器。先构建：cd rust && cargo build --release")
         return 1
     be = ProcBackend(axc)
     print("编译器：%s" % be.name)
+    if jobs > 1:
+        print("并行度：%d" % jobs)
 
     want = [a for a in rest if not a.startswith("-")] or CATS
-    total = passed = 0
-    fails = []
+
+    # ---------------------------------------------------------------- 收集所有用例
+    all_cases = []  # (cat, name, path)
     for cat in want:
         d = os.path.join(HERE, cat)
         if cat == "demo":
-            # demo 是可运行示例工程，源码放在 samples/demo 下；断言仍由本驱动器做
             d = os.path.join(ROOT, "samples", "demo")
         if not os.path.isdir(d):
             continue
         if cat in MULTI_DIR_CATS:
-            # 多文件用例：tests/<cat>/<ID>/main.ax + 模块文件 + <ID>.out/.exit
             cases = sorted(
                 (sub, os.path.join(d, sub, "main.ax"))
                 for sub in os.listdir(d)
@@ -202,23 +232,56 @@ def main(argv):
             files = sorted(f for f in os.listdir(d) if f.endswith(".ax"))
             cases = [(os.path.splitext(f)[0], os.path.join(d, f)) for f in files]
         for name, path in cases:
-            total += 1
-            try:
-                # 多文件用例按首行 EXPECT 区分正负例（目录里可同时有多文件）
-                is_neg = cat in MULTI_DIR_CATS and expect_code(path) is not None
-                ok, msg = run_negative(path, be) if is_neg else (
-                    run_positive(path, be, name) if cat in ("run",) + MULTI_DIR_CATS
-                    else run_negative(path, be)
-                )
-            except Exception as e:                     # 用例自身崩了也要算失败
-                ok, msg = False, "%s: %s" % (type(e).__name__, e)
-            if ok:
-                passed += 1
-                if verbose:
-                    print("  PASS  %-6s %-14s %s" % (cat, name, msg))
-            else:
-                fails.append((cat, name, msg))
-                print("  FAIL  %-6s %-14s %s" % (cat, name, msg))
+            all_cases.append((cat, name, path))
+
+    # ---------------------------------------------------------------- 自动分档：按用例数决定并行度
+    if auto_jobs:
+        n = len(all_cases)
+        if n <= 10:
+            jobs = 2
+        elif n <= 50:
+            jobs = 4
+        elif n <= 200:
+            jobs = 8
+        else:
+            jobs = 16
+        print("自动并行度：%d（用例数 %d）" % (jobs, n))
+    elif jobs > 1:
+        print("并行度：%d" % jobs)
+
+    # ---------------------------------------------------------------- 并行/串行执行
+    def run_one(cat, name, path):
+        try:
+            is_neg = cat in MULTI_DIR_CATS and expect_code(path) is not None
+            ok, msg = run_negative(path, be) if is_neg else (
+                run_positive(path, be, name) if cat in ("run",) + MULTI_DIR_CATS
+                else run_negative(path, be)
+            )
+        except Exception as e:
+            ok, msg = False, "%s: %s" % (type(e).__name__, e)
+        return (cat, name, ok, msg)
+
+    if jobs > 1:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=jobs) as executor:
+            results = list(executor.map(
+                lambda args: run_one(*args),
+                all_cases,
+            ))
+    else:
+        results = [run_one(cat, name, path) for cat, name, path in all_cases]
+
+    # ---------------------------------------------------------------- 统计与输出
+    total = len(results)
+    passed = 0
+    fails = []
+    for cat, name, ok, msg in results:
+        if ok:
+            passed += 1
+            if verbose:
+                print("  PASS  %-6s %-14s %s" % (cat, name, msg))
+        else:
+            fails.append((cat, name, msg))
+            print("  FAIL  %-6s %-14s %s" % (cat, name, msg))
 
     print()
     print("%d/%d 通过" % (passed, total))
