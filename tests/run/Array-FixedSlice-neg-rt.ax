@@ -4,6 +4,6 @@ int main() {
     int lo = 4
     int hi = 6
     int[] a = xs[lo..hi]
-    println("a len={a.Len()}")
+    println("a len={a.len()}")
     return 0
 }

@@ -9,7 +9,7 @@ int main() {
     println("trim=[{s.Trim()}]");
     println("upper=[{s.Upper()}]");
     println("lower=[{s.Lower()}]");
-    println("contains World={s.Contains("World")}");
+    println("contains World={s.contains("World")}");
     println("starts He={s.StartsWith("He")}");
     println("ends d={s.EndsWith("d")}");
     println("left 5=[{s.Left(5)}]");
@@ -19,15 +19,15 @@ int main() {
     println("lastIndexOf l={s.LastIndexOf("l")}");
     println("replace l->L=[{s.Replace("l", "L")}]");
     println("repeat 3=[{s.Repeat(3)}]");
-    println("join=[{"-".Join(["a", "b"])}]");
-    println("split Len={s.Split(",").Len()}");
-    println("chars Len={s.Chars().Len()}");
-    println("at 0=[{s.At(0) ?? ""}]");
+    println("join=[{"-".join(["a", "b"])}]");
+    println("split Len={s.Split(",").len()}");
+    println("chars Len={s.Chars().len()}");
+    println("at 0=[{s.at(0) ?? ""}]");
     println("codepointAt 0={s.CodepointAt(0) ?? -1}");
     println("bytelength={s.ByteLen()}");
-    println("length={s.Len()}");
-    println("c len={c.Len()}");
-    println("c at 2=[{c.At(2) ?? ""}]");
+    println("length={s.len()}");
+    println("c len={c.len()}");
+    println("c at 2=[{c.at(2) ?? ""}]");
     println("c codepointAt 2={c.CodepointAt(2) ?? -1}");
 
     return 0

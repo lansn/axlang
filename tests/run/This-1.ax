@@ -13,7 +13,7 @@ class Calc {
 int main() {
     Calc c = new Calc(3)
     int d = c.DoubleIt()
-    int s = Calc.Add(1, 2)
+    int s = Calc.add(1, 2)
     println("d = {d}, s = {s}")
     return 0
 }

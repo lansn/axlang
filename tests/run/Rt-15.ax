@@ -1,5 +1,5 @@
 int main() {
-    decimal d = 100.00d.Divide(3, 2, Rounding.HalfUp)
+    decimal d = 100.00d.divide(3, 2, Rounding.HalfUp)
     println("{d}")
     return 0
 }

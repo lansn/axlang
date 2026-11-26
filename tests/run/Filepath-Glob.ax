@@ -3,8 +3,8 @@ import filepath
 
 int main() {
     string[] ms = filepath.glob("tests/run/__ft__/*.txt")
-    println("len={ms.Len()}")
-    for i in 0..ms.Len() {
+    println("len={ms.len()}")
+    for i in 0..ms.len() {
         println("ms[{i}]={ms[i]}")
     }
     return 0

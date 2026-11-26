@@ -483,7 +483,7 @@
           "c_counterpart": "isnan",
           "go_counterpart": "math.IsNaN",
           "function": "判断是否为非数（NaN）",
-          "description": "对标 C isnan，Go math.IsNaN；axlang 将 IsNaN 转为 snake_case 后名称为 is_na_n",
+          "description": "对标 C isnan，Go math.IsNaN；axlang 将 IsNaN 转为 snake_case 后名称为 isNaN",
           "builtin": false
         },
         {
@@ -1543,7 +1543,7 @@
           "description": "对标 C sprintf，Go fmt.Sprintf",
           "builtin": true,
           "builtin_plan": "keep",
-          "usage_example": "d.to_string()"
+          "usage_example": "d.toString()"
         }
       ]
     },
@@ -1564,7 +1564,7 @@
           "description": "C 标准库需 sprintf/itoa，Go 对标 strconv 包；泛型类型方法",
           "builtin": true,
           "builtin_plan": "keep",
-          "usage_example": "x.to_string()"
+          "usage_example": "x.toString()"
         },
         {
           "name": "wrapping_add",
@@ -1577,7 +1577,7 @@
           "description": "C 标准库无直接对应，Go 亦无标准库函数；axlang 语言级泛型方法",
           "builtin": true,
           "builtin_plan": "keep",
-          "usage_example": "x.wrapping_add(y)"
+          "usage_example": "x.wrappingAdd(y)"
         },
         {
           "name": "round",
@@ -1676,7 +1676,7 @@
           "description": "C 标准库无直接对应，Go 对标 fmt.Sprintf('%v', slice)；格式如 [1 2 3]",
           "builtin": true,
           "builtin_plan": "keep",
-          "usage_example": "arr.to_string()"
+          "usage_example": "arr.toString()"
         },
         {
           "name": "==",
@@ -1705,7 +1705,7 @@
           "usage_example": "arr1 != arr2"
         },
         {
-          "name": "切片",
+          "name": "slice",
           "signature": "[lo..hi] / [lo..=hi]",
           "kind": "syntax",
           "status": "implemented",
@@ -2124,7 +2124,7 @@
           "description": "C 标准库无直接对应，Go 对标 select + default 语句；非阻塞尝试出队",
           "builtin": true,
           "builtin_plan": "keep",
-          "usage_example": "q.try_pop()"
+          "usage_example": "q.tryPop()"
         },
         {
           "name": "push",
@@ -2740,7 +2740,7 @@
           "description": "C 标准库无直接对应，Go 对标 sort.IntsAreSorted；遍历检查，O(n)",
           "builtin": true,
           "builtin_plan": "keep",
-          "usage_example": "sort.ints_are_sorted(arr)"
+          "usage_example": "sort.intsAreSorted(arr)"
         },
         {
           "name": "strings_are_sorted",
@@ -2752,7 +2752,7 @@
           "description": "C 标准库无直接对应，Go 对标 sort.StringsAreSorted；遍历检查，O(n)",
           "builtin": true,
           "builtin_plan": "keep",
-          "usage_example": "sort.strings_are_sorted(arr)"
+          "usage_example": "sort.stringsAreSorted(arr)"
         },
         {
           "name": "search_ints",
@@ -2764,7 +2764,7 @@
           "description": "对标 C bsearch，Go sort.SearchInts；要求数组已排序，返回索引或插入点",
           "builtin": true,
           "builtin_plan": "keep",
-          "usage_example": "sort.search_ints(arr, 5)"
+          "usage_example": "sort.searchInts(arr, 5)"
         },
         {
           "name": "search_strings",
@@ -2776,7 +2776,7 @@
           "description": "对标 C bsearch，Go sort.SearchStrings；要求数组已排序，返回索引或插入点",
           "builtin": true,
           "builtin_plan": "keep",
-          "usage_example": "sort.search_strings(arr, \"key\")"
+          "usage_example": "sort.searchStrings(arr, \"key\")"
         },
         {
           "name": "slice",
@@ -2800,7 +2800,7 @@
           "description": "对标 C qsort，Go sort.SliceStable；底层复用 qsort（C 标准库无稳定排序，同 slice 实现）；less 参数须为顶层函数",
           "builtin": true,
           "builtin_plan": "keep",
-          "usage_example": "sort.slice_stable(arr, less)"
+          "usage_example": "sort.sliceStable(arr, less)"
         }
       ]
     },
@@ -3071,7 +3071,7 @@
           "description": "C 标准库无 map 类型，Go 对标 maps.DeleteFunc；利用 axlang 函数值参数与 file-level callback adapter 模式实现闭包回调",
           "builtin": true,
           "builtin_plan": "keep",
-          "usage_example": "maps.delete_func(m, func(k) bool { ... })"
+          "usage_example": "maps.deleteFunc(m, func(k) bool { ... })"
         },
         {
           "name": "equal",
@@ -3571,7 +3571,7 @@
           "description": "C 标准库无运行时反射，Go 对标 reflect.TypeOf；axlang 无运行时类型反射，需设计可落地子集",
           "builtin": true,
           "builtin_plan": "keep",
-          "usage_example": "reflect.type_of(v)"
+          "usage_example": "reflect.typeOf(v)"
         },
         {
           "name": "value_of",
@@ -3584,7 +3584,7 @@
           "description": "C 标准库无运行时反射，Go 对标 reflect.ValueOf；axlang 无运行时类型反射，需设计可落地子集",
           "builtin": true,
           "builtin_plan": "keep",
-          "usage_example": "reflect.value_of(v)"
+          "usage_example": "reflect.valueOf(v)"
         },
         {
           "name": "num_field",
@@ -3596,7 +3596,7 @@
           "description": "C 标准库无运行时反射，Go 对标 reflect.NumField；axlang 无运行时类型反射，需设计可落地子集",
           "builtin": true,
           "builtin_plan": "keep",
-          "usage_example": "reflect.num_field(v)"
+          "usage_example": "reflect.numField(v)"
         }
       ]
     },

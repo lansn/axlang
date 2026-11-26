@@ -3,7 +3,7 @@ int main() {
     string s = "hello"
     string t = "world"
     string u = s + " " + t
-    println("str={u} len={u.Len()}")
+    println("str={u} len={u.len()}")
     bool e = (s == "hello")
     println("eq={e}")
     return 0

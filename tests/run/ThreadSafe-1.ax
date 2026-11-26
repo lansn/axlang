@@ -13,9 +13,9 @@ const int BATCH = 1000
 // 生产者：向队列推入 0..BATCH，关闭队列
 void producer(queue<int> q) {
     for i in 0..BATCH {
-        q.Push(i)
+        q.push(i)
     }
-    q.Close()
+    q.close()
 }
 
 int main() {
@@ -38,7 +38,7 @@ int main() {
     int sum1 = 0
     int? v1 = null
     while true {
-        v1 = q1.Pop()
+        v1 = q1.pop()
         if v1 == null {
             break
         }
@@ -50,7 +50,7 @@ int main() {
     int sum2 = 0
     int? v2 = null
     while true {
-        v2 = q2.Pop()
+        v2 = q2.pop()
         if v2 == null {
             break
         }
@@ -62,7 +62,7 @@ int main() {
     int sum3 = 0
     int? v3 = null
     while true {
-        v3 = q3.Pop()
+        v3 = q3.pop()
         if v3 == null {
             break
         }
@@ -74,7 +74,7 @@ int main() {
     int sum4 = 0
     int? v4 = null
     while true {
-        v4 = q4.Pop()
+        v4 = q4.pop()
         if v4 == null {
             break
         }
@@ -83,10 +83,10 @@ int main() {
     total = total + sum4
 
     // 等待所有生产者线程结束
-    t1.Join()
-    t2.Join()
-    t3.Join()
-    t4.Join()
+    t1.join()
+    t2.join()
+    t3.join()
+    t4.join()
 
     // 期望：4 * (0+1+...+999) = 4 * 499500 = 1998000
     int expected = 1998000

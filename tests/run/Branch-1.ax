@@ -10,7 +10,7 @@ class Buf {
         this.N = n
     }
     public void Write(string s) {
-        this.N = this.N + s.Len()
+        this.N = this.N + s.len()
     }
 }
 
@@ -59,7 +59,7 @@ int main() {
     // 6) for-in 的元素变量每轮重新绑定，每轮 move 合法
     string[] names = ["a", "b"]
     for s in names {
-        var g = new Buf(s.Len())
+        var g = new Buf(s.len())
         sink(g)
     }
 

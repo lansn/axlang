@@ -30,26 +30,26 @@ int main() {
     // std.bytes.trim_space
     byte[] sp = [32, 32, 65, 66, 32]  // "  AB "
     byte[] tp = std.bytes.trim_space(sp)
-    println("trimspace-len={tp.Len()}")  // 2
+    println("trimspace-len={tp.len()}")  // 2
 
     // std.bytes.to_upper / to_lower
     byte[] lower = [97, 98, 99]  // "abc"
     byte[] upper = std.bytes.to_upper(lower)
-    println("toupper-len={upper.Len()}")  // 3
+    println("toupper-len={upper.len()}")  // 3
     byte[] upper2 = [65, 66, 67]  // "ABC"
     byte[] lower2 = std.bytes.to_lower(upper2)
-    println("tolower-len={lower2.Len()}")  // 3
+    println("tolower-len={lower2.len()}")  // 3
 
     // std.bytes.repeat
     byte[] rep = [1, 2]
     byte[] rep2 = std.bytes.repeat(rep, 3)
-    println("repeat-len={rep2.Len()}")  // 6
+    println("repeat-len={rep2.len()}")  // 6
 
     // std.bytes.split
     byte[] spl = [1, 2, 0, 3, 4, 0, 5]
     byte[] sep = [0]
     byte[][] parts = std.bytes.split(spl, sep)
-    println("split-len={parts.Len()}")  // 3
+    println("split-len={parts.len()}")  // 3
 
     return 0
 }

@@ -4,7 +4,7 @@
 //
 // 设计：
 //   3 个线程，每个线程独立 queue<int>，在线程函数内按顺序注册
-//   `defer q.Push(1)`、`defer q.Push(2)`、`defer q.Push(3)`。
+//   `defer q.push(1)`、`defer q.push(2)`、`defer q.push(3)`。
 //   线程退出时 defer 逆序执行：Push(3) → Push(2) → Push(1)。
 //   队列是 FIFO，主线程 Pop 应该得到 3, 2, 1。
 //
@@ -20,9 +20,9 @@ void worker(queue<int> q) {
     int a = 1
     int b = 2
     int c = 3
-    defer q.Push(a)   // 第 1 个注册，最后执行
-    defer q.Push(b)   // 第 2 个注册，中间执行
-    defer q.Push(c)   // 第 3 个注册，第一个执行
+    defer q.push(a)   // 第 1 个注册，最后执行
+    defer q.push(b)   // 第 2 个注册，中间执行
+    defer q.push(c)   // 第 3 个注册，第一个执行
 }
 
 int main() {
@@ -36,23 +36,23 @@ int main() {
     var t3 = thread(worker, q3)
 
     // 等待所有线程结束（此时所有 defer 已执行）
-    t1.Join()
-    t2.Join()
-    t3.Join()
+    t1.join()
+    t2.join()
+    t3.join()
 
     // 分别 Pop 每个队列的 3 个值
     // 期望逆序：3, 2, 1
-    int? v1_1 = q1.Pop()
-    int? v1_2 = q1.Pop()
-    int? v1_3 = q1.Pop()
+    int? v1_1 = q1.pop()
+    int? v1_2 = q1.pop()
+    int? v1_3 = q1.pop()
 
-    int? v2_1 = q2.Pop()
-    int? v2_2 = q2.Pop()
-    int? v2_3 = q2.Pop()
+    int? v2_1 = q2.pop()
+    int? v2_2 = q2.pop()
+    int? v2_3 = q2.pop()
 
-    int? v3_1 = q3.Pop()
-    int? v3_2 = q3.Pop()
-    int? v3_3 = q3.Pop()
+    int? v3_1 = q3.pop()
+    int? v3_2 = q3.pop()
+    int? v3_3 = q3.pop()
 
     // 解包（若 null 则为 0，测试会因期望不匹配而失败）
     int n1_1 = 0

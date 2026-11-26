@@ -9,7 +9,7 @@ import std.time
 // 泛型求和（单态化）
 int sum_arr<T>(&const T[] xs) {
     int s = 0
-    for i in 0..xs.Len() {
+    for i in 0..xs.len() {
         s = s + xs[i]
     }
     return s
@@ -18,7 +18,7 @@ int sum_arr<T>(&const T[] xs) {
 // 普通求和（对比基准）
 int sum_arr_plain(&const int[] xs) {
     int s = 0
-    for i in 0..xs.Len() {
+    for i in 0..xs.len() {
         s = s + xs[i]
     }
     return s
@@ -31,7 +31,7 @@ class BigData {
     constructor(int n) {
         this.Data = [0]
         for i in 1..n {
-            this.Data.Push(i)
+            this.Data.push(i)
         }
         this.Tag = n
     }
@@ -47,7 +47,7 @@ int main() {
     // ---------- 测试 1：1000 万元素数组求和 ----------
     int[] xs = [0]
     for i in 1..N {
-        xs.Push(i)
+        xs.push(i)
     }
 
     int s1 = sum_arr(&xs)

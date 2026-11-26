@@ -2,7 +2,7 @@
 
 int main() {
     int[] a = [1, 2, 3, 4, 5]
-    a.Reverse()
+    a.reverse()
     println("int-0={a[0]}")
     println("int-1={a[1]}")
     println("int-2={a[2]}")
@@ -10,23 +10,23 @@ int main() {
     println("int-4={a[4]}")
 
     string[] b = ["a", "b", "c"]
-    b.Reverse()
+    b.reverse()
     println("str-0={b[0]}")
     println("str-1={b[1]}")
     println("str-2={b[2]}")
 
     float[] c = [1.5, 2.5, 3.5]
-    c.Reverse()
+    c.reverse()
     println("float-0={c[0]}")
     println("float-1={c[1]}")
     println("float-2={c[2]}")
 
     int[] d = [42]
-    d.Reverse()
+    d.reverse()
     println("single={d[0]}")
 
     int[] e = []
-    e.Reverse()
+    e.reverse()
     println("empty-ok=true")
 
     return 0

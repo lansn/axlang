@@ -31,9 +31,9 @@ struct Pair<T> {
 int main() {
     Box<int> b = new Box(42)
     println(b.Value)
-    println(b.Get())
+    println(b.get())
     Box<string> sb = new Box("文本")
-    println(sb.Get())
+    println(sb.get())
     Node<int> n = new Node(7)
     Box<Box<int>> bb = n.Wrap()
     println(bb.Value.Value)

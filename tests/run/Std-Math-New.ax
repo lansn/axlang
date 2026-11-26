@@ -1,0 +1,26 @@
+// 验证 std.math 新落地扩展函数（C 风格函数名：sinh/cosh/tanh/asin/acos/atan/atan2/hypot/cbrt/trunc）
+import std.math
+
+int main() {
+    var a = std.math.sinh(1.0)
+    println("sinh={a}")
+    var b = std.math.cosh(1.0)
+    println("cosh={b}")
+    var c = std.math.tanh(1.0)
+    println("tanh={c}")
+    var d = std.math.asin(0.5)
+    println("asin={d}")
+    var e = std.math.acos(0.5)
+    println("acos={e}")
+    var f = std.math.atan(1.0)
+    println("atan={f}")
+    var g = std.math.atan2(1.0, 1.0)
+    println("atan2={g}")
+    var h = std.math.hypot(3.0, 4.0)
+    println("hypot={h}")
+    var i = std.math.cbrt(27.0)
+    println("cbrt={i}")
+    var j = std.math.trunc(3.7)
+    println("trunc={j}")
+    return 0
+}

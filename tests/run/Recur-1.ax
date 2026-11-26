@@ -17,7 +17,7 @@ int fib(int n) {
 
 int diff(int n, time a, time b) {
     if (n <= 0) {
-        return a.UnixMs() - b.UnixMs()
+        return a.unixMs() - b.unixMs()
     }
     return diff(n - 1, a, b)
 }

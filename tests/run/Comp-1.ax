@@ -20,10 +20,10 @@ int main() {
     Money b = new Money(250)
     Comparable ca = a
     Comparable cb = b
-    println("compare={ca.Compare(cb)}")
-    println("compare={cb.Compare(ca)}")
+    println("compare={ca.compare(cb)}")
+    println("compare={cb.compare(ca)}")
     Comparable cc = a
-    println("compare={ca.Compare(cc)}")
+    println("compare={ca.compare(cc)}")
     Hashable ha = b
     println("hash={ha.Hash()}")
     return 0

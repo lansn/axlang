@@ -8,7 +8,7 @@ int get_len(&const string? s) {
     if s == null {
         return 0
     }
-    return s.Len()
+    return s.len()
 }
 
 // 2. defer 确定性释放：defer 语句在离开作用域时执行
@@ -23,7 +23,7 @@ int use_resource() {
 int move_test() {
     string a = "hello"
     string b = a            // 所有权移走，a 失效
-    return b.Len()
+    return b.len()
 }
 
 // 4. 数组正常访问（越界会运行期终止）

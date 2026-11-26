@@ -29,7 +29,7 @@ class Ball implement Drawable {
 }
 
 void show(Drawable d) {
-    println(d.Draw())
+    println(d.draw())
 }
 
 int main() {
@@ -40,7 +40,7 @@ int main() {
     show(ball)  // 期望：画球：球B
 
     Drawable d = new Box("盒子C")   // 接口变量持有子类实例
-    println(d.Draw())               // 期望：画框：盒子C
+    println(d.draw())               // 期望：画框：盒子C
 
     return 0
 }

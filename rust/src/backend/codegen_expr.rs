@@ -5,7 +5,7 @@
 
 use crate::frontend::ast::{self, Expr, Pat, SPart, Stmt};
 use crate::backend::{cstr, san, tag_of, AX_FAIL, AX_OK};
-use crate::sema::{ConstVal, pascal_member};
+use crate::sema::{ConstVal, camel_member};
 use crate::types::*;
 
 use super::codegen_fn::{BinInfo, FnGen};
@@ -490,7 +490,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                             let c = *c;
                             let td = self.cg.s.typedefs[c as usize].clone();
                             if td.kind == "class" && self.cg.s.implements(c, p) {
-                                let fid = match td.methods.get("ToString") {
+                                let fid = match td.methods.get("toString") {
                                     Some(&f) => f,
                                     None => 0,
                                 };
@@ -498,7 +498,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                                 self.emit(format!("ax_sb_push(&{}, {}({}));", sb, fname, val));
                                 true
                             } else if td.kind == "struct" && self.cg.s.implements(c, p) {
-                                let fid = match td.methods.get("ToString") {
+                                let fid = match td.methods.get("toString") {
                                     Some(&f) => f,
                                     None => 0,
                                 };
@@ -880,7 +880,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                     if td.map(|t| t.kind == "class") != Some(true) {
                         break;
                     }
-                    if let Some(&fid) = td.and_then(|t| t.methods.get("Compare")) {
+                    if let Some(&fid) = td.and_then(|t| t.methods.get("compare")) {
                         cfid = Some(fid);
                         break;
                     }
@@ -1913,14 +1913,14 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             // 返回值走 axrt 的 out 参数形态：read_line 给 string?（EOF → has=0），
             // read_file 给 result<string>（失败 → fail）。原先按单值/无参生成，
             // 与 axrt.h 的签名不符，C 编译直接失败（此前没有用例覆盖）
-            ("io", "read_line") => {
+            ("io", "readLine") => {
                 let tyc = self.cg.ct(&self.ty_or_int(e.id));
                 format!(
                     "({{ {tyc} r_; ax_str o_; if (ax_read_line(&o_) == 0) {{ r_.has = 1; r_.v = o_; }} else {{ r_.has = 0; r_.v = ax_str_empty(); }} r_; }})",
                     tyc = tyc
                 )
             }
-            ("io", "read_file") => {
+            ("io", "readFile") => {
                 let tyc = self.cg.ct(&self.ty_or_int(e.id));
                 format!(
                     "({{ {tyc} r_; ax_str o_; if (ax_read_file({p}, &o_) == 0) {{ r_.tag = 1; r_.u.ok = o_; }} else {{ r_.tag = 0; r_.u.err = ax_err_new(4, AX_S(\"read failed\")); }} r_; }})",
@@ -1932,7 +1932,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 self.emit(format!("ax_write_stdout({});", a[0]));
                 "0".to_string()
             }
-            ("io", "write_line") => {
+            ("io", "writeLine") => {
                 self.emit(format!("ax_write_stdout({});", a[0]));
                 self.emit("ax_write_stdout(AX_S(\"\\n\"));".to_string());
                 "0".to_string()
@@ -1985,7 +1985,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             }
             ("json", "parse") => format!("ax_json_parse_result({})", a[0]),
             ("json", "stringify") => format!("ax_json_stringify({})", a[0]),
-            ("json", "marshal_indent") => format!("ax_json_marshal_indent({}, {}, {})", a[0], a[1], a[2]),
+            ("json", "marshalIndent") => format!("ax_json_marshal_indent({}, {}, {})", a[0], a[1], a[2]),
             ("json", "valid") => format!("ax_json_valid({})", a[0]),
             /* file 模块（单段名，向后兼容；std.file 现已改为 axc/std/file.ax） */
             ("file", "open") => format!("ax_file_open_result({}, 0)", a[0]),
@@ -1995,11 +1995,11 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             ("file", "rename") => format!("ax_file_rename({}, {})", a[0], a[1]),
             ("file", "exists") => format!("ax_file_exists({})", a[0]),
             ("file", "mkdir") => format!("ax_dir_create({})", a[0]),
-            ("file", "is_dir") => format!("ax_file_is_dir({})", a[0]),
-            ("file", "is_file") => format!("ax_file_is_file({})", a[0]),
+            ("file", "isDir") => format!("ax_file_is_dir({})", a[0]),
+            ("file", "isFile") => format!("ax_file_is_file({})", a[0]),
             ("file", "size") => format!("ax_file_size({})", a[0]),
-            ("file", "mod_time") => format!("ax_file_modtime({})", a[0]),
-            ("file", "read_all") => {
+            ("file", "modTime") => format!("ax_file_modtime({})", a[0]),
+            ("file", "readAll") => {
                 let tyc = self.cg.ct(&self.ty_or_int(e.id));
                 format!(
                     "({{ {tyc} r_; ax_str o_; if (ax_read_file({p}, &o_) == 0) {{ r_.tag = 1; r_.u.ok = o_; }} else {{ r_.tag = 0; r_.u.err = ax_err_new(4, AX_S(\"read failed\")); }} r_; }})",
@@ -2007,10 +2007,10 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                     p = a[0]
                 )
             }
-            ("file", "write_all") => format!("ax_file_write_all({}, {})", a[0], a[1]),
+            ("file", "writeAll") => format!("ax_file_write_all({}, {})", a[0], a[1]),
             ("file", "chmod") => format!("ax_file_chmod({}, {})", a[0], a[1]),
             ("file", "chtimes") => format!("ax_file_chtimes({}, {}, {})", a[0], a[1], a[2]),
-            ("file", "temp_file") => format!("ax_file_tempfile({}, {})", a[0], a[1]),
+            ("file", "tempFile") => format!("ax_file_tempfile({}, {})", a[0], a[1]),
             ("time", "now_ms") => "ax_now_ms()".to_string(),
             ("time", "now") => "ax_now_ms()".to_string(),
             ("time", "from_unix_ms") => a[0].clone(),
@@ -2042,15 +2042,15 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             ("os", "environ") => "ax_os_environ()".to_string(),
             ("os", "setenv") => format!("ax_os_setenv({}, {})", a[0], a[1]),
             ("os", "unsetenv") => format!("ax_os_unsetenv({})", a[0]),
-            ("os", "user_home_dir") => "ax_os_user_home_dir()".to_string(),
+            ("os", "userHomeDir") => "ax_os_user_home_dir()".to_string(),
             /* atomic 模块（单段名，向后兼容；std.atomic 现已改为 axc/std/atomic.ax） */
-            ("atomic", "add_int") => format!("ax_std_atomic_add_int(&{}, {})", a[0], a[1]),
-            ("atomic", "load_int") => format!("ax_std_atomic_load_int(&{})", a[0]),
-            ("atomic", "store_int") => {
+            ("atomic", "addInt") => format!("ax_std_atomic_add_int(&{}, {})", a[0], a[1]),
+            ("atomic", "loadInt") => format!("ax_std_atomic_load_int(&{})", a[0]),
+            ("atomic", "storeInt") => {
                 self.emit(format!("ax_std_atomic_store_int(&{}, {});", a[0], a[1]));
                 "0".to_string()
             }
-            ("atomic", "compare_and_swap_int") => {
+            ("atomic", "compareAndSwapInt") => {
                 format!("ax_std_atomic_compare_and_swap_int(&{}, {}, {})", a[0], a[1], a[2])
             }
             /* ---------------- sort 模块 ---------------- */
@@ -2066,25 +2066,25 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 let arr = self.declare(&t_array(t_float(), None), &a[0]);
                 format!("ax_sort_float((double*){}.data, {}.len)", arr, arr)
             }
-            ("sort", "ints_are_sorted") => {
+            ("sort", "intsAreSorted") => {
                 let arr = self.declare(&t_array(t_int(), None), &a[0]);
                 format!("ax_sort_ints_are_sorted((int64_t*){}.data, {}.len)", arr, arr)
             }
-            ("sort", "strings_are_sorted") => {
+            ("sort", "stringsAreSorted") => {
                 let arr = self.declare(&t_array(t_string(), None), &a[0]);
                 format!("ax_sort_strings_are_sorted((ax_str*){}.data, {}.len)", arr, arr)
             }
-            ("sort", "search_ints") => {
+            ("sort", "searchInts") => {
                 let arr = self.declare(&t_array(t_int(), None), &a[0]);
                 format!("ax_sort_search_ints((int64_t*){}.data, {}.len, {})", arr, arr, a[1])
             }
-            ("sort", "search_strings") => {
+            ("sort", "searchStrings") => {
                 let arr = self.declare(&t_array(t_string(), None), &a[0]);
                 format!("ax_sort_search_strings((ax_str*){}.data, {}.len, {})", arr, arr, a[1])
             }
             /* sort.slice / sort.slice_stable：按自定义比较函数对任意类型数组排序。
                底层复用 qsort + 文件级比较函数适配器（与 arr.sort(cmp) 相同）。 */
-            ("sort", "slice") | ("sort", "slice_stable") => {
+            ("sort", "slice") | ("sort", "sliceStable") => {
                 let arr_ty = self.ty_or_int(args[0].k.expr.id);
                 let et = match &*arr_ty {
                     TyS::Array(et, _) => et.clone(),
@@ -2117,7 +2117,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 ));
                 "0".to_string()
             }
-            ("reflect", "type_of") => {
+            ("reflect", "typeOf") => {
                 // 编译期常量：直接生成字符串字面量，实参根本不出现在生成代码里
                 let name = self
                     .cg
@@ -2126,7 +2126,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                     .unwrap_or_default();
                 format!("AX_S({})", cstr(&name))
             }
-            ("reflect", "num_field") => {
+            ("reflect", "numField") => {
                 // 编译期常量：直接生成整数字面量
                 let n = self
                     .cg
@@ -2157,17 +2157,17 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 format!("({{ int64_t v_; ax_parse_i64({}, &v_) ? v_ : 0; }})", a[0])
             }
             ("strconv", "itoa") => format!("ax_str_of_int({})", a[0]),
-            ("strconv", "parse_float") => {
+            ("strconv", "parseFloat") => {
                 format!("({{ double v_; ax_parse_f64({}, &v_) ? v_ : 0.0; }})", a[0])
             }
-            ("strconv", "format_float") => format!("ax_str_of_f64({})", a[0]),
-            ("strconv", "parse_int") => format!("ax_parse_int_base({}, {})", a[0], a[1]),
-            ("strconv", "format_int") => format!("ax_str_of_int_base({}, {})", a[0], a[1]),
-            ("strconv", "parse_bool") => format!("ax_parse_bool({})", a[0]),
-            ("strconv", "format_bool") => format!("ax_str_of_bool({})", a[0]),
-            ("strconv", "parse_uint") => format!("ax_parse_uint_base({}, {})", a[0], a[1]),
-            ("strconv", "format_uint") => format!("ax_str_of_uint_base({}, {})", a[0], a[1]),
-            ("strconv", "can_backquote") => format!("ax_str_can_backquote({})", a[0]),
+            ("strconv", "formatFloat") => format!("ax_str_of_f64({})", a[0]),
+            ("strconv", "parseInt") => format!("ax_parse_int_base({}, {})", a[0], a[1]),
+            ("strconv", "formatInt") => format!("ax_str_of_int_base({}, {})", a[0], a[1]),
+            ("strconv", "parseBool") => format!("ax_parse_bool({})", a[0]),
+            ("strconv", "formatBool") => format!("ax_str_of_bool({})", a[0]),
+            ("strconv", "parseUint") => format!("ax_parse_uint_base({}, {})", a[0], a[1]),
+            ("strconv", "formatUint") => format!("ax_str_of_uint_base({}, {})", a[0], a[1]),
+            ("strconv", "canBackquote") => format!("ax_str_can_backquote({})", a[0]),
             ("strconv", "quote") => format!("ax_str_quote({})", a[0]),
             ("strconv", "unquote") => format!("ax_str_unquote({})", a[0]),
             /* string 模块（单段名，向后兼容；std.string 现已改为 axc/std/string.ax） */
@@ -2189,13 +2189,13 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             ("filepath", "split") => format!("ax_filepath_split({})", a[0]),
             ("filepath", "clean") => format!("ax_filepath_clean({})", a[0]),
             ("filepath", "abs") => format!("ax_filepath_abs({})", a[0]),
-            ("filepath", "is_abs") => format!("ax_filepath_is_abs({})", a[0]),
-            ("filepath", "eval_symlinks") => format!("ax_filepath_eval_symlinks({})", a[0]),
+            ("filepath", "isAbs") => format!("ax_filepath_is_abs({})", a[0]),
+            ("filepath", "evalSymlinks") => format!("ax_filepath_eval_symlinks({})", a[0]),
             ("filepath", "glob") => format!("ax_filepath_glob({})", a[0]),
             ("filepath", "walk") => format!("ax_filepath_walk({})", a[0]),
             /* ---------------- maps 模块（对标 Go maps，K/V 由实参 Map 类型推导） ---------------- */
             // maps.Keys(m) -> K[]：返回键数组（按插入顺序）
-            ("maps", "Keys") => {
+            ("maps", "keys") => {
                 let map_ty = self.ty_or_int(args[0].k.expr.id);
                 let tv = self.declare(&map_ty, &a[0]);
                 let n = self.tmpn();
@@ -2203,7 +2203,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 n
             }
             // maps.Values(m) -> V[]：返回值数组（按插入顺序）
-            ("maps", "Values") => {
+            ("maps", "values") => {
                 let map_ty = self.ty_or_int(args[0].k.expr.id);
                 let _vt = match &*map_ty {
                     TyS::Map(_, v) => v.clone(),
@@ -2215,7 +2215,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 n
             }
             // maps.Clone(m) -> Map：返回独立副本
-            ("maps", "Clone") => {
+            ("maps", "clone") => {
                 let map_ty = self.ty_or_int(args[0].k.expr.id);
                 let tv = self.declare(&map_ty, &a[0]);
                 let n = self.tmpn();
@@ -2223,7 +2223,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 n
             }
             // maps.Copy(dst, src) -> void：将 src 复制到 dst（dst 必须是左值才会生效）
-            ("maps", "Copy") => {
+            ("maps", "copy") => {
                 let dst_ty = self.ty_or_int(args[0].k.expr.id);
                 let src_ty = self.ty_or_int(args[1].k.expr.id);
                 let dstv = if Self::is_lvalue(&args[0].k.expr) {
@@ -2236,7 +2236,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 "0".to_string()
             }
             // maps.Delete(m, key: K) -> void：从 m 中删除 key（m 必须是左值才会生效）
-            ("maps", "Delete") => {
+            ("maps", "delete") => {
                 let map_ty = self.ty_or_int(args[0].k.expr.id);
                 let kt = match &*map_ty {
                     TyS::Map(k, _) => k.clone(),
@@ -2253,7 +2253,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             }
             // maps.DeleteFunc(m, f: func(K) bool) -> void：
             // 删除所有使 f(key) 为 true 的键值对。K 由第一个实参推导。
-            ("maps", "delete_func") => {
+            ("maps", "deleteFunc") => {
                 let map_ty = self.ty_or_int(args[0].k.expr.id);
                 let kt = match &*map_ty {
                     TyS::Map(k, _) => k.clone(),
@@ -2289,7 +2289,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 "0".to_string()
             }
             // maps.Equal(m1, m2) -> bool：判断两个 map 是否相等
-            ("maps", "Equal") => {
+            ("maps", "equal") => {
                 let map1_ty = self.ty_or_int(args[0].k.expr.id);
                 let map2_ty = self.ty_or_int(args[1].k.expr.id);
                 let tv1 = if Self::is_lvalue(&args[0].k.expr) {
@@ -2733,7 +2733,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             _ => unreachable!(),
         };
         // 用户调用可能是小写（如 to_string），intrinsic 表和 codegen 分支用 PascalCase（ToString）。
-        let name_pc = pascal_member(name);
+        let name_pc = camel_member(name);
         let rt = self.ty_or_int(recv.id);
         let rv = self.gen(recv, None, false, false);
         let mut a: Vec<String> = Vec::new();
@@ -2745,15 +2745,15 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             TyS::Str => {
                 let tv = self.declare(&rt, &rv);
                 match name_pc.as_str() {
-                    "Len" => format!("ax_str_len_cp({})", tv),
+                    "len" => format!("ax_str_len_cp({})", tv),
                     "ByteLen" => format!("({}).len", tv),
-                    "ToString" => tv,
+                    "toString" => tv,
                     "Trim" => format!("ax_str_trim({})", tv),
                     "TrimLeft" => format!("ax_str_trim_left({}, {})", tv, a[0]),
                     "TrimRight" => format!("ax_str_trim_right({}, {})", tv, a[0]),
                     "TrimPrefix" => format!("ax_str_trim_prefix({}, {})", tv, a[0]),
                     "TrimSuffix" => format!("ax_str_trim_suffix({}, {})", tv, a[0]),
-                    "Contains" => format!("ax_str_contains({}, {})", tv, a[0]),
+                    "contains" => format!("ax_str_contains({}, {})", tv, a[0]),
                     "ContainsRune" => format!("ax_str_contains_rune({}, {})", tv, a[0]),
                     "ContainsAny" => format!("ax_str_contains_any({}, {})", tv, a[0]),
                     // 子串查找：按 UTF-8 码点索引返回，未找到返回 -1
@@ -2855,7 +2855,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                     // 字符映射
                     "Map" => format!("ax_str_map({}, {})", tv, a[0]),
                     // 用 s 作为分隔符连接字符串数组
-                    "Join" => {
+                    "join" => {
                         let arr_ty = t_array(t_string(), None);
                         let arr = self.declare(&arr_ty, &a[0]);
                         let result = self.tmpn();
@@ -2876,7 +2876,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                     "IsLower" => format!("ax_str_is_lower({})", tv),
                     "IsUpper" => format!("ax_str_is_upper({})", tv),
                     "IsAlnum" => format!("ax_str_is_alnum({})", tv),
-                    "At" => {
+                    "at" => {
                         let n = self.tmpn();
                         let tmp = self.tmpn();
                         let ety = self.ty_or_int(e.id);
@@ -2932,7 +2932,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 // （ax_arr 按值赋，改副本不影响原变量），表现为 push/pop 静默失效。
                 let tv = if matches!(
                     name_pc.as_str(),
-                    "Push" | "Pop" | "Remove" | "Delete" | "Clear" | "Sort" | "Insert" | "Fill" | "Resize" | "Merge"
+                    "push" | "pop" | "remove" | "delete" | "clear" | "sort" | "insert" | "fill" | "resize" | "merge"
                 ) && Self::is_lvalue(recv)
                 {
                     format!("({})", rv)
@@ -2941,11 +2941,11 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 };
                 match name_pc.as_str() {
                     // 定长数组没有 .len 成员：长度是类型的一部分，直接编译期常数
-                    "Len" => match &*rt {
+                    "len" => match &*rt {
                         TyS::Array(_, Some(n)) => format!("((int64_t){})", n),
                         _ => format!("{}.len", tv),
                     },
-                    "Push" => {
+                    "push" => {
                         let v = self.declare(&et, &a[0]);
                         let etc = self.cg.ct(&et);
                         self.emit(format!(
@@ -2954,7 +2954,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                         ));
                         "0".to_string()
                     }
-                    "Pop" => {
+                    "pop" => {
                         let n = self.tmpn();
                         let etc = self.cg.ct(&et);
                         self.emit(format!("{} {};", etc, n));
@@ -2965,7 +2965,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                         ));
                         n
                     }
-                    "Remove" => {
+                    "remove" => {
                         let etc = self.cg.ct(&et);
                         let pa = self.pos_args(&e.tok);
                         self.emit(format!(
@@ -2974,7 +2974,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                         ));
                         "0".to_string()
                     }
-                    "Delete" => {
+                    "delete" => {
                         // 删除索引 [i, j) 范围内的元素，对标 Go slices.Delete
                         let etc = self.cg.ct(&et);
                         let pa = self.pos_args(&e.tok);
@@ -2984,11 +2984,11 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                         ));
                         "0".to_string()
                     }
-                    "Clear" => {
+                    "clear" => {
                         self.emit(format!("ax_arr_clear(&{});", tv));
                         "0".to_string()
                     }
-                    "Contains" => {
+                    "contains" => {
                         let x = &a[0];
                         if matches!(&*et, TyS::Int(..)) {
                             format!("ax_slice_contains_int((const int64_t*){}.data, {}.len, {})", tv, tv, x)
@@ -2998,7 +2998,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                             "0".to_string()
                         }
                     }
-                    "Index" => {
+                    "index" => {
                         let x = &a[0];
                         if matches!(&*et, TyS::Int(..)) {
                             format!("ax_slice_index_int((const int64_t*){}.data, {}.len, {})", tv, tv, x)
@@ -3008,7 +3008,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                             "-1".to_string()
                         }
                     }
-                    "Sort" => {
+                    "sort" => {
                         if args.is_empty() {
                             // 无参数：默认升序排序（仅对 int[] / string[] 有默认序）
                             if matches!(&*et, TyS::Int(..)) {
@@ -3051,7 +3051,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                             "0".to_string()
                         }
                     }
-                    "Reverse" => {
+                    "reverse" => {
                         // 原地反转：对标 Go slices.Reverse，任意元素类型均可
                         let etc = self.cg.ct(&et);
                         self.emit(format!(
@@ -3060,7 +3060,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                         ));
                         "0".to_string()
                     }
-                    "Clone" => {
+                    "clone" => {
                         // 深拷贝返回独立副本（对标 clone 语义，原数组不受影响）
                         let etc = self.cg.ct(&et);
                         let n = self.tmpn();
@@ -3070,7 +3070,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                         ));
                         n
                     }
-                    "Insert" => {
+                    "insert" => {
                         // 在索引 i 处插入元素 v，后续元素后移
                         let etc = self.cg.ct(&et);
                         let pa = self.pos_args(&e.tok);
@@ -3081,7 +3081,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                         ));
                         "0".to_string()
                     }
-                    "Fill" => {
+                    "fill" => {
                         // 用指定值 v 填充所有元素
                         let etc = self.cg.ct(&et);
                         let v = self.declare(&et, &a[0]);
@@ -3091,7 +3091,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                         ));
                         "0".to_string()
                     }
-                    "Resize" => {
+                    "resize" => {
                         // 调整长度为 n，不足时零初始化，超出时截断
                         let etc = self.cg.ct(&et);
                         self.emit(format!(
@@ -3100,7 +3100,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                         ));
                         "0".to_string()
                     }
-                    "Merge" => {
+                    "merge" => {
                         // 数组合并：将另一个同类型数组的所有元素追加到末尾
                         let etc = self.cg.ct(&et);
                         let b = self.declare(&rt, &a[0]);
@@ -3110,7 +3110,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                         ));
                         "0".to_string()
                     }
-                    "Min" => {
+                    "min" => {
                         // int[]/float[] 聚合：求最小值，空数组返回 0
                         if matches!(&*et, TyS::Int(..)) {
                             format!("ax_arr_min_int((const int64_t*){}.data, {}.len)", tv, tv)
@@ -3120,7 +3120,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                             "0".to_string()
                         }
                     }
-                    "Max" => {
+                    "max" => {
                         // int[]/float[] 聚合：求最大值，空数组返回 0
                         if matches!(&*et, TyS::Int(..)) {
                             format!("ax_arr_max_int((const int64_t*){}.data, {}.len)", tv, tv)
@@ -3130,7 +3130,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                             "0".to_string()
                         }
                     }
-                    "Sum" => {
+                    "sum" => {
                         // int[]/float[] 聚合：求和，空数组返回 0
                         if matches!(&*et, TyS::Int(..)) {
                             format!("ax_arr_sum_int((const int64_t*){}.data, {}.len)", tv, tv)
@@ -3140,7 +3140,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                             "0".to_string()
                         }
                     }
-                    "At" => {
+                    "at" => {
                         let n = self.tmpn();
                         let ety = self.ty_or_int(e.id);
                         let tc = self.cg.ct(&ety);
@@ -3155,7 +3155,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                         ));
                         n
                     }
-                    "ToString" => "AX_S(\"[array]\")".to_string(),
+                    "toString" => "AX_S(\"[array]\")".to_string(),
                     _ => "0".to_string(),
                 }
             }
@@ -3166,7 +3166,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 // 否则改副本不影响原变量。
                 let tv = if matches!(
                     name.as_str(),
-                    "Remove" | "Clear"
+                    "remove" | "clear"
                 ) && Self::is_lvalue(recv)
                 {
                     format!("({})", rv)
@@ -3174,12 +3174,12 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                     self.declare(&rt, &rv)
                 };
                 match name.as_str() {
-                    "Len" => format!("{}.len", tv),
-                    "Has" => {
+                    "len" => format!("{}.len", tv),
+                    "has" => {
                         let kv = self.declare(&kt, &a[0]);
                         format!("ax_map_has(&{}, &{})", tv, kv)
                     }
-                    "Get" => {
+                    "get" => {
                         let kv = self.declare(&kt, &a[0]);
                         let n = self.tmpn();
                         let ety = self.ty_or_int(e.id);
@@ -3195,7 +3195,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                         ));
                         n
                     }
-                    "Remove" => {
+                    "remove" => {
                         let kv = self.declare(&kt, &a[0]);
                         self.emit(format!(
                             "ax_map_remove(&{}, &{});",
@@ -3203,7 +3203,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                         ));
                         "0".to_string()
                     }
-                    "Keys" => {
+                    "keys" => {
                         let etc = self.cg.ct(&kt);
                         let n = self.tmpn();
                         self.emit(format!(
@@ -3212,7 +3212,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                         ));
                         n
                     }
-                    "Clear" => {
+                    "clear" => {
                         self.emit(format!("ax_map_clear(&{});", tv));
                         "0".to_string()
                     }
@@ -3222,16 +3222,16 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             TyS::Decimal => {
                 let tv = self.declare(&rt, &rv);
                 match name_pc.as_str() {
-                    "ToString" => format!("ax_dec_to_str({})", tv),
-                    "Round" => format!(
+                    "toString" => format!("ax_dec_to_str({})", tv),
+                    "round" => format!(
                         "ax_dec_round({}, (int32_t)({}), (int)({}))",
                         tv, a[0], a[1]
                     ),
-                    "Divide" => format!(
+                    "divide" => format!(
                         "ax_dec_div_round({}, {}, (int32_t)({}), (int)({}))",
                         tv, a[0], a[1], a[2]
                     ),
-                    "Truncate" => {
+                    "truncate" => {
                         let pa = self.pos_args(&e.tok);
                         format!(
                             "ax_narrow(ax_dec_to_i64({}, {}), (int)({}), 1, {})",
@@ -3244,11 +3244,11 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             TyS::Int(..) => {
                 let tv = self.declare(&rt, &rv);
                 match name_pc.as_str() {
-                    "ToString" => format!("ax_str_of_int((int64_t){})", tv),
-                    "WrappingAdd" => {
+                    "toString" => format!("ax_str_of_int((int64_t){})", tv),
+                    "wrappingAdd" => {
                         format!("(int64_t)((uint64_t){} + (uint64_t)({}))", tv, a[0])
                     }
-                    "Divide" => {
+                    "divide" => {
                         format!("({} / {})", tv, a[0])
                     }
                     _ => "0".to_string(),
@@ -3257,11 +3257,11 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             TyS::Float => {
                 let tv = self.declare(&rt, &rv);
                 match name_pc.as_str() {
-                    "ToString" => format!("ax_str_of_f64({})", tv),
-                    "Round" => {
+                    "toString" => format!("ax_str_of_f64({})", tv),
+                    "round" => {
                         format!("round({} * pow(10.0, {})) / pow(10.0, {})", tv, a[0], a[0])
                     }
-                    "Divide" => {
+                    "divide" => {
                         format!("({} / {})", tv, a[0])
                     }
                     _ => "0".to_string(),
@@ -3270,41 +3270,41 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             TyS::Bool => {
                 let tv = self.declare(&rt, &rv);
                 match name_pc.as_str() {
-                    "ToString" => format!("ax_str_of_bool({})", tv),
+                    "toString" => format!("ax_str_of_bool({})", tv),
                     _ => "0".to_string(),
                 }
             }
             TyS::Enum(_) => {
                 let tv = self.declare(&rt, &rv);
                 match name_pc.as_str() {
-                    "ToString" => self.enum_name_expr(recv, &tv),
+                    "toString" => self.enum_name_expr(recv, &tv),
                     _ => "0".to_string(),
                 }
             }
             TyS::Named(DefId::Name("time"), _) => {
                 let tv = self.declare(&rt, &rv);
                 match name_pc.as_str() {
-                    "UnixMs" => tv,
-                    "ToString" => format!("ax_time_to_str({})", tv),
-                    "Format" => {
+                    "unixMs" => tv,
+                    "toString" => format!("ax_time_to_str({})", tv),
+                    "format" => {
                         let fmt = self.declare(&t_string(), &a[0]);
                         format!("ax_time_format({}, (const char*){}.p)", tv, fmt)
                     }
-                    "After" => format!("({} > {})", tv, a[0]),
-                    "Before" => format!("({} < {})", tv, a[0]),
-                    "Equal" => format!("({} == {})", tv, a[0]),
-                    "Compare" => format!("({} < {} ? -1 : {} > {} ? 1 : 0)", tv, a[0], tv, a[0]),
-                    "Sub" => format!("({} - {})", tv, a[0]),
-                    "Add" => format!("({} + {})", tv, a[0]),
-                    "Round" => format!("ax_time_round({}, {})", tv, a[0]),
-                    "Truncate" => format!("ax_time_truncate({}, {})", tv, a[0]),
+                    "after" => format!("({} > {})", tv, a[0]),
+                    "before" => format!("({} < {})", tv, a[0]),
+                    "equal" => format!("({} == {})", tv, a[0]),
+                    "compare" => format!("({} < {} ? -1 : {} > {} ? 1 : 0)", tv, a[0], tv, a[0]),
+                    "sub" => format!("({} - {})", tv, a[0]),
+                    "add" => format!("({} + {})", tv, a[0]),
+                    "round" => format!("ax_time_round({}, {})", tv, a[0]),
+                    "truncate" => format!("ax_time_truncate({}, {})", tv, a[0]),
                     _ => "0".to_string(),
                 }
             }
             TyS::Named(DefId::Name("thread"), _) => {
                 let tv = self.declare(&rt, &rv);
                 match name.as_str() {
-                    "Join" => format!("ax_thread_join({})", tv),
+                    "join" => format!("ax_thread_join({})", tv),
                     _ => "0".to_string(),
                 }
             }
@@ -3312,11 +3312,11 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 let tv = self.declare(&rt, &rv);
                 let elem = args.first().cloned().unwrap_or_else(t_object);
                 match name.as_str() {
-                    "Push" => {
+                    "push" => {
                         let v = self.declare(&elem, &a[0]);
                         format!("ax_queue_push({}, &{})", tv, v)
                     }
-                    "Pop" => {
+                    "pop" => {
                         let out = self.tmpn();
                         let tmp = self.tmpn();
                         let elem_ty = args.first().cloned().unwrap_or_else(t_object);
@@ -3378,7 +3378,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                         _ => "0".to_string(),
                     },
                     Some("WaitGroup") => match name.as_str() {
-                        "Add" => format!("ax_std_waitgroup_add(&{}, {})", tv, self.gen(&args[0].k.expr, Some(&t_int()), false, false)),
+                        "add" => format!("ax_std_waitgroup_add(&{}, {})", tv, self.gen(&args[0].k.expr, Some(&t_int()), false, false)),
                         "Done" => { self.emit(format!("ax_std_waitgroup_done(&{});", tv)); "0".to_string() }
                         "Wait" => { self.emit(format!("ax_std_waitgroup_wait(&{});", tv)); "0".to_string() }
                         _ => "0".to_string(),
@@ -3395,7 +3395,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 match name.as_str() {
                     // Range 以 int64_t 表示，且只能出现在 for 头（parser 已转为 ForKind::Step），
                     // 作为独立表达式出现时 sema 会拦截（E4007），此分支仅防止 codegen 返回 "0" 占位符。
-                    "Step" => tv,
+                    "step" => tv,
                     _ => "0".to_string(),
                 }
             }

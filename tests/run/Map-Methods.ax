@@ -8,22 +8,22 @@ int main() {
     stock["鸟粮"] = 20
 
     // 删除 "猫粮"
-    stock.Remove("猫粮")
-    println("移除后猫粮存在={stock.Has("猫粮")}")      // false
-    println("移除后柴犬粮存在={stock.Has("柴犬粮")}")    // true
-    println("移除后长度={stock.Len()}")                 // 2
+    stock.remove("猫粮")
+    println("移除后猫粮存在={stock.has("猫粮")}")      // false
+    println("移除后柴犬粮存在={stock.has("柴犬粮")}")    // true
+    println("移除后长度={stock.len()}")                 // 2
 
     // Keys：获取所有键
-    string[] keys = stock.Keys()
-    println("键数量={keys.Len()}")                      // 2
+    string[] keys = stock.keys()
+    println("键数量={keys.len()}")                      // 2
     // 键顺序为插入顺序：柴犬粮, 鸟粮
     println("第一个键={keys[0]}")                        // 柴犬粮
     println("第二个键={keys[1]}")                        // 鸟粮
 
     // 再删除一个
-    stock.Remove("柴犬粮")
-    println("再移除后长度={stock.Len()}")               // 1
-    string[] keys2 = stock.Keys()
+    stock.remove("柴犬粮")
+    println("再移除后长度={stock.len()}")               // 1
+    string[] keys2 = stock.keys()
     println("再移除后键={keys2[0]}")                     // 鸟粮
 
     return 0

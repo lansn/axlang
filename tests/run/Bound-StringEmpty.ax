@@ -4,9 +4,9 @@ int main() {
     string single = "a"
     string normal = "hello"
 
-    println("empty len={empty.Len()}")
-    println("single len={single.Len()}")
-    println("normal len={normal.Len()}")
+    println("empty len={empty.len()}")
+    println("single len={single.len()}")
+    println("normal len={normal.len()}")
 
     println("empty==\"\"={empty == ""}")
     println("single==\"a\"={single == "a"}")

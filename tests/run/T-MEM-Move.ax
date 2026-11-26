@@ -5,7 +5,7 @@ class Buf {
         this.N = n
     }
     public void Write(string s) {
-        this.N = this.N + s.Len()
+        this.N = this.N + s.len()
     }
 }
 

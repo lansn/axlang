@@ -2,46 +2,46 @@
 
 int main() {
     int[] a = [3, 1, 4, 1, 5]
-    int ai = a.Index(1)
-    bool ac = a.Contains(3)
-    bool ac2 = a.Contains(9)
-    int ai2 = a.Index(9)
+    int ai = a.index(1)
+    bool ac = a.contains(3)
+    bool ac2 = a.contains(9)
+    int ai2 = a.index(9)
     println("index-int-1={ai}")
     println("contains-int-3={ac}")
     println("contains-int-9={ac2}")
     println("index-int-9={ai2}")
-    a.Sort()
+    a.sort()
     println("sorted-int={a[0]} {a[1]} {a[2]} {a[3]} {a[4]}")
 
     string[] b = ["banana", "apple", "cherry", "date"]
-    int bi = b.Index("cherry")
-    bool bc = b.Contains("apple")
-    bool bc2 = b.Contains("mango")
-    int bi2 = b.Index("mango")
+    int bi = b.index("cherry")
+    bool bc = b.contains("apple")
+    bool bc2 = b.contains("mango")
+    int bi2 = b.index("mango")
     println("index-str-cherry={bi}")
     println("contains-str-apple={bc}")
     println("contains-str-mango={bc2}")
     println("index-str-mango={bi2}")
-    b.Sort()
+    b.sort()
     println("sorted-str={b[0]} {b[1]} {b[2]} {b[3]}")
 
     int[] c = []
-    bool cc = c.Contains(1)
-    int ci = c.Index(1)
+    bool cc = c.contains(1)
+    int ci = c.index(1)
     println("empty-contains={cc}")
     println("empty-index={ci}")
-    c.Sort()
+    c.sort()
     println("empty-sort-ok=true")
 
     string[] d = []
-    bool dc = d.Contains("x")
-    int di = d.Index("x")
+    bool dc = d.contains("x")
+    int di = d.index("x")
     println("empty-str-contains={dc}")
     println("empty-str-index={di}")
 
     // 带比较函数的 Sort（现有功能，确保不回归）
     int[] e = [5, 3, 9, 1]
-    e.Sort((int x, int y) { return x - y })
+    e.sort((int x, int y) { return x - y })
     println("sort-cmp={e[0]} {e[1]} {e[2]} {e[3]}")
 
     return 0

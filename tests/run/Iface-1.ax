@@ -40,7 +40,7 @@ class Square implement Shape {
 }
 
 string tag(Shape s) {
-    return s.Name() + "面积" + s.Area().ToString()   // 上转传参 + 经 interface 派发
+    return s.Name() + "面积" + s.Area().toString()   // 上转传参 + 经 interface 派发
 }
 
 Shape pick(int which) {

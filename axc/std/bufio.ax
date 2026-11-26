@@ -5,7 +5,7 @@
 // 通过 extern "C" 声明 + unsafe 块调用，不引入 ax 编译器内建能力。
 //
 // 导出函数命名采用 C 风格：全部小写，下划线分隔，如 bufio_new_reader。
-// ax 代码中通过 std.bufio.new_reader(...) 调用模块级函数。
+// ax 代码中通过 std.bufio.newReader(...) 调用模块级函数。
 
 extern "C" {
     File ax_file_buf_reader(File f);
@@ -15,13 +15,13 @@ extern "C" {
 
 // ---------- 模块级函数（C 风格命名：小写 + 下划线） ----------
 
-public File new_reader(File r) {
+public File newReader(File r) {
     unsafe {
         return ax_file_buf_reader(r)
     }
 }
 
-public File new_writer(File w) {
+public File newWriter(File w) {
     unsafe {
         return ax_file_buf_writer(w)
     }

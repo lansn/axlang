@@ -17,6 +17,6 @@ class Rect implement Drawable {
 
 int main() {
     Rect r = new Rect(10, 20)
-    r.Draw()
+    r.draw()
     return 0
 }

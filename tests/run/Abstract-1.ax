@@ -20,7 +20,7 @@ class Rect extend Shape {
 int main() {
     Circle c = new Circle(10, 5)
     Rect r = new Rect(20, 3, 4)
-    c.Draw()
-    r.Draw()
+    c.draw()
+    r.draw()
     return 0
 }

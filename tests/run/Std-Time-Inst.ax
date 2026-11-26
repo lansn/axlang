@@ -1,0 +1,23 @@
+// 验证 std.time 实例方法（to_string/format/after/before/equal/compare/sub/add/round/truncate）
+import std.time
+
+int main() {
+    var t = std.time.unix_milli(1700000000000)
+    var s = t.to_string()
+    println("to_string={s}")
+    var f = t.format("%Y-%m-%d")
+    println("format={f}")
+    var u = std.time.unix_milli(500)
+    println("after={t.after(u)}")
+    println("before={t.before(u)}")
+    println("equal={t.equal(u)}")
+    println("compare={t.compare(u)}")
+    println("sub={t.sub(u)}")
+    var v_add = t.add(1000)
+    var v_round = t.round(1000)
+    var v_trunc = t.truncate(1000)
+    println("add={v_add.to_string()}")
+    println("round={v_round.to_string()}")
+    println("truncate={v_trunc.to_string()}")
+    return 0
+}

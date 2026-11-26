@@ -71,11 +71,11 @@
 | `array.remove` | 内建库 | `(index: int) -> void` | arr.remove(0) | memmove | — | 按索引移除数组元素 | 对标 C memmove 后移元素，Go 需手动切片删除；索引越界可能 panic | ✅ 已落地 |
 | `array.resize` | 内建库 | `(n: int) -> void` | arr.resize(10) | realloc | — | 调整数组长度 | 不足时零初始化，超出时截断 | ✅ 已落地 |
 | `array.reverse` | 内建库 | `() -> void` | arr.reverse() | — | sort.Reverse | 将数组元素反转 | 原地反转数组元素顺序 | ✅ 已落地 |
+| `array.slice` | 内建库 | `[lo..hi] / [lo..=hi]` | arr[1..3] | — | 切片表达式 s[lo:hi] | 数组切片操作，获取子数组视图 | C 标准库无直接对应（指针偏移），Go 切片表达式；支持 [lo..hi] 和 [lo..=hi] 两种语法 | ✅ 已落地 |
 | `array.sort` | 内建库 | `() -> void` | arr.sort() | qsort | sort.Ints | 对数组元素升序排序 | 对标 C qsort，Go sort.Ints；原地排序 | ✅ 已落地 |
 | `array.sort` | 内建库 | `(cmp) -> void` | arr.sort(func(a, b int) bool { ... }) | qsort_r | sort.Slice | 按自定义比较函数对数组排序 | 支持自定义比较函数，但 axlang 不支持闭包，实际受限 | ✅ 已落地 |
 | `array.sum` | 内建库 | `() -> T` | arr.sum() | — | — | 返回数组所有元素之和 | 仅适用于数值类型（int/float 等） | ✅ 已落地 |
-| `array.to_string` | 内建库 | `() -> string` | arr.to_string() | — | fmt.Sprintf | 将数组转换为字符串表示 | C 标准库无直接对应，Go 对标 fmt.Sprintf('%v', slice)；格式如 [1 2 3] | ✅ 已落地 |
-| `array.切片` | 内建库 | `[lo..hi] / [lo..=hi]` | arr[1..3] | — | 切片表达式 s[lo:hi] | 数组切片操作，获取子数组视图 | C 标准库无直接对应（指针偏移），Go 切片表达式；支持 [lo..hi] 和 [lo..=hi] 两种语法 | ✅ 已落地 |
+| `array.to_string` | 内建库 | `() -> string` | arr.toString() | — | fmt.Sprintf | 将数组转换为字符串表示 | C 标准库无直接对应，Go 对标 fmt.Sprintf('%v', slice)；格式如 [1 2 3] | ✅ 已落地 |
 | `atomic.add_int` | 标准库 | `(addr: *int, delta: int) -> int` | — | atomic_fetch_add | atomic.AddInt64 | 原子地将增量加到整数地址并返回原值 | 对标 C atomic_fetch_add（<stdatomic.h>），Go sync/atomic.AddInt64；基于 C11 原子类型 | ✅ 已落地 |
 | `atomic.compare_and_swap_int` | 标准库 | `(addr: *int, old: int, new: int) -> bool` | — | atomic_compare_exchange | atomic.CompareAndSwapInt64 | 原地比较并交换：若当前值等于 old 则更新为 new | 对标 C atomic_compare_exchange_strong，Go sync/atomic.CompareAndSwapInt64；基于 C11 原子类型 | ✅ 已落地 |
 | `atomic.load_int` | 标准库 | `(addr: *int) -> int` | — | atomic_load | atomic.LoadInt64 | 原子地读取整数地址的值 | 对标 C atomic_load，Go sync/atomic.LoadInt64；基于 C11 原子类型 | ✅ 已落地 |
@@ -101,7 +101,7 @@
 | `decimal.divide` | 内建库 | `(other: decimal, rounding: Rounding) -> decimal` | d.divide(e, Rounding.HalfUp) | — | — | 高精度除法，支持自定义舍入模式 | 对标 C 无直接对应，需自定义 decimal 实现 | ✅ 已落地 |
 | `decimal.parse` | 内建库 | `(s: string) -> result<decimal>` | decimal.parse("123.45") | ax_dec_parse | — | 将字符串解析为高精度十进制数 | axlang 特有模块，无标准 C/Go 对应；依赖自定义 decimal 实现 | ✅ 已落地 |
 | `decimal.round` | 内建库 | `(digits: int, rounding: Rounding) -> decimal` | d.round(2, Rounding.HalfUp) | — | — | 按指定精度和舍入模式四舍五入 | 对标 C 无直接对应，需自定义 decimal 实现 | ✅ 已落地 |
-| `decimal.to_string` | 内建库 | `() -> string` | d.to_string() | — | — | 将 decimal 转换为字符串表示 | 对标 C sprintf，Go fmt.Sprintf | ✅ 已落地 |
+| `decimal.to_string` | 内建库 | `() -> string` | d.toString() | — | — | 将 decimal 转换为字符串表示 | 对标 C sprintf，Go fmt.Sprintf | ✅ 已落地 |
 | `decimal.truncate` | 内建库 | `(v: int) -> int8` | d.truncate(8) | ax_narrow(ax_dec_to_i64) | — | 将十进制数截断为整数（int8/int16/int32） | axlang 特有模块，无标准 C/Go 对应；重载支持三种整数宽度 | ✅ 已落地 |
 | `decimal.truncate` | 内建库 | `(v: int) -> int16` | d.truncate(16) | ax_narrow(ax_dec_to_i64) | — | 将十进制数截断为整数（int8/int16/int32） | axlang 特有模块，无标准 C/Go 对应；重载支持三种整数宽度 | ✅ 已落地 |
 | `decimal.truncate` | 内建库 | `(v: int) -> int32` | d.truncate(32) | ax_narrow(ax_dec_to_i64) | — | 将十进制数截断为整数（int8/int16/int32） | axlang 特有模块，无标准 C/Go 对应；重载支持三种整数宽度 | ✅ 已落地 |
@@ -146,8 +146,8 @@
 | `fmt.sprintf` | 标准库 | `(format: string, args: any...) -> string` | — | sprintf | fmt.Sprintf | 按格式字符串格式化并返回字符串 | 对标 C sprintf，Go fmt.Sprintf；结果以字符串返回而非输出 | ✅ 已落地 |
 | `int/float/bool/enum.divide` | 内建库 | `(other: T) -> T` | x.divide(y) | / | — | 除法运算（泛型） | C 标准库 / 运算符，Go / 运算符；axlang 语言级泛型方法 | ✅ 已落地 |
 | `int/float/bool/enum.round` | 内建库 | `(digits: int) -> float` | x.round(2) | round/pow | math.Round | 将浮点数四舍五入到指定小数位数 | 对标 C round/pow，Go math.Round；仅 Float 类型，digits 为小数位数 | ✅ 已落地 |
-| `int/float/bool/enum.to_string` | 内建库 | `() -> string` | x.to_string() | ax_str_of_int/ax_str_of_f64/ax_str_of_bool/enum_name | strconv.Itoa/FormatFloat | 将数值转换为字符串 | C 标准库需 sprintf/itoa，Go 对标 strconv 包；泛型类型方法 | ✅ 已落地 |
-| `int/float/bool/enum.wrapping_add` | 内建库 | `(other: T) -> T` | x.wrapping_add(y) | uint64_t 溢出回绕 | — | 带环绕的加法（溢出时回绕） | C 标准库无直接对应，Go 亦无标准库函数；axlang 语言级泛型方法 | ✅ 已落地 |
+| `int/float/bool/enum.to_string` | 内建库 | `() -> string` | x.toString() | ax_str_of_int/ax_str_of_f64/ax_str_of_bool/enum_name | strconv.Itoa/FormatFloat | 将数值转换为字符串 | C 标准库需 sprintf/itoa，Go 对标 strconv 包；泛型类型方法 | ✅ 已落地 |
+| `int/float/bool/enum.wrapping_add` | 内建库 | `(other: T) -> T` | x.wrappingAdd(y) | uint64_t 溢出回绕 | — | 带环绕的加法（溢出时回绕） | C 标准库无直接对应，Go 亦无标准库函数；axlang 语言级泛型方法 | ✅ 已落地 |
 | `io.read_file` | 标准库 | `(path: string) -> result<string>` | — | fread | os.ReadFile | 读取整个文件内容并返回字符串 | 对标 C fread，Go os.ReadFile；一次性读取全部文件到内存 | ✅ 已落地 |
 | `io.read_line` | 标准库 | `() -> string?` | — | fgets | bufio.Scanner.Text | 逐行读取文件内容，返回一行字符串 | 对标 C fgets，Go bufio.Scanner.Text；读取直到换行符或文件结束 | ✅ 已落地 |
 | `io.write` | 标准库 | `(s: string) -> void` | — | fwrite/puts | fmt.Fprint/io.WriteString | 将字符串写入标准输出 | 对标 C fwrite/puts，Go fmt.Fprint；不自动换行 | ✅ 已落地 |
@@ -170,7 +170,7 @@
 | `maps.clone` | 内建库 | `(m: Map) -> Map` | maps.clone(m) | — | maps.Clone | 返回 map 的深拷贝副本 | C 标准库无 map 类型，Go 对标 maps.Clone；返回独立的新 map | ✅ 已落地 |
 | `maps.copy` | 内建库 | `(dst: Map, src: Map) -> void` | maps.copy(dst, src) | — | maps.Copy | 将 src map 的所有键值对复制到 dst map | C 标准库无 map 类型，Go 对标 maps.Copy；覆盖 dst 中已有的键 | ✅ 已落地 |
 | `maps.delete` | 内建库 | `(m: Map, key: K) -> void` | maps.delete(m, key) | — | delete/maps.Delete | 删除 map 中指定键的条目 | C 标准库无 map 类型，Go 对标 delete() 内置或 maps.Delete；键不存在时不报错 | ✅ 已落地 |
-| `maps.delete_func` | 内建库 | `(m: Map, f: func(K) bool) -> void` | maps.delete_func(m, func(k) bool { ... }) | — | maps.DeleteFunc | 删除满足条件的所有键值对 | C 标准库无 map 类型，Go 对标 maps.DeleteFunc；利用 axlang 函数值参数与 file-level callback adapter 模式实现闭包回调 | ✅ 已落地 |
+| `maps.delete_func` | 内建库 | `(m: Map, f: func(K) bool) -> void` | maps.deleteFunc(m, func(k) bool { ... }) | — | maps.DeleteFunc | 删除满足条件的所有键值对 | C 标准库无 map 类型，Go 对标 maps.DeleteFunc；利用 axlang 函数值参数与 file-level callback adapter 模式实现闭包回调 | ✅ 已落地 |
 | `maps.equal` | 内建库 | `(m1: Map, m2: Map) -> bool` | maps.equal(m1, m2) | — | maps.Equal | 判断两个 map 是否相等（相同键值对） | C 标准库无 map 类型，Go 对标 maps.Equal；键值对完全相同即相等 | ✅ 已落地 |
 | `maps.keys` | 内建库 | `(m: Map) -> K[]` | maps.keys(m) | — | maps.Keys | 返回 map 中所有键的切片 | C 标准库无 map 类型，Go 对标 maps.Keys；返回 K[] 类型，顺序不固定 | ✅ 已落地 |
 | `maps.values` | 内建库 | `(m: Map) -> V[]` | maps.values(m) | — | maps.Values | 返回 map 中所有值的切片 | C 标准库无 map 类型，Go 对标 maps.Values；返回 V[] 类型，顺序不固定 | ✅ 已落地 |
@@ -193,7 +193,7 @@
 | `math.frexp` | 标准库 | `(f: float) -> (frac: float, exp: int)` | — | frexp | math.Frexp | 将浮点数分解为尾数和 2 的幂指数 | 对标 C frexpf，Go math.Frexp；axlang 暂不支持指针参数，分两步调用 ax_math_frexp / ax_math_frexp_exp | ✅ 已落地 |
 | `math.hypot` | 标准库 | `(p: float, q: float) -> float` | — | hypot | math.Hypot | 求斜边长 sqrt(x^2+y^2)，避免溢出 | 对标 C hypot，Go math.Hypot | ✅ 已落地 |
 | `math.is_inf` | 标准库 | `(f: float, sign: int) -> bool` | — | isinf | math.IsInf | 判断是否为无穷大，sign 参数控制正/负/任意 | 对标 C isinf，Go math.IsInf；sign>0 只判 +Inf，sign<0 只判 -Inf，sign==0 判任意 | ✅ 已落地 |
-| `math.is_na_n` | 标准库 | `(f: float) -> bool` | — | isnan | math.IsNaN | 判断是否为非数（NaN） | 对标 C isnan，Go math.IsNaN；axlang 将 IsNaN 转为 snake_case 后名称为 is_na_n | ✅ 已落地 |
+| `math.is_na_n` | 标准库 | `(f: float) -> bool` | — | isnan | math.IsNaN | 判断是否为非数（NaN） | 对标 C isnan，Go math.IsNaN；axlang 将 IsNaN 转为 snake_case 后名称为 isNaN | ✅ 已落地 |
 | `math.ldexp` | 标准库 | `(frac: float, exp: int) -> float` | — | ldexp | math.Ldexp | 计算 x * 2^exp，即从尾数和指数重建浮点数 | 对标 C ldexp，Go math.Ldexp；与 frexp 互逆 | ✅ 已落地 |
 | `math.log` | 标准库 | `(x: float) -> float` | — | log | math.Log | 求自然对数 ln(x) | 对标 C log，Go math.Log；x 必须正数 | ✅ 已落地 |
 | `math.log10` | 标准库 | `(x: float) -> float` | — | log10 | math.Log10 | 求以 10 为底的对数 | 对标 C log10，Go math.Log10 | ✅ 已落地 |
@@ -235,14 +235,14 @@
 | `queue.close` | 内建库 | `() -> void` | q.close() | — | — | 关闭队列 | 关闭队列，后续无法入队 | ✅ 已落地 |
 | `queue.pop` | 内建库 | `() -> T?` | q.pop() | — | — | 将元素出队 | 从队列头部移除并返回元素，空队列返回 null | ✅ 已落地 |
 | `queue.push` | 内建库 | `(v: T) -> void` | q.push(v) | — | — | 将元素入队 | 向队列尾部添加元素 | ✅ 已落地 |
-| `queue.try_pop` | 内建库 | `() -> T?` | q.try_pop() | — | select/default | 非阻塞地从队列取出元素，空队列返回 T? 无值 | C 标准库无直接对应，Go 对标 select + default 语句；非阻塞尝试出队 | ✅ 已落地 |
+| `queue.try_pop` | 内建库 | `() -> T?` | q.tryPop() | — | select/default | 非阻塞地从队列取出元素，空队列返回 T? 无值 | C 标准库无直接对应，Go 对标 select + default 语句；非阻塞尝试出队 | ✅ 已落地 |
 | `rand.float` | 标准库 | `() -> float` | — | rand/drand48 | rand.Float64 | 返回 [0.0, 1.0) 范围内的随机浮点数 | 对标 C drand48，Go math/rand.Float64；伪随机数生成 | ✅ 已落地 |
 | `rand.int` | 标准库 | `(n: int) -> int` | — | rand | rand.Intn | 返回 [0, n) 范围内的随机整数 | 对标 C rand，Go math/rand.Intn；n 必须为正数 | ✅ 已落地 |
 | `rand.seed` | 标准库 | `(seed: int) -> void` | — | srand | rand.Seed | 设置随机数生成器种子 | 对标 C srand，Go math/rand.Seed；相同种子产生相同序列 | ✅ 已落地 |
 | `range.step` | 内建库 | `(n: int) -> Range` | range(0, 10).step(2) | — | — | 创建带步进的范围迭代器 | C 标准库无直接对应，Go range 关键字；axlang 语言级特性，n 为步进值 | ✅ 已落地 |
-| `reflect.num_field` | 内建库 | `(v: any) -> int` | reflect.num_field(v) | — | reflect.NumField | 返回结构体的字段数量 | C 标准库无运行时反射，Go 对标 reflect.NumField；axlang 无运行时类型反射，需设计可落地子集 | ✅ 已落地 |
-| `reflect.type_of` | 内建库 | `(v: any) -> string` | reflect.type_of(v) | — | reflect.TypeOf | 返回任意值的类型名称字符串 | C 标准库无运行时反射，Go 对标 reflect.TypeOf；axlang 无运行时类型反射，需设计可落地子集 | ✅ 已落地 |
-| `reflect.value_of` | 内建库 | `(v: any) -> any` | reflect.value_of(v) | — | reflect.ValueOf | 返回任意值的反射值对象 | C 标准库无运行时反射，Go 对标 reflect.ValueOf；axlang 无运行时类型反射，需设计可落地子集 | ⬜ 未落地 |
+| `reflect.num_field` | 内建库 | `(v: any) -> int` | reflect.numField(v) | — | reflect.NumField | 返回结构体的字段数量 | C 标准库无运行时反射，Go 对标 reflect.NumField；axlang 无运行时类型反射，需设计可落地子集 | ✅ 已落地 |
+| `reflect.type_of` | 内建库 | `(v: any) -> string` | reflect.typeOf(v) | — | reflect.TypeOf | 返回任意值的类型名称字符串 | C 标准库无运行时反射，Go 对标 reflect.TypeOf；axlang 无运行时类型反射，需设计可落地子集 | ✅ 已落地 |
+| `reflect.value_of` | 内建库 | `(v: any) -> any` | reflect.valueOf(v) | — | reflect.ValueOf | 返回任意值的反射值对象 | C 标准库无运行时反射，Go 对标 reflect.ValueOf；axlang 无运行时类型反射，需设计可落地子集 | ⬜ 未落地 |
 | `slices.clone` | 内建库 | `() -> T[]` | arr.clone() | memcpy | slices.Clone | 返回数组的深拷贝副本 | 对标 C memcpy，Go slices.Clone；返回独立的新数组，修改不影响原数组 | ✅ 已落地 |
 | `slices.contains` | 内建库 | `(x: T) -> bool` | slices.contains(arr, x) | — | slices.Contains | 判断数组是否包含指定元素 | C 标准库无直接对应，Go 对标 slices.Contains；线性查找，O(n) | ✅ 已落地 |
 | `slices.delete` | 内建库 | `(i, j) -> T[]` | arr.delete(i, j) | memmove | slices.Delete | 删除索引 [i, j) 范围内的元素 | C 标准库无直接对应，Go 对标 slices.Delete；后续元素前移，O(n)；底层 ax_arr_delete_range | ✅ 已落地 |
@@ -259,13 +259,13 @@
 | `slices.sum` | 内建库 | `() -> T` | arr.sum() | — | — | 返回数组元素之和 | C 标准库无直接对应，Go 标准库无 slices.Sum；遍历累加，O(n) | ✅ 已落地 |
 | `sort.float64s` | 内建库 | `(a: float[]) -> void` | sort.float64s(arr) | qsort | sort.Float64s | 对 float 数组升序排序 | 对标 C qsort，Go sort.Float64s；原地排序，默认升序 | ✅ 已落地 |
 | `sort.ints` | 内建库 | `(a: int[]) -> void` | sort.ints(arr) | qsort | sort.Ints | 对 int 数组升序排序 | 对标 C qsort，Go sort.Ints；原地排序，默认升序 | ✅ 已落地 |
-| `sort.ints_are_sorted` | 内建库 | `(a: int[]) -> bool` | sort.ints_are_sorted(arr) | — | sort.IntsAreSorted | 判断 int 数组是否已升序排序 | C 标准库无直接对应，Go 对标 sort.IntsAreSorted；遍历检查，O(n) | ✅ 已落地 |
-| `sort.search_ints` | 内建库 | `(a: int[], x: int) -> int` | sort.search_ints(arr, 5) | bsearch | sort.SearchInts | 在已排序 int 数组中二分查找目标值 | 对标 C bsearch，Go sort.SearchInts；要求数组已排序，返回索引或插入点 | ✅ 已落地 |
-| `sort.search_strings` | 内建库 | `(a: string[], x: string) -> int` | sort.search_strings(arr, "key") | bsearch | sort.SearchStrings | 在已排序 string 数组中二分查找目标字符串 | 对标 C bsearch，Go sort.SearchStrings；要求数组已排序，返回索引或插入点 | ✅ 已落地 |
+| `sort.ints_are_sorted` | 内建库 | `(a: int[]) -> bool` | sort.intsAreSorted(arr) | — | sort.IntsAreSorted | 判断 int 数组是否已升序排序 | C 标准库无直接对应，Go 对标 sort.IntsAreSorted；遍历检查，O(n) | ✅ 已落地 |
+| `sort.search_ints` | 内建库 | `(a: int[], x: int) -> int` | sort.searchInts(arr, 5) | bsearch | sort.SearchInts | 在已排序 int 数组中二分查找目标值 | 对标 C bsearch，Go sort.SearchInts；要求数组已排序，返回索引或插入点 | ✅ 已落地 |
+| `sort.search_strings` | 内建库 | `(a: string[], x: string) -> int` | sort.searchStrings(arr, "key") | bsearch | sort.SearchStrings | 在已排序 string 数组中二分查找目标字符串 | 对标 C bsearch，Go sort.SearchStrings；要求数组已排序，返回索引或插入点 | ✅ 已落地 |
 | `sort.slice` | 内建库 | `(a: any[], less: func(i, j int) bool) -> void` | sort.slice(arr, less) | qsort | sort.Slice | 按自定义比较函数对任意类型数组排序 | 对标 C qsort，Go sort.Slice；底层复用 qsort + 文件级比较函数适配器；less 参数须为顶层函数（axlang 不支持闭包） | ✅ 已落地 |
-| `sort.slice_stable` | 内建库 | `(a: any[], less: func(i, j int) bool) -> void` | sort.slice_stable(arr, less) | qsort | sort.SliceStable | 稳定排序（相等元素保持原始相对顺序） | 对标 C qsort，Go sort.SliceStable；底层复用 qsort（C 标准库无稳定排序，同 slice 实现）；less 参数须为顶层函数 | ✅ 已落地 |
+| `sort.slice_stable` | 内建库 | `(a: any[], less: func(i, j int) bool) -> void` | sort.sliceStable(arr, less) | qsort | sort.SliceStable | 稳定排序（相等元素保持原始相对顺序） | 对标 C qsort，Go sort.SliceStable；底层复用 qsort（C 标准库无稳定排序，同 slice 实现）；less 参数须为顶层函数 | ✅ 已落地 |
 | `sort.strings` | 内建库 | `(a: string[]) -> void` | sort.strings(arr) | qsort | sort.Strings | 对 string 数组升序排序 | 对标 C qsort，Go sort.Strings；按字典序原地排序 | ✅ 已落地 |
-| `sort.strings_are_sorted` | 内建库 | `(a: string[]) -> bool` | sort.strings_are_sorted(arr) | — | sort.StringsAreSorted | 判断 string 数组是否已升序排序 | C 标准库无直接对应，Go 对标 sort.StringsAreSorted；遍历检查，O(n) | ✅ 已落地 |
+| `sort.strings_are_sorted` | 内建库 | `(a: string[]) -> bool` | sort.stringsAreSorted(arr) | — | sort.StringsAreSorted | 判断 string 数组是否已升序排序 | C 标准库无直接对应，Go 对标 sort.StringsAreSorted；遍历检查，O(n) | ✅ 已落地 |
 | `strconv.atoi` | 标准库 | `(s: string) -> int` | — | atoi | strconv.Atoi | 将字符串解析为整数 | 对标 C atoi，Go strconv.Atoi；解析失败返回 0 和错误 | ✅ 已落地 |
 | `strconv.can_backquote` | 标准库 | `(s: string) -> bool` | — | — | strconv.CanBackquote | 判断字符串是否可用反引号（原始字符串）表示 | C 标准库无直接对应，Go 对标 strconv.CanBackquote；检查是否包含反引号或非打印字符 | ✅ 已落地 |
 | `strconv.format_bool` | 标准库 | `(v: bool) -> string` | — | — | strconv.FormatBool | 将布尔值格式化为字符串 | C 标准库无直接对应，Go 对标 strconv.FormatBool；返回 'true' 或 'false' | ✅ 已落地 |

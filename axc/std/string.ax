@@ -44,13 +44,13 @@ public int contains(string s, string sub) {
     }
 }
 
-public int index_of(string s, string sub) {
+public int indexOf(string s, string sub) {
     unsafe {
         return ax_str_index_of(s, sub)
     }
 }
 
-public int last_index_of(string s, string sub) {
+public int lastIndexOf(string s, string sub) {
     unsafe {
         return ax_str_last_index_of(s, sub)
     }
@@ -68,13 +68,13 @@ public string trim(string s) {
     }
 }
 
-public string to_upper(string s) {
+public string toUpper(string s) {
     unsafe {
         return ax_str_to_upper(s)
     }
 }
 
-public string to_lower(string s) {
+public string toLower(string s) {
     unsafe {
         return ax_str_to_lower(s)
     }
@@ -92,49 +92,49 @@ public string replace(string s, string old, string replacement) {
     }
 }
 
-public int starts_with(string s, string prefix) {
+public int startsWith(string s, string prefix) {
     unsafe {
         return ax_str_starts_with(s, prefix)
     }
 }
 
-public int ends_with(string s, string suffix) {
+public int endsWith(string s, string suffix) {
     unsafe {
         return ax_str_ends_with(s, suffix)
     }
 }
 
-public int is_digit(string s) {
+public int isDigit(string s) {
     unsafe {
         return ax_str_is_digit(s)
     }
 }
 
-public int is_alpha(string s) {
+public int isAlpha(string s) {
     unsafe {
         return ax_str_is_alpha(s)
     }
 }
 
-public int is_space(string s) {
+public int isSpace(string s) {
     unsafe {
         return ax_str_is_space(s)
     }
 }
 
-public int is_lower(string s) {
+public int isLower(string s) {
     unsafe {
         return ax_str_is_lower(s)
     }
 }
 
-public int is_upper(string s) {
+public int isUpper(string s) {
     unsafe {
         return ax_str_is_upper(s)
     }
 }
 
-public int is_alnum(string s) {
+public int isAlnum(string s) {
     unsafe {
         return ax_str_is_alnum(s)
     }

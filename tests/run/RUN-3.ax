@@ -53,7 +53,7 @@ class DiscountedGoods extend Goods implement Describable {
 
     public result<decimal> FinalPrice(int count) {
         decimal total = this.Subtotal(count) try                 // 复用父类方法
-        return ok((total * this.Rate).Round(2, Rounding.HalfUp))  // 精确十进制 + 显式舍入
+        return ok((total * this.Rate).round(2, Rounding.HalfUp))  // 精确十进制 + 显式舍入
     }
 
     public override string Describe() {

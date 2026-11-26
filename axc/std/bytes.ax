@@ -44,19 +44,19 @@ public bytes[] split(bytes s, bytes sep) {
     }
 }
 
-public bytes trim_space(bytes s) {
+public bytes trimSpace(bytes s) {
     unsafe {
         return ax_bytes_trim_space(s)
     }
 }
 
-public bytes to_upper(bytes s) {
+public bytes toUpper(bytes s) {
     unsafe {
         return ax_bytes_to_upper(s)
     }
 }
 
-public bytes to_lower(bytes s) {
+public bytes toLower(bytes s) {
     unsafe {
         return ax_bytes_to_lower(s)
     }

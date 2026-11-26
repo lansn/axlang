@@ -2,18 +2,18 @@
 // 验证 thread.Join 确保生产者执行完毕，以及 Pop 计数确定。
 void producer(queue<int> q) {
     for i in 0..5 {
-        q.Push(i)
+        q.push(i)
     }
-    q.Close()
+    q.close()
 }
 
 int main() {
     queue<int> q = queue<int>()
     var t = thread(producer, q)
-    t.Join()
+    t.join()
     int count = 0
     for _i in 0..20 {
-        int? v = q.Pop()
+        int? v = q.pop()
         if v == null {
             break
         }

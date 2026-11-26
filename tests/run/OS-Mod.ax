@@ -9,7 +9,7 @@ int main() {
         println("getenv-empty-fail")
     }
     string[] args = os.args()
-    println("args len={args.Len()}")
+    println("args len={args.len()}")
     os.exit(42)
     return 0
 }

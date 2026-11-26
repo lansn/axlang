@@ -4,22 +4,22 @@
 // 单生产者 + FIFO 队列，弹出顺序确定为 0,1,2,3,4。
 void producer(queue<int> q) {
     for i in 0..5 {
-        q.Push(i)
+        q.push(i)
     }
-    q.Close()
+    q.close()
 }
 
 int main() {
     queue<int> q = queue<int>()
     var t = thread(producer, q)
     for _i in 0..100 {
-        int? v = q.Pop()
+        int? v = q.pop()
         if v == null {
             break
         }
         println("{v}")
     }
-    t.Join()
+    t.join()
     println("done")
     return 0
 }

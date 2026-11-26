@@ -5,7 +5,7 @@
 use crate::frontend::ast;
 use crate::frontend::ast::Expr;
 use crate::sema::{const_binop, py_repr, ConstVal, ExportSym, Res, Sema};
-use crate::sema::expr::{module_sig, pascal_member};
+use crate::sema::expr::{module_sig, camel_member};
 use crate::types::*;
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
@@ -1132,7 +1132,7 @@ impl<'a> Sema<'a> {
             }
             // maps.DeleteFunc(m: Map<K,V>, f: func(K) bool) -> void：
             // 删除所有使 f(key) 为 true 的键值对。K 由第一个实参推导。
-            "delete_func" => {
+            "deleteFunc" => {
                 if args.len() < 2 {
                     return self.maps_not_map_err(e, name);
                 }
@@ -1171,7 +1171,7 @@ impl<'a> Sema<'a> {
                     "E3003",
                     &e.tok,
                     "文稿 9.2",
-                    "模块 `maps` 没有符号 `{0}`（可用：keys/values/clone/copy/delete/delete_func/equal）",
+                    "模块 `maps` 没有符号 `{0}`（可用：keys/values/clone/copy/delete/deleteFunc/equal）",
                     &[&name],
                 );
                 return t_object();
@@ -1823,100 +1823,96 @@ impl<'a> Sema<'a> {
         let _t = |k: TyS| -> Ty { Rc::new(k) };
         let table: Option<Vec<(&str, Vec<Ty>, Ty)>> = match &**rt {
             TyS::Str => Some(vec![
-                ("Len", vec![], t_int()),
-                ("ByteLen", vec![], t_int()),
-                ("At", vec![t_int()], t_nullable(t_string())),
-                ("Chars", vec![], t_array(t_string(), None)),
-                ("CodepointAt", vec![t_int()], t_nullable(t_int())),
-                ("Contains", vec![t_string()], t_bool()),
-                ("ContainsRune", vec![t_int()], t_bool()),
-                ("ContainsAny", vec![t_string()], t_bool()),
-                ("Split", vec![t_string()], t_array(t_string(), None)),
+                ("len",  vec![], t_int()),
+                ("byteLen",  vec![], t_int()),
+                ("at",  vec![t_int()], t_nullable(t_string())),
+                ("chars",  vec![], t_array(t_string(), None)),
+                ("codepointAt",  vec![t_int()], t_nullable(t_int())),
+                ("contains",  vec![t_string()], t_bool()),
+                ("containsRune",  vec![t_int()], t_bool()),
+                ("containsAny",  vec![t_string()], t_bool()),
+                ("split",  vec![t_string()], t_array(t_string(), None)),
                 // 子串查找：按 UTF-8 码点索引返回，未找到返回 -1
-                ("IndexOf", vec![t_string()], t_int()),
-                ("IndexAny", vec![t_string()], t_int()),
-                ("LastIndexOf", vec![t_string()], t_int()),
-                ("LastIndexAny", vec![t_string()], t_int()),
-                ("Count", vec![t_string()], t_int()),
-                ("ToString", vec![], t_string()),
-                ("Trim", vec![], t_string()),
-                ("TrimLeft", vec![t_string()], t_string()),
-                ("TrimRight", vec![t_string()], t_string()),
-                ("TrimPrefix", vec![t_string()], t_string()),
-                ("TrimSuffix", vec![t_string()], t_string()),
+                ("indexOf",  vec![t_string()], t_int()),
+                ("indexAny",  vec![t_string()], t_int()),
+                ("lastIndexOf",  vec![t_string()], t_int()),
+                ("lastIndexAny",  vec![t_string()], t_int()),
+                ("count",  vec![t_string()], t_int()),
+                ("toString",  vec![], t_string()),
+                ("trim",  vec![], t_string()),
+                ("trimLeft",  vec![t_string()], t_string()),
+                ("trimRight",  vec![t_string()], t_string()),
+                ("trimPrefix",  vec![t_string()], t_string()),
+                ("trimSuffix",  vec![t_string()], t_string()),
                 // C# 风格字符串截取（按码点，安全处理越界）
-                ("Left", vec![t_int()], t_string()),
-                ("Right", vec![t_int()], t_string()),
-                ("Mid", vec![t_int(), t_int()], t_string()),
+                ("left",  vec![t_int()], t_string()),
+                ("right",  vec![t_int()], t_string()),
+                ("mid",  vec![t_int(), t_int()], t_string()),
                 // 大小写转换、前后缀判断、连接/替换/重复
-                ("Upper", vec![], t_string()),
-                ("Lower", vec![], t_string()),
-                ("StartsWith", vec![t_string()], t_bool()),
-                ("EndsWith", vec![t_string()], t_bool()),
-                ("EqualFold", vec![t_string()], t_bool()),
-                ("SplitN", vec![t_string(), t_int()], t_array(t_string(), None)),
-                ("SplitAfter", vec![t_string()], t_array(t_string(), None)),
-                ("Title", vec![], t_string()),
-                ("Map", vec![t_fn(vec![t_int()], t_int())], t_string()),
-                ("Join", vec![t_array(t_string(), None)], t_string()),
-                ("Replace", vec![t_string(), t_string()], t_string()),
-                ("Repeat", vec![t_int()], t_string()),
+                ("upper",  vec![], t_string()),
+                ("lower",  vec![], t_string()),
+                ("startsWith",  vec![t_string()], t_bool()),
+                ("endsWith",  vec![t_string()], t_bool()),
+                ("equalFold",  vec![t_string()], t_bool()),
+                ("splitN",  vec![t_string(), t_int()], t_array(t_string(), None)),
+                ("splitAfter",  vec![t_string()], t_array(t_string(), None)),
+                ("title",  vec![], t_string()),
+                ("map",  vec![t_fn(vec![t_int()], t_int())], t_string()),
+                ("join",  vec![t_array(t_string(), None)], t_string()),
+                ("replace",  vec![t_string(), t_string()], t_string()),
+                ("repeat",  vec![t_int()], t_string()),
                 // 字符属性判断（对标 C <ctype.h>）
-                ("IsDigit", vec![], t_bool()),
-                ("IsAlpha", vec![], t_bool()),
-                ("IsSpace", vec![], t_bool()),
-                ("IsLower", vec![], t_bool()),
-                ("IsUpper", vec![], t_bool()),
-                ("IsAlnum", vec![], t_bool()),
+                ("isDigit",  vec![], t_bool()),
+                ("isAlpha",  vec![], t_bool()),
+                ("isSpace",  vec![], t_bool()),
+                ("isLower",  vec![], t_bool()),
+                ("isUpper",  vec![], t_bool()),
+                ("isAlnum",  vec![], t_bool()),
             ]),
             TyS::Array(elem, _) => {
                 let el = elem.clone();
                 Some(vec![
-                    ("Len", vec![], t_int()),
-                    ("Push", vec![el.clone()], t_void()),
-                    ("Pop", vec![], el.clone()),
-                    ("Remove", vec![t_int()], t_void()),
+                    ("len",  vec![], t_int()),
+                    ("push",  vec![el.clone()], t_void()),
+                    ("pop",  vec![], el.clone()),
+                    ("remove",  vec![t_int()], t_void()),
                     /* 删除索引 [i, j) 范围内的元素，对标 Go slices.Delete */
-                    ("Delete", vec![t_int(), t_int()], t_void()),
-                    ("Clear", vec![], t_void()),
-                    ("At", vec![t_int()], t_nullable(el.clone())),
-                    ("Contains", vec![el.clone()], t_bool()),
-                    ("Index", vec![el.clone()], t_int()),
-                    (
-                        "Sort",
-                        vec![t_fn(vec![el.clone(), el.clone()], t_int())],
-                        t_void(),
-                    ),
-                    ("Sort", vec![], t_void()),
-                    ("Reverse", vec![], t_void()),
+                    ("delete",  vec![t_int(), t_int()], t_void()),
+                    ("clear",  vec![], t_void()),
+                    ("at",  vec![t_int()], t_nullable(el.clone())),
+                    ("contains",  vec![el.clone()], t_bool()),
+                    ("index",  vec![el.clone()], t_int()),
+                    ("sort",  vec![t_fn(vec![el.clone(), el.clone()], t_int())], t_void()),
+                    ("sort",  vec![], t_void()),
+                    ("reverse",  vec![], t_void()),
                     /* 深拷贝返回独立副本（对标 clone 语义，原数组不受影响） */
-                    ("Clone", vec![], t_array(el.clone(), None)),
+                    ("clone",  vec![], t_array(el.clone(), None)),
                     /* 在索引 i 处插入元素 v，后续元素后移 */
-                    ("Insert", vec![t_int(), el.clone()], t_void()),
+                    ("insert",  vec![t_int(), el.clone()], t_void()),
                     /* 用指定值 v 填充所有元素 */
-                    ("Fill", vec![el.clone()], t_void()),
+                    ("fill",  vec![el.clone()], t_void()),
                     /* 调整长度为 n，不足时零初始化，超出时截断 */
-                    ("Resize", vec![t_int()], t_void()),
+                    ("resize",  vec![t_int()], t_void()),
                     /* 数组合并：将另一个同类型数组的所有元素追加到末尾 */
-                    ("Merge", vec![t_array(el.clone(), None)], t_void()),
+                    ("merge",  vec![t_array(el.clone(), None)], t_void()),
                     /* int[]/float[] 聚合：求最小值 */
-                    ("Min", vec![], el.clone()),
+                    ("min",  vec![], el.clone()),
                     /* int[]/float[] 聚合：求最大值 */
-                    ("Max", vec![], el.clone()),
+                    ("max",  vec![], el.clone()),
                     /* int[]/float[] 聚合：求和 */
-                    ("Sum", vec![], el.clone()),
-                    ("ToString", vec![], t_string()),
+                    ("sum",  vec![], el.clone()),
+                    ("toString",  vec![], t_string()),
                 ])
             }
             TyS::Map(k, v) => {
                 let (k1, v1) = (k.clone(), v.clone());
                 Some(vec![
-                    ("Len", vec![], t_int()),
-                    ("Get", vec![k1.clone()], t_nullable(v1.clone())),
-                    ("Keys", vec![], t_array(k1.clone(), None)),
-                    ("Remove", vec![k1.clone()], t_void()),
-                    ("Has", vec![k1.clone()], t_bool()),
-                    ("Clear", vec![], t_void()),
+                    ("len",  vec![], t_int()),
+                    ("get",  vec![k1.clone()], t_nullable(v1.clone())),
+                    ("keys",  vec![], t_array(k1.clone(), None)),
+                    ("remove",  vec![k1.clone()], t_void()),
+                    ("has",  vec![k1.clone()], t_bool()),
+                    ("clear",  vec![], t_void()),
                 ])
             }
             TyS::Decimal => Some(vec![
@@ -1936,78 +1932,78 @@ impl<'a> Sema<'a> {
                 ),
                 // 将 decimal 截断为整数，v 为目标整数位宽（8/16/32），
                 // 对应 C：ax_narrow(ax_dec_to_i64(d, ...), (int)v, 1, ...)
-                ("Truncate", vec![t_int()], t_int()),
-                ("ToString", vec![], t_string()),
+                ("truncate",  vec![t_int()], t_int()),
+                ("toString",  vec![], t_string()),
             ]),
             TyS::Int(..) | TyS::Float => {
-                let pascal = pascal_member(&name);
-                if name == "ToString" || pascal == "ToString" {
-                    Some(vec![("ToString", vec![], t_string())])
-                } else if (name == "WrappingAdd" || pascal == "WrappingAdd") && matches!(&**rt, TyS::Int(..)) {
-                    Some(vec![("WrappingAdd", vec![rt.clone()], rt.clone())])
-                } else if (name == "Round" || pascal == "Round") && matches!(&**rt, TyS::Float) {
-                    Some(vec![("Round", vec![t_int()], t_float())])
-                } else if name == "Divide" || pascal == "Divide" {
-                    Some(vec![("Divide", vec![rt.clone()], rt.clone())])
+                let camel = camel_member(&name);
+                if name == "toString" || camel == "toString" {
+                    Some(vec![("toString",  vec![], t_string())])
+                } else if (name == "wrappingAdd" || camel == "wrappingAdd") && matches!(&**rt, TyS::Int(..)) {
+                    Some(vec![("wrappingAdd",  vec![rt.clone()], rt.clone())])
+                } else if (name == "round" || camel == "round") && matches!(&**rt, TyS::Float) {
+                    Some(vec![("round",  vec![t_int()], t_float())])
+                } else if name == "divide" || camel == "divide" {
+                    Some(vec![("divide",  vec![rt.clone()], rt.clone())])
                 } else {
                     None
                 }
             }
             TyS::Bool | TyS::Enum(..) => {
-                let pascal = pascal_member(&name);
-                if name == "ToString" || pascal == "ToString" {
-                    Some(vec![("ToString", vec![], t_string())])
+                let camel = camel_member(&name);
+                if name == "toString" || camel == "toString" {
+                    Some(vec![("toString",  vec![], t_string())])
                 } else {
                     None
                 }
             }
             TyS::Named(DefId::Name("Rounding"), _) => None,
             TyS::Range => Some(vec![
-                ("Step", vec![t_int()], t_range()),
+                ("step",  vec![t_int()], t_range()),
             ]),
             TyS::Named(DefId::Name("time"), _) => Some(vec![
-                ("UnixMs", vec![], t_int()),
-                ("ToString", vec![], t_string()),
-                ("Format", vec![t_string()], t_string()),
-                ("After", vec![t_named(DefId::Name("time"), Vec::new())], t_bool()),
-                ("Before", vec![t_named(DefId::Name("time"), Vec::new())], t_bool()),
-                ("Equal", vec![t_named(DefId::Name("time"), Vec::new())], t_bool()),
-                ("Compare", vec![t_named(DefId::Name("time"), Vec::new())], t_int()),
-                ("Sub", vec![t_named(DefId::Name("time"), Vec::new())], t_int()),
-                ("Add", vec![t_int()], t_named(DefId::Name("time"), Vec::new())),
-                ("Round", vec![t_int()], t_named(DefId::Name("time"), Vec::new())),
-                ("Truncate", vec![t_int()], t_named(DefId::Name("time"), Vec::new())),
+                ("unixMs",  vec![], t_int()),
+                ("toString",  vec![], t_string()),
+                ("format",  vec![t_string()], t_string()),
+                ("after",  vec![t_named(DefId::Name("time"), Vec::new())], t_bool()),
+                ("before",  vec![t_named(DefId::Name("time"), Vec::new())], t_bool()),
+                ("equal",  vec![t_named(DefId::Name("time"), Vec::new())], t_bool()),
+                ("compare",  vec![t_named(DefId::Name("time"), Vec::new())], t_int()),
+                ("sub",  vec![t_named(DefId::Name("time"), Vec::new())], t_int()),
+                ("add",  vec![t_int()], t_named(DefId::Name("time"), Vec::new())),
+                ("round",  vec![t_int()], t_named(DefId::Name("time"), Vec::new())),
+                ("truncate",  vec![t_int()], t_named(DefId::Name("time"), Vec::new())),
             ]),
             TyS::Named(DefId::Name("thread"), _) => Some(vec![
-                ("Join", vec![], t_void()),
+                ("join",  vec![], t_void()),
             ]),
             TyS::Named(DefId::Name("queue"), args) => {
                 let elem = args.first().cloned().unwrap_or_else(t_object);
                 Some(vec![
-                    ("Push", vec![elem.clone()], t_void()),
-                    ("Pop", vec![], t_nullable(elem.clone())),
-                    ("TryPop", vec![], t_nullable(elem.clone())),
-                    ("Close", vec![], t_void()),
+                    ("push",  vec![elem.clone()], t_void()),
+                    ("pop",  vec![], t_nullable(elem.clone())),
+                    ("tryPop",  vec![], t_nullable(elem.clone())),
+                    ("close",  vec![], t_void()),
                 ])
             }
             /* ---------------- sync 模块内建类型方法（对标 Go sync，P2） ---------------- */
             TyS::Named(DefId::Name("Mutex"), _) => Some(vec![
-                ("Lock", vec![], t_void()),
-                ("Unlock", vec![], t_void()),
+                ("lock",  vec![], t_void()),
+                ("unlock",  vec![], t_void()),
             ]),
             TyS::Named(DefId::Name("RWMutex"), _) => Some(vec![
-                ("Lock", vec![], t_void()),
-                ("Unlock", vec![], t_void()),
-                ("RLock", vec![], t_void()),
-                ("Runlock", vec![], t_void()),
+                ("lock",  vec![], t_void()),
+                ("unlock",  vec![], t_void()),
+                ("rLock",  vec![], t_void()),
+                ("runlock",  vec![], t_void()),
             ]),
             TyS::Named(DefId::Name("WaitGroup"), _) => Some(vec![
-                ("Add", vec![t_int()], t_void()),
-                ("Done", vec![], t_void()),
-                ("Wait", vec![], t_void()),
+                ("add",  vec![t_int()], t_void()),
+                ("done",  vec![], t_void()),
+                ("wait",  vec![], t_void()),
             ]),
             TyS::Named(DefId::Name("Once"), _) => Some(vec![
-                ("Do", vec![], t_void()),
+                ("do",  vec![], t_void()),
             ]),
             // sync 内建句柄类型是通过 typedefs 注册的 struct，类型为 TyS::Named(DefId::Id(id), _)
             // 而非 DefId::Name，因此在此单独按 typedef 名称匹配。
@@ -2015,21 +2011,21 @@ impl<'a> Sema<'a> {
                 let td = self.typedefs.get(*id as usize);
                 match td.map(|d| d.name.as_str()) {
                     Some("Mutex") => Some(vec![
-                        ("Lock", vec![], t_void()),
-                        ("Unlock", vec![], t_void()),
+                        ("lock",  vec![], t_void()),
+                        ("unlock",  vec![], t_void()),
                     ]),
                     Some("RWMutex") => Some(vec![
-                        ("Lock", vec![], t_void()),
-                        ("Unlock", vec![], t_void()),
-                        ("RLock", vec![], t_void()),
-                        ("Runlock", vec![], t_void()),
+                        ("lock",  vec![], t_void()),
+                        ("unlock",  vec![], t_void()),
+                        ("rLock",  vec![], t_void()),
+                        ("runlock",  vec![], t_void()),
                     ]),
                     Some("WaitGroup") => Some(vec![
-                        ("Add", vec![t_int()], t_void()),
-                        ("Done", vec![], t_void()),
-                        ("Wait", vec![], t_void()),
+                        ("add",  vec![t_int()], t_void()),
+                        ("done",  vec![], t_void()),
+                        ("wait",  vec![], t_void()),
                     ]),
-                    Some("Once") => Some(vec![("Do", vec![], t_void())]),
+                    Some("Once") => Some(vec![("do",  vec![], t_void())]),
                     _ => None,
                 }
             }
@@ -2039,11 +2035,11 @@ impl<'a> Sema<'a> {
             Some(t) => t,
             None => return None,
         };
-        // 用户调用小写（如 to_string / after），intrinsic 表用 PascalCase（ToString / After）。
-        // 先尝试精确匹配，再尝试把用户名转 PascalCase 后匹配。
-        let pascal = pascal_member(&name);
+        // 用户调用 camelCase（如 toString / after），intrinsic 表用 camelCase（toString / after）。
+        // 先尝试精确匹配，再尝试把用户名转 camelCase 后匹配。
+        let camel = camel_member(&name);
         let sig = table.into_iter()
-            .find(|(n, ptypes, _)| (*n == name || *n == pascal) && ptypes.len() == args.len());
+            .find(|(n, ptypes, _)| (*n == name || *n == camel) && ptypes.len() == args.len());
         let (_, ptypes, ret) = match sig {
             Some(s) => s,
             None => return None,

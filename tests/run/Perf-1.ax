@@ -12,7 +12,7 @@ T identity<T>(T x) {
 // 泛型求和（借用，不移动所有权）
 int sum_arr<T>(&const T[] xs) {
     int s = 0
-    for i in 0..xs.Len() {
+    for i in 0..xs.len() {
         s = s + xs[i]
     }
     return s
@@ -21,7 +21,7 @@ int sum_arr<T>(&const T[] xs) {
 // 普通求和（对比基准）
 int sum_arr_plain(&const int[] xs) {
     int s = 0
-    for i in 0..xs.Len() {
+    for i in 0..xs.len() {
         s = s + xs[i]
     }
     return s
@@ -60,7 +60,7 @@ int main() {
     // ---------- 测试 1：泛型单态化 vs 普通函数 ----------
     int[] xs = [0]
     for i in 1..N {
-        xs.Push(i)
+        xs.push(i)
     }
 
     int s1 = sum_arr(&xs)          // 泛型单态化版本（显式借用）

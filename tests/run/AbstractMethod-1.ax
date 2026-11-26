@@ -12,6 +12,6 @@ class Circle extend Shape {
 
 int main() {
     var c = Circle(1, 5)
-    c.Draw()
+    c.draw()
     return 0
 }

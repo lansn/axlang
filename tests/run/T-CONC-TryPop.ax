@@ -1,24 +1,24 @@
 // 并发：queue 非阻塞 try_pop
 void pushAll(queue<int> q) {
     for i in 0..3 {
-        q.Push(i)
+        q.push(i)
     }
-    q.Close()
+    q.close()
 }
 
 int main() {
     queue<int> q = queue<int>()
     var t = thread(pushAll, q)
-    t.Join()
+    t.join()
     for i in 0..10 {
-        int? v = q.TryPop()
+        int? v = q.tryPop()
         if v != null {
             println("got={v}")
         } else {
             break
         }
     }
-    t.Join()
+    t.join()
     println("done")
     return 0
 }

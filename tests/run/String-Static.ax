@@ -26,30 +26,30 @@ int main() {
 
     // Fields：普通分割
     string[] f1 = string.fields("hello world")
-    println("fields1-len={f1.Len()}")
+    println("fields1-len={f1.len()}")
     println("fields1-0={f1[0]}")
     println("fields1-1={f1[1]}")
 
     // Fields：多个空白符
     string[] f2 = string.fields("  hello   world  ")
-    println("fields2-len={f2.Len()}")
+    println("fields2-len={f2.len()}")
     println("fields2-0={f2[0]}")
     println("fields2-1={f2[1]}")
 
     // Fields：tab 和换行
     string[] f3 = string.fields("hello\tworld\nfoo")
-    println("fields3-len={f3.Len()}")
+    println("fields3-len={f3.len()}")
     println("fields3-0={f3[0]}")
     println("fields3-1={f3[1]}")
     println("fields3-2={f3[2]}")
 
     // Fields：空字符串
     string[] f4 = string.fields("")
-    println("fields4-len={f4.Len()}")
+    println("fields4-len={f4.len()}")
 
     // Fields：只有空白符
     string[] f5 = string.fields("   ")
-    println("fields5-len={f5.Len()}")
+    println("fields5-len={f5.len()}")
 
     return 0
 }

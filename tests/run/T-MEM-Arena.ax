@@ -9,8 +9,8 @@ class Node {
 
 int main() {
     var arena = new Arena()
-    ArenaRef<Node> a = arena.Alloc(new Node(1))
-    ArenaRef<Node> b = arena.Alloc(new Node(2))
+    ArenaRef<Node> a = arena.alloc(new Node(1))
+    ArenaRef<Node> b = arena.alloc(new Node(2))
     a.Next = b
     b.Next = a
     ArenaRef<Node> c = a.Next

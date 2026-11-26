@@ -33,49 +33,49 @@ public string itoa(int v) {
     }
 }
 
-public string format_uint(int v, int base) {
+public string formatUint(int v, int base) {
     unsafe {
         return ax_str_of_uint_base(v, base)
     }
 }
 
-public string format_int(int v, int base) {
+public string formatInt(int v, int base) {
     unsafe {
         return ax_str_of_int_base(v, base)
     }
 }
 
-public string format_bool(bool v) {
+public string formatBool(bool v) {
     unsafe {
         return ax_str_of_bool(v)
     }
 }
 
-public string format_float(float v) {
+public string formatFloat(float v) {
     unsafe {
         return ax_str_of_f64(v)
     }
 }
 
-public int parse_bool(string s) {
+public int parseBool(string s) {
     unsafe {
         return ax_parse_bool(s)
     }
 }
 
-public int parse_int(string s, int base) {
+public int parseInt(string s, int base) {
     unsafe {
         return ax_parse_int_base(s, base)
     }
 }
 
-public int parse_uint(string s, int base) {
+public int parseUint(string s, int base) {
     unsafe {
         return ax_parse_uint_base(s, base)
     }
 }
 
-public int can_backquote(string s) {
+public int canBackquote(string s) {
     unsafe {
         return ax_str_can_backquote(s)
     }

@@ -7,7 +7,7 @@ int main() {
     result<map<string, object>> r = json.parse(s)
     match r {
         ok(m) => println(json.marshal_indent(m, "", "  ")),
-        fail(e) => println("parse-fail={e.msg.Len() > 0}"),
+        fail(e) => println("parse-fail={e.msg.len() > 0}"),
     }
 
     // json.Valid

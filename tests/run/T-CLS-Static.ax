@@ -6,7 +6,7 @@ class MathUtil {
 }
 
 int main() {
-    int r = MathUtil.Add(3, 4)
+    int r = MathUtil.add(3, 4)
     println("add={r}")
     return 0
 }

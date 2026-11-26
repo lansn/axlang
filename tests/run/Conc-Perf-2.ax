@@ -5,9 +5,9 @@
 
 void producer(queue<int> q) {
     for i in 0..10000 {
-        q.Push(i)
+        q.push(i)
     }
-    q.Close()
+    q.close()
 }
 
 int main() {
@@ -50,103 +50,103 @@ int main() {
     // 汇总每个队列的值
     int? v = null
 
-    v = q1.Pop()
+    v = q1.pop()
     while v != null {
         count = count + 1
-        v = q1.Pop()
+        v = q1.pop()
     }
-    v = q2.Pop()
+    v = q2.pop()
     while v != null {
         count = count + 1
-        v = q2.Pop()
+        v = q2.pop()
     }
-    v = q3.Pop()
+    v = q3.pop()
     while v != null {
         count = count + 1
-        v = q3.Pop()
+        v = q3.pop()
     }
-    v = q4.Pop()
+    v = q4.pop()
     while v != null {
         count = count + 1
-        v = q4.Pop()
+        v = q4.pop()
     }
-    v = q5.Pop()
+    v = q5.pop()
     while v != null {
         count = count + 1
-        v = q5.Pop()
+        v = q5.pop()
     }
-    v = q6.Pop()
+    v = q6.pop()
     while v != null {
         count = count + 1
-        v = q6.Pop()
+        v = q6.pop()
     }
-    v = q7.Pop()
+    v = q7.pop()
     while v != null {
         count = count + 1
-        v = q7.Pop()
+        v = q7.pop()
     }
-    v = q8.Pop()
+    v = q8.pop()
     while v != null {
         count = count + 1
-        v = q8.Pop()
+        v = q8.pop()
     }
-    v = q9.Pop()
+    v = q9.pop()
     while v != null {
         count = count + 1
-        v = q9.Pop()
+        v = q9.pop()
     }
-    v = q10.Pop()
+    v = q10.pop()
     while v != null {
         count = count + 1
-        v = q10.Pop()
+        v = q10.pop()
     }
-    v = q11.Pop()
+    v = q11.pop()
     while v != null {
         count = count + 1
-        v = q11.Pop()
+        v = q11.pop()
     }
-    v = q12.Pop()
+    v = q12.pop()
     while v != null {
         count = count + 1
-        v = q12.Pop()
+        v = q12.pop()
     }
-    v = q13.Pop()
+    v = q13.pop()
     while v != null {
         count = count + 1
-        v = q13.Pop()
+        v = q13.pop()
     }
-    v = q14.Pop()
+    v = q14.pop()
     while v != null {
         count = count + 1
-        v = q14.Pop()
+        v = q14.pop()
     }
-    v = q15.Pop()
+    v = q15.pop()
     while v != null {
         count = count + 1
-        v = q15.Pop()
+        v = q15.pop()
     }
-    v = q16.Pop()
+    v = q16.pop()
     while v != null {
         count = count + 1
-        v = q16.Pop()
+        v = q16.pop()
     }
 
-    t1.Join()
-    t2.Join()
-    t3.Join()
-    t4.Join()
-    t5.Join()
-    t6.Join()
-    t7.Join()
-    t8.Join()
-    t9.Join()
-    t10.Join()
-    t11.Join()
-    t12.Join()
-    t13.Join()
-    t14.Join()
-    t15.Join()
-    t16.Join()
+    t1.join()
+    t2.join()
+    t3.join()
+    t4.join()
+    t5.join()
+    t6.join()
+    t7.join()
+    t8.join()
+    t9.join()
+    t10.join()
+    t11.join()
+    t12.join()
+    t13.join()
+    t14.join()
+    t15.join()
+    t16.join()
 
     // 期望 16 * 10000 = 160000
     println("{count}")

@@ -7,11 +7,11 @@ int main() {
     func(string) bool f = (string k) {
         return k == "b" || k == "d"
     }
-    maps.delete_func(m, f)
-    println("剩余长度={m.Len()}")
-    println("a存在={m.Has("a")}")
-    println("b存在={m.Has("b")}")
-    println("c存在={m.Has("c")}")
-    println("d存在={m.Has("d")}")
+    maps.deleteFunc(m, f)
+    println("剩余长度={m.len()}")
+    println("a存在={m.has("a")}")
+    println("b存在={m.has("b")}")
+    println("c存在={m.has("c")}")
+    println("d存在={m.has("d")}")
     return 0
 }

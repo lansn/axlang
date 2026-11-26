@@ -10,8 +10,8 @@ void worker(queue<int> q) {
     for i in 0..1000 {
         result = result + i
     }
-    q.Push(result)
-    q.Close()
+    q.push(result)
+    q.close()
 }
 
 int main() {
@@ -42,56 +42,56 @@ int main() {
 
     int? v = null
 
-    v = q1.Pop()
+    v = q1.pop()
     if v != null {
         total = total + v
         done_count = done_count + 1
     }
-    v = q2.Pop()
+    v = q2.pop()
     if v != null {
         total = total + v
         done_count = done_count + 1
     }
-    v = q3.Pop()
+    v = q3.pop()
     if v != null {
         total = total + v
         done_count = done_count + 1
     }
-    v = q4.Pop()
+    v = q4.pop()
     if v != null {
         total = total + v
         done_count = done_count + 1
     }
-    v = q5.Pop()
+    v = q5.pop()
     if v != null {
         total = total + v
         done_count = done_count + 1
     }
-    v = q6.Pop()
+    v = q6.pop()
     if v != null {
         total = total + v
         done_count = done_count + 1
     }
-    v = q7.Pop()
+    v = q7.pop()
     if v != null {
         total = total + v
         done_count = done_count + 1
     }
-    v = q8.Pop()
+    v = q8.pop()
     if v != null {
         total = total + v
         done_count = done_count + 1
     }
 
     // 回收所有线程资源
-    t1.Join()
-    t2.Join()
-    t3.Join()
-    t4.Join()
-    t5.Join()
-    t6.Join()
-    t7.Join()
-    t8.Join()
+    t1.join()
+    t2.join()
+    t3.join()
+    t4.join()
+    t5.join()
+    t6.join()
+    t7.join()
+    t8.join()
 
     // 期望：8 * 499500 = 3996000
     int expected = 3996000

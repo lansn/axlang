@@ -12,7 +12,7 @@ int main() {
     result<string> c = file.read_all(path)
     match c {
         ok(s) => println("read-content={s}"),
-        fail(e) => println("read-fail={e.msg.Len() > 0}")
+        fail(e) => println("read-fail={e.msg.len() > 0}")
     }
 
     // WriteAll 到不存在的目录应失败
@@ -23,7 +23,7 @@ int main() {
     result<string> c2 = file.read_all("__ax_no_such_file.txt")
     match c2 {
         ok(s) => println("read-missing-ok={s}"),
-        fail(e) => println("read-missing-fail={e.msg.Len() > 0}")
+        fail(e) => println("read-missing-fail={e.msg.len() > 0}")
     }
 
     // 清理测试文件

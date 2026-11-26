@@ -5,6 +5,6 @@ int main() {
     Table<int> t = {"a": 1, "b": 2}
     println(t["a"] + t["b"])
     Names ns = ["x", "y"]
-    println(ns.Len())
+    println(ns.len())
     return 0
 }

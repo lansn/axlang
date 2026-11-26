@@ -9,6 +9,6 @@ int main() {
     string s2 = o
     println("{i} {s} {f} {b} {s2}")
     object[] empty = []
-    println("{empty.Len()}")
+    println("{empty.len()}")
     return 0
 }

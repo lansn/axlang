@@ -4,13 +4,13 @@ int main() {
 
     // 左闭右开切片
     int[] a = xs[1..3]
-    println("a len={a.Len()}")       // 2
+    println("a len={a.len()}")       // 2
     println("a={a}")                 // [20, 30]
     println("a[0]={a[0]} a[1]={a[1]}")  // 20 30
 
     // 左闭右闭切片
     int[] b = xs[0..=2]
-    println("b len={b.Len()}")       // 3
+    println("b len={b.len()}")       // 3
     println("b={b}")                 // [10, 20, 30]
 
     // 从头开始切片
@@ -23,7 +23,7 @@ int main() {
 
     // 空切片
     int[] e = xs[2..2]
-    println("e len={e.Len()}")       // 0
+    println("e len={e.len()}")       // 0
     println("e={e}")                 // []
 
     // 整个数组切片

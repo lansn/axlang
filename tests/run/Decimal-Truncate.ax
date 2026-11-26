@@ -1,9 +1,9 @@
 // decimal.Truncate 正例：将 decimal 截断为整数，v 为目标位宽
 int main() {
     decimal d = 123.99d
-    int r8 = d.Truncate(8)
-    int r16 = d.Truncate(16)
-    int r32 = d.Truncate(32)
+    int r8 = d.truncate(8)
+    int r16 = d.truncate(16)
+    int r32 = d.truncate(32)
     println("r8={r8}")
     println("r16={r16}")
     println("r32={r32}")

@@ -12,10 +12,10 @@ use std::rc::Rc;
 pub fn module_sig(mod_: &str, name: &str) -> Option<(Vec<Option<Ty>>, Ty)> {
     let t = |k: TyS| -> Ty { Rc::new(k) };
     Some(match (mod_, name) {
-        ("io", "read_line") => (vec![], t(TyS::Nullable(t_string()))),
-        ("io", "read_file") => (vec![Some(t_string())], t_result(t_string())),
+        ("io", "readLine") => (vec![], t(TyS::Nullable(t_string()))),
+        ("io", "readFile") => (vec![Some(t_string())], t_result(t_string())),
         ("io", "write") => (vec![Some(t_string())], t_void()),
-        ("io", "write_line") => (vec![Some(t_string())], t_void()),
+        ("io", "writeLine") => (vec![Some(t_string())], t_void()),
         ("math", "equals") => (
             vec![Some(t_float()), Some(t_float()), Some(t_float())],
             t_bool(),
@@ -57,7 +57,7 @@ pub fn module_sig(mod_: &str, name: &str) -> Option<(Vec<Option<Ty>>, Ty)> {
             t_result(t_map(t_string(), t_object())),
         ),
         ("json", "stringify") => (vec![Some(t_object())], t_string()),
-        ("json", "marshal_indent") => (
+        ("json", "marshalIndent") => (
             vec![Some(t_object()), Some(t_string()), Some(t_string())],
             t_string(),
         ),
@@ -83,15 +83,15 @@ pub fn module_sig(mod_: &str, name: &str) -> Option<(Vec<Option<Ty>>, Ty)> {
         ("file", "rename") => (vec![Some(t_string()), Some(t_string())], t_int()),
         ("file", "exists") => (vec![Some(t_string())], t_int()),
         ("file", "mkdir") => (vec![Some(t_string())], t_int()),
-        ("file", "is_dir") => (vec![Some(t_string())], t_int()),
-        ("file", "is_file") => (vec![Some(t_string())], t_int()),
+        ("file", "isDir") => (vec![Some(t_string())], t_int()),
+        ("file", "isFile") => (vec![Some(t_string())], t_int()),
         ("file", "size") => (vec![Some(t_string())], t_int()),
-        ("file", "mod_time") => (vec![Some(t_string())], t_int()),
-        ("file", "read_all") => (vec![Some(t_string())], t_result(t_string())),
-        ("file", "write_all") => (vec![Some(t_string()), Some(t_string())], t_int()),
+        ("file", "modTime") => (vec![Some(t_string())], t_int()),
+        ("file", "readAll") => (vec![Some(t_string())], t_result(t_string())),
+        ("file", "writeAll") => (vec![Some(t_string()), Some(t_string())], t_int()),
         ("file", "chmod") => (vec![Some(t_string()), Some(t_int())], t_int()),
         ("file", "chtimes") => (vec![Some(t_string()), Some(t_int()), Some(t_int())], t_int()),
-        ("file", "temp_file") => (vec![Some(t_string()), Some(t_string())], t_result(t_named(DefId::Name("File"), Vec::new()))),
+        ("file", "tempFile") => (vec![Some(t_string()), Some(t_string())], t_result(t_named(DefId::Name("File"), Vec::new()))),
         /* string 模块（单段名，向后兼容；std.string 现已改为 axc/std/string.ax） */
         ("string", "from_codepoint") => (vec![Some(t_int())], t_result(t_string())),
         ("string", "compare") => (vec![Some(t_string()), Some(t_string())], t_int()),
@@ -128,20 +128,20 @@ pub fn module_sig(mod_: &str, name: &str) -> Option<(Vec<Option<Ty>>, Ty)> {
         ("os", "environ") => (vec![], t_array(t_string(), None)),
         ("os", "setenv") => (vec![Some(t_string()), Some(t_string())], t_int()),
         ("os", "unsetenv") => (vec![Some(t_string())], t_int()),
-        ("os", "user_home_dir") => (vec![], t_string()),
+        ("os", "userHomeDir") => (vec![], t_string()),
         /* atomic 模块（单段名，向后兼容；std.atomic 现已改为 axc/std/atomic.ax） */
-        ("atomic", "add_int") => (vec![Some(t_int()), Some(t_int())], t_int()),
-        ("atomic", "load_int") => (vec![Some(t_int())], t_int()),
-        ("atomic", "store_int") => (vec![Some(t_int()), Some(t_int())], t_void()),
-        ("atomic", "compare_and_swap_int") => (vec![Some(t_int()), Some(t_int()), Some(t_int())], t_bool()),
+        ("atomic", "addInt") => (vec![Some(t_int()), Some(t_int())], t_int()),
+        ("atomic", "loadInt") => (vec![Some(t_int())], t_int()),
+        ("atomic", "storeInt") => (vec![Some(t_int()), Some(t_int())], t_void()),
+        ("atomic", "compareAndSwapInt") => (vec![Some(t_int()), Some(t_int()), Some(t_int())], t_bool()),
         /* sort 模块 */
         ("sort", "ints") => (vec![Some(t_array(t_int(), None))], t_void()),
         ("sort", "strings") => (vec![Some(t_array(t_string(), None))], t_void()),
         ("sort", "float64s") => (vec![Some(t_array(t_float(), None))], t_void()),
-        ("sort", "ints_are_sorted") => (vec![Some(t_array(t_int(), None))], t_bool()),
-        ("sort", "strings_are_sorted") => (vec![Some(t_array(t_string(), None))], t_bool()),
-        ("sort", "search_ints") => (vec![Some(t_array(t_int(), None)), Some(t_int())], t_int()),
-        ("sort", "search_strings") => (vec![Some(t_array(t_string(), None)), Some(t_string())], t_int()),
+        ("sort", "intsAreSorted") => (vec![Some(t_array(t_int(), None))], t_bool()),
+        ("sort", "stringsAreSorted") => (vec![Some(t_array(t_string(), None))], t_bool()),
+        ("sort", "searchInts") => (vec![Some(t_array(t_int(), None)), Some(t_int())], t_int()),
+        ("sort", "searchStrings") => (vec![Some(t_array(t_string(), None)), Some(t_string())], t_int()),
         ("sort", "slice") => (
             vec![
                 Some(t_array(t_object(), None)),
@@ -149,7 +149,7 @@ pub fn module_sig(mod_: &str, name: &str) -> Option<(Vec<Option<Ty>>, Ty)> {
             ],
             t_void(),
         ),
-        ("sort", "slice_stable") => (
+        ("sort", "sliceStable") => (
             vec![
                 Some(t_array(t_object(), None)),
                 Some(t_fn(vec![t_int(), t_int()], t_int())),
@@ -166,15 +166,15 @@ pub fn module_sig(mod_: &str, name: &str) -> Option<(Vec<Option<Ty>>, Ty)> {
         /* strconv 模块 */
         ("strconv", "atoi") => (vec![Some(t_string())], t_int()),
         ("strconv", "itoa") => (vec![Some(t_int())], t_string()),
-        ("strconv", "parse_float") => (vec![Some(t_string())], t_float()),
-        ("strconv", "format_float") => (vec![Some(t_float())], t_string()),
-        ("strconv", "parse_int") => (vec![Some(t_string()), Some(t_int())], t_int()),
-        ("strconv", "format_int") => (vec![Some(t_int()), Some(t_int())], t_string()),
-        ("strconv", "parse_bool") => (vec![Some(t_string())], t_bool()),
-        ("strconv", "format_bool") => (vec![Some(t_bool())], t_string()),
-        ("strconv", "parse_uint") => (vec![Some(t_string()), Some(t_int())], t_int()),
-        ("strconv", "format_uint") => (vec![Some(t_int()), Some(t_int())], t_string()),
-        ("strconv", "can_backquote") => (vec![Some(t_string())], t_bool()),
+        ("strconv", "parseFloat") => (vec![Some(t_string())], t_float()),
+        ("strconv", "formatFloat") => (vec![Some(t_float())], t_string()),
+        ("strconv", "parseInt") => (vec![Some(t_string()), Some(t_int())], t_int()),
+        ("strconv", "formatInt") => (vec![Some(t_int()), Some(t_int())], t_string()),
+        ("strconv", "parseBool") => (vec![Some(t_string())], t_bool()),
+        ("strconv", "formatBool") => (vec![Some(t_bool())], t_string()),
+        ("strconv", "parseUint") => (vec![Some(t_string()), Some(t_int())], t_int()),
+        ("strconv", "formatUint") => (vec![Some(t_int()), Some(t_int())], t_string()),
+        ("strconv", "canBackquote") => (vec![Some(t_string())], t_bool()),
         ("strconv", "quote") => (vec![Some(t_string())], t_string()),
         ("strconv", "unquote") => (vec![Some(t_string())], t_string()),
         /* filepath 模块 */
@@ -185,25 +185,32 @@ pub fn module_sig(mod_: &str, name: &str) -> Option<(Vec<Option<Ty>>, Ty)> {
         ("filepath", "split") => (vec![Some(t_string())], t_array(t_string(), None)),
         ("filepath", "clean") => (vec![Some(t_string())], t_string()),
         ("filepath", "abs") => (vec![Some(t_string())], t_string()),
-        ("filepath", "is_abs") => (vec![Some(t_string())], t_bool()),
-        ("filepath", "eval_symlinks") => (vec![Some(t_string())], t_string()),
+        ("filepath", "isAbs") => (vec![Some(t_string())], t_bool()),
+        ("filepath", "evalSymlinks") => (vec![Some(t_string())], t_string()),
         ("filepath", "glob") => (vec![Some(t_string())], t_array(t_string(), None)),
         ("filepath", "walk") => (vec![Some(t_string())], t_array(t_string(), None)),
         /* reflect 模块：编译期类型查询，零运行时开销 */
-        ("reflect", "type_of") => (vec![Some(t_object())], t_string()),
-        ("reflect", "num_field") => (vec![Some(t_object())], t_int()),
+        ("reflect", "typeOf") => (vec![Some(t_object())], t_string()),
+        ("reflect", "numField") => (vec![Some(t_object())], t_int()),
         _ => return None,
     })
 }
 
 /// `read_line` → `ReadLine`、`now_ms` → `NowMs`：只用于给旧写法一条精确的
 /// 迁移提示（文稿 2.3「凡带 `.` 的调用一律 PascalCase」），不参与解析。
-pub fn pascal_member(name: &str) -> String {
+pub fn camel_member(name: &str) -> String {
     let mut out = String::new();
-    for seg in name.split('_').filter(|s| !s.is_empty()) {
+    let segs: Vec<&str> = name.split('_').filter(|s| !s.is_empty()).collect();
+    for (i, seg) in segs.iter().enumerate() {
         let mut chars = seg.chars();
         if let Some(c) = chars.next() {
-            out.extend(c.to_uppercase());
+            if i == 0 {
+                // 第一个单词首字母小写
+                out.extend(c.to_lowercase());
+            } else {
+                // 后续单词首字母大写
+                out.extend(c.to_uppercase());
+            }
             out.push_str(chars.as_str());
         }
     }

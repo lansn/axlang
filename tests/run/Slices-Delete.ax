@@ -10,7 +10,7 @@ int main() {
 
     int[] c = [1, 2, 3]
     c.delete(0, 3)
-    println("empty-ok={c.Len()}")
+    println("empty-ok={c.len()}")
 
     int[] d = [1, 2, 3]
     d.delete(1, 1)

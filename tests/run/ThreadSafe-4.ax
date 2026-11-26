@@ -1,6 +1,6 @@
 // ============================================================================
 // axlang 多线程通信测试 —— ThreadSafe-4（模式 1：Join 同步等待）
-// 验证：主线程通过 t.Join() 阻塞等待工作线程结束，再安全 Pop 结果
+// 验证：主线程通过 t.join() 阻塞等待工作线程结束，再安全 Pop 结果
 // ============================================================================
 
 // 工作线程：执行耗时计算，结果通过队列返回，Close 发送结束信号
@@ -9,8 +9,8 @@ void worker(queue<int> q) {
     for i in 0..1000 {
         result = result + i
     }
-    q.Push(result)
-    q.Close()
+    q.push(result)
+    q.close()
 }
 
 int main() {
@@ -18,10 +18,10 @@ int main() {
     var t = thread(worker, q)
 
     // 模式 1：主线程阻塞等待工作线程结束
-    t.Join()
+    t.join()
 
     // Join 返回后，worker 一定已执行完毕，安全 Pop 结果
-    int? v = q.Pop()
+    int? v = q.pop()
     if v != null {
         println("result={v}")
     } else {

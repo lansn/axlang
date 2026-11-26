@@ -8,7 +8,7 @@ class Util {
     constructor() { }
 }
 int main() {
-    int s = Util.Add(2, 3)
+    int s = Util.add(2, 3)
     println("s = {s}")
     Util u = Util.Zero()
     return 0

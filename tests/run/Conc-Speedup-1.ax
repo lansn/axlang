@@ -10,14 +10,14 @@ const int PART = 2500000
 void sum_part(queue<int> q) {
     int[] xs = [0]
     for i in 1..PART {
-        xs.Push(i)
+        xs.push(i)
     }
     int s = 0
-    for i in 0..xs.Len() {
+    for i in 0..xs.len() {
         s = s + xs[i]
     }
-    q.Push(s)
-    q.Close()
+    q.push(s)
+    q.close()
 }
 
 int main() {
@@ -26,9 +26,9 @@ int main() {
     for _j in 0..4 {
         int[] xs = [0]
         for i in 1..PART {
-            xs.Push(i)
+            xs.push(i)
         }
-        for i in 0..xs.Len() {
+        for i in 0..xs.len() {
             sum_single = sum_single + xs[i]
         }
     }
@@ -48,27 +48,27 @@ int main() {
 
     int? v = null
 
-    v = q1.Pop()
+    v = q1.pop()
     if v != null {
         sum_multi = sum_multi + v
     }
-    v = q2.Pop()
+    v = q2.pop()
     if v != null {
         sum_multi = sum_multi + v
     }
-    v = q3.Pop()
+    v = q3.pop()
     if v != null {
         sum_multi = sum_multi + v
     }
-    v = q4.Pop()
+    v = q4.pop()
     if v != null {
         sum_multi = sum_multi + v
     }
 
-    t1.Join()
-    t2.Join()
-    t3.Join()
-    t4.Join()
+    t1.join()
+    t2.join()
+    t3.join()
+    t4.join()
 
     // 1..PART 是左闭右开，数组为 [0,1,...,2499999]
     // 期望：4 * (0+1+...+2499999) = 4 * 3124998750000 = 12499995000000

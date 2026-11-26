@@ -1,27 +1,27 @@
 // Sort(cmp)：匿名函数 / 命名函数 / 闭包语义三种比较器（GAP #10）
 class Product {
-    public string Name
-    public int Price
-    constructor(string name, int price) { this.Name = name; this.Price = price }
+    public string name
+    public int price
+    constructor(string name, int price) { this.name = name; this.price = price }
 }
 
 int byPrice(Product a, Product b) {
-    if a.Price < b.Price { return -1 }
-    if a.Price > b.Price { return 1 }
+    if a.price < b.price { return -1 }
+    if a.price > b.price { return 1 }
     return 0
 }
 
 int main() {
     int[] xs = [5, 3, 9, 1]
-    xs.Sort((int a, int b) { return a - b })
+    xs.sort((int a, int b) { return a - b })
     println("{xs[0]} {xs[1]} {xs[2]} {xs[3]}")
 
     Product[] ps = [new Product("c", 3), new Product("a", 1), new Product("b", 2)]
-    ps.Sort(byPrice)
-    println("{ps[0].Name} {ps[1].Name} {ps[2].Name}")
+    ps.sort(byPrice)
+    println("{ps[0].name} {ps[1].name} {ps[2].name}")
 
     string[] ss = ["pear", "apple", "fig"]
-    ss.Sort((string x, string y) { return x.Len() - y.Len() })
+    ss.sort((string x, string y) { return x.len() - y.len() })
     println("{ss[0]} {ss[1]} {ss[2]}")
     return 0
 }

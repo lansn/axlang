@@ -5,21 +5,21 @@ int main() {
     stock["猫粮"] = 5
     stock["鸟粮"] = 20
 
-    println("清空前长度={stock.Len()}")      // 3
-    println("清空前柴犬粮存在={stock.Has("柴犬粮")}")  // true
+    println("清空前长度={stock.len()}")      // 3
+    println("清空前柴犬粮存在={stock.has("柴犬粮")}")  // true
 
-    stock.Clear()
+    stock.clear()
 
-    println("清空后长度={stock.Len()}")          // 0
-    println("清空后柴犬粮存在={stock.Has("柴犬粮")}")  // false
-    println("清空后猫粮存在={stock.Has("猫粮")}")      // false
-    println("清空后鸟粮存在={stock.Has("鸟粮")}")      // false
+    println("清空后长度={stock.len()}")          // 0
+    println("清空后柴犬粮存在={stock.has("柴犬粮")}")  // false
+    println("清空后猫粮存在={stock.has("猫粮")}")      // false
+    println("清空后鸟粮存在={stock.has("鸟粮")}")      // false
 
     // 清空后可重新写入
     stock["新粮"] = 99
-    println("重写后长度={stock.Len()}")          // 1
-    println("重写后新粮存在={stock.Has("新粮")}")    // true
-    println("重写后新粮值={stock.Get("新粮")}")       // 99
+    println("重写后长度={stock.len()}")          // 1
+    println("重写后新粮存在={stock.has("新粮")}")    // true
+    println("重写后新粮值={stock.get("新粮")}")       // 99
 
     return 0
 }

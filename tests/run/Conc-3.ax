@@ -2,10 +2,10 @@
 // 验证 Close 后的 end-of-stream 信号机制。
 int main() {
     queue<int> q = queue<int>()
-    q.Push(42)
-    q.Close()
-    int? v1 = q.Pop()
-    bool is_null = (q.Pop() == null)
+    q.push(42)
+    q.close()
+    int? v1 = q.pop()
+    bool is_null = (q.pop() == null)
     println("{v1}")
     println("{is_null}")
     println("done")

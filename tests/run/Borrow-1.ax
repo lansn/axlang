@@ -22,7 +22,7 @@ class Buf {
         this.N = n
     }
     public void Write(string s) {
-        this.N = this.N + s.Len()
+        this.N = this.N + s.len()
     }
 }
 
@@ -32,7 +32,7 @@ int main() {
     bump(&a)                 // 可变借用，语句结束即失效
     int p = pair(&a, &a)     // 多个 &const 共存合法
     // a[0] 被 bump 改成 101；pair = 101 + 3 = 104
-    println("sum={s} pair={p} len={a.Len()}")
+    println("sum={s} pair={p} len={a.len()}")
     println("first={a[0]}")
 
     // O-09：move 后重新赋值可复活
@@ -50,5 +50,5 @@ int main() {
 }
 
 int echo(&const string s) {
-    return s.Len()
+    return s.len()
 }

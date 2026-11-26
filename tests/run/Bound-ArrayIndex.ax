@@ -8,7 +8,7 @@ int main() {
     println("xs[2]={xs[2]}")
 
     // 长度
-    println("len={xs.Len()}")
+    println("len={xs.len()}")
 
     // 越界访问：运行期终止进程（不会静默返回默认值）
     // xs[3] 会越界，此处不执行，避免测试崩溃

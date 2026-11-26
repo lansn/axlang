@@ -14,9 +14,9 @@ struct Pair<T> {
 
 int main() {
     Box<int> b = new Box(42)
-    println("box={b.Get()}")
+    println("box={b.get()}")
     Box<string> sb = new Box("文本")
-    println("sbox={sb.Get()}")
+    println("sbox={sb.get()}")
     Pair<int> p = Pair(1, 2)
     println("pair={p.First}+{p.Second}={p.First + p.Second}")
     return 0

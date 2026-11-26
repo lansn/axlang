@@ -11,7 +11,7 @@ int sum(int[] xs) {
 int main() {
     // 动态数组
     int[] xs = [1, 2, 3, 4, 5]
-    println("len={xs.Len()}")
+    println("len={xs.len()}")
 
     // 先访问修改，再传给 sum（避免 move 后使用）
     xs[0] = 100
@@ -30,7 +30,7 @@ int main() {
 
     // 空数组需要目标类型
     int[] empty = []
-    println("empty len={empty.Len()}")
+    println("empty len={empty.len()}")
 
     return 0
 }

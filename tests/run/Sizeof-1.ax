@@ -33,6 +33,6 @@ int main() {
     println(sizeof(pt))
     println(sizeof(sh))
     println("表达式也行：{sizeof(a) + sizeof(s)}")
-    println("{dg.Name} {pt.X} {sh.Describe()} {xs.Len()} {fix.Len()}")
+    println("{dg.Name} {pt.X} {sh.Describe()} {xs.len()} {fix.len()}")
     return 0
 }

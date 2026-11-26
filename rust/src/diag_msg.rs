@@ -292,7 +292,7 @@ pub static CATALOG: &[(&str, &str, &str)] = &[
     ("E3040", "`{0}` 这个名字已经被 `import {1}` 占用，`import {2}` 不能再使用；请写成 `import {3} as 别名` 加以区分", "the name `{0}` is already taken by `import {1}`; `import {2}` can no longer use it; write `import {3} as alias` to disambiguate"),
     ("E3041", "既有 `int main()` 又有顶层语句（顶层语句会自动包成 `main`）；二者只留一个——要么把语句搬进 `main`，要么删掉 `main`", "both an explicit `int main()` and top-level statements exist (top-level statements are wrapped into an implicit `main`); keep only one - either move the statements into `main`, or delete `main`"),
     ("E3042", "`{0}` 有歧义：{1} 都导出了同名类型；请写全路径 `{2}.{3}` 或改用 `import {4}.{{{5}}}`", "`{0}` is ambiguous: both {1} export a type with that name; write the full path `{2}.{3}` or use `import {4}.{{{5}}}`"),
-    ("E3043", "成员名一律 PascalCase：{0} `{1}` 应写作 `{2}`", "member names are always PascalCase: {0} `{1}` should be written `{2}`"),
+    ("E3043", "成员名一律 camelCase：{0} `{1}` 应写作 `{2}`", "member names are always camelCase: {0} `{1}` should be written `{2}`"),
     ("E3045", "`{0}` 有歧义：{1} 都通过具名导入引入了同名符号；请写全路径或使用 `import {2} as 别名` 加以区分", "`{0}` is ambiguous: both {1} introduce the same symbol via named imports; write the full path or use `import {2} as alias` to disambiguate"),
     ("E3033", "`extern` 函数不支持泛型，请去掉类型实参", "`extern` functions do not support generics; remove the type arguments"),
     ("E4001", "`fail` 的实参必须是 error，得到 {0}", "the argument to `fail` must be error, found {0}"),

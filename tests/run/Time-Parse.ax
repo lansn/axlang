@@ -7,22 +7,22 @@ int main() {
     // 成功解析：解析后再格式化，应得到原字符串
     result<time> r = std.time.parse("2026-11-22 08:56:55", fmt)
     match r {
-        ok(t) => println("parse-ok={t.Format(fmt)}"),
+        ok(t) => println("parse-ok={t.format(fmt)}"),
         fail(e) => println("parse-fail={e.msg}"),
     }
 
     // 失败解析：格式不匹配
     result<time> b = std.time.parse("not-a-date", fmt)
     match b {
-        ok(t) => println("bad-ok={t.Format(fmt)}"),
-        fail(e) => println("bad-fail={e.msg.Len() > 0}"),
+        ok(t) => println("bad-ok={t.format(fmt)}"),
+        fail(e) => println("bad-fail={e.msg.len() > 0}"),
     }
 
     // 仅日期
     string dfmt = "%Y-%m-%d"
     result<time> d = std.time.parse("2026-01-05", dfmt)
     match d {
-        ok(t) => println("date-ok={t.Format(dfmt)}"),
+        ok(t) => println("date-ok={t.format(dfmt)}"),
         fail(e) => println("date-fail={e.msg}"),
     }
 

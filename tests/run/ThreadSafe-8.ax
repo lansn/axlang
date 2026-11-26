@@ -21,7 +21,7 @@ const int BATCH = 1000
 // 生产者：向共享队列推入 0..BATCH-1（不 Close，由主线程统一 Close）
 void producer(queue<int> q) {
     for i in 0..BATCH {
-        q.Push(i)
+        q.push(i)
     }
 }
 
@@ -40,18 +40,18 @@ int main() {
     int total = 0
     int expected_count = N * BATCH
     for i in 0..expected_count {
-        int? v = q.Pop()
+        int? v = q.pop()
         if v != null {
             total = total + v
         }
     }
 
     // 所有元素已消费完毕，关闭队列并回收线程资源
-    q.Close()
-    t1.Join()
-    t2.Join()
-    t3.Join()
-    t4.Join()
+    q.close()
+    t1.join()
+    t2.join()
+    t3.join()
+    t4.join()
 
     // 期望：N * (0+1+...+999) = 4 * 499500 = 1998000
     int expected = 1998000

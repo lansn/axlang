@@ -5,7 +5,7 @@
 // 通过 extern "C" 声明 + unsafe 块调用，不引入 ax 编译器内建能力。
 //
 // 导出函数命名采用 C 风格：全部小写，下划线分隔，如 now_ms / unix_milli / since。
-// ax 代码中通过 std.time.now_ms(...) 调用模块级函数。
+// ax 代码中通过 std.time.nowMs(...) 调用模块级函数。
 //
 // 类型说明：time 是 axlang 的内建具名类型（C 层 int64_t），与 int 在 ax 类型
 // 系统中不做隐式转换，且 ax 无显式 cast 语法。因此：
@@ -32,7 +32,7 @@ extern "C" {
 
 // ---------- 模块级函数（C 风格命名：小写 + 下划线） ----------
 
-public int now_ms() {
+public int nowMs() {
     unsafe {
         return ax_now_ms()
     }
@@ -56,25 +56,25 @@ public time unix(int sec, int nsec) {
     }
 }
 
-public time unix_milli(int ms) {
+public time unixMilli(int ms) {
     unsafe {
         return ax_time_from_unix_ms(ms)
     }
 }
 
-public time from_unix_ms(int ms) {
+public time fromUnixMs(int ms) {
     unsafe {
         return ax_time_from_unix_ms(ms)
     }
 }
 
-public time unix_micro(int us) {
+public time unixMicro(int us) {
     unsafe {
         return ax_time_from_unix_us(us)
     }
 }
 
-public time unix_nano(int nsec) {
+public time unixNano(int nsec) {
     unsafe {
         return ax_time_from_unix_ns(nsec)
     }

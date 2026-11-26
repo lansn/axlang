@@ -3,8 +3,8 @@ import filepath
 
 int main() {
     string[] ws = filepath.walk("tests/run/__ft__")
-    println("len={ws.Len()}")
-    for i in 0..ws.Len() {
+    println("len={ws.len()}")
+    for i in 0..ws.len() {
         println("ws[{i}]={ws[i]}")
     }
     return 0

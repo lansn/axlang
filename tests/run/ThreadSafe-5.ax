@@ -10,8 +10,8 @@ void worker(queue<int> q) {
     for i in 0..1000 {
         result = result + i
     }
-    q.Push(result)
-    q.Close()
+    q.push(result)
+    q.close()
 }
 
 int main() {
@@ -26,7 +26,7 @@ int main() {
     println("side_work={side_work}")
 
     // 之后阻塞 Pop 等待工作线程结果；收到 null 表示队列已关闭（worker 结束）
-    int? v = q.Pop()
+    int? v = q.pop()
     if v != null {
         println("result={v}")
     } else {
@@ -34,7 +34,7 @@ int main() {
     }
 
     // 回收线程资源（worker 已结束，Join 会立即返回）
-    t.Join()
+    t.join()
 
     println("ThreadSafe-5 done")
     return 0

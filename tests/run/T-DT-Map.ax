@@ -3,7 +3,7 @@ int main() {
     map<string, int> m = {"apple": 1, "banana": 2}
     m["orange"] = 3
     println("apple={m["apple"]} orange={m["orange"]}")
-    int? got = m.Get("banana")
+    int? got = m.get("banana")
     println("banana={got}")
     return 0
 }
