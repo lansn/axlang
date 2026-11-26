@@ -388,7 +388,7 @@ pub fn parse_args(argv: &[String]) -> Opts {
                     o.out = Some(argv[i].clone());
                 }
             }
-            "--emit=c" => o.emit_c = true,
+            "--emit=c" | "-c" => o.emit_c = true,
             "-Werror" => o.werror = true,
             "--keep" => o.keep = true,
             "--" => after_dashdash = true,
@@ -429,7 +429,7 @@ pub fn print_help() {
     println!("选项:");
     println!("  -I <dir>            追加模块搜索根（可多次；入口文件目录优先）");
     println!("  -o <path>           输出文件名");
-    println!("  --emit=c            只输出 C 源码到 stdout");
+    println!("  --emit=c | -c       只输出 C 源码到 stdout");
     println!("  --dump=ast|hir|types|c  打印中间产物");
     println!("  --diag=text|json    诊断格式，json 为 JSONL");
     println!("  -Werror             警告视为错误");
