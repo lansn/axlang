@@ -1741,7 +1741,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                     tv = tv
                 )
             }
-            "file.read_line" => {
+            "file.readLine" => {
                 let tyc = self.cg.ct(&self.ty_or_int(e.id));
                 format!(
                     "({{ {tyc} r_; ax_str o_; if (ax_file_read_line({tv}, &o_) == 0) {{ r_.has = 1; r_.v = o_; }} else {{ r_.has = 0; r_.v = ax_str_empty(); }} r_; }})",
@@ -1749,7 +1749,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                     tv = tv
                 )
             }
-            "file.write" | "file.write_line" => {
+            "file.write" | "file.writeLine" => {
                 let tyc = self.cg.ct(&self.ty_or_int(e.id));
                 let a = self.gen(&args[0].k.expr, Some(&t_string()), false, false);
                 let call = if b == "file.write" {
@@ -2746,24 +2746,24 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 let tv = self.declare(&rt, &rv);
                 match name_pc.as_str() {
                     "len" => format!("ax_str_len_cp({})", tv),
-                    "ByteLen" => format!("({}).len", tv),
+                    "byteLen" => format!("({}).len", tv),
                     "toString" => tv,
-                    "Trim" => format!("ax_str_trim({})", tv),
-                    "TrimLeft" => format!("ax_str_trim_left({}, {})", tv, a[0]),
-                    "TrimRight" => format!("ax_str_trim_right({}, {})", tv, a[0]),
-                    "TrimPrefix" => format!("ax_str_trim_prefix({}, {})", tv, a[0]),
-                    "TrimSuffix" => format!("ax_str_trim_suffix({}, {})", tv, a[0]),
+                    "trim" => format!("ax_str_trim({})", tv),
+                    "trimLeft" => format!("ax_str_trim_left({}, {})", tv, a[0]),
+                    "trimRight" => format!("ax_str_trim_right({}, {})", tv, a[0]),
+                    "trimPrefix" => format!("ax_str_trim_prefix({}, {})", tv, a[0]),
+                    "trimSuffix" => format!("ax_str_trim_suffix({}, {})", tv, a[0]),
                     "contains" => format!("ax_str_contains({}, {})", tv, a[0]),
-                    "ContainsRune" => format!("ax_str_contains_rune({}, {})", tv, a[0]),
-                    "ContainsAny" => format!("ax_str_contains_any({}, {})", tv, a[0]),
+                    "containsRune" => format!("ax_str_contains_rune({}, {})", tv, a[0]),
+                    "containsAny" => format!("ax_str_contains_any({}, {})", tv, a[0]),
                     // 子串查找：按 UTF-8 码点索引返回，未找到返回 -1
-                    "IndexOf" => format!("ax_str_index_of({}, {})", tv, a[0]),
-                    "IndexAny" => format!("ax_str_index_any({}, {})", tv, a[0]),
-                    "LastIndexOf" => format!("ax_str_last_index_of({}, {})", tv, a[0]),
-                    "LastIndexAny" => format!("ax_str_last_index_any({}, {})", tv, a[0]),
-                    "Count" => format!("ax_str_count({}, {})", tv, a[0]),
+                    "indexOf" => format!("ax_str_index_of({}, {})", tv, a[0]),
+                    "indexAny" => format!("ax_str_index_any({}, {})", tv, a[0]),
+                    "lastIndexOf" => format!("ax_str_last_index_of({}, {})", tv, a[0]),
+                    "lastIndexAny" => format!("ax_str_last_index_any({}, {})", tv, a[0]),
+                    "count" => format!("ax_str_count({}, {})", tv, a[0]),
                     // C# 风格字符串截取（按码点，安全处理越界，复用 ax_str_slice_cp）
-                    "Left" => {
+                    "left" => {
                         let n = self.tmpn();
                         self.emit(format!(
                             "ax_str {} = ax_str_slice_cp({}, 0, {});",
@@ -2771,7 +2771,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                         ));
                         n
                     }
-                    "Right" => {
+                    "right" => {
                         let len = self.tmpn();
                         let start = self.tmpn();
                         let n = self.tmpn();
@@ -2789,7 +2789,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                         ));
                         n
                     }
-                    "Mid" => {
+                    "mid" => {
                         let start = a[0].clone();
                         let count = a[1].clone();
                         let len = self.tmpn();
@@ -2814,14 +2814,14 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                         n
                     }
                     // 大小写转换
-                    "Upper" => format!("ax_str_to_upper({})", tv),
-                    "Lower" => format!("ax_str_to_lower({})", tv),
+                    "upper" => format!("ax_str_to_upper({})", tv),
+                    "lower" => format!("ax_str_to_lower({})", tv),
                     // 前缀/后缀判断
-                    "StartsWith" => format!("ax_str_starts_with({}, {})", tv, a[0]),
-                    "EndsWith" => format!("ax_str_ends_with({}, {})", tv, a[0]),
-                    "EqualFold" => format!("ax_str_equal_fold({}, {})", tv, a[0]),
+                    "startsWith" => format!("ax_str_starts_with({}, {})", tv, a[0]),
+                    "endsWith" => format!("ax_str_ends_with({}, {})", tv, a[0]),
+                    "equalFold" => format!("ax_str_equal_fold({}, {})", tv, a[0]),
                     // 按分隔符分割最多 n 份
-                    "SplitN" => {
+                    "splitN" => {
                         let n = self.tmpn();
                         let cnt = self.tmpn();
                         self.emit(format!("int64_t {} = 0;", cnt));
@@ -2836,7 +2836,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                         n
                     }
                     // 分割并保留分隔符
-                    "SplitAfter" => {
+                    "splitAfter" => {
                         let n = self.tmpn();
                         let cnt = self.tmpn();
                         self.emit(format!("int64_t {} = 0;", cnt));
@@ -2851,9 +2851,9 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                         n
                     }
                     // 每个单词首字母大写
-                    "Title" => format!("ax_str_title({})", tv),
+                    "title" => format!("ax_str_title({})", tv),
                     // 字符映射
-                    "Map" => format!("ax_str_map({}, {})", tv, a[0]),
+                    "map" => format!("ax_str_map({}, {})", tv, a[0]),
                     // 用 s 作为分隔符连接字符串数组
                     "join" => {
                         let arr_ty = t_array(t_string(), None);
@@ -2866,16 +2866,16 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                         result
                     }
                     // 替换所有出现
-                    "Replace" => format!("ax_str_replace({}, {}, {})", tv, a[0], a[1]),
+                    "replace" => format!("ax_str_replace({}, {}, {})", tv, a[0], a[1]),
                     // 重复 n 次
-                    "Repeat" => format!("ax_str_repeat({}, {})", tv, a[0]),
+                    "repeat" => format!("ax_str_repeat({}, {})", tv, a[0]),
                     // 字符属性判断（对标 C <ctype.h>）
-                    "IsDigit" => format!("ax_str_is_digit({})", tv),
-                    "IsAlpha" => format!("ax_str_is_alpha({})", tv),
-                    "IsSpace" => format!("ax_str_is_space({})", tv),
-                    "IsLower" => format!("ax_str_is_lower({})", tv),
-                    "IsUpper" => format!("ax_str_is_upper({})", tv),
-                    "IsAlnum" => format!("ax_str_is_alnum({})", tv),
+                    "isDigit" => format!("ax_str_is_digit({})", tv),
+                    "isAlpha" => format!("ax_str_is_alpha({})", tv),
+                    "isSpace" => format!("ax_str_is_space({})", tv),
+                    "isLower" => format!("ax_str_is_lower({})", tv),
+                    "isUpper" => format!("ax_str_is_upper({})", tv),
+                    "isAlnum" => format!("ax_str_is_alnum({})", tv),
                     "at" => {
                         let n = self.tmpn();
                         let tmp = self.tmpn();
@@ -2891,7 +2891,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                         ));
                         n
                     }
-                    "CodepointAt" => {
+                    "codepointAt" => {
                         let n = self.tmpn();
                         let iv = self.tmpn();
                         let ety = self.ty_or_int(e.id);
@@ -2907,8 +2907,8 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                         ));
                         n
                     }
-                    "Chars" => self.str_chars(&tv),
-                    "Split" => {
+                    "chars" => self.str_chars(&tv),
+                    "split" => {
                         let n = self.tmpn();
                         let cnt = self.tmpn();
                         self.emit(format!("int64_t {} = 0;", cnt));

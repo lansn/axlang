@@ -719,6 +719,12 @@ int64_t ax_atomic_load_int(volatile int64_t* addr);
 void    ax_atomic_store_int(volatile int64_t* addr, int64_t val);
 int     ax_atomic_compare_and_swap_int(volatile int64_t* addr, int64_t old, int64_t new);
 
+/* ax_std_atomic_*：ax 编译器 codegen 的 module_call 入口（void* 兼容 ax_stdlib.h 声明） */
+int64_t ax_std_atomic_add_int(void* addr, int64_t delta);
+int64_t ax_std_atomic_load_int(void* addr);
+void    ax_std_atomic_store_int(void* addr, int64_t val);
+int     ax_std_atomic_compare_and_swap_int(void* addr, int64_t old, int64_t new);
+
 #ifdef __cplusplus
 }
 #endif

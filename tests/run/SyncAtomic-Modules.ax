@@ -18,11 +18,15 @@ int main() {
     println("atomic-2={v}")   // 10
     var loaded = atomic.loadInt(v)
     println("atomic-3={loaded}")  // 10
-    var swapped = atomic.compare_and_swap_int(v, 10, 99)
-    println("atomic-4={swapped}") // true
+    var swapped = atomic.compareAndSwapInt(v, 10, 99)
+    string swapped_str = ""
+    if swapped { swapped_str = "true" } else { swapped_str = "false" }
+    println("atomic-4={swapped_str}") // true
     println("atomic-5={v}")       // 99
-    var swapped2 = atomic.compare_and_swap_int(v, 10, 77)
-    println("atomic-6={swapped2}") // false
+    var swapped2 = atomic.compareAndSwapInt(v, 10, 77)
+    string swapped2_str = ""
+    if swapped2 { swapped2_str = "true" } else { swapped2_str = "false" }
+    println("atomic-6={swapped2_str}") // false
     println("atomic-7={v}")       // 99
 
     // --- sync.RWMutex ---
