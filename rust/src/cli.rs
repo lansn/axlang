@@ -375,14 +375,14 @@ pub fn parse_args(argv: &[String]) -> Opts {
         match a.as_str() {
             "check" | "build" | "run" => o.cmd = a.clone(),
             "-h" | "--help" => o.help = true,
-            "-V" | "--version" => o.version = true,
+            "-v" | "-V" | "--version" => o.version = true,
             "-I" | "--include" => {
                 i += 1;
                 if i < argv.len() {
                     o.includes.push(argv[i].clone());
                 }
             }
-            "-o" => {
+            "-o" | "--output" => {
                 i += 1;
                 if i < argv.len() {
                     o.out = Some(argv[i].clone());
@@ -428,7 +428,7 @@ pub fn print_help() {
     println!();
     println!("选项:");
     println!("  -I <dir>            追加模块搜索根（可多次；入口文件目录优先）");
-    println!("  -o <path>           输出文件名");
+    println!("  -o | --output <path>  输出文件名");
     println!("  --emit=c | -c       只输出 C 源码到 stdout");
     println!("  --dump=ast|hir|types|c  打印中间产物");
     println!("  --diag=text|json    诊断格式，json 为 JSONL");
@@ -437,7 +437,7 @@ pub fn print_help() {
     println!("  --lang=en|zh        诊断文案语言（默认 en；也可用 AXC_LANG 环境变量或 axc.toml）");
     println!("  --keep              保留构建目录（排查生成代码用）");
     println!("  --kind=exe|shared   产物类型：exe（默认可执行文件）或 shared（动态链接库 .dll/.so/.dylib）");
-    println!("  -V, --version       打印版本号后退出");
+    println!("  -v, -V, --version   打印版本号后退出");
 }
 
 fn report(d: &Diags, mode: &str) {
