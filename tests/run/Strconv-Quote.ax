@@ -3,10 +3,10 @@ import strconv
 
 int main() {
     // CanBackquote：能否作为单行反引号字符串
-    println("cb-hello={strconv.can_backquote("hello")}")
-    println("cb-tab={strconv.can_backquote("hello\tworld")}")
-    println("cb-newline={strconv.can_backquote("hello\nworld")}")
-    println("cb-empty={strconv.can_backquote("")}")
+    println("cb-hello={strconv.canBackquote("hello")}")
+    println("cb-tab={strconv.canBackquote("hello\tworld")}")
+    println("cb-newline={strconv.canBackquote("hello\nworld")}")
+    println("cb-empty={strconv.canBackquote("")}")
 
     // Quote：双引号括起来的 Go 字符串字面量
     println("q-hello={strconv.quote("hello")}")

@@ -3457,7 +3457,7 @@
               "c_counterpart": "—",
               "go_counterpart": "sync.WaitGroup.Add",
               "function": "给等待组增加计数器",
-              "description": "C 标准库无直接对应，Go 对标 sync.WaitGroup.Add；sync.wait_group 结构体方法",
+              "description": "C 标准库无直接对应，Go 对标 sync.WaitGroup.Add；sync.waitGroup 结构体方法",
               "note": "",
               "builtin": false
             },
@@ -3468,7 +3468,7 @@
               "c_counterpart": "—",
               "go_counterpart": "sync.WaitGroup.Done",
               "function": "等待组计数器减 1，表示任务完成",
-              "description": "C 标准库无直接对应，Go 对标 sync.WaitGroup.Done；sync.wait_group 结构体方法",
+              "description": "C 标准库无直接对应，Go 对标 sync.WaitGroup.Done；sync.waitGroup 结构体方法",
               "note": "",
               "builtin": false
             },
@@ -3479,7 +3479,7 @@
               "c_counterpart": "pthread_join/条件变量",
               "go_counterpart": "sync.WaitGroup.Wait",
               "function": "阻塞等待等待组计数器归零",
-              "description": "对标 C pthread_join/条件变量，Go 对标 sync.WaitGroup.Wait；sync.wait_group 结构体方法",
+              "description": "对标 C pthread_join/条件变量，Go 对标 sync.WaitGroup.Wait；sync.waitGroup 结构体方法",
               "note": "",
               "builtin": false
             }

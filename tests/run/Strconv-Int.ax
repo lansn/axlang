@@ -3,59 +3,59 @@ import strconv
 
 int main() {
     // ParseInt：10 进制
-    int a = strconv.parse_int("123", 10)
+    int a = strconv.parseInt("123", 10)
     println("parse-int-10={a}")
 
     // ParseInt：16 进制
-    int b = strconv.parse_int("1a", 16)
+    int b = strconv.parseInt("1a", 16)
     println("parse-int-16={b}")
 
     // ParseInt：8 进制
-    int c = strconv.parse_int("17", 8)
+    int c = strconv.parseInt("17", 8)
     println("parse-int-8={c}")
 
     // ParseInt：2 进制
-    int d = strconv.parse_int("1010", 2)
+    int d = strconv.parseInt("1010", 2)
     println("parse-int-2={d}")
 
     // ParseInt：base=0 自动判断前缀 0x
-    int e = strconv.parse_int("0xff", 0)
+    int e = strconv.parseInt("0xff", 0)
     println("parse-int-auto-hex={e}")
 
     // ParseInt：base=0 自动判断前缀 0
-    int f = strconv.parse_int("017", 0)
+    int f = strconv.parseInt("017", 0)
     println("parse-int-auto-oct={f}")
 
     // ParseInt：负数
-    int g = strconv.parse_int("-42", 10)
+    int g = strconv.parseInt("-42", 10)
     println("parse-int-neg={g}")
 
     // ParseInt：无效输入（返回 0）
-    int h = strconv.parse_int("abc", 10)
+    int h = strconv.parseInt("abc", 10)
     println("parse-int-invalid={h}")
 
     // FormatInt：10 进制
-    string s1 = strconv.format_int(255, 10)
+    string s1 = strconv.formatInt(255, 10)
     println("format-int-10={s1}")
 
     // FormatInt：16 进制
-    string s2 = strconv.format_int(255, 16)
+    string s2 = strconv.formatInt(255, 16)
     println("format-int-16={s2}")
 
     // FormatInt：8 进制
-    string s3 = strconv.format_int(255, 8)
+    string s3 = strconv.formatInt(255, 8)
     println("format-int-8={s3}")
 
     // FormatInt：2 进制
-    string s4 = strconv.format_int(255, 2)
+    string s4 = strconv.formatInt(255, 2)
     println("format-int-2={s4}")
 
     // FormatInt：负数
-    string s5 = strconv.format_int(-42, 10)
+    string s5 = strconv.formatInt(-42, 10)
     println("format-int-neg={s5}")
 
     // FormatInt：base<=0 按 10 进制
-    string s6 = strconv.format_int(123, 0)
+    string s6 = strconv.formatInt(123, 0)
     println("format-int-base0={s6}")
 
     return 0

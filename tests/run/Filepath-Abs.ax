@@ -2,10 +2,10 @@
 import filepath
 
 int main() {
-    println("isabs-drive={filepath.is_abs("C:\\Users")}")
-    println("isabs-root={filepath.is_abs("\\foo")}")
-    println("isabs-rel={filepath.is_abs("foo")}")
-    println("isabs-dotdot={filepath.is_abs("../foo")}")
+    println("isabs-drive={filepath.isAbs("C:\\Users")}")
+    println("isabs-root={filepath.isAbs("\\foo")}")
+    println("isabs-rel={filepath.isAbs("foo")}")
+    println("isabs-dotdot={filepath.isAbs("../foo")}")
     println("abs-root={filepath.abs("\\foo")}")
     println("abs-drive={filepath.abs("C:\\foo")}")
     println("abs-rel={filepath.abs("foo")}")

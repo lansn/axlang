@@ -19,7 +19,7 @@ int main() {
     println("clean={c}")
     var a = std.filepath.abs("a/b.txt")
     println("abs={a}")
-    var ia = std.filepath.is_abs("/a/b")
+    var ia = std.filepath.isAbs("/a/b")
     println("is_abs={ia}")
     return 0
 }

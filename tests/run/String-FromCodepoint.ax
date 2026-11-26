@@ -3,32 +3,32 @@ import string
 
 int main() {
     // 有效码点
-    result<string> r1 = string.from_codepoint(65)
+    result<string> r1 = string.fromCodepoint(65)
     match r1 {
         ok(s) => println("65={s}"),
         fail(e) => println("65-fail={e.msg}"),
     }
 
-    result<string> r2 = string.from_codepoint(97)
+    result<string> r2 = string.fromCodepoint(97)
     match r2 {
         ok(s) => println("97={s}"),
         fail(e) => println("97-fail={e.msg}"),
     }
 
-    result<string> r3 = string.from_codepoint(19968)
+    result<string> r3 = string.fromCodepoint(19968)
     match r3 {
         ok(s) => println("19968={s}"),
         fail(e) => println("19968-fail={e.msg}"),
     }
 
     // 无效码点（UTF-8 无法编码）
-    result<string> r4 = string.from_codepoint(-1)
+    result<string> r4 = string.fromCodepoint(-1)
     match r4 {
         ok(s) => println("-1-ok={s}"),
         fail(e) => println("-1-fail={e.msg}"),
     }
 
-    result<string> r5 = string.from_codepoint(0x110000)
+    result<string> r5 = string.fromCodepoint(0x110000)
     match r5 {
         ok(s) => println("0x110000-ok={s}"),
         fail(e) => println("0x110000-fail={e.msg}"),

@@ -2,12 +2,12 @@
 import std.time
 
 int main() {
-    var t = std.time.unix_milli(1700000000000)
-    var s = t.to_string()
+    var t = std.time.unixMilli(1700000000000)
+    var s = t.toString()
     println("to_string={s}")
     var f = t.format("%Y-%m-%d")
     println("format={f}")
-    var u = std.time.unix_milli(500)
+    var u = std.time.unixMilli(500)
     println("after={t.after(u)}")
     println("before={t.before(u)}")
     println("equal={t.equal(u)}")
@@ -16,8 +16,8 @@ int main() {
     var v_add = t.add(1000)
     var v_round = t.round(1000)
     var v_trunc = t.truncate(1000)
-    println("add={v_add.to_string()}")
-    println("round={v_round.to_string()}")
-    println("truncate={v_trunc.to_string()}")
+    println("add={v_add.toString()}")
+    println("round={v_round.toString()}")
+    println("truncate={v_trunc.toString()}")
     return 0
 }

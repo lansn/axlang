@@ -13,13 +13,13 @@ int main() {
     var has = std.string.contains("hello world", "world")
     println("contains={has}")
 
-    var idx = std.string.index_of("hello world", "world")
+    var idx = std.string.indexOf("hello world", "world")
     println("index_of={idx}")
 
-    var up = std.string.to_upper("hello")
+    var up = std.string.toUpper("hello")
     println("to_upper={up}")
 
-    var low = std.string.to_lower("HELLO")
+    var low = std.string.toLower("HELLO")
     println("to_lower={low}")
 
     var trimmed = std.string.trim("  hello  ")

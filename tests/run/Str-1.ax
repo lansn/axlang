@@ -6,8 +6,8 @@ int main() {
     println(s.CodepointAt(1))
     println(s.CodepointAt(2))
     println(s.CodepointAt(99))
-    println(string.from_codepoint(65) try)
-    println(string.from_codepoint(0x4E2D) try)
+    println(string.fromCodepoint(65) try)
+    println(string.fromCodepoint(0x4E2D) try)
     string out = ""
     for c in s {
         out += c

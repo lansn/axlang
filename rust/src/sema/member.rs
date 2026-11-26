@@ -622,9 +622,9 @@ impl<'a> Sema<'a> {
             ("Row", "GetDecimal") => Some((vec![t_string()], t_decimal())),
             ("File", "close") => Some((vec![], t_void())),
             ("File", "read") => Some((vec![], t_result(t_string()))),
-            ("File", "read_line") => Some((vec![], t_nullable(t_string()))),
+            ("File", "readLine") => Some((vec![], t_nullable(t_string()))),
             ("File", "write") => Some((vec![t_string()], t_result(t_int()))),
-            ("File", "write_line") => Some((vec![t_string()], t_result(t_int()))),
+            ("File", "writeLine") => Some((vec![t_string()], t_result(t_int()))),
             _ => None,
         };
         let sig = match sig {
@@ -719,9 +719,9 @@ impl<'a> Sema<'a> {
                 "GetDecimal" => (vec![t_string()], t_decimal()),
                 "close" => (vec![], t_void()),
                 "read" => (vec![], t_result(t_string())),
-                "read_line" => (vec![], t_nullable(t_string())),
+                "readLine" => (vec![], t_nullable(t_string())),
                 "write" => (vec![t_string()], t_result(t_int())),
-                "write_line" => (vec![t_string()], t_result(t_int())),
+                "writeLine" => (vec![t_string()], t_result(t_int())),
                 _ => {
                     self.err("E3003", &e.tok, "N-3", "`{0}` 没有静态方法 `{1}`", &[&type_name, &name]);
                     return t_object();
@@ -802,7 +802,7 @@ impl<'a> Sema<'a> {
             s.trunc_to = Some(tgt.clone());
             return tgt;
         }
-        if name == "from_codepoint" && type_name == "string" {
+        if name == "fromCodepoint" && type_name == "string" {
             self.check_call_args(args, Some(&[t_int()]), None, e.id);
             self.sl(e.id).mkind = Some("FromCodepoint");
             return t_result(t_string());
@@ -851,7 +851,7 @@ impl<'a> Sema<'a> {
         }
         // sort.slice / sort.slice_stable：泛型数组排序，第一个实参为任意类型数组 T[]，
         // 第二个实参为比较函数 func(T, T) -> int，T 由第一个实参推导。
-        if m == "sort" && (name == "slice" || name == "slice_stable") {
+        if m == "sort" && (name == "slice" || name == "sliceStable") {
             return self.check_sort_slice_call(e, args, &name);
         }
         // reflect.*：编译期类型查询，零运行时开销
@@ -866,17 +866,17 @@ impl<'a> Sema<'a> {
         }
         let sig = match module_sig(m, &name) {
             None => {
-                // 模块成员一律小写（文稿 2.3）：PascalCase 写法给一条精确的迁移提示，
-                // 而不是笼统的「没有符号」——`io.readline` 与 `io.ReadLine` 差一个下划线
-                // 和一处大小写，提示里点名正确的拼写，比让用户去翻文档有用。
-                // 用户可能误写成 PascalCase，尝试转小写后在 module_sig 中查找
+                // 模块成员一律 camelCase（文稿 2.3）：误写成小写/下划线风格时给一条精确的迁移提示，
+                // 而不是笼统的「没有符号」——`io.readline` 与 `io.readLine` 差一处大小写，
+                // 提示里点名正确的拼写，比让用户去翻文档有用。
+                // 用户可能误写成其他风格，尝试转小写后在 module_sig 中查找
                 let lower = name.to_lowercase();
                 if lower != name && module_sig(m, &lower).is_some() {
                     self.err(
                         "E3003",
                         &e.tok,
                         "文稿 2.3",
-                        "模块成员一律小写：`{0}.{1}` 请写 `{0}.{2}`",
+                        "模块成员一律 camelCase：`{0}.{1}` 请写 `{0}.{2}`",
                         &[&m, &name, &lower],
                     );
                 } else {
@@ -885,8 +885,8 @@ impl<'a> Sema<'a> {
                 return t_object();
             }
             Some(s) => {
-                // 模块成员命名遵循 module_sig 注册的实际名字（内建模块如 file 使用小写下划线名，
-                // std 模块使用 .ax 文件中定义的名字）。不再强制 PascalCase，避免与 module_sig
+                // 模块成员命名遵循 module_sig 注册的实际名字（内建模块如 file 使用 camelCase 名，
+                // std 模块使用 .ax 文件中定义的名字）。避免与 module_sig
                 // 的实际注册名冲突。
                 s
             }
@@ -993,8 +993,8 @@ impl<'a> Sema<'a> {
                 &[&name, &args.len()],
             );
             return match name {
-                "type_of" => t_string(),
-                "num_field" => t_int(),
+            "typeOf" => t_string(),
+            "numField" => t_int(),
                 _ => t_object(),
             };
         }
@@ -1002,14 +1002,14 @@ impl<'a> Sema<'a> {
         let arg_ty = self.check_expr(&args[0].k.expr, None);
         self.sl(e.id).mkind = Some("module");
         match name {
-            "type_of" => {
+            "typeOf" => {
                 let type_name = self.ts(&arg_ty);
-                self.sl(e.id).ckind = Some("type_of");
+                self.sl(e.id).ckind = Some("typeOf");
                 self.sl(e.id).bname = Some(type_name.clone());
                 self.sl(e.id).const_value = Some(ConstVal::Str(type_name));
                 t_string()
             }
-            "num_field" => {
+            "numField" => {
                 // 只支持结构体类型
                 let field_count = match &*arg_ty {
                     TyS::Named(DefId::Id(did), _) => {
@@ -1282,7 +1282,7 @@ impl<'a> Sema<'a> {
                     "E3003",
                     &e.tok,
                     "文稿 2.3",
-                    "模块成员一律小写：`fmt.{0}` 请写 `fmt.{1}`",
+                    "模块成员一律 camelCase：`fmt.{0}` 请写 `fmt.{1}`",
                     &[&name, &lower],
                 );
             } else {

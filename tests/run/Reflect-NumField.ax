@@ -15,8 +15,8 @@ int main() {
     Point p = Point(1, 2)
     Box box = Box(Point(0, 0), Point(10, 20))
 
-    println("Point.fields={reflect.num_field(p)}")
-    println("Box.fields={reflect.num_field(box)}")
+    println("Point.fields={reflect.numField(p)}")
+    println("Box.fields={reflect.numField(box)}")
 
     return 0
 }

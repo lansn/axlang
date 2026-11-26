@@ -11,18 +11,18 @@ int main() {
 
     // 创建目录并判断类型（Mkdir 若目录已存在会返回 1，不影响 IsDir 判断）
     file.mkdir(dir)
-    println("isdir-dir={file.is_dir(dir)}")
-    println("isfile-dir={file.is_file(dir)}")
+    println("isdir-dir={file.isDir(dir)}")
+    println("isfile-dir={file.isFile(dir)}")
 
     // 创建文件并判断类型
-    int w = file.write_all(f, "hello")
+    int w = file.writeAll(f, "hello")
     println("write={w}")
-    println("isdir-file={file.is_dir(f)}")
-    println("isfile-file={file.is_file(f)}")
+    println("isdir-file={file.isDir(f)}")
+    println("isfile-file={file.isFile(f)}")
 
     // 不存在的路径
-    println("isdir-missing={file.is_dir(missing)}")
-    println("isfile-missing={file.is_file(missing)}")
+    println("isdir-missing={file.isDir(missing)}")
+    println("isfile-missing={file.isFile(missing)}")
 
     // 清理测试文件
     file.remove(f)

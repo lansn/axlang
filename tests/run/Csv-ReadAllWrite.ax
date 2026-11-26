@@ -17,7 +17,7 @@ int main() {
 
     // 读取并验证
     var g = file.open(path) try
-    var rows = std.csv.read_all(g)
+    var rows = std.csv.readAll(g)
     g.close()
 
     println("r00={rows[0][0]}")
@@ -37,7 +37,7 @@ int main() {
     h.close()
 
     var i = file.open(path) try
-    var rows2 = std.csv.read_all(i)
+    var rows2 = std.csv.readAll(i)
     i.close()
 
     println("r30={rows2[3][0]}")

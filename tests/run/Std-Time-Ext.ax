@@ -3,9 +3,9 @@
 import std.time
 
 int main() {
-    time t1 = std.time.unix_milli(1000)
-    time t2 = std.time.unix_milli(2000)
-    time t3 = std.time.unix_milli(1000)
+    time t1 = std.time.unixMilli(1000)
+    time t2 = std.time.unixMilli(2000)
+    time t3 = std.time.unixMilli(1000)
 
     println("equal_1_2={t1.equal(t2)}")
     println("equal_1_3={t1.equal(t3)}")
@@ -15,9 +15,9 @@ int main() {
     println("sub_2_1={t2.sub(t1)}")
     println("sub_1_2={t1.sub(t2)}")
     println("add_1_1000={t1.add(1000).unixMs()}")
-    println("round_1500_1000={std.time.unix_milli(1500).round(1000).unixMs()}")
-    println("round_1499_1000={std.time.unix_milli(1499).round(1000).unixMs()}")
-    println("truncate_1500_1000={std.time.unix_milli(1500).truncate(1000).unixMs()}")
-    println("truncate_1499_1000={std.time.unix_milli(1499).truncate(1000).unixMs()}")
+    println("round_1500_1000={std.time.unixMilli(1500).round(1000).unixMs()}")
+    println("round_1499_1000={std.time.unixMilli(1499).round(1000).unixMs()}")
+    println("truncate_1500_1000={std.time.unixMilli(1500).truncate(1000).unixMs()}")
+    println("truncate_1499_1000={std.time.unixMilli(1499).truncate(1000).unixMs()}")
     return 0
 }

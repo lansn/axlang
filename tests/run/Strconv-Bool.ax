@@ -3,32 +3,32 @@ import strconv
 
 int main() {
     // parse_bool：true / false
-    bool a = strconv.parse_bool("true")
+    bool a = strconv.parseBool("true")
     println("parse-bool-true={a}")
 
-    bool b = strconv.parse_bool("false")
+    bool b = strconv.parseBool("false")
     println("parse-bool-false={b}")
 
     // parse_bool：1 / 0
-    bool c = strconv.parse_bool("1")
+    bool c = strconv.parseBool("1")
     println("parse-bool-1={c}")
 
-    bool d = strconv.parse_bool("0")
+    bool d = strconv.parseBool("0")
     println("parse-bool-0={d}")
 
     // parse_bool：无效输入（返回 false）
-    bool e = strconv.parse_bool("yes")
+    bool e = strconv.parseBool("yes")
     println("parse-bool-invalid={e}")
 
     // parse_bool：空字符串
-    bool f = strconv.parse_bool("")
+    bool f = strconv.parseBool("")
     println("parse-bool-empty={f}")
 
     // format_bool：true / false
-    string g = strconv.format_bool(true)
+    string g = strconv.formatBool(true)
     println("format-bool-true={g}")
 
-    string h = strconv.format_bool(false)
+    string h = strconv.formatBool(false)
     println("format-bool-false={h}")
 
     return 0

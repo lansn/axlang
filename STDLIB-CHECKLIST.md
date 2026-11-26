@@ -323,9 +323,9 @@
 | `sync.rwmutex.rlock` | 标准库 | `` | — | pthread_rwlock_rdlock | sync.RWMutex.RLock | 加读锁，允许并发读取 | 对标 C pthread_rwlock_rdlock，Go sync.RWMutex.RLock；sync.rwmutex 结构体方法 | ✅ 已落地 |
 | `sync.rwmutex.runlock` | 标准库 | `` | — | pthread_rwlock_unlock | sync.RWMutex.RUnlock | 释放读锁 | 对标 C pthread_rwlock_unlock，Go sync.RWMutex.RUnlock；sync.rwmutex 结构体方法 | ✅ 已落地 |
 | `sync.rwmutex.unlock` | 标准库 | `` | — | pthread_mutex_unlock | sync.Mutex.Unlock | 释放互斥锁 | 对标 C pthread_mutex_unlock，Go sync.Mutex.Unlock；sync.mutex 结构体方法 | ✅ 已落地 |
-| `sync.wait_group.add` | 标准库 | `` | — | — | sync.WaitGroup.Add | 给等待组增加计数器 | C 标准库无直接对应，Go 对标 sync.WaitGroup.Add；sync.wait_group 结构体方法 | ✅ 已落地 |
-| `sync.wait_group.done` | 标准库 | `` | — | — | sync.WaitGroup.Done | 等待组计数器减 1，表示任务完成 | C 标准库无直接对应，Go 对标 sync.WaitGroup.Done；sync.wait_group 结构体方法 | ✅ 已落地 |
-| `sync.wait_group.wait` | 标准库 | `` | — | pthread_join/条件变量 | sync.WaitGroup.Wait | 阻塞等待等待组计数器归零 | 对标 C pthread_join/条件变量，Go 对标 sync.WaitGroup.Wait；sync.wait_group 结构体方法 | ✅ 已落地 |
+| `sync.wait_group.add` | 标准库 | `` | — | — | sync.WaitGroup.Add | 给等待组增加计数器 | C 标准库无直接对应，Go 对标 sync.WaitGroup.Add；sync.waitGroup 结构体方法 | ✅ 已落地 |
+| `sync.wait_group.done` | 标准库 | `` | — | — | sync.WaitGroup.Done | 等待组计数器减 1，表示任务完成 | C 标准库无直接对应，Go 对标 sync.WaitGroup.Done；sync.waitGroup 结构体方法 | ✅ 已落地 |
+| `sync.wait_group.wait` | 标准库 | `` | — | pthread_join/条件变量 | sync.WaitGroup.Wait | 阻塞等待等待组计数器归零 | 对标 C pthread_join/条件变量，Go 对标 sync.WaitGroup.Wait；sync.waitGroup 结构体方法 | ✅ 已落地 |
 | `thread.close` | 内建库 | `() -> void` | ch.close() | — | close(ch) | 关闭通道，禁止后续发送 | C 标准库无通道，Go 对标 close() 内置；关闭后只能读不能写 | ✅ 已落地 |
 | `thread.join` | 内建库 | `() -> void` | ch.join() | pthread_join | sync.WaitGroup.Wait | 等待线程/协程结束 | 对标 C pthread_join，Go 对标 sync.WaitGroup.Wait；阻塞等待完成 | ✅ 已落地 |
 | `thread.pop` | 内建库 | `() -> T?` | ch.pop() | — | <-ch | 从通道接收数据（阻塞） | C 标准库无通道，Go 对标 chan 接收操作；返回 T? 可选类型 | ✅ 已落地 |

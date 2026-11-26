@@ -3,13 +3,13 @@ class Point {
     public int X
     public int Y
     constructor() { this.X = 0; this.Y = 0 }
-    constructor.from_json(int x, int y) { this.X = x; this.Y = y }
+    constructor.fromJson(int x, int y) { this.X = x; this.Y = y }
 }
 
 int main() {
     Point p1 = new Point()
     println("p1={p1.X},{p1.Y}")
-    Point p2 = new Point.from_json(3, 4)
+    Point p2 = new Point.fromJson(3, 4)
     println("p2={p2.X},{p2.Y}")
     return 0
 }

@@ -5,22 +5,22 @@ int main() {
     string path = "__ax_rw_test.txt"
 
     // WriteAll 成功写入
-    int w1 = file.write_all(path, "hello axlang")
+    int w1 = file.writeAll(path, "hello axlang")
     println("write-ok={w1}")
 
     // ReadAll 读回，内容应与写入一致
-    result<string> c = file.read_all(path)
+    result<string> c = file.readAll(path)
     match c {
         ok(s) => println("read-content={s}"),
         fail(e) => println("read-fail={e.msg.len() > 0}")
     }
 
     // WriteAll 到不存在的目录应失败
-    int w2 = file.write_all("__ax_no_dir__/x.txt", "x")
+    int w2 = file.writeAll("__ax_no_dir__/x.txt", "x")
     println("write-bad-dir={w2}")
 
     // ReadAll 不存在的文件应失败
-    result<string> c2 = file.read_all("__ax_no_such_file.txt")
+    result<string> c2 = file.readAll("__ax_no_such_file.txt")
     match c2 {
         ok(s) => println("read-missing-ok={s}"),
         fail(e) => println("read-missing-fail={e.msg.len() > 0}")

@@ -2,10 +2,10 @@
 import io
 
 int main() {
-    io.write_line("hello world")
-    io.write_line("")
-    io.write_line("第二行")
+    io.writeLine("hello world")
+    io.writeLine("")
+    io.writeLine("第二行")
     io.write("第三行：中文测试")
-    io.write_line("")
+    io.writeLine("")
     return 0
 }

@@ -10,12 +10,12 @@ int main() {
     string s = strconv.itoa(456)
     println(s)
 
-    float f = strconv.parse_float("3.14")
+    float f = strconv.parseFloat("3.14")
     println("{f}")
-    float f2 = strconv.parse_float("xyz")
+    float f2 = strconv.parseFloat("xyz")
     println("{f2}")
 
-    string fs = strconv.format_float(789.5)
+    string fs = strconv.formatFloat(789.5)
     println(fs)
 
     return 0

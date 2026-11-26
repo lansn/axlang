@@ -4,32 +4,32 @@ import strconv
 
 int main() {
     // ParseUint：十进制
-    println("parse-uint-10={strconv.parse_uint("123", 10)}")
+    println("parse-uint-10={strconv.parseUint("123", 10)}")
     // ParseUint：十六进制
-    println("parse-uint-16={strconv.parse_uint("ff", 16)}")
+    println("parse-uint-16={strconv.parseUint("ff", 16)}")
     // ParseUint：八进制
-    println("parse-uint-8={strconv.parse_uint("17", 8)}")
+    println("parse-uint-8={strconv.parseUint("17", 8)}")
     // ParseUint：二进制
-    println("parse-uint-2={strconv.parse_uint("1010", 2)}")
+    println("parse-uint-2={strconv.parseUint("1010", 2)}")
     // ParseUint：base=0 自动判断 0x 前缀
-    println("parse-uint-auto-hex={strconv.parse_uint("0xff", 0)}")
+    println("parse-uint-auto-hex={strconv.parseUint("0xff", 0)}")
     // ParseUint：base=0 自动判断 0 前缀（八进制）
-    println("parse-uint-auto-oct={strconv.parse_uint("017", 0)}")
+    println("parse-uint-auto-oct={strconv.parseUint("017", 0)}")
     // ParseUint：无效输入
-    println("parse-uint-invalid={strconv.parse_uint("xyz", 10)}")
+    println("parse-uint-invalid={strconv.parseUint("xyz", 10)}")
     // ParseUint：超出 int64 范围（2^64）
-    println("parse-uint-overflow={strconv.parse_uint("18446744073709551616", 10)}")
+    println("parse-uint-overflow={strconv.parseUint("18446744073709551616", 10)}")
 
     // FormatUint：十进制
-    println("format-uint-10={strconv.format_uint(255, 10)}")
+    println("format-uint-10={strconv.formatUint(255, 10)}")
     // FormatUint：十六进制
-    println("format-uint-16={strconv.format_uint(255, 16)}")
+    println("format-uint-16={strconv.formatUint(255, 16)}")
     // FormatUint：八进制
-    println("format-uint-8={strconv.format_uint(255, 8)}")
+    println("format-uint-8={strconv.formatUint(255, 8)}")
     // FormatUint：二进制
-    println("format-uint-2={strconv.format_uint(255, 2)}")
+    println("format-uint-2={strconv.formatUint(255, 2)}")
     // FormatUint：base=0 按十进制输出
-    println("format-uint-auto={strconv.format_uint(255, 0)}")
+    println("format-uint-auto={strconv.formatUint(255, 0)}")
 
     return 0
 }

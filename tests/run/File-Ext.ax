@@ -3,7 +3,7 @@ import file
 import std.time
 
 int main() {
-    string dir = "tests/.build/file-ext-dir-{std.time.now_ms()}"
+    string dir = "tests/.build/file-ext-dir-{std.time.nowMs()}"
     string file1 = "tests/.build/file-ext-a.txt"
     string file2 = "tests/.build/file-ext-b.txt"
 
@@ -13,7 +13,7 @@ int main() {
 
     // 创建文件
     var f = file.create(file1) try
-    f.write_line("hello") try
+    f.writeLine("hello") try
     f.close()
 
     // Exists

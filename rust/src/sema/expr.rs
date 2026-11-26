@@ -40,8 +40,8 @@ pub fn module_sig(mod_: &str, name: &str) -> Option<(Vec<Option<Ty>>, Ty)> {
         ("math", "log2") => (vec![Some(t_float())], t_float()),
         ("math", "log10") => (vec![Some(t_float())], t_float()),
         ("math", "log1p") => (vec![Some(t_float())], t_float()),
-        ("math", "is_nan") => (vec![Some(t_float())], t_bool()),
-        ("math", "is_inf") => (vec![Some(t_float()), Some(t_int())], t_bool()),
+        ("math", "isNaN") => (vec![Some(t_float())], t_bool()),
+        ("math", "isInf") => (vec![Some(t_float()), Some(t_int())], t_bool()),
         ("math", "sinh") => (vec![Some(t_float())], t_float()),
         ("math", "cosh") => (vec![Some(t_float())], t_float()),
         ("math", "tanh") => (vec![Some(t_float())], t_float()),
@@ -93,19 +93,19 @@ pub fn module_sig(mod_: &str, name: &str) -> Option<(Vec<Option<Ty>>, Ty)> {
         ("file", "chtimes") => (vec![Some(t_string()), Some(t_int()), Some(t_int())], t_int()),
         ("file", "tempFile") => (vec![Some(t_string()), Some(t_string())], t_result(t_named(DefId::Name("File"), Vec::new()))),
         /* string 模块（单段名，向后兼容；std.string 现已改为 axc/std/string.ax） */
-        ("string", "from_codepoint") => (vec![Some(t_int())], t_result(t_string())),
+        ("string", "fromCodepoint") => (vec![Some(t_int())], t_result(t_string())),
         ("string", "compare") => (vec![Some(t_string()), Some(t_string())], t_int()),
         ("string", "fields") => (vec![Some(t_string())], t_array(t_string(), None)),
-        ("string", "to_upper_rune") => (vec![Some(t_int())], t_int()),
-        ("string", "to_lower_rune") => (vec![Some(t_int())], t_int()),
-        ("time", "now_ms") => (vec![], t_int()),
+        ("string", "toUpperRune") => (vec![Some(t_int())], t_int()),
+        ("string", "toLowerRune") => (vec![Some(t_int())], t_int()),
+        ("time", "nowMs") => (vec![], t_int()),
         ("time", "now") => (vec![], t_named(DefId::Name("time"), Vec::new())),
-        ("time", "from_unix_ms") => (vec![Some(t_int())], t_named(DefId::Name("time"), Vec::new())),
+        ("time", "fromUnixMs") => (vec![Some(t_int())], t_named(DefId::Name("time"), Vec::new())),
         ("time", "sleep") => (vec![Some(t_int())], t_void()),
         ("time", "unix") => (vec![Some(t_int()), Some(t_int())], t_named(DefId::Name("time"), Vec::new())),
-        ("time", "unix_milli") => (vec![Some(t_int())], t_named(DefId::Name("time"), Vec::new())),
-        ("time", "unix_micro") => (vec![Some(t_int())], t_named(DefId::Name("time"), Vec::new())),
-        ("time", "unix_nano") => (vec![Some(t_int())], t_named(DefId::Name("time"), Vec::new())),
+        ("time", "unixMilli") => (vec![Some(t_int())], t_named(DefId::Name("time"), Vec::new())),
+        ("time", "unixMicro") => (vec![Some(t_int())], t_named(DefId::Name("time"), Vec::new())),
+        ("time", "unixNano") => (vec![Some(t_int())], t_named(DefId::Name("time"), Vec::new())),
         ("time", "since") => (vec![Some(t_named(DefId::Name("time"), Vec::new()))], t_int()),
         ("time", "date") => (vec![
             Some(t_int()), Some(t_int()), Some(t_int()),
@@ -197,7 +197,7 @@ pub fn module_sig(mod_: &str, name: &str) -> Option<(Vec<Option<Ty>>, Ty)> {
 }
 
 /// `read_line` → `ReadLine`、`now_ms` → `NowMs`：只用于给旧写法一条精确的
-/// 迁移提示（文稿 2.3「凡带 `.` 的调用一律 PascalCase」），不参与解析。
+/// 迁移提示（文稿 2.3「凡带 `.` 的调用一律 camelCase」），不参与解析。
 pub fn camel_member(name: &str) -> String {
     let mut out = String::new();
     let segs: Vec<&str> = name.split('_').filter(|s| !s.is_empty()).collect();

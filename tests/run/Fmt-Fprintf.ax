@@ -12,7 +12,7 @@ int main() {
     fmt.fprintf(f, "count=%d ratio=%.1f\n", 42, 0.5)
     f.close()
 
-    result<string> c = file.read_all(path)
+    result<string> c = file.readAll(path)
     match c {
         ok(s) => print(s),
         fail(e) => print("read-fail"),

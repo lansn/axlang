@@ -2,9 +2,9 @@
 import std.time
 
 int main() {
-    int t0 = std.time.now_ms()
+    int t0 = std.time.nowMs()
     std.time.sleep(100)
-    int t1 = std.time.now_ms()
+    int t1 = std.time.nowMs()
     int elapsed = t1 - t0
     if elapsed >= 90 {
         println("sleep-ok")

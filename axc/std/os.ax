@@ -41,7 +41,7 @@ public string getenv(string name) {
     }
 }
 
-public string user_home_dir() {
+public string userHomeDir() {
     unsafe {
         return ax_os_user_home_dir()
     }
@@ -95,7 +95,7 @@ public int unsetenv(string name) {
     }
 }
 
-public string user_cache_dir() {
+public string userCacheDir() {
     unsafe {
         return ax_os_user_cache_dir()
     }

@@ -40,7 +40,7 @@ int main() {
         fail(e) => println("fail: {e.msg}"),
     }
 
-    int t1 = std.time.now_ms()
+    int t1 = std.time.nowMs()
     println("time-ok={t1 > 0}")
     return 0
 }

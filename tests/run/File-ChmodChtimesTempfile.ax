@@ -12,7 +12,7 @@ int main() {
     file.remove(f)
 
     // 写入测试文件
-    int w = file.write_all(f, "hello world")
+    int w = file.writeAll(f, "hello world")
     println("write={w}")
 
     // Chmod：修改权限，0=成功 1=失败（0o644 = 十进制 420）
@@ -24,7 +24,7 @@ int main() {
     println("chtimes-ok={ct == 0}")
 
     // TempFile：创建临时文件，返回 result<File>
-    var tf = file.temp_file(dir, prefix) try
+    var tf = file.tempFile(dir, prefix) try
     tf.close()
     println("tempfile-ok=true")
 

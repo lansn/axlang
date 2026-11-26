@@ -10,19 +10,19 @@ int main() {
     file.remove(f)
 
     // 写入文件（11 字节 "hello world"）
-    int w = file.write_all(f, "hello world")
+    int w = file.writeAll(f, "hello world")
     println("write={w}")
 
     // Size 应返回文件字节数（非负），ModTime 应返回非负的 Unix 毫秒
     int s = file.size(f)
-    int mt = file.mod_time(f)
+    int mt = file.modTime(f)
     println("size-file={s}")
     println("size-ok={s >= 0}")
     println("modtime-ok={mt >= 0}")
 
     // 不存在的路径：Size 返回 -1，ModTime 返回 -1
     println("size-missing={file.size(missing)}")
-    println("modtime-missing={file.mod_time(missing)}")
+    println("modtime-missing={file.modTime(missing)}")
 
     // 清理测试文件
     file.remove(f)

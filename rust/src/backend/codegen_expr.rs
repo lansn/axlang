@@ -1578,7 +1578,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             let pa = self.pos_args(&e.tok);
             return format!("ax_narrow((int64_t)({}), {}, 1, {})", v, bits, pa);
         }
-        if mk == "from_codepoint" {
+        if mk == "fromCodepoint" {
             return self.from_codepoint(e);
         }
         if mk == "str_compare" {
@@ -1963,8 +1963,8 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             ("math", "log2") => format!("(log2({}))", a[0]),
             ("math", "log10") => format!("(log10({}))", a[0]),
             ("math", "log1p") => format!("(log1p({}))", a[0]),
-            ("math", "is_nan") => format!("ax_math_isnan({})", a[0]),
-            ("math", "is_inf") => format!("ax_math_isinf({}, {})", a[0], a[1]),
+            ("math", "isNaN") => format!("ax_math_isnan({})", a[0]),
+            ("math", "isInf") => format!("ax_math_isinf({}, {})", a[0], a[1]),
             ("math", "sinh") => format!("(sinh({}))", a[0]),
             ("math", "cosh") => format!("(cosh({}))", a[0]),
             ("math", "tanh") => format!("(tanh({}))", a[0]),
@@ -2011,17 +2011,17 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             ("file", "chmod") => format!("ax_file_chmod({}, {})", a[0], a[1]),
             ("file", "chtimes") => format!("ax_file_chtimes({}, {}, {})", a[0], a[1], a[2]),
             ("file", "tempFile") => format!("ax_file_tempfile({}, {})", a[0], a[1]),
-            ("time", "now_ms") => "ax_now_ms()".to_string(),
+            ("time", "nowMs") => "ax_now_ms()".to_string(),
             ("time", "now") => "ax_now_ms()".to_string(),
-            ("time", "from_unix_ms") => a[0].clone(),
+            ("time", "fromUnixMs") => a[0].clone(),
             ("time", "sleep") => {
                 self.emit(format!("ax_time_sleep({});", a[0]));
                 "0".to_string()
             }
             ("time", "unix") => format!("ax_time_from_unix({}, {})", a[0], a[1]),
-            ("time", "unix_milli") => format!("ax_time_from_unix_ms({})", a[0]),
-            ("time", "unix_micro") => format!("ax_time_from_unix_us({})", a[0]),
-            ("time", "unix_nano") => format!("ax_time_from_unix_ns({})", a[0]),
+            ("time", "unixMilli") => format!("ax_time_from_unix_ms({})", a[0]),
+            ("time", "unixMicro") => format!("ax_time_from_unix_us({})", a[0]),
+            ("time", "unixNano") => format!("ax_time_from_unix_ns({})", a[0]),
             ("time", "since") => format!("ax_time_since({})", a[0]),
             ("time", "date") => format!("ax_time_date({}, {}, {}, {}, {}, {}, {})",
                                         a[0], a[1], a[2], a[3], a[4], a[5], a[6]),
@@ -2732,7 +2732,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             Expr::MethodCall { recv, name, args } => (recv, name, args),
             _ => unreachable!(),
         };
-        // 用户调用可能是小写（如 to_string），intrinsic 表和 codegen 分支用 PascalCase（ToString）。
+        // 用户调用可能是小写（如 to_string），intrinsic 表和 codegen 分支用 camelCase（toString）。
         let name_pc = camel_member(name);
         let rt = self.ty_or_int(recv.id);
         let rv = self.gen(recv, None, false, false);

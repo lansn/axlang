@@ -2,7 +2,7 @@
 import filepath
 
 int main() {
-    string p = filepath.eval_symlinks("tests/run/__ft__/alpha.txt")
+    string p = filepath.evalSymlinks("tests/run/__ft__/alpha.txt")
     println("eval={p}")
     return 0
 }

@@ -458,7 +458,7 @@ if price > 0
   - **内建类型名一律全小写**：`int` `float` `decimal` `string` `error` `result` `object`。
   - **裸调用的一等函数一律 camelCase**（多词首个单词小写，其余首字母大写）：`print` / `println` / `ok` / `fail` / `parent` / `typeof` / `sizeof`，以及将来的全局 `len(x)` / `max(a, b)` / `min(a, b)`。
   - **凡带 `.` 的调用一律 camelCase**（模块成员、类型静态方法、实例方法、接口方法一视同仁）：`io.readLine()` / `io.readFile(p)` / `file.open(p)` / `json.parse(s)` / `math.compare(a, b)` / `time.nowMs()` / `db.query(sql)`；`s.len()` / `nums.push(v)` / `f.readLine()` / `decimal.parse(s)`；内建接口 `printable.toString()` / `comparable.compare(other)` / `hashable.hash()`。
-  - 分界只看**语法**，不问那个 `.` 左边是模块、类型还是值：`名字(...)` 是函数层（camelCase），`X.名字(...)` 一律 camelCase。一条判据即可决定任一名字的拼写，读代码的人不必先查 `X` 是模块还是类型——这与 C# 同构：C# 里没有"模块函数"，只有静态类成员，本来就是 `Console.writeLine` / `File.readAllText` / `Math.sqrt`。`io` 是模块、`string` 既是类型又是模块，但两者的成员拼写一致（`string.fromCodepoint()` 从静态方法和模块两条路进入写法相同）。反例是 Rust 的 `std::fs::read_to_string()`——它敢用 snake_case，是因为 `::` 在视觉上就宣告"这是路径不是成员"；本文只有 `.` 一个访问符，区分职责只能落在命名上，把两种拼法混在一处只会逼读者猜。
+  - 分界只看**语法**，不问那个 `.` 左边是模块、类型还是值：`名字(...)` 是函数层（camelCase），`X.名字(...)` 一律 camelCase。一条判据即可决定任一名字的拼写，读代码的人不必先查 `X` 是模块还是类型——这与 C# 同构：C# 里没有"模块函数"，只有静态类成员，本来就是 `Console.writeLine` / `File.readAllText` / `Math.sqrt`。`io` 是模块、`string` 既是类型又是模块，但两者的成员拼写一致（`string.fromCodepoint()` 从静态方法和模块两条路进入写法相同）。反例是 Rust 的 `std::fs::read_toString()`——它敢用 snake_case，是因为 `::` 在视觉上就宣告"这是路径不是成员"；本文只有 `.` 一个访问符，区分职责只能落在命名上，把两种拼法混在一处只会逼读者猜。
   - **成员名一律 camelCase（硬约束，`E3043`）**：方法、静态方法、接口方法、字段、枚举成员——只要出现在 `.` 右侧，就首字母小写、多词后续单词首字母大写、不含下划线：`s.len()`、`user.userId`、`shape.area()`、`color.red`。写错即报错并点名正确拼写（`Read` → `read`、`MinQty` → `minQty`）。这一档不适用下一条的宽容，理由是成员只有一个语法位置：位置唯一，拼法就必须唯一，否则同一个 `.` 上会有两套写法（`io.readLine()` 旁边站着 `s.len()`）。分界依据是 2.2 第 3 判据：标准库名字可枚举（几百个），统一成本为零且必须统一，否则用户猜不出拼写；用户代码里"可自由取名"的部分（类型、函数、变量）几十万个、各有所好，编译器无从裁决，强制只会让 C/Python/Rust 程序员集体改肌肉记忆，而收益只是"好看一点"；用户自己写的**成员**不在此列——它不是一个可以随便叫的名字，而是某个语法位置上唯一允许的写法（写成 `Read` 就报 `E3043`）。`constructor` 是关键字不是成员名，不受此限；将来若引入 FFI / `extern` 绑定声明，C 侧字段名另开一条窄口子豁免。
   - **其余用户侧命名一律 camelCase（强制，为命名风格统一）**：类型、模块级函数、局部变量、参数、常量均写 camelCase（`session`、`config`、`checkEmail`、`doubleIt`、`userId`、`maxRetry`）。编译器检查 `E3043`，不符合 camelCase 即报错。
   - 上面几条里，内建类型名、裸调用函数名、`.` 右侧的成员名是**语法级硬约束**：标准库与内建的拼写就是名字本身——`len` 不是 `Len` 的 PascalCase 版，`Len` 就是个不存在的名字（反过来 `s.len()` 也不存在）。分界依据是 2.2 第 3 判据：标准库名字可枚举（几百个），统一成本为零且必须统一，否则用户猜不出拼写；用户代码里"可自由取名"的部分（类型、函数、变量）几十万个、各有所好，编译器无从裁决，强制只会让 C/Python/Rust 程序员集体改肌肉记忆，而收益只是"好看一点"；用户自己写的**成员**不在此列——它不是一个可以随便叫的名字，而是某个语法位置上唯一允许的写法（写成 `Read` 就报 `E3043`）。风格上仍统一：**内建裸函数 camelCase（`print`）、凡带 `.` 的成员 camelCase（`io.readLine`）、用户类型与函数也 camelCase（`session` / `checkEmail`）**。
@@ -842,7 +842,7 @@ float g = 0.0 / 0.0                    // 终止进程：不产生 nan
 
 规则：
 
-- **整数溢出 → 终止进程**（`int` 与 `uint` 家族一致）。需要特定边界语义时必须调用显式方法：`wrapping_add/sub/mul`（回绕）、`saturating_add/sub`（饱和）、`checked_add`（返回 `T?`）——库函数，不进语法，也不影响普通写法的可读性。
+- **整数溢出 → 终止进程**（`int` 与 `uint` 家族一致）。需要特定边界语义时必须调用显式方法：`wrappingAdd/sub/mul`（回绕）、`saturating_add/sub`（饱和）、`checked_add`（返回 `T?`）——库函数，不进语法，也不影响普通写法的可读性。
 - **除零、模零 → 终止进程**（与 10.2 同一崩溃路径，不是"未定义行为"：行为是明确的、可测的）。
 - **`decimal` 也有边界**：超出 128 位范围或有效位数上限（约 28~29 位）→ 终止进程（3.2）。不要指望它装下无限大的数；要更大就拆成分位整数或走库类型。
 - **移位量必须 `0 <= n < 位宽`**：编译期可判定的直接报错，运行期才知道的终止进程。C 的"移位量越界是 UB"这条坑不存在。
@@ -1009,7 +1009,7 @@ int add(int a, int b) {       // 体内不出现 new 表达式，零堆分配承
 
 ```ax
 @deprecated
-int old_func(int x) {         // 已弃用，建议迁移至 new_func
+int oldFunc(int x) {         // 已弃用，建议迁移至 newFunc
     return x * 2
 }
 ```
@@ -1126,7 +1126,7 @@ while i < 5 {
 
 // 无头循环：for { }（无条件，配合 break 退出）
 for {
-    string line = read_line()
+    string line = readLine()
     if line == "quit" { break; }
     ...
 }
@@ -1625,7 +1625,7 @@ var host = cfg["db"]["host"]           // string
 type Json = map<string, object>
 
 result<Json> read_cfg(string path) {                 // 返回 result，才能用 try 传播
-    Json raw = json.Parse(read_file(path)) try
+    Json raw = json.Parse(readFile(path)) try
     return ok(raw)
 }
 ```
@@ -1640,7 +1640,7 @@ struct Config {
 }
 
 result<Config> load(string path) {
-    Json raw = json.Parse(read_file(path)) try                    // 失败即把 fail 交给调用方
+    Json raw = json.Parse(readFile(path)) try                    // 失败即把 fail 交给调用方
     return ok(Config(                                             // 逐字段取出，实参位置自动解箱（6.7）
         string(raw["name"]),
         int(raw["port"]),
@@ -1844,7 +1844,7 @@ const int SIZE = 8 * 8         // 编译期求出 64
 
 ```ax
 @os(linux, macos)
-void mmap_file(...) { ... }
+void mmapFile(...) { ... }
 ```
 
 仅 `@os` 与 `@arch` 两个属性，不做通用宏系统。同一个模块里可以给同一功能写多个带不同 `@os` 的定义，**编译期按目标平台恰好选中一个**：一个都没命中、或命中两个以上，都是编译错误——不留给"平台判断散落在各处 if"的空间。
@@ -2207,7 +2207,7 @@ s.Mid(4, 10)// "ng"（越界截断）
 ```ax
 import file
 
-result<string> copy_first_line(string from, string to) {
+result<string> copyFirstLine(string from, string to) {
     var src = file.Open(from) try
     defer src.Close()
     string? line = src.ReadLine()
@@ -2684,7 +2684,7 @@ int ax_queue_try_pop(ax_queue* q, void* out);
 
 *v0.14 变更（全稿冲突审计与修复）*
 
-*P0 真矛盾（按原稿会写出错误代码）：①`result<T>`/`error` 用用户 enum 语法定义带数据变体，与 6.4「用户 enum 不可携带数据」冲突——改为「编译器预置类型，仅示意形状」，明确用户写不出；②`Money` 身份三重冲突（3.6 类型别名 / 3.2 静态工厂 / 6.5 struct）——删 3.6 的 `type Money = decimal`，3.2 改为「币种不进 decimal，带币种金额用 struct Money」；③删除「所有类隐式继承 Object」（其 `to_string`/`equals` 与 7.1 的 `Printable`/`Comparable` 重复），改为明确 `==` 分派规则（值/内容 vs class/引用身份）与默认显示规则；④`return throw ...` 与「throw 自带返回」重复——改为独立语句 `throw ...`；⑤class 成员默认私有，但示例在类外调用 `speak`/`describe`/`area` 且在子类覆写私有方法——全部补 `public`，并固定修饰符顺序 `public → static/override → 返回类型 → 名字`；⑥struct 字段默认私有却示例直接 `q.x = 10`——规定 struct 字段默认 public（与 class 相反，理由见 6.5）；⑦构造函数无 `public` 却可 `new`——规定构造函数默认 public，为全语言唯一例外；⑧`decimal` 除不尽「既抛错又用 `(a/b).round()` 补救」逻辑矛盾（`a/b` 已终止）——新增 `divide(除数, 小数位, 舍入)` 为唯一合法入口，`round` 只收尾已有值；⑨运算符清单缺 `?.` `??` `%=`，与优先级表/正文不一致——补齐，并声明 `=> : . @ _` 是语法结构非运算符；⑩`Decimal.parse` 与大写命名、内建小写规则冲突——统一 `decimal.parse`；⑪`print` 既作内建又 `import fmt.{print}`——定为根模块内建，删 import；⑫12.2 一边说「插值唯一」一边给 `print(fmt, p = x)` 命名参数——删第二套；⑬`b"x"` 字节串字面量从未定义——改普通字符串；⑭3.2 示例同一作用域重复声明 `decimal unit`——改名 `unit2`。*
+*P0 真矛盾（按原稿会写出错误代码）：①`result<T>`/`error` 用用户 enum 语法定义带数据变体，与 6.4「用户 enum 不可携带数据」冲突——改为「编译器预置类型，仅示意形状」，明确用户写不出；②`Money` 身份三重冲突（3.6 类型别名 / 3.2 静态工厂 / 6.5 struct）——删 3.6 的 `type Money = decimal`，3.2 改为「币种不进 decimal，带币种金额用 struct Money」；③删除「所有类隐式继承 Object」（其 `toString`/`equals` 与 7.1 的 `Printable`/`Comparable` 重复），改为明确 `==` 分派规则（值/内容 vs class/引用身份）与默认显示规则；④`return throw ...` 与「throw 自带返回」重复——改为独立语句 `throw ...`；⑤class 成员默认私有，但示例在类外调用 `speak`/`describe`/`area` 且在子类覆写私有方法——全部补 `public`，并固定修饰符顺序 `public → static/override → 返回类型 → 名字`；⑥struct 字段默认私有却示例直接 `q.x = 10`——规定 struct 字段默认 public（与 class 相反，理由见 6.5）；⑦构造函数无 `public` 却可 `new`——规定构造函数默认 public，为全语言唯一例外；⑧`decimal` 除不尽「既抛错又用 `(a/b).round()` 补救」逻辑矛盾（`a/b` 已终止）——新增 `divide(除数, 小数位, 舍入)` 为唯一合法入口，`round` 只收尾已有值；⑨运算符清单缺 `?.` `??` `%=`，与优先级表/正文不一致——补齐，并声明 `=> : . @ _` 是语法结构非运算符；⑩`Decimal.parse` 与大写命名、内建小写规则冲突——统一 `decimal.parse`；⑪`print` 既作内建又 `import fmt.{print}`——定为根模块内建，删 import；⑫12.2 一边说「插值唯一」一边给 `print(fmt, p = x)` 命名参数——删第二套；⑬`b"x"` 字节串字面量从未定义——改普通字符串；⑭3.2 示例同一作用域重复声明 `decimal unit`——改名 `unit2`。*
 
 *P1 一致性与表述：⑮1.2 新增「已知的有意例外」四条（三元/if、显式类型/var、struct 无 new/class new、分号可选），使「一种做法」原则不再自相矛盾；⑯1.2 与 5.2 的 for 形式由「两种」改为「三种」（区间/集合/无头）；⑰2.3 补「内建类型名小写」「单独 `_` 不是标识符」「`@` 属性语法」；⑱3.3 补「字段是必须初始化规则的唯一例外」；⑲4 节 `(decimal, error)` 与 result 冲突——改 `(decimal, decimal)`，声明元组只承载多返回值、错误只走 result；⑳4.1 `func(...) T?` 表述纠正为 `(func(...) T)?`（函数值可空 ≠ 返回可空）；㉑5.3 模式由五种改为六种并列成表（补枚举成员、变体解构；`_` 兜底等于放弃穷尽检查）；㉒7.3 补「interface 成员一律 public、实现不可收窄」；㉓7.1 `compare(T)` 无法自指——引入内建类型名 `Self`（非关键字，仅类型体内有效）；㉔8.2 补「调用点只写 `&`，借用强度由签名决定」；㉕9.4 明确「省略 return 得 0」仅 `main` 享有；㉖第 10 章补「四个 error 变体都只有 msg 字段，故 `e.msg` 恒成立」；㉗10.2 崩溃清单改为「下标越界、整数除零、decimal 除不尽」，删掉不存在的断言失败/空值解包；㉘13 速查表与正文同步。*
 
@@ -2727,7 +2727,7 @@ int ax_queue_try_pop(ax_queue* q, void* out);
 
 *②类型转换由 `a as int32` 改为 Go 风格的 `int32(a)`（3.1）：`T(x)` 与函数调用同形，靠「类型名与函数名共用命名空间、禁止重名」（6.5）保证零歧义。`as` 关键词保留，但语义收窄为**唯一一件事**——父类/interface 转派生类的**运行时下转**，结果 `T?`（5.1、9.2、11.1 同步）。一句话分工：**能保证成功的写 `T(x)`，可能失败的写 `x as T`**——形式不同是因为返回类型不同（`T` 与 `T?`），不是两套写法做同一件事。*
 
-*③顺带补齐转换矩阵的三处边界：收窄转换**值超出目标范围时终止进程**（不做 C 的静默截断，要截断写 `int32.truncate(x)`）；`string(x)` 只接受 `char`（避开 Go 的 `string(65) == "A"`），数字转字符串一律 `x.to_string()`；`float → decimal` 仍禁止 `decimal(x)`，必须 `decimal.parse(string)`。13.3 坑表补三条，14 节速查表补「类型转换」「向下转型」两行。*
+*③顺带补齐转换矩阵的三处边界：收窄转换**值超出目标范围时终止进程**（不做 C 的静默截断，要截断写 `int32.truncate(x)`）；`string(x)` 只接受 `char`（避开 Go 的 `string(65) == "A"`），数字转字符串一律 `x.toString()`；`float → decimal` 仍禁止 `decimal(x)`，必须 `decimal.parse(string)`。13.3 坑表补三条，14 节速查表补「类型转换」「向下转型」两行。*
 
 *（v0.18 中的「`{` 必须与所属语句同行」与「可能失败的写 `x as T`」两项已被 v0.19 撤销，见下。）*
 
@@ -2741,7 +2741,7 @@ int ax_queue_try_pop(ax_queue* q, void* out);
 
 *v0.20 变更（新增 `object` 任意对象类型；向下转型不再产出可空值，`?` 退出类型判断场景）*
 
-*①新增内建类型 `object`（3.1 类型表、6.7 专节）：任何 `class` 实例都能装进来（隐式兼容，不必写 `extend object`），`struct` 装不进去（值类型无引用身份）。**`object` 没有任何成员**——没有字段、没有方法、不能 `new object()`，它只是"能装引用的容器"，不是那种带 `to_string`/`equals` 的万能基类（后者与 `Printable` 重复，v0.14 已删）。还原成具体类型只有两条路：确定类型用 `Dog(o)`，不确定用 `match` 类型模式。所有权规则与 class 引用一致（赋值即 move）。它是内建类型名而非关键字，故关键字总数仍为 33 个（2.3 已注明）。*
+*①新增内建类型 `object`（3.1 类型表、6.7 专节）：任何 `class` 实例都能装进来（隐式兼容，不必写 `extend object`），`struct` 装不进去（值类型无引用身份）。**`object` 没有任何成员**——没有字段、没有方法、不能 `new object()`，它只是"能装引用的容器"，不是那种带 `toString`/`equals` 的万能基类（后者与 `Printable` 重复，v0.14 已删）。还原成具体类型只有两条路：确定类型用 `Dog(o)`，不确定用 `match` 类型模式。所有权规则与 class 引用一致（赋值即 move）。它是内建类型名而非关键字，故关键字总数仍为 33 个（2.3 已注明）。*
 
 *②向下转型不再与 `?` 挂钩（3.1 转换矩阵、5.1）：`Dog(a)` 是**断言式转换**——写了就等于断言"它是 Dog"，运行时不是即终止进程，结果类型为非可空 `Dog`，因此不需要判空。原 `Dog? d = Dog(a)` + `if d != null` 的写法作废；`T?` 从此只表达"这个值可能确实不存在"（查找未命中、字段缺失），不再承担类型判断职责（3.4 补此边界）。"确实不确定是什么类型"时用 `object` + `match` 判别，属另一类问题、另一类工具。*
 
@@ -2755,9 +2755,9 @@ int ax_queue_try_pop(ax_queue* q, void* out);
 
 *②单引号字面量一并废除（3.5）：`'a'` 编译错误并提示改成 `"a"`；`"a"` 与 `""` 都是合法 `string`，只差 `len()`。字符既已并入字符串，再留 `'a'` 就成了"同一个类型两种写法"，违反 2.2 第一条；按取舍尺度第 2 判据（禁止一种写法 = 零成本），直接不给入口。*
 
-*③转换矩阵相应调整（3.1）：删 `char → string` 行；原"其他 → string 禁止"升级为"**不存在转成 `string` 的转换**"——`string(x)` 一律编译错误（Go 的 `string(65) == "A"` 坑连载体都没有了）。数字转字符串仍写 `x.to_string()`，码点数值转单码点字符串写 `string.from_codepoint(n)`。*
+*③转换矩阵相应调整（3.1）：删 `char → string` 行；原"其他 → string 禁止"升级为"**不存在转成 `string` 的转换**"——`string(x)` 一律编译错误（Go 的 `string(65) == "A"` 坑连载体都没有了）。数字转字符串仍写 `x.toString()`，码点数值转单码点字符串写 `string.fromCodepoint(n)`。*
 
-*④文本处理入口收敛为三个，全部返回 `string`（12.2）：`for c in s` 逐码点迭代（`c` 是长度 1 的 `string`）、`s.chars()` 得 `string[]`、`s.at(i)` 得 `string?`（越界 `null`，与容器 `at` 同语义）。底层场景才用 `s.codepoint_at(i)` 得 `int?` / `string.from_codepoint(n)` 得 `result<string>`（非法码点走 `fail`，不新增崩溃路径——当时崩溃清单为七类，v0.22 起为六类）。`s[i]` 继续禁止（变长编码 + 按码点下标是 O(n)，写成下标会诱导误当数组）。*
+*④文本处理入口收敛为三个，全部返回 `string`（12.2）：`for c in s` 逐码点迭代（`c` 是长度 1 的 `string`）、`s.chars()` 得 `string[]`、`s.at(i)` 得 `string?`（越界 `null`，与容器 `at` 同语义）。底层场景才用 `s.codepoint_at(i)` 得 `int?` / `string.fromCodepoint(n)` 得 `result<string>`（非法码点走 `fail`，不新增崩溃路径——当时崩溃清单为七类，v0.22 起为六类）。`s[i]` 继续禁止（变长编码 + 按码点下标是 O(n)，写成下标会诱导误当数组）。*
 
 *⑤同步更新：3.3 示例 `char[] cs = ['a','b','c']` 改为 `string[] cs = ["a","b","c"]`；6.5 struct 字段类型清单、8.3 copy 类型清单、11.1 `++` 适用类型、13.3 坑表（Go `string(65)` 行）、14 节速查表「字符串」行、1.3 对照表（`char`/`rune` 一行改为"一个 `string` 搞定全部文本"）。关键词总数不变（33 个）——`char` 是类型名不是关键词。*
 
@@ -2871,7 +2871,7 @@ int ax_queue_try_pop(ax_queue* q, void* out);
 
 *⑨**`Box<T>` 没有 constructor 却有字段**，违反"字段由 constructor 全量赋值"。补 `constructor(T value)`；同时补规则"无字段的类可省略 constructor"（`Shape` 这类纯行为类）（6.1、7）。*
 
-*⑩**`import io` 之后 `io.print(...)`** 与"`print` 是根模块内建、不需要 import"冲突。示例改为 `io.read_line` / `io.write`（9.2）。*
+*⑩**`import io` 之后 `io.print(...)`** 与"`print` 是根模块内建、不需要 import"冲突。示例改为 `io.readLine` / `io.write`（9.2）。*
 
 *⑪**`format` 是幽灵函数**：12.2 说它与 `print` 并列内建，却从无定义、示例也没用。删除——要字符串就直接插值（12.2）。*
 
@@ -2954,9 +2954,9 @@ int ax_queue_try_pop(ax_queue* q, void* out);
 
 *㊼**泛型单态化落地（v0.44）**：第一层差距里最后一块"已设计未实现"拼图。用户说"开工"，按 GX-01…09 把泛型从"签名层接受"推到"端到端可跑"。①**实例化模型**：`(函数, 类型实参)` 生成 FuncInfo 实例、`(类, 类型实参)` 生成实例 typedef——模板只是蓝图，codegen 只生成实例；同一份 AST 体按实例号隔离重查（槽表键变成 `(实例号 << 32) | 节点 id`，非泛型世界实例号恒 0，现有语义零成本）。②**推断**：实参先按无期望类型预查再统一——原实现的推断在实参还没查过时就取类型，恒失败；匿名函数实参推断期跳过（没有目标类型会误报 E4043）；`new Box(...)` 从构造实参推断，实参推断优先于期望类型——`Box<int> b = new Box(new Box(1))` 这类写错实参的代码要报错，不能被期望类型悄悄带过。③**自引用**：实例 typedef 骨架立即入表再填字段——`Node<Node<T>>` 这类构造期间的自引用靠注册表命中自己，不再撞 id；实例体内引用模板参数（`sink<T[]>`）通过实例环境落成具体类型。④**不变型**：实例 id 不同即不同类型，`Box<Dog>` → `Box<Animal>` 天然 `E4001`——协变伪装成继承是多门语言真踩过的坑，不变型让"容器可以放进狗再当动物容器取猫"在编译期就 impossible。⑤**深度上限**：函数链与类型链共 64 层，触顶报一次 `E4038`；超限实例照常物化（签名具体、调用点类型正确），只是不再查其函数体——致命错误之外零级联。⑥**顺带**：实现 `Comparable` 的类实例 `a > b` 按 `a.compare(b) > 0` 生成；泛型别名（`type Table<T> = map<string, T>`）引用期展开。验收：`GX-1`…`GX-3` + `GX-neg-1…4`，**150/150**，`-Werror` 零警告（规格书 v0.20，GAP 泛型 #1 关闭）。第一层"已设计未实现"至此全部落地，剩余里程碑只有 #37 所有权/借用 + arena。
 
-*㊽**命名按调用形状分：库函数全小写、方法 PascalCase（v0.45）**：用户拍板"内置库函数名称全部小写（print println len max min 等等），类方法名称使用 C# 风（ToString() ..）"。这条推翻了 ㉞（v0.31）把**模块函数也 PascalCase** 的决定——那轮的理由是"标准库一律 C# 风格"，代价是 `io.ReadLine()` 与 `s.Len()` 同形，读代码时看不出哪个是"对象上的方法"、哪个是"库里的一支自由函数"。新判据只看**调用形状**：`名字(...)` 是函数，全小写（多词 snake_case）；`值.名字(...)` / `类型.名字(...)` 是方法，PascalCase。于是 `Print`/`Println` 回到 `print`/`println`（㊱ 那次拆分本身保留：仍是无换行/换行两个入口），`io.ReadLine`/`io.ReadFile`→`io.read_line`/`io.read_file`，`file.Open/Create/Append`→`file.open/create/append`，`math.Equals`/`math.Compare`→`math.equals`/`math.compare`，`json.Parse`→`json.parse`，`db.Query`→`db.query`；方法侧不动（`s.Len()`、`f.ReadLine()`、`decimal.Parse`、`x.ToString()`），但把三个违反 PascalCase 的**内建接口方法**一并修正：`to_string`→`ToString`、`compare`→`Compare`、`hash`→`Hash`（`Printable` / `Comparable` / `Hashable` 的契约面，实现类要跟着改）。`string.FromCodepoint` 保持 PascalCase——`string` 是类型，`string.X(...)` 是静态方法（同一名字也经模块 `string` 可达，两种写法拼写一致）。**旧名不静默兼容**：`Print`/`Println` 报 `E3003` 并指名"内置库函数名一律小写：`Print` 请写 `print`"，`io.ReadLine()` 这类则报"模块没有该符号"。落地时顺带挖出两个**从未被用例覆盖的生成 bug**：`io.read_file` 按单实参生成 `ax_read_file(path)`、`io.read_line` 按无参生成 `ax_read_line()`，而运行时两者都是 `(…, ax_str* out)` 的 out 参数形态——写进 `IO-2` 才暴露，现按 `result<string>` / `string?` 结构体在生成期展开；`axrt.h` 补 `#include <math.h>`（`math.equals` 生成 `fabs`，此前隐式声明报警告）。验收：**166/166** 通过、Rust 零警告（新增 `Math-1`、`IO-2`、`Name-neg-1`；`Out-1` 改为断言 `Print` 的迁移提示），规格书 §1.1/§1 同步。*
+*㊽**命名按调用形状分：库函数全小写、方法 PascalCase（v0.45）**：用户拍板"内置库函数名称全部小写（print println len max min 等等），类方法名称使用 C# 风（ToString() ..）"。这条推翻了 ㉞（v0.31）把**模块函数也 PascalCase** 的决定——那轮的理由是"标准库一律 C# 风格"，代价是 `io.ReadLine()` 与 `s.Len()` 同形，读代码时看不出哪个是"对象上的方法"、哪个是"库里的一支自由函数"。新判据只看**调用形状**：`名字(...)` 是函数，全小写（多词 snake_case）；`值.名字(...)` / `类型.名字(...)` 是方法，PascalCase。于是 `Print`/`Println` 回到 `print`/`println`（㊱ 那次拆分本身保留：仍是无换行/换行两个入口），`io.ReadLine`/`io.ReadFile`→`io.readLine`/`io.readFile`，`file.Open/Create/Append`→`file.open/create/append`，`math.Equals`/`math.Compare`→`math.equals`/`math.compare`，`json.Parse`→`json.parse`，`db.Query`→`db.query`；方法侧不动（`s.Len()`、`f.ReadLine()`、`decimal.Parse`、`x.ToString()`），但把三个违反 PascalCase 的**内建接口方法**一并修正：`toString`→`ToString`、`compare`→`Compare`、`hash`→`Hash`（`Printable` / `Comparable` / `Hashable` 的契约面，实现类要跟着改）。`string.FromCodepoint` 保持 PascalCase——`string` 是类型，`string.X(...)` 是静态方法（同一名字也经模块 `string` 可达，两种写法拼写一致）。**旧名不静默兼容**：`Print`/`Println` 报 `E3003` 并指名"内置库函数名一律小写：`Print` 请写 `print`"，`io.ReadLine()` 这类则报"模块没有该符号"。落地时顺带挖出两个**从未被用例覆盖的生成 bug**：`io.readFile` 按单实参生成 `ax_readFile(path)`、`io.readLine` 按无参生成 `ax_readLine()`，而运行时两者都是 `(…, ax_str* out)` 的 out 参数形态——写进 `IO-2` 才暴露，现按 `result<string>` / `string?` 结构体在生成期展开；`axrt.h` 补 `#include <math.h>`（`math.equals` 生成 `fabs`，此前隐式声明报警告）。验收：**166/166** 通过、Rust 零警告（新增 `Math-1`、`IO-2`、`Name-neg-1`；`Out-1` 改为断言 `Print` 的迁移提示），规格书 §1.1/§1 同步。*
 
-*㊾**模块成员回到 PascalCase：分界线是"有没有限定"，不是"函数还是方法"（v0.46）**：㊽ 按"库函数全小写"执行，把 `io.read_line` / `file.open` / `math.compare` 也压成了小写，代码里随即出现**同形不同拼法**——`string.FromCodepoint()`（PascalCase，理由是 `string` 是类型）与 `io.read_line()`（小写，理由是 `io` 是模块）在语法上完全一样，读者得先知道 `io` 是什么才能猜出拼写，编译器也得替每个名字各记一套；`string` 更麻烦，它既是类型又是模块，同一个函数两条入口拼写还得一致。改判：分界线从"函数 vs 方法"移到"**有没有那个点**"——`名字(...)` 是值层的一等函数（可以整体传递），全小写；`X.名字(...)` 一律 PascalCase，不问 `X` 是模块、类型还是变量。一条判据即可决定任一名字的拼写，不需要"谁是模块"这份上下文。这与 C# 同构：C# 里没有"模块函数"，只有静态类成员，本来就是 `Console.WriteLine` / `File.ReadAllText` / `Math.Sqrt`。`print` / `println` 保持小写——它们确实是值层函数（将来 `var f = print` 合法），而 `io` 本身不是值（`var x = io` 编译错误），命名如实反映这条已经存在的语义差异，不是风格分裂。Rust 的 `std::fs::read_to_string()` 能用 snake_case，是因为 `::` 在视觉上就宣告了"路径不是成员"；本文只有 `.` 一个访问符，区分职责只能落在命名上，两种拼法混在一处只会逼读者猜。落地：`io.ReadLine` / `io.ReadFile` / `file.Open` / `file.Create` / `file.Append` / `json.Parse` / `json.Stringify` / `math.Equals` / `math.Compare` / `db.Query` / `time.NowMs`（`string.FromCodepoint` 本已正确）；旧写法报 `E3003` 并**点名正确拼写**——由 `pascal_member` 把 `read_line` 转成 `ReadLine` 再去签名表核对，命中才提示，避免对真正拼错的名字瞎猜（"模块成员一律 PascalCase：`io.read_line` 请写 `io.ReadLine`"）。验收：**166/166** 通过、Rust 零警告；`Name-neg-1` 反转为断言小写旧写法，文稿 §3.3、规格书 `L-24`/§1、`docs/STDLIB.md` 同步。*
+*㊾**模块成员回到 PascalCase：分界线是"有没有限定"，不是"函数还是方法"（v0.46）**：㊽ 按"库函数全小写"执行，把 `io.readLine` / `file.open` / `math.compare` 也压成了小写，代码里随即出现**同形不同拼法**——`string.FromCodepoint()`（PascalCase，理由是 `string` 是类型）与 `io.readLine()`（小写，理由是 `io` 是模块）在语法上完全一样，读者得先知道 `io` 是什么才能猜出拼写，编译器也得替每个名字各记一套；`string` 更麻烦，它既是类型又是模块，同一个函数两条入口拼写还得一致。改判：分界线从"函数 vs 方法"移到"**有没有那个点**"——`名字(...)` 是值层的一等函数（可以整体传递），全小写；`X.名字(...)` 一律 PascalCase，不问 `X` 是模块、类型还是变量。一条判据即可决定任一名字的拼写，不需要"谁是模块"这份上下文。这与 C# 同构：C# 里没有"模块函数"，只有静态类成员，本来就是 `Console.WriteLine` / `File.ReadAllText` / `Math.Sqrt`。`print` / `println` 保持小写——它们确实是值层函数（将来 `var f = print` 合法），而 `io` 本身不是值（`var x = io` 编译错误），命名如实反映这条已经存在的语义差异，不是风格分裂。Rust 的 `std::fs::read_toString()` 能用 snake_case，是因为 `::` 在视觉上就宣告了"路径不是成员"；本文只有 `.` 一个访问符，区分职责只能落在命名上，两种拼法混在一处只会逼读者猜。落地：`io.ReadLine` / `io.ReadFile` / `file.Open` / `file.Create` / `file.Append` / `json.Parse` / `json.Stringify` / `math.Equals` / `math.Compare` / `db.Query` / `time.NowMs`（`string.FromCodepoint` 本已正确）；旧写法报 `E3003` 并**点名正确拼写**——由 `pascal_member` 把 `readLine` 转成 `ReadLine` 再去签名表核对，命中才提示，避免对真正拼错的名字瞎猜（"模块成员一律 PascalCase：`io.readLine` 请写 `io.ReadLine`"）。验收：**166/166** 通过、Rust 零警告；`Name-neg-1` 反转为断言小写旧写法，文稿 §3.3、规格书 `L-24`/§1、`docs/STDLIB.md` 同步。*
 
 *㊿**成员名一律 PascalCase（v0.47）**：㊾ 之后仍留着一个口子——用户自己写的方法与字段"只推荐"，于是同一个 `.` 上可以并存 `io.ReadLine()` 与 `s.read()`，判据从"看语法"退化成"看谁写的"。用户追问"既然 `.` 右侧用 C# 风，是否有必要强制 PascalCase 成员名"，裁定：强制。理由不是审美而是位置——成员只经 `.` 访问，位置唯一，拼法就必须唯一；它也不在值层（没有 `var f = s.read` 这回事），不存在"各有所好"的余地，因此"用户侧几十万个名字、编译器无从裁决"的论据根本不适用。落地：方法 / 静态方法 / 接口方法 / 字段 / 枚举成员，首字母大写且不含下划线，声明处报 `E3043` 并点名正确拼写（`read` → `Read`、`min_qty` → `MinQty`，复用 ㊾ 的 `pascal_member`）；`constructor` 是关键字，不算成员名；类型名 / 模块级函数 / 局部变量 / 参数 / 常量仍只推荐、不检查，`utils.add(2, 3)` 这类模块函数调用不受影响。迁移：`tests/` + `samples/` 共 70 个文件、158 处成员声明改名（含两个期望输出里的插值标签），既有 166 个用例语义不变。批量改名一度把 `utils.add` / `utils.double_it` / `lib.f` 这些**模块函数**的限定调用也推成了 PascalCase，逐处改回——这条边界（`.` 左侧是模块时右边形如函数而不是成员）正是新规则与旧规则的分界，值得留一条提醒。验收：**167/167** 通过、Rust 零警告（新增 `Name-neg-2`）；文稿 §3.3 与第 14 章"软约束"段重写，规格书 `L-24` / `E3043` 表 / §1 验收表、`docs/ERRORS.md` 同步。*
 

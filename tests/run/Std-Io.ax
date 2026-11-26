@@ -4,8 +4,8 @@ import std.io
 int main() {
     std.io.write("hello ")
     std.io.write("world")
-    std.io.write_line("")
-    std.io.write_line("foo")
-    std.io.write_line("bar")
+    std.io.writeLine("")
+    std.io.writeLine("foo")
+    std.io.writeLine("bar")
     return 0
 }

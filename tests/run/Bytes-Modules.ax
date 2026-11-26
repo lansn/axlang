@@ -29,15 +29,15 @@ int main() {
 
     // std.bytes.trim_space
     byte[] sp = [32, 32, 65, 66, 32]  // "  AB "
-    byte[] tp = std.bytes.trim_space(sp)
+    byte[] tp = std.bytes.trimSpace(sp)
     println("trimspace-len={tp.len()}")  // 2
 
     // std.bytes.to_upper / to_lower
     byte[] lower = [97, 98, 99]  // "abc"
-    byte[] upper = std.bytes.to_upper(lower)
+    byte[] upper = std.bytes.toUpper(lower)
     println("toupper-len={upper.len()}")  // 3
     byte[] upper2 = [65, 66, 67]  // "ABC"
-    byte[] lower2 = std.bytes.to_lower(upper2)
+    byte[] lower2 = std.bytes.toLower(upper2)
     println("tolower-len={lower2.len()}")  // 3
 
     // std.bytes.repeat

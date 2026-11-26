@@ -9,7 +9,7 @@ int lessInt(int a, int b) {
 
 int main() {
     int[] xs = [5, 3, 9, 1, 7, 3, 5]
-    sort.slice_stable(xs, lessInt)
+    sort.sliceStable(xs, lessInt)
     println("{xs[0]} {xs[1]} {xs[2]} {xs[3]} {xs[4]} {xs[5]} {xs[6]}")
 
     return 0
