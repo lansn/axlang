@@ -26,7 +26,11 @@ Thumbs.db
 /rust/main.exe
 # 发布目录中的编译器二进制和 gcc 工具链需要入库
 !/release/bin/axc.exe
-!/release/gcc/bin/gcc.exe
+!/release/bin/*.exe
+!/release/bin/*.dll
+!/release/gcc/bin/*.exe
+!/release/gcc/bin/*.dll
+!/release/gcc/libexec/**/*.exe
 # *.swf
 # *.air
 # *.ipa

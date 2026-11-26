@@ -320,14 +320,15 @@ impl Default for Opts {
     }
 }
 
-/// 默认 C 编译器：优先使用用户新安装的 GCC 16.2.0（路径固定，无警告）；
-/// 其次查找发行包自带的 `release/gcc/` 目录；最后回退到系统 PATH 中的 `gcc`。
+/// 默认 C 编译器：优先使用发行包自带的 `release/gcc/bin/gcc.exe`（与 axc.exe 同发布目录下）；
+/// 其次回退到用户安装的 GCC 16.2.0（`D:/Portable/mingw64/bin/gcc.exe`）；
+/// 最后回退到系统 PATH 中的 `gcc`。
 /// 用户可通过 `AX_CC` 环境变量或 `--cc=` 覆盖。
 fn default_cc() -> String {
     if let Ok(v) = std::env::var("AX_CC") {
         return v;
     }
-    // 优先查找发行包自带的 release/gcc/bin/ 目录（Windows 布局；相对于 axc 可执行文件位置）。
+    // 优先查找发行包自带的 release/gcc/bin/ 目录（与 axc.exe 同发布目录；Windows 布局）。
     if let Ok(exe) = std::env::current_exe() {
         if let Some(exe_dir) = exe.parent() {
             let release_dir = match exe_dir.parent() {
