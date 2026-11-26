@@ -817,12 +817,12 @@ impl<'a> Sema<'a> {
             self.sl(e.id).mkind = Some("strFields");
             return t_array(t_string(), None);
         }
-        if name == "to_upper_rune" && type_name == "string" {
+        if name == "toUpperRune" && type_name == "string" {
             self.check_call_args(args, Some(&[t_int()]), None, e.id);
             self.sl(e.id).mkind = Some("toUpperRune");
             return t_int();
         }
-        if name == "to_lower_rune" && type_name == "string" {
+        if name == "toLowerRune" && type_name == "string" {
             self.check_call_args(args, Some(&[t_int()]), None, e.id);
             self.sl(e.id).mkind = Some("toLowerRune");
             return t_int();

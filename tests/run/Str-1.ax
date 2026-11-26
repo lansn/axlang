@@ -2,10 +2,10 @@
 // 字符 ↔ 码点走 CodepointAt（string?，越界 null）与 string.FromCodepoint（result<string>）
 int main() {
     string s = "AB中文"
-    println(s.CodepointAt(0))
-    println(s.CodepointAt(1))
-    println(s.CodepointAt(2))
-    println(s.CodepointAt(99))
+    println(s.codepointAt(0))
+    println(s.codepointAt(1))
+    println(s.codepointAt(2))
+    println(s.codepointAt(99))
     println(string.fromCodepoint(65) try)
     println(string.fromCodepoint(0x4E2D) try)
     string out = ""

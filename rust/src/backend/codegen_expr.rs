@@ -2173,8 +2173,8 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             /* string 模块（单段名，向后兼容；std.string 现已改为 axc/std/string.ax） */
             ("string", "compare") => format!("ax_str_cmp({}, {})", a[0], a[1]),
             ("string", "fields") => format!("ax_str_fields({})", a[0]),
-            ("string", "to_upper_rune") => format!("ax_str_to_upper_rune({})", a[0]),
-            ("string", "to_lower_rune") => format!("ax_str_to_lower_rune({})", a[0]),
+            ("string", "toUpperRune") => format!("ax_str_to_upper_rune({})", a[0]),
+            ("string", "toLowerRune") => format!("ax_str_to_lower_rune({})", a[0]),
             /* ---------------- filepath 模块 ---------------- */
             ("filepath", "join") => {
                 let arr = &a[0];
