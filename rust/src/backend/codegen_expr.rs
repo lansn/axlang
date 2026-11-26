@@ -3356,7 +3356,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                         ));
                         out
                     }
-                    "Close" => format!("ax_queue_close({})", tv),
+                    "close" => format!("ax_queue_close({})", tv),
                     _ => "0".to_string(),
                 }
             }
