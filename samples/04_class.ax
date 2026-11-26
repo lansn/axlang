@@ -3,25 +3,25 @@
 //   axc run samples/04_class.ax
 
 interface Shape {
-    string Name()
-    decimal Area()
+    string name()
+    decimal area()
 }
 
 class Rect implement Shape {
-    public decimal W
-    public decimal H
+    public decimal w
+    public decimal h
 
     constructor(decimal w, decimal h) {
-        this.W = w
-        this.H = h
+        this.w = w
+        this.h = h
     }
 
-    public string Name() {
+    public string name() {
         return "矩形"
     }
 
-    public decimal Area() {
-        return this.W * this.H
+    public decimal area() {
+        return this.w * this.h
     }
 }
 
@@ -30,7 +30,7 @@ class Square extend Rect {
         parent(side, side)          // 调父类构造，必须写在构造函数第一条
     }
 
-    public override string Name() {
+    public override string name() {
         return "正方形"
     }
 }
@@ -39,7 +39,7 @@ int main() {
     var r = new Rect(3d, 4d)
     var s = new Square(5d)
 
-    println("{r.Name()} 面积 {r.Area()}")
-    println("{s.Name()} 面积 {s.Area()}")
+    println("{r.name()} 面积 {r.area()}")
+    println("{s.name()} 面积 {s.area()}")
     return 0
 }

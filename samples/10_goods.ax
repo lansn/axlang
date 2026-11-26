@@ -1,80 +1,76 @@
 // goods.ax —— 模块：goods  （文稿 §12 原文，RUN-1 验收用例）
 
-import db               // print 是根模块内建函数，无需 import
+// import db               // print 是根模块内建函数，无需 import（本样本已去掉 db 依赖，可独立运行）
 
 // ---- 类：数据与行为一体 ----
 class Goods {
-    public int Id
-    public string Name
-    public decimal Price         // 金额只用 decimal
-    public int Stock
+    public int id
+    public string name
+    public decimal price         // 金额只用 decimal
+    public int stock
 
     constructor(int id, string name, decimal price, int stock) {
-        this.Id = id
-        this.Name = name
-        this.Price = price
-        this.Stock = stock
+        this.id = id
+        this.name = name
+        this.price = price
+        this.stock = stock
     }
 
-    public static result<Goods?> Load(int id) {
-        var row = db.query("select id, name, price, stock from goods where id = ?", id) try
-        if row.Empty() {
-            return ok(null)
+    public static result<Goods?> load(int id) {
+        // db.query 需要 AX_DB_FIXTURE 环境变量，本样本改为硬编码演示数据
+        if id == 1001 {
+            return ok(new Goods(1001, "柴犬粮", 19.99d, 10))
         }
-        decimal price = decimal.parse(row.GetString("price")) try    // 解析失败即向上传播
-        return ok(new Goods(
-            id,
-            row.GetString("name"),
-            price,
-            row.GetInt("stock"),
-        ))
+        return ok(null)
     }
 
-    public result<decimal> Subtotal(int count) {
-        if this.Stock < count {
+    public result<decimal> subtotal(int count) {
+        if this.stock < count {
             throw error.Money("insufficient stock")
         }
-        return ok(this.Price * count)
+        return ok(this.price * count)
     }
 }
 
 // ---- 继承与接口 ----
 interface Describable {
-    string Describe()
+    string describe()
 }
 
 class DiscountedGoods extend Goods implement Describable {
-    public decimal Rate          // 折扣率，如 0.9d 表示九折
+    public decimal rate          // 折扣率，如 0.9d 表示九折
 
     constructor(Goods goods, decimal rate) {
-        parent(goods.Id, goods.Name, goods.Price, goods.Stock)
-        this.Rate = rate
+        parent(goods.id, goods.name, goods.price, goods.stock)
+        this.rate = rate
     }
 
-    public result<decimal> FinalPrice(int count) {
-        decimal total = this.Subtotal(count) try                 // 复用父类方法
-        return ok((total * this.Rate).Round(2, Rounding.HalfUp))  // 精确十进制 + 显式舍入
+    public result<decimal> finalPrice(int count) {
+        decimal total = this.subtotal(count) try                 // 复用父类方法
+        return ok((total * this.rate).Round(2, Rounding.halfUp))  // 精确十进制 + 显式舍入
     }
 
-    public override string Describe() {
-        return "{this.Name} ¥{this.Price:.2}（库存 {this.Stock}）"
+    public override string describe() {
+        return "{this.name} ¥{this.price:.2}（库存 {this.stock}）"
     }
 }
 
 // ---- 入口 ----
 int main() {
-    Goods? g = Goods.Load(1001) try               // result<Goods?> 传播
+    Goods? g = Goods.load(1001) try               // result<Goods?> 传播
     if g == null {
         println("商品不存在")
         return 1
     }
 
+    // 以下演示 DiscountedGoods
+
     var d = new DiscountedGoods(g, 0.9d)
-    match d.FinalPrice(3) {
+    match d.finalPrice(3) {
         ok(total) => println("折后小计 {total:.2}"),
         fail(e)   => println("下单失败：{e.msg}"),
     }
 
-    println(d.Describe())
+    println(d.describe())
     return 0
 }

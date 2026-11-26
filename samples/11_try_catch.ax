@@ -8,8 +8,13 @@
 //
 //   axc run samples/11_try_catch.ax
 
+import strconv
+
 result<int> parse_and_double(string s) {
-    int n = int.Parse(s) try                // 不在 try 块里，用后缀把失败交给调用方
+    int n = strconv.parseInt(s, 10)
+    if n == 0 && s != "0" {
+        throw error.Invalid("无法解析：{s}")
+    }
     if n < 0 {
         throw error.Invalid("不能是负数：{n}")
     }
