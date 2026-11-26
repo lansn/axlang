@@ -1581,24 +1581,24 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
         if mk == "fromCodepoint" {
             return self.from_codepoint(e);
         }
-        if mk == "str_compare" {
+        if mk == "strCompare" {
             // `string.compare(a, b)` 是模块级静态方法，接收者 `string` 仅是命名空间，
             // 不是 string 值，故直接取两个实参，不使用 recv。
             let a0 = self.gen(&args[0].k.expr, None, false, false);
             let a1 = self.gen(&args[1].k.expr, None, false, false);
             return format!("ax_str_cmp({}, {})", a0, a1);
         }
-        if mk == "str_fields" {
+        if mk == "strFields" {
             // `string.fields(s)` 同理，接收者 `string` 仅是命名空间。
             let a0 = self.gen(&args[0].k.expr, None, false, false);
             return format!("ax_str_fields({})", a0);
         }
-        if mk == "to_upper_rune" {
+        if mk == "toUpperRune" {
             // `string.to_upper_rune(c)`：接收者 `string` 仅是命名空间，取单个 int 实参。
             let a0 = self.gen(&args[0].k.expr, None, false, false);
             return format!("ax_str_to_upper_rune({})", a0);
         }
-        if mk == "to_lower_rune" {
+        if mk == "toLowerRune" {
             // `string.to_lower_rune(c)`：接收者 `string` 仅是命名空间，取单个 int 实参。
             let a0 = self.gen(&args[0].k.expr, None, false, false);
             return format!("ax_str_to_lower_rune({})", a0);
