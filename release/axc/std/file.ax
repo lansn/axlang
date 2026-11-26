@@ -7,8 +7,8 @@
 // File 为 axlang 内建句柄类型，ax 源码层直接操作 File 值，
 // C 层对应 ax_file*。
 //
-// 导出函数命名采用 C 风格：全部小写，下划线分隔，如 open / read_all / write。
-// ax 代码中通过 std.file.open("path") 调用模块级函数，通过 std.file.read_all(f) 调用实例风格函数。
+// 导出函数命名采用 camelCase 风格，如 open / readAll / write。
+// ax 代码中通过 std.file.open("path") 调用模块级函数，通过 std.file.readAll(f) 调用实例风格函数。
 
 extern "C" {
     int ax_file_remove(string path);
@@ -79,13 +79,13 @@ public int mkdir(string path) {
     }
 }
 
-public int is_dir(string path) {
+public int isDir(string path) {
     unsafe {
         return ax_file_is_dir(path)
     }
 }
 
-public int is_file(string path) {
+public int isFile(string path) {
     unsafe {
         return ax_file_is_file(path)
     }
@@ -97,13 +97,13 @@ public int size(string path) {
     }
 }
 
-public int modtime(string path) {
+public int modTime(string path) {
     unsafe {
         return ax_file_modtime(path)
     }
 }
 
-public int write_all(string path, string s) {
+public int writeAll(string path, string s) {
     unsafe {
         return ax_file_write_all(path, s)
     }
@@ -121,16 +121,16 @@ public int chtimes(string path, int atime, int mtime) {
     }
 }
 
-public File tempfile(string dir, string prefix) {
+public File tempFile(string dir, string prefix) {
     unsafe {
         return ax_file_tempfile(dir, prefix)
     }
 }
 
 // File 实例风格函数（对标 File.Read / ReadLine / Write / WriteLine / Close）
-// 第一个参数为 File 或 ref File，ax 代码中通过 std.file.read_all(f) 调用。
+// 第一个参数为 File 或 ref File，ax 代码中通过 std.file.readAll(f) 调用。
 
-public string read_all(File f) {
+public string readAll(File f) {
     unsafe {
         return ax_file_read_all_val(f)
     }
@@ -142,7 +142,7 @@ public int write(ref File f, string s) {
     }
 }
 
-public int write_line(ref File f, string s) {
+public int writeLine(ref File f, string s) {
     unsafe {
         return ax_file_write_line(f, s)
     }

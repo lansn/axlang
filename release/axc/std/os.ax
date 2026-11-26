@@ -21,6 +21,16 @@ extern "C" {
     string ax_os_hostname();
     int ax_os_setenv(string name, string value);
     int ax_os_unsetenv(string name);
+
+    /* os 扩展（对标 Go os.UserCacheDir 等） */
+    string ax_os_user_cache_dir();
+    int ax_os_getpagesize();
+    int ax_os_getuid();
+    int ax_os_getgid();
+    int ax_os_geteuid();
+    int ax_os_getegid();
+    int[] ax_os_getgroups();
+    string ax_os_executable();
 }
 
 // ---------- 模块级函数（C 风格命名：小写 + 下划线） ----------
@@ -31,7 +41,7 @@ public string getenv(string name) {
     }
 }
 
-public string user_home_dir() {
+public string userHomeDir() {
     unsafe {
         return ax_os_user_home_dir()
     }
@@ -82,5 +92,53 @@ public int setenv(string name, string value) {
 public int unsetenv(string name) {
     unsafe {
         return ax_os_unsetenv(name)
+    }
+}
+
+public string userCacheDir() {
+    unsafe {
+        return ax_os_user_cache_dir()
+    }
+}
+
+public int getpagesize() {
+    unsafe {
+        return ax_os_getpagesize()
+    }
+}
+
+public int getuid() {
+    unsafe {
+        return ax_os_getuid()
+    }
+}
+
+public int getgid() {
+    unsafe {
+        return ax_os_getgid()
+    }
+}
+
+public int geteuid() {
+    unsafe {
+        return ax_os_geteuid()
+    }
+}
+
+public int getegid() {
+    unsafe {
+        return ax_os_getegid()
+    }
+}
+
+public int[] getgroups() {
+    unsafe {
+        return ax_os_getgroups()
+    }
+}
+
+public string executable() {
+    unsafe {
+        return ax_os_executable()
     }
 }

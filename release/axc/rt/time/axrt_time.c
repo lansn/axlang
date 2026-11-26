@@ -188,3 +188,35 @@ int64_t ax_now_ms(void) {
     return (int64_t)tv.tv_sec * 1000 + tv.tv_usec / 1000;
 #endif
 }
+
+/* time.After：t 在 u 之后 → 1，否则 0 */
+int ax_time_after(int64_t t, int64_t u) {
+    return t > u ? 1 : 0;
+}
+
+/* time.Before：t 在 u 之前 → 1，否则 0 */
+int ax_time_before(int64_t t, int64_t u) {
+    return t < u ? 1 : 0;
+}
+
+/* time.Equal：t 与 u 相等 → 1，否则 0 */
+int ax_time_equal(int64_t t, int64_t u) {
+    return t == u ? 1 : 0;
+}
+
+/* time.Compare：比较 t 与 u，-1/0/1 */
+int ax_time_compare(int64_t t, int64_t u) {
+    if (t < u) return -1;
+    if (t > u) return 1;
+    return 0;
+}
+
+/* time.Sub：t - u 的毫秒差 */
+int64_t ax_time_sub(int64_t t, int64_t u) {
+    return t - u;
+}
+
+/* time.Add：t + d 毫秒后的时间 */
+int64_t ax_time_add(int64_t t, int64_t d) {
+    return t + d;
+}

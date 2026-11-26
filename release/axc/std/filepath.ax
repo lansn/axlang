@@ -1,0 +1,97 @@
+// axc/std/filepath.ax —— axlang 标准库 filepath 模块（ax 语法源码）
+// 与用户库一样，由 ax 编译器直接解析，生成对应的 C 源码供 gcc 编译。
+//
+// 对标 Go path/filepath。ax 层仅包装 axrt C 原语，
+// 通过 extern "C" 声明 + unsafe 块调用，不引入 ax 编译器内建能力。
+//
+// 导出函数命名采用 C 风格：全部小写，下划线分隔，如 rel / abs / clean。
+// ax 代码中通过 std.filepath.rel(...) 调用模块级函数。
+
+extern "C" {
+    string ax_filepath_rel(string basepath, string targpath);
+    string ax_filepath_join(string[] parts);
+    string ax_filepath_dir(string path);
+    string ax_filepath_base(string path);
+    string ax_filepath_ext(string path);
+    string[] ax_filepath_split(string path);
+    string ax_filepath_clean(string path);
+    string ax_filepath_abs(string path);
+    int ax_filepath_is_abs(string path);
+    string ax_filepath_eval_symlinks(string path);
+    string[] ax_filepath_glob(string pattern);
+    string[] ax_filepath_walk(string root);
+}
+
+// ---------- 模块级函数（C 风格命名：小写 + 下划线） ----------
+
+public string rel(string basepath, string targpath) {
+    unsafe {
+        return ax_filepath_rel(basepath, targpath)
+    }
+}
+
+public string join(string[] parts) {
+    unsafe {
+        return ax_filepath_join(parts)
+    }
+}
+
+public string dir(string path) {
+    unsafe {
+        return ax_filepath_dir(path)
+    }
+}
+
+public string base(string path) {
+    unsafe {
+        return ax_filepath_base(path)
+    }
+}
+
+public string ext(string path) {
+    unsafe {
+        return ax_filepath_ext(path)
+    }
+}
+
+public string[] split(string path) {
+    unsafe {
+        return ax_filepath_split(path)
+    }
+}
+
+public string clean(string path) {
+    unsafe {
+        return ax_filepath_clean(path)
+    }
+}
+
+public string abs(string path) {
+    unsafe {
+        return ax_filepath_abs(path)
+    }
+}
+
+public int isAbs(string path) {
+    unsafe {
+        return ax_filepath_is_abs(path)
+    }
+}
+
+public string evalSymlinks(string path) {
+    unsafe {
+        return ax_filepath_eval_symlinks(path)
+    }
+}
+
+public string[] glob(string pattern) {
+    unsafe {
+        return ax_filepath_glob(pattern)
+    }
+}
+
+public string[] walk(string root) {
+    unsafe {
+        return ax_filepath_walk(root)
+    }
+}

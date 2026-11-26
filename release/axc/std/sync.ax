@@ -6,7 +6,7 @@
 // 通过 extern "C" 声明 + unsafe 块调用，不引入任何 ax 编译器内建能力。
 //
 // 导出函数命名采用 C 风格：全部小写，下划线分隔，如 mutex_lock / waitgroup_add。
-// ax 代码中通过 std.sync.mutex_lock(m) 调用。
+// ax 代码中通过 std.sync.mutexLock(m) 调用。
 
 extern "C" {
     void ax_mutex_lock(ref Mutex m);
@@ -21,61 +21,61 @@ extern "C" {
     void ax_once_do(ref Once o);
 }
 
-public void mutex_lock(ref Mutex m) {
+public void mutexLock(ref Mutex m) {
     unsafe {
         ax_mutex_lock(m)
     }
 }
 
-public void mutex_unlock(ref Mutex m) {
+public void mutexUnlock(ref Mutex m) {
     unsafe {
         ax_mutex_unlock(m)
     }
 }
 
-public void rwmutex_lock(ref RWMutex rw) {
+public void rwmutexLock(ref RWMutex rw) {
     unsafe {
         ax_rwmutex_lock(rw)
     }
 }
 
-public void rwmutex_unlock(ref RWMutex rw) {
+public void rwmutexUnlock(ref RWMutex rw) {
     unsafe {
         ax_rwmutex_unlock(rw)
     }
 }
 
-public void rwmutex_rlock(ref RWMutex rw) {
+public void rwmutexRLock(ref RWMutex rw) {
     unsafe {
         ax_rwmutex_rlock(rw)
     }
 }
 
-public void rwmutex_runlock(ref RWMutex rw) {
+public void rwmutexRunlock(ref RWMutex rw) {
     unsafe {
         ax_rwmutex_runlock(rw)
     }
 }
 
-public void waitgroup_add(ref WaitGroup wg, int delta) {
+public void waitgroupAdd(ref WaitGroup wg, int delta) {
     unsafe {
         ax_waitgroup_add(wg, delta)
     }
 }
 
-public void waitgroup_done(ref WaitGroup wg) {
+public void waitgroupDone(ref WaitGroup wg) {
     unsafe {
         ax_waitgroup_done(wg)
     }
 }
 
-public void waitgroup_wait(ref WaitGroup wg) {
+public void waitgroupWait(ref WaitGroup wg) {
     unsafe {
         ax_waitgroup_wait(wg)
     }
 }
 
-public void once_do(ref Once o) {
+public void onceDo(ref Once o) {
     unsafe {
         ax_once_do(o)
     }

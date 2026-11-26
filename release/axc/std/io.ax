@@ -5,7 +5,7 @@
 // 通过 extern "C" 声明 + unsafe 块调用，不引入 ax 编译器内建能力。
 //
 // 导出函数命名采用 C 风格：全部小写，下划线分隔，如 read_line / write_line。
-// ax 代码中通过 std.io.read_line(...) 调用模块级函数。
+// ax 代码中通过 std.io.readLine(...) 调用模块级函数。
 
 extern "C" {
     int ax_read_line(ref string out);
@@ -16,13 +16,13 @@ extern "C" {
 
 // ---------- 模块级函数（C 风格命名：小写 + 下划线） ----------
 
-public int read_line(ref string out) {
+public int readLine(ref string out) {
     unsafe {
         return ax_read_line(out)
     }
 }
 
-public int read_file(string path, ref string out) {
+public int readFile(string path, ref string out) {
     unsafe {
         return ax_read_file(path, out)
     }
@@ -34,7 +34,7 @@ public void write(string s) {
     }
 }
 
-public void write_line(string s) {
+public void writeLine(string s) {
     unsafe {
         ax_write_stdout(s)
         ax_write_stdout("\n")

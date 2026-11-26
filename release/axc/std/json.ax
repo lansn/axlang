@@ -24,7 +24,7 @@ public string stringify(object v) {
     }
 }
 
-public string marshal_indent(object v, string prefix, string indent) {
+public string marshalIndent(object v, string prefix, string indent) {
     unsafe {
         return ax_json_marshal_indent(v, prefix, indent)
     }

@@ -1,0 +1,69 @@
+// axc/std/bytes.ax —— axlang 标准库 bytes 模块（ax 语法源码）
+// 与用户库一样，由 ax 编译器直接解析，生成对应的 C 源码供 gcc 编译。
+//
+// 对标 Go bytes。ax 层仅包装 axrt C 原语，
+// 通过 extern "C" 声明 + unsafe 块调用，不引入 ax 编译器内建能力。
+//
+// 导出函数命名采用 C 风格：全部小写，下划线分隔，如 bytes_contains / bytes_equal。
+// ax 代码中通过 std.bytes.contains(...) 调用模块级函数。
+
+extern "C" {
+    bool ax_bytes_contains(bytes s, bytes sub);
+    bool ax_bytes_equal(bytes a, bytes b);
+    int ax_bytes_index(bytes s, bytes sub);
+    bytes[] ax_bytes_split(bytes s, bytes sep);
+    bytes ax_bytes_trim_space(bytes s);
+    bytes ax_bytes_to_upper(bytes s);
+    bytes ax_bytes_to_lower(bytes s);
+    bytes ax_bytes_repeat(bytes s, int count);
+}
+
+// ---------- 模块级函数（C 风格命名：小写 + 下划线） ----------
+
+public bool contains(bytes s, bytes sub) {
+    unsafe {
+        return ax_bytes_contains(s, sub)
+    }
+}
+
+public bool equal(bytes a, bytes b) {
+    unsafe {
+        return ax_bytes_equal(a, b)
+    }
+}
+
+public int index(bytes s, bytes sub) {
+    unsafe {
+        return ax_bytes_index(s, sub)
+    }
+}
+
+public bytes[] split(bytes s, bytes sep) {
+    unsafe {
+        return ax_bytes_split(s, sep)
+    }
+}
+
+public bytes trimSpace(bytes s) {
+    unsafe {
+        return ax_bytes_trim_space(s)
+    }
+}
+
+public bytes toUpper(bytes s) {
+    unsafe {
+        return ax_bytes_to_upper(s)
+    }
+}
+
+public bytes toLower(bytes s) {
+    unsafe {
+        return ax_bytes_to_lower(s)
+    }
+}
+
+public bytes repeat(bytes s, int count) {
+    unsafe {
+        return ax_bytes_repeat(s, count)
+    }
+}

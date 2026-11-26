@@ -153,10 +153,13 @@ def run_positive(path, be, stem=None):
 
 
 def find_axc():
-    """按优先级找编译器：release 产物优先，其次 dist 里的分发版。"""
+    """按优先级找编译器：release/bin 产物优先，其次 rust/target/release 里的直接构建产物。
+
+    dist/ 目录已废弃，编译器统一发布到 release/bin/，标准库和运行时随同放在 release/axc/。
+    """
     exe = ".exe" if os.name == "nt" else ""
-    for c in (os.path.join(ROOT, "rust", "target", "release", "axc" + exe),
-              os.path.join(ROOT, "dist", "axc" + exe)):
+    for c in (os.path.join(ROOT, "release", "bin", "axc" + exe),
+              os.path.join(ROOT, "rust", "target", "release", "axc" + exe)):
         if os.path.exists(c):
             return c
     return None

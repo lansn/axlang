@@ -4,7 +4,7 @@
 // 对标 Go math / C math.h。ax 层仅包装 axrt C 原语及 C 标准库 math.h 函数，
 // 通过 extern "C" 声明 + unsafe 块调用，不引入 ax 编译器内建能力。
 //
-// 导出函数命名采用 C 风格：全部小写，下划线分隔，如 abs / sin / is_nan。
+// 导出函数命名采用 camelCase 风格，如 abs / sin / isNaN。
 // ax 代码中通过 std.math.abs(...) 调用模块级函数。
 
 extern "C" {
@@ -13,6 +13,12 @@ extern "C" {
     float ax_math_mod(float x, float y);
     int ax_math_isnan(float x);
     int ax_math_isinf(float x, int sign);
+
+    /* axrt 原语扩展（signbit / copysign / dim / ldexp） */
+    int ax_math_signbit(float x);
+    float ax_math_copysign(float x, float y);
+    float ax_math_dim(float x, float y);
+    float ax_math_ldexp(float x, int exp);
 
     /* C 标准库 math.h（标准 C11，无 GNU/Clang 扩展） */
     float fabs(float x);
@@ -33,6 +39,22 @@ extern "C" {
     float log2(float x);
     float log10(float x);
     float log1p(float x);
+
+    /* 双曲与反三角函数，立方根，向零取整（C11 math.h） */
+    float sinh(float x);
+    float cosh(float x);
+    float tanh(float x);
+    float asin(float x);
+    float acos(float x);
+    float atan(float x);
+    float atan2(float y, float x);
+    float hypot(float p, float q);
+    float cbrt(float x);
+    float trunc(float x);
+
+    /* math.Frexp：将 x 分解为尾数和 2 的幂指数，拆为两个 axrt 原语 */
+    float ax_math_frexp_frac(float x);
+    int ax_math_frexp_exp(float x);
 }
 
 // ---------- 模块级函数（C 风格命名：小写 + 下划线） ----------
@@ -163,14 +185,104 @@ public float log1p(float x) {
     }
 }
 
-public int isnan(float x) {
+public int isNaN(float x) {
     unsafe {
         return ax_math_isnan(x)
     }
 }
 
-public int isinf(float x, int sign) {
+public int isInf(float x, int sign) {
     unsafe {
         return ax_math_isinf(x, sign)
+    }
+}
+
+public int signbit(float x) {
+    unsafe {
+        return ax_math_signbit(x)
+    }
+}
+
+public float copysign(float x, float y) {
+    unsafe {
+        return ax_math_copysign(x, y)
+    }
+}
+
+public float dim(float x, float y) {
+    unsafe {
+        return ax_math_dim(x, y)
+    }
+}
+
+public float ldexp(float x, int exp) {
+    unsafe {
+        return ax_math_ldexp(x, exp)
+    }
+}
+
+public float sinh(float x) {
+    unsafe {
+        return sinh(x)
+    }
+}
+
+public float cosh(float x) {
+    unsafe {
+        return cosh(x)
+    }
+}
+
+public float tanh(float x) {
+    unsafe {
+        return tanh(x)
+    }
+}
+
+public float asin(float x) {
+    unsafe {
+        return asin(x)
+    }
+}
+
+public float acos(float x) {
+    unsafe {
+        return acos(x)
+    }
+}
+
+public float atan(float x) {
+    unsafe {
+        return atan(x)
+    }
+}
+
+public float atan2(float y, float x) {
+    unsafe {
+        return atan2(y, x)
+    }
+}
+
+public float hypot(float p, float q) {
+    unsafe {
+        return hypot(p, q)
+    }
+}
+
+public float cbrt(float x) {
+    unsafe {
+        return cbrt(x)
+    }
+}
+
+public float trunc(float x) {
+    unsafe {
+        return trunc(x)
+    }
+}
+
+public (float, int) frexp(float f) {
+    unsafe {
+        return (ax_math_frexp_frac(f), ax_math_frexp_exp(f))
     }
 }

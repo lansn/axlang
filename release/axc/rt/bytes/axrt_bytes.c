@@ -21,7 +21,7 @@ static uint8_t u8_to_ascii_lower(uint8_t c) {
 /* ---------------- bytes 模块 ---------------- */
 
 /* bytes.Contains：判断 s 是否包含子片 sub（按字节比较） */
-int ax_bytes_contains(ax_arr s, ax_arr sub) {
+bool ax_bytes_contains(ax_arr s, ax_arr sub) {
     if (sub.len == 0) return 1;
     if (sub.len > s.len) return 0;
     const uint8_t* sp = (const uint8_t*)s.data;
@@ -33,7 +33,7 @@ int ax_bytes_contains(ax_arr s, ax_arr sub) {
 }
 
 /* bytes.Equal：判断两个字节数组是否相等（长度相同且所有字节相同） */
-int ax_bytes_equal(ax_arr a, ax_arr b) {
+bool ax_bytes_equal(ax_arr a, ax_arr b) {
     if (a.len != b.len) return 0;
     if (a.len == 0) return 1;
     return memcmp(a.data, b.data, (size_t)a.len) == 0;

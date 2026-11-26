@@ -1,0 +1,99 @@
+// axc/std/time.ax —— axlang 标准库 time 模块（ax 语法源码）
+// 与用户库一样，由 ax 编译器直接解析，生成对应的 C 源码供 gcc 编译。
+//
+// 对标 Go time / C time.h。ax 层仅包装 axrt C 时间原语，
+// 通过 extern "C" 声明 + unsafe 块调用，不引入 ax 编译器内建能力。
+//
+// 导出函数命名采用 C 风格：全部小写，下划线分隔，如 now_ms / unix_milli / since。
+// ax 代码中通过 std.time.nowMs(...) 调用模块级函数。
+//
+// 类型说明：time 是 axlang 的内建具名类型（C 层 int64_t），与 int 在 ax 类型
+// 系统中不做隐式转换，且 ax 无显式 cast 语法。因此：
+//   * now() 需要 time ← ax_now_ms(int)，无法在 ax 源码中表达，继续沿用内建
+//     codegen 分支 `("time", "now")`；
+//   * time.parse 返回 result<time>，涉及运行时结果类型，同暂不独立包装，
+//     继续沿用内建 codegen 分支 `("time", "parse")`。
+// 其余模块级函数在此处以 ax 源码包装 axrt 原语（axrt 中对应原语均为 int64_t）。
+
+extern "C" {
+    /* axrt 时间原语（axc/rt/axrt_time.c） */
+    int ax_now_ms();
+    time ax_time_now();
+    void ax_time_sleep(int ms);
+    time ax_time_from_unix(int sec, int nsec);
+    time ax_time_from_unix_ms(int ms);
+    time ax_time_from_unix_us(int us);
+    time ax_time_from_unix_ns(int nsec);
+    int ax_time_since(time t);
+    time ax_time_date(int year, int month, int day,
+                      int hour, int min, int sec, int nsec);
+    int ax_time_until(time t);
+}
+
+// ---------- 模块级函数（C 风格命名：小写 + 下划线） ----------
+
+public int nowMs() {
+    unsafe {
+        return ax_now_ms()
+    }
+}
+
+public time now() {
+    unsafe {
+        return ax_time_now()
+    }
+}
+
+public void sleep(int ms) {
+    unsafe {
+        ax_time_sleep(ms)
+    }
+}
+
+public time unix(int sec, int nsec) {
+    unsafe {
+        return ax_time_from_unix(sec, nsec)
+    }
+}
+
+public time unixMilli(int ms) {
+    unsafe {
+        return ax_time_from_unix_ms(ms)
+    }
+}
+
+public time fromUnixMs(int ms) {
+    unsafe {
+        return ax_time_from_unix_ms(ms)
+    }
+}
+
+public time unixMicro(int us) {
+    unsafe {
+        return ax_time_from_unix_us(us)
+    }
+}
+
+public time unixNano(int nsec) {
+    unsafe {
+        return ax_time_from_unix_ns(nsec)
+    }
+}
+
+public int since(time t) {
+    unsafe {
+        return ax_time_since(t)
+    }
+}
+
+public time date(int year, int month, int day, int hour, int min, int sec, int nsec) {
+    unsafe {
+        return ax_time_date(year, month, day, hour, min, sec, nsec)
+    }
+}
+
+public int until(time t) {
+    unsafe {
+        return ax_time_until(t)
+    }
+}

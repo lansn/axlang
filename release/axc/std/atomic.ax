@@ -5,7 +5,7 @@
 // 通过 extern "C" 声明 axrt C 原子原语，ax 层仅做包装。
 //
 // 导出函数命名采用 C 风格：全部小写，下划线分隔，如 add_int / load_int。
-// ax 代码中通过 std.atomic.add_int(&x, 1) 调用。
+// ax 代码中通过 std.atomic.addInt(&x, 1) 调用。
 
 extern "C" {
     int ax_atomic_add_int(ref int addr, int delta);
@@ -14,25 +14,25 @@ extern "C" {
     bool ax_atomic_compare_and_swap_int(ref int addr, int old, int replacement);
 }
 
-public int add_int(ref int addr, int delta) {
+public int addInt(ref int addr, int delta) {
     unsafe {
         ax_atomic_add_int(addr, delta)
     }
 }
 
-public int load_int(ref int addr) {
+public int loadInt(ref int addr) {
     unsafe {
         ax_atomic_load_int(addr)
     }
 }
 
-public void store_int(ref int addr, int val) {
+public void storeInt(ref int addr, int val) {
     unsafe {
         ax_atomic_store_int(addr, val)
     }
 }
 
-public bool compare_and_swap_int(ref int addr, int old, int replacement) {
+public bool compareAndSwapInt(ref int addr, int old, int replacement) {
     unsafe {
         ax_atomic_compare_and_swap_int(addr, old, replacement)
     }

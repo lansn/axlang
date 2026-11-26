@@ -1,9 +1,23 @@
-/* axrt_filepath.c -- axlang 运行时模块 */
+/* axrt_filepath.c -- axlang runtime module */
 #include "axrt.h"
 #include "axrt_internal.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-/* ---------------- filepath 模块（对标 Go path/filepath） ---------------- */
+#if defined(_WIN32)
+#include <windows.h>
+#include <io.h>
+#else
+#include <dirent.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <limits.h>
+#endif
+
+
+/* ---------------- filepath module (on par with Go path/filepath) ---------------- */
 
 static int ax_filepath_has_sep(ax_str s) {
     int64_t i;
@@ -41,11 +55,11 @@ ax_str ax_filepath_join(ax_arr parts) {
 ax_str ax_filepath_dir(ax_str path) {
     int64_t pos = ax_filepath_last_sep(path);
     if (pos < 0) {
-        /* 无分隔符：返回当前目录 "." */
+        /* no separator: return current dir "." */
         return ax_str_from_cstr(".");
     }
     if (pos == 0) {
-        /* 路径以分隔符开头且只有该分隔符：返回 "/" 或 "\\" */
+        /* path starts with separator and only that separator: return "/" or "\\" */
         return ax_str_from_cstr(AX_FILEPATH_SEP);
     }
     return ax_str_slice_cp(path, 0, pos);
@@ -58,15 +72,14 @@ ax_str ax_filepath_base(ax_str path) {
         return path;
     }
     if (pos == path.len - 1) {
-        /* 以分隔符结尾：返回空字符串 */
+        /* ends with separator: return empty string */
         return ax_str_empty();
     }
     return ax_str_slice_cp(path, pos + 1, path.len);
 }
 
-/* 返回扩展名（含点，如 ".txt"；无扩展名或以分隔符结尾返回空串） */
-
-/* 返回扩展名（含点，如 ".txt"；无扩展名或以分隔符结尾返回空串） */
+/* return extension (with dot, like ".txt"; empty if no extension or ends with separator) */
+/* return extension (with dot, like ".txt"; empty if no extension or ends with separator) */
 ax_str ax_filepath_ext(ax_str path) {
     int64_t pos = ax_filepath_last_sep(path);
     int64_t start = (pos < 0) ? 0 : pos + 1;
@@ -76,14 +89,13 @@ ax_str ax_filepath_ext(ax_str path) {
         if (path.p[i] == (uint8_t)'.') dot = i;
     }
     if (dot < 0 || dot == start) return ax_str_empty();
-    /* 扩展名不能是 "." 或 ".." */
+    /* extension cannot be "." or ".." */
     if (dot == start + 1 && path.p[start] == '.') return ax_str_empty();
     return ax_str_slice_cp(path, dot, path.len);
 }
 
-/* 分割路径为 [dir, base] 数组（对标 Go filepath.Split） */
-
-/* 分割路径为 [dir, base] 数组（对标 Go filepath.Split） */
+/* split path into [dir, base] array (on par with Go filepath.Split) */
+/* split path into [dir, base] array (on par with Go filepath.Split) */
 ax_arr ax_filepath_split(ax_str path) {
     ax_arr arr;
     ax_arr_init(&arr);
@@ -104,13 +116,12 @@ ax_arr ax_filepath_split(ax_str path) {
     return arr;
 }
 
-/* 路径规范化（去除 .、..、重复分隔符，对标 Go filepath.Clean） */
-
-/* 路径规范化（去除 .、..、重复分隔符，对标 Go filepath.Clean） */
+/* path normalization (remove ., .., duplicate separators, on par with Go filepath.Clean) */
+/* path normalization (remove ., .., duplicate separators, on par with Go filepath.Clean) */
 ax_str ax_filepath_clean(ax_str path) {
     int is_abs = (path.len > 0 && path.p[0] == (uint8_t)AX_FILEPATH_SEP[0]);
 
-    /* 按分隔符分割为段 */
+    /* split by separator into segments */
     ax_arr parts;
     ax_arr_init(&parts);
     int64_t start = 0;
@@ -124,7 +135,7 @@ ax_str ax_filepath_clean(ax_str path) {
         }
     }
 
-    /* 处理段：跳过空段和 "."，处理 ".." */
+    /* process segments: skip empty and ".", handle ".." */
     ax_arr stack;
     ax_arr_init(&stack);
     int64_t n = parts.len;
@@ -137,7 +148,7 @@ ax_str ax_filepath_clean(ax_str path) {
             if (sn > 0) {
                 ax_str* top = (ax_str*)ax_arr_at(&stack, sn - 1, (int64_t)sizeof(ax_str), __FILE__, __LINE__, 0);
                 if (!(top->len == 2 && top->p[0] == (uint8_t)'.' && top->p[1] == (uint8_t)'.')) {
-                    stack.len--; /* 弹出栈顶，抵消 ".." */
+                    stack.len--; /* pop top to cancel ".." */
                     continue;
                 }
             }
@@ -147,7 +158,7 @@ ax_str ax_filepath_clean(ax_str path) {
         }
     }
 
-    /* 构建结果 */
+    /* build result */
     ax_sb sb;
     ax_sb_init(&sb);
     if (is_abs) ax_sb_push_cstr(&sb, AX_FILEPATH_SEP);
@@ -164,14 +175,14 @@ ax_str ax_filepath_clean(ax_str path) {
     return ax_sb_finish(&sb);
 }
 
-/* 判断是否为绝对路径（Unix 以 / 开头，Windows 以 \ 或 盘符: 开头） */
+/* is absolute path (Unix starts with /, Windows starts with \ or drive letter:) */
 
-/* 判断是否为绝对路径（Unix 以 / 开头，Windows 以 \ 或 盘符: 开头） */
+/* is absolute path (Unix starts with /, Windows starts with \ or drive letter:) */
 int ax_filepath_is_abs(ax_str path) {
     if (path.len == 0) return 0;
     if (path.p[0] == (uint8_t)AX_FILEPATH_SEP[0]) return 1;
 #if defined(_WIN32)
-    /* Windows 盘符：C: 或 C:\ */
+    /* Windows drive letter: C: or C:\ */
     if (path.len >= 2 && path.p[1] == (uint8_t)':' &&
         ((path.p[0] >= (uint8_t)'a' && path.p[0] <= (uint8_t)'z') ||
          (path.p[0] >= (uint8_t)'A' && path.p[0] <= (uint8_t)'Z'))) {
@@ -181,15 +192,17 @@ int ax_filepath_is_abs(ax_str path) {
     return 0;
 }
 
-/* 转为绝对路径（对标 Go filepath.Abs）。已是绝对路径则 Clean 后返回；
- * 否则用当前工作目录拼接后 Clean。 */
+/* convert to absolute path (on par with Go filepath.Abs).
+ * if already absolute, Clean and return;
+ * otherwise join with cwd and Clean. */
 
-/* 转为绝对路径（对标 Go filepath.Abs）。已是绝对路径则 Clean 后返回；
- * 否则用当前工作目录拼接后 Clean。 */
+/* convert to absolute path (on par with Go filepath.Abs).
+ * if already absolute, Clean and return;
+ * otherwise join with cwd and Clean. */
 ax_str ax_filepath_abs(ax_str path) {
     if (ax_filepath_is_abs(path)) return ax_filepath_clean(path);
 
-    /* 获取当前工作目录 */
+    /* get current working directory */
     char cwd[4096];
 #if defined(_WIN32)
     if (!_getcwd(cwd, (int)sizeof cwd)) return ax_filepath_clean(path);
@@ -198,7 +211,7 @@ ax_str ax_filepath_abs(ax_str path) {
 #endif
     ax_str cwd_str = ax_str_from_cstr(cwd);
 
-    /* 拼接 cwd + sep + path */
+    /* join cwd + sep + path */
     ax_sb sb;
     ax_sb_init(&sb);
     ax_sb_push(&sb, cwd_str);
@@ -210,12 +223,12 @@ ax_str ax_filepath_abs(ax_str path) {
     return ax_filepath_clean(joined);
 }
 
-/* 计算从 basepath 到 targpath 的相对路径（对标 Go filepath.Rel，纯 C11） */
+/* compute relative path from basepath to targpath (on par with Go filepath.Rel, pure C11) */
 ax_str ax_filepath_rel(ax_str basepath, ax_str targpath) {
     ax_str base = ax_filepath_clean(basepath);
     ax_str targ = ax_filepath_clean(targpath);
 
-    /* 分割 basepath 为段（同时视 / 和 \ 为分隔符，跨平台兼容；跳过 "." 段） */
+    /* split basepath into segments (treat / and \ as separators, skip "." segments) */
     ax_arr base_parts;
     ax_arr_init(&base_parts);
     int64_t start = 0;
@@ -224,7 +237,7 @@ ax_str ax_filepath_rel(ax_str basepath, ax_str targpath) {
         if (i == base.len || c == (uint8_t)AX_FILEPATH_SEP[0] || c == (uint8_t)'/') {
             if (i > start) {
                 ax_str seg = ax_str_slice_cp(base, start, i);
-                /* 跳过 "." 段（如 clean(".") 产生的单段） */
+                /* skip "." segments (like single segment from clean(".")) */
                 if (seg.len == 1 && seg.p[0] == '.') { start = i + 1; continue; }
                 ax_arr_push(&base_parts, &seg, (int64_t)sizeof(ax_str));
             }
@@ -232,7 +245,7 @@ ax_str ax_filepath_rel(ax_str basepath, ax_str targpath) {
         }
     }
 
-    /* 分割 targpath 为段（同时视 / 和 \ 为分隔符，跨平台兼容；跳过 "." 段） */
+    /* split targpath into segments (treat / and \ as separators, skip "." segments) */
     ax_arr targ_parts;
     ax_arr_init(&targ_parts);
     start = 0;
@@ -248,7 +261,7 @@ ax_str ax_filepath_rel(ax_str basepath, ax_str targpath) {
         }
     }
 
-    /* 找到公共前缀段数 */
+    /* find common prefix segment count */
     int64_t bn = base_parts.len, tn = targ_parts.len;
     int64_t common = 0;
     int64_t n = bn < tn ? bn : tn;
@@ -262,7 +275,7 @@ ax_str ax_filepath_rel(ax_str basepath, ax_str targpath) {
         }
     }
 
-    /* 生成相对路径：base 剩余段各输出 ".."，targ 剩余段直接追加 */
+    /* generate relative path: remaining base segments output "..", remaining targ segments appended */
     ax_sb sb;
     ax_sb_init(&sb);
     for (int64_t i = common; i < bn; i++) {
@@ -284,7 +297,260 @@ ax_str ax_filepath_rel(ax_str basepath, ax_str targpath) {
     return result;
 }
 
-/* ---------------- arena（区域分配器） ---------------- */
+
+/* ---------------- helper: ax_str -> NUL-terminated stack buffer ---------------- */
+
+/* copy ax_str to stack buffer and add NUL terminator; return 0 if buffer too small */
+static int ax_filepath_str_to_cstr(ax_str s, char* out, int cap) {
+    if (s.len >= (int64_t)cap - 1) return 0;
+    memcpy(out, s.p, (size_t)s.len);
+    out[s.len] = 0;
+    return 1;
+}
+
+/* append ax_str to ax_arr (elements are ax_str values, each sizeof(ax_str) bytes) */
+static void ax_filepath_arr_push_str(ax_arr* arr, ax_str s) {
+    ax_arr_push(arr, &s, (int64_t)sizeof(ax_str));
+}
+
+/* comparison function for ax_arr elements (ax_str values), used by qsort: byte order sort */
+static int ax_filepath_str_ptr_cmp(const void* a, const void* b) {
+    const ax_str* sa = (const ax_str*)a;
+    const ax_str* sb = (const ax_str*)b;
+    int64_t la = sa->len, lb = sb->len;
+    int64_t n = la < lb ? la : lb;
+    int c = memcmp(sa->p, sb->p, (size_t)n);
+    if (c != 0) return c;
+    if (la < lb) return -1;
+    if (la > lb) return 1;
+    return 0;
+}
+
+/* sort ax_arr (elements are ax_str values) by byte order */
+static void ax_filepath_arr_sort_str(ax_arr* arr) {
+    if (arr->len > 1 && arr->data) {
+        qsort(arr->data, (size_t)arr->len, (size_t)sizeof(ax_str), ax_filepath_str_ptr_cmp);
+    }
+}
+
+
+/* ---------------- eval_symlinks ---------------- */
+
+/* resolve symlinks, return canonical path (on par with Go filepath.EvalSymlinks, C realpath).
+ * recursively resolve all symlink components in path; on failure return a copy of the original path. */
+ax_str ax_filepath_eval_symlinks(ax_str path) {
+    char buf[4096];
+    if (!ax_filepath_str_to_cstr(path, buf, (int)sizeof buf)) {
+        return ax_str_slice_cp(path, 0, path.len);
+    }
+
+#if defined(_WIN32)
+    /* Windows: prefer GetFinalPathNameByHandle to resolve reparse points (symlinks/junctions) */
+    char resolved[MAX_PATH];
+    HANDLE h = CreateFileA(buf, GENERIC_READ,
+                           FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                           NULL, OPEN_EXISTING,
+                           FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT, NULL);
+    if (h != INVALID_HANDLE_VALUE) {
+        DWORD n = GetFinalPathNameByHandleA(h, resolved, (DWORD)sizeof resolved, VOLUME_NAME_DOS);
+        CloseHandle(h);
+        if (n > 0 && n < (DWORD)sizeof resolved) {
+            /* strip \\?\ prefix */
+            if (strncmp(resolved, "\\\\?\\", 4) == 0) {
+                return ax_str_from_cstr(resolved + 4);
+            }
+            return ax_str_from_cstr(resolved);
+        }
+    }
+    /* fallback: _fullpath (does not resolve symlinks, but canonicalizes path) */
+    char resolved2[MAX_PATH];
+    if (_fullpath(resolved2, buf, (int)sizeof resolved2)) {
+        return ax_str_from_cstr(resolved2);
+    }
+    return ax_str_slice_cp(path, 0, path.len);
+#else
+    /* POSIX: use realpath to resolve all symlinks (requires existing path components to resolve) */
+    char resolved[4096];
+    if (realpath(buf, resolved)) {
+        return ax_str_from_cstr(resolved);
+    }
+    /* realpath fails (e.g. path does not fully exist), return a copy of the original path */
+    return ax_str_slice_cp(path, 0, path.len);
+#endif
+}
+
+
+/* ---------------- glob ---------------- */
+
+/* wildcard matching: supports * ? [...] (does not support [!...] syntax, [!...] as negation).
+ * return 1 for match, 0 for no match. */
+static int ax_filepath_glob_match(const char* pattern, const char* name) {
+    while (*pattern) {
+        if (*pattern == '*') {
+            pattern++;
+            if (!*pattern) return 1;          /* trailing * matches everything */
+            while (*name) {
+                if (ax_filepath_glob_match(pattern, name)) return 1;
+                name++;
+            }
+            return 0;
+        } else if (*pattern == '?') {
+            pattern++;
+            if (!*name) return 0;
+            name++;
+        } else if (*pattern == '[') {
+            pattern++;
+            int negated = 0;
+            if (*pattern == '!') { negated = 1; pattern++; }
+            int match = 0;
+            if (*pattern == ']') { pattern++; match = 1; }   /* [] matches ] itself */
+            while (*pattern && *pattern != ']') {
+                if (*name == *pattern) match = 1;
+                pattern++;
+            }
+            if (*pattern != ']') return 0;   /* unclosed [...] treated as no match */
+            pattern++;                       /* skip ] */
+            if (negated) match = !match;
+            if (!match) return 0;
+            name++;
+        } else {
+            if (*pattern != *name) return 0;
+            pattern++;
+            name++;
+        }
+    }
+    return *name == 0;
+}
+
+/* match filenames by pattern, return array of matching strings (on par with Go filepath.Glob, C glob).
+ * supports * ? [...] wildcards; results sorted by byte order, no duplicates.
+ * handles single-level directory wildcard only (e.g. dir/*.txt, *.log), not nested wildcards (dir slash-star slash file). */
+ax_arr ax_filepath_glob(ax_str pattern) {
+    ax_arr result;
+    ax_arr_init(&result);
+
+    char patbuf[4096];
+    if (!ax_filepath_str_to_cstr(pattern, patbuf, (int)sizeof patbuf)) return result;
+
+    /* find last directory separator, split into dir + namepat */
+    char* last_sep = NULL;
+    for (char* p = patbuf; *p; p++) {
+        if (*p == '/' || *p == '\\') last_sep = p;
+    }
+
+    char dirbuf[4096];
+    char namepat[4096];
+    if (last_sep) {
+        int dirlen = (int)(last_sep - patbuf);
+        memcpy(dirbuf, patbuf, (size_t)dirlen);
+        dirbuf[dirlen] = 0;
+        strcpy(namepat, last_sep + 1);
+    } else {
+        strcpy(dirbuf, ".");
+        strcpy(namepat, patbuf);
+    }
+
+#if defined(_WIN32)
+    char search[4096];
+    int n = snprintf(search, (size_t)sizeof search, "%s\\*", dirbuf);
+    if (n < 0 || n >= (int)sizeof search) return result;
+    WIN32_FIND_DATA fd;
+    HANDLE h = FindFirstFileA(search, &fd);
+    if (h == INVALID_HANDLE_VALUE) return result;
+    do {
+        if (strcmp(fd.cFileName, ".") == 0 || strcmp(fd.cFileName, "..") == 0) continue;
+        if (ax_filepath_glob_match(namepat, fd.cFileName)) {
+            char full[4096];
+            snprintf(full, (size_t)sizeof full, "%s\\%s", dirbuf, fd.cFileName);
+            ax_filepath_arr_push_str(&result, ax_str_from_cstr(full));
+        }
+    } while (FindNextFileA(h, &fd));
+    FindClose(h);
+#else
+    DIR* dp = opendir(dirbuf);
+    if (!dp) return result;
+    struct dirent* de;
+    while ((de = readdir(dp)) != NULL) {
+        if (strcmp(de->d_name, ".") == 0 || strcmp(de->d_name, "..") == 0) continue;
+        if (ax_filepath_glob_match(namepat, de->d_name)) {
+            char full[4096];
+            int n = snprintf(full, (size_t)sizeof full, "%s/%s", dirbuf, de->d_name);
+            if (n < 0 || n >= (int)sizeof full) continue;
+            ax_filepath_arr_push_str(&result, ax_str_from_cstr(full));
+        }
+    }
+    closedir(dp);
+#endif
+
+    ax_filepath_arr_sort_str(&result);
+    return result;
+}
+
+
+/* ---------------- walk ---------------- */
+
+/* recursively traverse directory, append all entry full paths to result.
+ * on par with Go filepath.Walk / C nftw, but axlang does not support closure callback,
+ * so directly return all entry paths in the directory tree as a string array. */
+static void ax_filepath_walk_dir(const char* dirpath, ax_arr* result) {
+#if defined(_WIN32)
+    char search[4096];
+    int n = snprintf(search, (size_t)sizeof search, "%s\\*", dirpath);
+    if (n < 0 || n >= (int)sizeof search) return;
+    WIN32_FIND_DATA fd;
+    HANDLE h = FindFirstFileA(search, &fd);
+    if (h == INVALID_HANDLE_VALUE) return;
+    do {
+        if (strcmp(fd.cFileName, ".") == 0 || strcmp(fd.cFileName, "..") == 0) continue;
+        char full[4096];
+        n = snprintf(full, (size_t)sizeof full, "%s\\%s", dirpath, fd.cFileName);
+        if (n < 0 || n >= (int)sizeof full) continue;
+        ax_filepath_arr_push_str(result, ax_str_from_cstr(full));
+        if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+            ax_filepath_walk_dir(full, result);
+        }
+    } while (FindNextFileA(h, &fd));
+    FindClose(h);
+#else
+    DIR* dp = opendir(dirpath);
+    if (!dp) return;
+    struct dirent* de;
+    while ((de = readdir(dp)) != NULL) {
+        if (strcmp(de->d_name, ".") == 0 || strcmp(de->d_name, "..") == 0) continue;
+        char full[4096];
+        int n = snprintf(full, (size_t)sizeof full, "%s/%s", dirpath, de->d_name);
+        if (n < 0 || n >= (int)sizeof full) continue;
+        ax_filepath_arr_push_str(result, ax_str_from_cstr(full));
+        struct stat st;
+        if (lstat(full, &st) == 0 && S_ISDIR(st.st_mode)) {
+            ax_filepath_walk_dir(full, result);
+        }
+    }
+    closedir(dp);
+#endif
+}
+
+/* recursively traverse directory tree, return array of all entry full paths under root
+ * (on par with Go filepath.Walk, C nftw).
+ * axlang does not support closure callback, so directly return all entry paths. */
+ax_arr ax_filepath_walk(ax_str root) {
+    ax_arr result;
+    ax_arr_init(&result);
+
+    char rootbuf[4096];
+    if (!ax_filepath_str_to_cstr(root, rootbuf, (int)sizeof rootbuf)) return result;
+
+    /* append root directory itself first */
+    ax_filepath_arr_push_str(&result, ax_str_from_cstr(rootbuf));
+
+    /* then recursively append child entries */
+    ax_filepath_walk_dir(rootbuf, &result);
+
+    ax_filepath_arr_sort_str(&result);
+    return result;
+}
+
+/* ---------------- arena (region allocator) ---------------- */
 struct ax_arena {
     void**  items;
     int64_t n;
@@ -313,4 +579,3 @@ void* ax_arena_adopt(ax_arena* ar, void* p) {
     ar->n++;
     return p;
 }
-

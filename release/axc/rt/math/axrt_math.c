@@ -52,3 +52,16 @@ float ax_math_dim(float x, float y) {
 float ax_math_ldexp(float x, int exp) {
     return ldexpf(x, exp);
 }
+
+/* math.Frexp：C11 frexp，将 x 分解为尾数和 2 的幂指数。
+ * ax 语言层无输出指针，故拆为两个原语：ax_math_frexp_frac 返回尾数，
+ * ax_math_frexp_exp 返回指数；ax 层再组装为 (frac, int) 元组返回。 */
+float ax_math_frexp_frac(double x) {
+    int exp;
+    return (float)frexp(x, &exp);
+}
+int ax_math_frexp_exp(double x) {
+    int exp;
+    (void)frexp(x, &exp);
+    return exp;
+}

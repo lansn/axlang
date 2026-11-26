@@ -30,10 +30,10 @@ void ax_std_once_do(void* o);
  * atomic 模块（对标 Go sync/atomic）
  * ================================================================ */
 
-int64_t ax_std_atomic_add_int(volatile int64_t* addr, int64_t delta);
-int64_t ax_std_atomic_load_int(volatile int64_t* addr);
-void ax_std_atomic_store_int(volatile int64_t* addr, int64_t val);
-int ax_std_atomic_compare_and_swap_int(volatile int64_t* addr, int64_t old, int64_t new);
+int64_t ax_std_atomic_add_int(void* addr, int64_t delta);
+int64_t ax_std_atomic_load_int(void* addr);
+void ax_std_atomic_store_int(void* addr, int64_t val);
+int ax_std_atomic_compare_and_swap_int(void* addr, int64_t old, int64_t new);
 
 /* ================================================================
  * string 模块（对标 Go strings / C string.h / C ctype.h）
