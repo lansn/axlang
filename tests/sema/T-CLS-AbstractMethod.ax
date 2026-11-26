@@ -1,7 +1,7 @@
 // EXPECT: E4001
 // 人类常犯：非抽象类不能声明抽象方法
 class Shape {
-    public abstract string Describe();
+    public abstract string describe();
 }
 
 int main() {

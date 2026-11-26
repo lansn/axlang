@@ -5,7 +5,7 @@
 import model
 
 string draw<T: Drawable>(T x) {
-    return x.Draw()
+    return x.draw()
 }
 
 int main() {

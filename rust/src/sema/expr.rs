@@ -772,7 +772,7 @@ impl<'a> Sema<'a> {
             } else if matches!(&*lt, TyS::Int(..) | TyS::Decimal | TyS::Str | TyS::Named(DefId::Name("time"), _)) {
                 // 内建可比类型直接放行（time 按 Unix 毫秒数值比较）
             } else if let TyS::Named(DefId::Id(d), _) = &*lt {
-                // 实现 Comparable 的类：`a > b` 按 `a.Compare(b) > 0` 生成
+                // 实现 Comparable 的类：`a > b` 按 `a.compare(b) > 0` 生成
                 let ok = self.types.contains_key("Comparable")
                     && self.implements(*d, self.types["Comparable"]);
                 if !ok {
@@ -2477,7 +2477,7 @@ impl<'a> Sema<'a> {
                 dst
             }
             "string" => {
-                self.err("E5001", &e.tok, "C-8", "不能用 `string(x)` 转字符串；请写 `x.ToString()`，码点用 `string.FromCodepoint`", &[]);
+                self.err("E5001", &e.tok, "C-8", "不能用 `string(x)` 转字符串；请写 `x.toString()`，码点用 `string.FromCodepoint`", &[]);
                 t_string()
             }
             "Row" | "File" => self.conversion_named(e, args, None, expected),

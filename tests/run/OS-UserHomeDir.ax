@@ -2,7 +2,7 @@
 import os
 
 int main() {
-    string home = os.user_home_dir()
+    string home = os.userHomeDir()
     string h1 = os.getenv("HOME")
     string h2 = os.getenv("USERPROFILE")
     println("{home}")

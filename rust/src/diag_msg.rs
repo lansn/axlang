@@ -432,7 +432,7 @@ pub static CATALOG: &[(&str, &str, &str)] = &[
     ("E5001", "bool 与其他类型之间没有转换", "no conversion exists between bool and other types"),
     ("E5001", "float 不能直接转 decimal（C-6）；请用 `decimal.Parse(s)`", "float cannot convert to decimal directly (C-6); use `decimal.Parse(s)`"),
     ("E5001", "不能用 `string(x)` 转字符串", "cannot convert to string with `string(x)`"),
-    ("E5001", "不能用 `string(x)` 转字符串；请写 `x.ToString()`，码点用 `string.FromCodepoint`", "cannot convert to string with `string(x)`; write `x.ToString()`, and `string.FromCodepoint` for code points"),
+    ("E5001", "不能用 `string(x)` 转字符串；请写 `x.toString()`，码点用 `string.FromCodepoint`", "cannot convert to string with `string(x)`; write `x.toString()`, and `string.FromCodepoint` for code points"),
     ("E5001", "不能用 `{0}(x)` 解析字符串；请用 `{1}.Parse(s)`（返回 result）", "cannot parse a string with `{0}(x)`; use `{1}.Parse(s)` (returns result)"),
     ("E5002", "`object` 不能直接作为条件；先落到 bool 变量或写 `bool(o)`", "`object` cannot be used as a condition directly; bind it to a bool variable or write `bool(o)`"),
     ("E5002", "`object` 不能直接参与运算；先落到具体类型的变量，或写 `int(o)`", "`object` cannot participate in arithmetic directly; bind it to a variable of a concrete type, or write `int(o)`"),

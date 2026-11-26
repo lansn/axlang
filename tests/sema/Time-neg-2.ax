@@ -3,6 +3,6 @@
 import std.time
 
 int main() {
-    time t = std.time.from_unix_ms()
+    time t = std.time.fromUnixMs()
     return 0
 }

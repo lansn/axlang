@@ -1,28 +1,28 @@
 // 模块 model：导出一个 class、一个 struct、一个 enum
 public class Product {
-    public string Name
-    public decimal Price
+    public string name
+    public decimal price
 
     constructor(string name, decimal price) {
-        this.Name = name
-        this.Price = price
+        this.name = name
+        this.price = price
     }
 
-    public string Label() {
-        return "{this.Name} {this.Price:.2}"
+    public string label() {
+        return "{this.name} {this.price:.2}"
     }
 
-    public static Product Sample() {
+    public static Product sample() {
         return new Product("样品", 0.00d)
     }
 }
 
 public struct Point {
-    int X
-    int Y
+    int x
+    int y
 }
 
 public enum Color {
-    Red,
-    Green,
+    red,
+    green,
 }

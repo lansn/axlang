@@ -26,19 +26,19 @@ int sum_arr_plain(&const int[] xs) {
 
 // 大对象：1000 个 int 的数组
 class BigData {
-    public int[] Data
-    public int Tag
+    public int[] data
+    public int tag
     constructor(int n) {
-        this.Data = [0]
+        this.data = [0]
         for i in 1..n {
-            this.Data.push(i)
+            this.data.push(i)
         }
-        this.Tag = n
+        this.tag = n
     }
 }
 
 int move_big(BigData b) {
-    return b.Tag
+    return b.tag
 }
 
 // 字符串拼接基准

@@ -3,7 +3,7 @@
 import std.time
 
 int main() {
-    time t = std.time.from_unix_ms(0)
+    time t = std.time.fromUnixMs(0)
     int x = 1
     bool b = t < x
     return 0

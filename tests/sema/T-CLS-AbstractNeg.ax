@@ -1,7 +1,7 @@
 // EXPECT: E4001
 // 类：abstract class 不可直接 new
 abstract class Base {
-    public abstract void Foo();
+    public abstract void foo();
 }
 
 int main() {

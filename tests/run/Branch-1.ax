@@ -5,12 +5,12 @@ bool yes() {
 }
 
 class Buf {
-    public int N
+    public int n
     constructor(int n) {
-        this.N = n
+        this.n = n
     }
-    public void Write(string s) {
-        this.N = this.N + s.len()
+    public void write(string s) {
+        this.n = this.n + s.len()
     }
 }
 
@@ -23,7 +23,7 @@ int main() {
     if yes() {
         sink(a)
     } else {
-        a.Write("x")
+        a.write("x")
     }
 
     // 2) 分支内 move 后重新赋值复活
@@ -31,23 +31,23 @@ int main() {
     if yes() {
         sink(c)
         c = new Buf(3)
-        c.Write("y")
+        c.write("y")
     }
 
     // 3) 两支都没 move，汇合点照常用
     var d = new Buf(4)
     if yes() {
-        d.Write("a")
+        d.write("a")
     } else {
-        d.Write("b")
+        d.write("b")
     }
-    d.Write("c")
+    d.write("c")
 
     // 4) 循环体内每轮重赋值再使用 → 合法
     var e = new Buf(0)
     for i in 0..3 {
         e = new Buf(i)
-        e.Write("x")
+        e.write("x")
     }
 
     // 5) 循环体每轮新建局部对象再 move → 合法
@@ -63,6 +63,6 @@ int main() {
         sink(g)
     }
 
-    println("done {d.N}")
+    println("done {d.n}")
     return 0
 }

@@ -2,8 +2,8 @@
 import std.os
 
 int main() {
-    var dir = std.os.user_cache_dir()
-    println("user_cache_dir={dir}")
+    var dir = std.os.userCacheDir()
+    println("userCacheDir={dir}")
     var ps = std.os.getpagesize()
     println("getpagesize={ps}")
     var uid = std.os.getuid()

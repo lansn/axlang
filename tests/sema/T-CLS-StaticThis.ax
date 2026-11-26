@@ -1,8 +1,8 @@
 // EXPECT: E3038
 // 人类常犯：静态方法体内没有 this
 class Counter {
-    public static int GetCount() {
-        return this.Count  // 静态方法不能访问 this
+    public static int getCount() {
+        return this.count  // 静态方法不能访问 this
     }
 }
 

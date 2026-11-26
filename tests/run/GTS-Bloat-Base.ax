@@ -14,26 +14,26 @@ class NodeC {
 }
 
 class BoxA {
-    public NodeA Value
-    constructor(NodeA v) { this.Value = v }
-    public NodeA Get() {
-        return this.Value
+    public NodeA value
+    constructor(NodeA v) { this.value = v }
+    public NodeA get() {
+        return this.value
     }
 }
 
 class BoxB {
-    public NodeB Value
-    constructor(NodeB v) { this.Value = v }
-    public NodeB Get() {
-        return this.Value
+    public NodeB value
+    constructor(NodeB v) { this.value = v }
+    public NodeB get() {
+        return this.value
     }
 }
 
 class BoxC {
-    public NodeC Value
-    constructor(NodeC v) { this.Value = v }
-    public NodeC Get() {
-        return this.Value
+    public NodeC value
+    constructor(NodeC v) { this.value = v }
+    public NodeC get() {
+        return this.value
     }
 }
 

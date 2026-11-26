@@ -1,7 +1,7 @@
 // EXPECT: E4001
 // 类：非 abstract 类不可声明 abstract 方法
 class Concrete {
-   public abstract void Bar();
+   public abstract void bar();
 }
 
 int main() {

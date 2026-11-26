@@ -1,8 +1,8 @@
 // EXPECT: E3018
 class Point {
-    public int X
+    public int x
     constructor(int x) {
-        this.X = x
+        this.x = x
     }
 }
 

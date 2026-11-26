@@ -1,8 +1,8 @@
 // EXPECT: E4022
 class User {
-    public int Id
+    public int id
     constructor(int id) {
-        this.Id = id
+        this.id = id
     }
 }
 
@@ -12,5 +12,5 @@ result<User?> find(int id) {
 
 int main() {
     User? u = find(1) try
-    return u.Id
+    return u.id
 }

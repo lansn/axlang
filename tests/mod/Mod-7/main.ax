@@ -4,18 +4,18 @@ import model
 
 int main() {
     Product p = new Product("裸名", 10.00d)      // 类型标注 + new 都是裸名
-    println(p.Label())
+    println(p.label())
 
-    Product s = Product.Sample()                // 静态方法：裸类名 + 方法
-    println(s.Label())
+    Product s = Product.sample()                // 静态方法：裸类名 + 方法
+    println(s.label())
 
     Point pt = Point(3, 4)                      // struct 位置构造
-    println("{pt.X},{pt.Y}")
+    println("{pt.x},{pt.y}")
 
-    Color c = Color.Red                         // enum 裸名
+    Color c = Color.red                         // enum 裸名
     println("{c}")
 
     model.Product q = new model.Product("短名", 1.50d)   // 旧写法照旧可用
-    println(q.Label())
+    println(q.label())
     return 0
 }

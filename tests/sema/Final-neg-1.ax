@@ -1,8 +1,8 @@
 // EXPECT: E3046
 // final class 不能被 extend
 final class Config {
-    public int Port
-    constructor(int port) { this.Port = port }
+    public int port
+    constructor(int port) { this.port = port }
 }
 
 class MyConfig extend Config {}

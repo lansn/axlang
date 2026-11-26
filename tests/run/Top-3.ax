@@ -1,8 +1,8 @@
 // 隐式 main：入口文件的顶层语句自动包成 int main()，单文件即完整程序
 println("start")
 
-int x = 5
-var name = "ax"
+const int x = 5
+const string name = "ax"
 
 void hello(string who) {
     println("hi, {who}")

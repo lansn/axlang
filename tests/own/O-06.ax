@@ -1,9 +1,9 @@
 // EXPECT: E7003
 // O-06：&x 作为返回值逃出作用域 → E7003（借用不是一等值，不能作为返回值）
 class Node {
-    public int V
+    public int v
     constructor(int v) {
-        this.V = v
+        this.v = v
     }
 }
 

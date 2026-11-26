@@ -1,12 +1,12 @@
 // 控制流：match 枚举模式
-enum Color { Red, Green, Blue }
+enum Color { red, green, blue }
 
 int main() {
-    Color c = Color.Green
+    Color c = Color.green
     match c {
-        Color.Red => println("red"),
-        Color.Green => println("green"),
-        Color.Blue => println("blue"),
+        Color.red => println("red"),
+        Color.green => println("green"),
+        Color.blue => println("blue"),
     }
     return 0
 }

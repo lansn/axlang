@@ -3,6 +3,6 @@
 // queue<int> 的 Push 期望 int，传入 string 应报类型不匹配。
 int main() {
     queue<int> q = queue<int>()
-    q.Push("hello")
+    q.push("hello")
     return 0
 }

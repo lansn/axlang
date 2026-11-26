@@ -30,8 +30,8 @@ int main() {
     println("fib(6) = {fib(6)}")
 
     // 3. 递归中使用 time：time 作为参数传递，叶层返回两个 time 的 UnixMs 差值
-    time t1 = std.time.from_unix_ms(1000)
-    time t2 = std.time.from_unix_ms(2500)
+    time t1 = std.time.fromUnixMs(1000)
+    time t2 = std.time.fromUnixMs(2500)
     int d = diff(3, t1, t2)
     println("diff_ms = {d}")
 

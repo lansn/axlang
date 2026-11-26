@@ -1,8 +1,8 @@
 // EXPECT: E5006
 // 没实现 Printable 的 class 插值仍报 E5006（文稿 11.2）
 class Raw {
-    public int V
-    constructor(int v) { this.V = v }
+    public int v
+    constructor(int v) { this.v = v }
 }
 
 int main() {

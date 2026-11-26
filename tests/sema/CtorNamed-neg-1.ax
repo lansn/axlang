@@ -1,8 +1,8 @@
 // EXPECT: E4043
 // 使用不存在的命名 constructor 应报 E4043
 class Point {
-    public int X
-    constructor() { this.X = 0 }
+    public int x
+    constructor() { this.x = 0 }
 }
 int main() {
     Point p = new Point.from_json()

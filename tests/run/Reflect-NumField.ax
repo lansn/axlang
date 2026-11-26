@@ -2,13 +2,13 @@
 import reflect
 
 struct Point {
-    int X
-    int Y
+    int x
+    int y
 }
 
 struct Box {
-    Point Tl
-    Point Br
+    Point tl
+    Point br
 }
 
 int main() {

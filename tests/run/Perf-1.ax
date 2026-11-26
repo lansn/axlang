@@ -42,16 +42,16 @@ int ffi_once() {
 
 // 移动语义：大对象移动（零拷贝）
 class BigObj {
-    public int[] Data
-    public int Tag
+    public int[] data
+    public int tag
     constructor(int n) {
-        this.Data = [0]
-        this.Tag = n
+        this.data = [0]
+        this.tag = n
     }
 }
 
 int move_perf(BigObj b) {
-    return b.Tag
+    return b.tag
 }
 
 int main() {

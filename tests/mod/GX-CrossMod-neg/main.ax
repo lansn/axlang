@@ -6,9 +6,9 @@
 import model
 
 class NotDrawable {
-    public int X
+    public int x
     constructor() {
-        this.X = 0
+        this.x = 0
     }
 }
 

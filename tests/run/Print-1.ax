@@ -1,12 +1,12 @@
 // print/println 的实参放宽（文稿 11.2）：非字符串的可插值直接输出，
 // 等价于 `print("{x}")`——仍然只有插值一种格式化能力
 class User implement Printable {
-    public int Id
-    public string Name
-    constructor(int id, string name) { this.Id = id; this.Name = name }
-    public override string ToString() { return "User({this.Id}, {this.Name})" }
+    public int id
+    public string name
+    constructor(int id, string name) { this.id = id; this.name = name }
+    public override string toString() { return "User({this.id}, {this.name})" }
 }
-enum Color { Red, Green, Blue }
+enum Color { red, green, blue }
 
 int main() {
     println(123)
@@ -15,7 +15,7 @@ int main() {
     print("不换行：")
     println(42)
     println(new User(7, "阿蓝"))
-    println(Color.Green)
+    println(Color.green)
     int n = 9
     println(n)
     println("字符串常量照旧")

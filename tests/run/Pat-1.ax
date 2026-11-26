@@ -1,8 +1,8 @@
 // 类型模式（文稿 5.3）：object 箱按装箱 tag 判定，类引用按对象真实 tag 判定，
 // 标量模式用于异构 object 数组的分流
 class Animal {
-    public string Name
-    constructor(string name) { this.Name = name }
+    public string name
+    constructor(string name) { this.name = name }
 }
 class Dog extend Animal {
     constructor(string name) { parent(name) }
@@ -13,14 +13,14 @@ class Cat extend Animal {
 int main() {
     object o = new Dog("旺财")
     match o {
-        Dog d => println("object→Dog：{d.Name}"),
-        Cat c => println("object→Cat：{c.Name}"),
+        Dog d => println("object→Dog：{d.name}"),
+        Cat c => println("object→Cat：{c.name}"),
         _ => println("其他")
     }
     Animal a = new Cat("咪咪")
     match a {
-        Dog d => println("ref→Dog：{d.Name}"),
-        Cat c => println("ref→Cat：{c.Name}"),
+        Dog d => println("ref→Dog：{d.name}"),
+        Cat c => println("ref→Cat：{c.name}"),
         _ => println("其他")
     }
     object[] xs = [42, "文本"]

@@ -1,10 +1,10 @@
 public const int PORT = 80
 
 public class Config {
-    public int Port
+    public int port
 
     constructor(int port) {
-        this.Port = port
+        this.port = port
     }
 }
 

@@ -2,17 +2,17 @@
 // 接口在模块内定义，供其他模块导入并作为泛型约束使用（GAP #9 验证）。
 
 public interface Drawable {
-    string Draw()
+    string draw()
 }
 
 public class Circle implement Drawable {
-    public int R
+    public int r
 
     constructor(int r) {
-        this.R = r
+        this.r = r
     }
 
-    public string Draw() {
+    public string draw() {
         return "圆"
     }
 }

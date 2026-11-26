@@ -5,26 +5,26 @@
 public const decimal TAX_RATE = 0.13d
 
 public class Product {
-    public string Sku
-    public string Name
-    public decimal Price
+    public string sku
+    public string name
+    public decimal price
 
     constructor(string sku, string name, decimal price) {
-        this.Sku = sku
-        this.Name = name
-        this.Price = price
+        this.sku = sku
+        this.name = name
+        this.price = price
     }
 
-    public string Label() {
-        return "[{this.Sku}] {this.Name}"
+    public string label() {
+        return "[{this.sku}] {this.name}"
     }
 
-    public decimal PriceWithTax() {
-        return (this.Price * (1.00d + TAX_RATE)).Round(2, Rounding.HalfUp)
+    public decimal priceWithTax() {
+        return (this.price * (1.00d + TAX_RATE)).round(2, Rounding.halfUp)
     }
 
     // 静态工厂：类名当命名空间用，不写 new
-    public static Product Sample() {
+    public static Product sample() {
         return new Product("SKU-000", "样品", 0.00d)
     }
 }

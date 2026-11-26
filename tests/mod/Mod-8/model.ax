@@ -2,9 +2,9 @@
 // 定义跨模块契约：public interface Describable + public Show(Describable)。
 
 public interface Describable {
-    string Describe()
+    string describe()
 }
 
 public string Show(Describable d) {
-    return "描述→" + d.Describe()
+    return "描述→" + d.describe()
 }

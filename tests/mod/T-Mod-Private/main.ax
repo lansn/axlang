@@ -3,7 +3,7 @@
 import priv
 
 int main() {
-    int r = priv.Helper(5)
+    int r = priv.helper(5)
     println("r={r}")
     return 0
 }

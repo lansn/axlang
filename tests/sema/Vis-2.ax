@@ -1,8 +1,8 @@
 // EXPECT: PASS
 class Bag {
-    int N
+    int n
     constructor(int n) {
-        this.N = n
+        this.n = n
     }
 }
 int main() {

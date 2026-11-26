@@ -1,6 +1,6 @@
 // EXPECT: PASS
 class Calc {
-    static bool IsPos(int x) {
+    static bool isPos(int x) {
         return x > 0
     }
 }

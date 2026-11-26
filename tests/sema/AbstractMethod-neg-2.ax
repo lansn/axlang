@@ -1,6 +1,6 @@
 // EXPECT: E3047
 abstract class Shape {
-    public abstract void Draw();
+    public abstract void draw();
 }
 class Bad extend Shape {
 }

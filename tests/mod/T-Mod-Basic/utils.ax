@@ -1,23 +1,23 @@
 // utils 模块
-public int Add(int a, int b) {
+public int add(int a, int b) {
     return a + b
 }
 
 public const int MAX = 100
 
-public int DoubleIt(int x) {
+public int doubleIt(int x) {
     return x * 2
 }
 
 public class Calc {
-    public int Base
+    public int base
     constructor(int base) {
-        this.Base = base
+        this.base = base
     }
-    public int Twice() {
-        return this.Base * 2
+    public int twice() {
+        return this.base * 2
     }
-    public static Calc Zero() {
+    public static Calc zero() {
         return new Calc(0)
     }
 }

@@ -1,8 +1,8 @@
 // EXPECT: E3019
 // Comparable 声明了 compare 但实现类没有提供实现（无默认方法体）
 class BadCmp implement Comparable {
-    public int V
-    constructor(int v) { this.V = v }
+    public int v
+    constructor(int v) { this.v = v }
 }
 
 int main() {

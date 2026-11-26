@@ -4,20 +4,20 @@ import shop.model
 int main() {
     // 全路径：类型标注与 new 都写完整模块路径
     shop.model.Product p = new shop.model.Product(1, "键盘", 299.00d)
-    println("full:  {p.Label()} {p.Price}")
+    println("full:  {p.label()} {p.price}")
 
     // 末段短名 model
     model.Product q = new model.Product(2, "鼠标", 99.00d)
-    q.Price = 88.00d
-    println("short: {q.Label()} {q.Price}")
+    q.price = 88.00d
+    println("short: {q.label()} {q.price}")
 
     // 静态工厂（类名当命名空间用）
-    shop.model.Product g = shop.model.Product.Free("赠品")
-    println("free:  {g.Label()} {g.Price}")
+    shop.model.Product g = shop.model.Product.free("赠品")
+    println("free:  {g.label()} {g.price}")
 
     // struct 位置构造 + 字段读写
     shop.model.Point pt = shop.model.Point(3, 4)
-    pt.X = 30
-    println("point: {pt.X},{pt.Y}")
+    pt.x = 30
+    println("point: {pt.x},{pt.y}")
     return 0
 }

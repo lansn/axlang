@@ -3,6 +3,6 @@ public int Add(int a, int b) {
     return a + b
 }
 
-int Helper(int x) {
+int helper(int x) {
     return x * 2
 }

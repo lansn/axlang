@@ -1,21 +1,21 @@
 // enum 数据类型正例：定义、使用、match 匹配
 // enum 成员在花括号内，逗号分隔
-enum Status { Pending, Ok, Failed }
+enum Status { pending, ok, failed }
 
 string describe(Status s) {
     return match s {
-        Status.Pending => "待处理",
-        Status.Ok => "已完成",
-        Status.Failed => "失败",
+        Status.pending => "待处理",
+        Status.ok => "已完成",
+        Status.failed => "失败",
         _ => "未知",
     }
 }
 
 int main() {
-    Status s = Status.Ok
+    Status s = Status.ok
     println("status={describe(s)}")
 
-    Status f = Status.Failed
+    Status f = Status.failed
     println("status={describe(f)}")
 
     return 0

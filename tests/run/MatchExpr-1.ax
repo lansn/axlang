@@ -1,20 +1,20 @@
 // match 作为表达式（设计文稿 §6.3）
 enum Status {
-    Ok, Error, Pending
+    ok, error, pending
 }
 
 string describe(Status s) {
     return match s {
-        Status.Ok => "成功",
-        Status.Error => "失败",
-        Status.Pending => "处理中"
+        Status.ok => "成功",
+        Status.error => "失败",
+        Status.pending => "处理中"
     }
 }
 
 int main() {
-    println(describe(Status.Ok))
-    println(describe(Status.Error))
-    println(describe(Status.Pending))
+    println(describe(Status.ok))
+    println(describe(Status.error))
+    println(describe(Status.pending))
 
     int n = 3
     string label = match n {

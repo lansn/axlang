@@ -753,7 +753,7 @@ impl<'a> Sema<'a> {
     /// 内建 interface（文稿 7.1）：`Comparable` / `Hashable` / `Printable`
     /// 预置在根模块，无需 import，用户不可重名声明（types 表占用 → E3018）。
     /// 方法签名是占位 FuncInfo（无 body）：实现类必须提供实现，
-    /// `Comparable.Compare(Self other)` 的 Self 在实现方写实现类类型即可（见
+    /// `Comparable.compare(Self other)` 的 Self 在实现方写实现类类型即可（见
     /// implement 签名对照处的 Self 放宽）。
     fn seed_builtin_ifaces(&mut self) {
         let mut ids: HashMap<&str, u32> = HashMap::new();
@@ -790,7 +790,7 @@ impl<'a> Sema<'a> {
         let sigs: [(&str, &str, Vec<(&str, Ty)>, Ty); 3] = [
             (
                 "Comparable",
-                "Compare",
+                "compare",
                 vec![(
                     "other",
                     t_named(
@@ -800,8 +800,8 @@ impl<'a> Sema<'a> {
                 )],
                 t_int(),
             ),
-            ("Hashable", "Hash", vec![], t_uint()),
-            ("Printable", "ToString", vec![], t_string()),
+            ("Hashable", "hash", vec![], t_uint()),
+            ("Printable", "toString", vec![], t_string()),
         ];
         for (iname, mname, params, ret) in sigs {
             let owner = *ids.get(iname).unwrap();
@@ -1286,7 +1286,7 @@ impl<'a> Sema<'a> {
     }
 
     /// 该类型的值能否直接进字符串插值——在 interp_supported 之外，
-    /// class / struct（含可空形式）实现内建 `Printable`（`ToString()`）即可
+    /// class / struct（含可空形式）实现内建 `Printable`（`toString()`）即可
     /// （文稿 7.1 / 11.2，GAP #12 剩余部分的接入点）。
     pub fn implements_printable(&self, t: &Ty) -> bool {
         let cid = match &**t {
@@ -1362,7 +1362,7 @@ impl<'a> Sema<'a> {
                         };
                         // 全路径（或 `as` 别名）永远可用
                         let ok = self.insert_view(&canon, &view, &target, names.as_ref(), &item.tok, &joined);
-                        // 末段短名：`import std.string` 之后 `string.Compare()` 也能写（文稿 9.2）。
+                        // 末段短名：`import std.string` 之后 `string.compare()` 也能写（文稿 9.2）。
                         // `as` 给了就只留别名——别名是"我要的名字"，不再自动生成第二个。
                         // 对于标准库多段名（path.len() > 1），生成末段短名视图，与用户库一致。
                         if ok && !builtin && alias.is_none() && path.len() > 1 {

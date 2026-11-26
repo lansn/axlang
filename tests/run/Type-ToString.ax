@@ -1,11 +1,11 @@
 // to_string：int/float/bool/enum 转字符串
-enum Color { Red, Green, Blue }
+enum Color { red, green, blue }
 
 int main() {
     int i = 42
     float f = 3.14
     bool b = true
-    Color c = Color.Green
+    Color c = Color.green
     println("i={i.toString()}")
     println("f={f.toString()}")
     println("b={b.toString()}")

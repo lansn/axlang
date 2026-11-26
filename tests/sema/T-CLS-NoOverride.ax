@@ -1,7 +1,7 @@
 // EXPECT: E3017
 // 人类常犯：子类覆写了父类方法但没写 override
 class Animal {
-    public string Speak() {
+    public string speak() {
         return "声音"
     }
 }
@@ -11,7 +11,7 @@ class Dog extend Animal {
         parent(name)
     }
 
-    public string Speak() {
+    public string speak() {
         return "汪汪"
     }
 }

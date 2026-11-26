@@ -4,7 +4,7 @@ import b
 
 int main() {
     Product p = new Product("x")
-    println(p.Name)
-    println(p.Tag())
+    println(p.name)
+    println(p.tag())
     return 0
 }

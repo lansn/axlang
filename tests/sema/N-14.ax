@@ -1,10 +1,10 @@
 // EXPECT: E3010
 class A {
-    public int X
+    public int x
     constructor(int a) {
-        this.X = a
+        this.x = a
     }
     constructor(string s) {
-        this.X = 0
+        this.x = 0
     }
 }

@@ -13,9 +13,9 @@ use std::rc::Rc;
 impl<'a> Sema<'a> {
     // ---------------------------------------------------------------- 成员访问
 
-    /// `ar.Alloc(x)`（O-17）：把 x move 进区域，返回 ArenaRef<T>（copy 语义）。
+    /// `ar.alloc(x)`（O-17）：把 x move 进区域，返回 ArenaRef<T>（copy 语义）。
     fn check_arena_method(&mut self, e: &ast::EPtr, args: &[ast::N<ast::Arg>], name: &str) -> Ty {
-        if name != "Alloc" {
+        if name != "alloc" {
             self.err(
                 "E3003",
                 &e.tok,
@@ -85,7 +85,7 @@ impl<'a> Sema<'a> {
                 }
             }
             if tname == "Rounding" {
-                if !matches!(name.as_str(), "HalfUp" | "HalfEven" | "Down") {
+                if !matches!(name.as_str(), "halfUp" | "halfEven" | "down") {
                     self.err("E3003", &e.tok, "N-17", "Rounding 没有成员 `{0}`", &[&name]);
                 }
                 self.sl(e.id).res = Some(Res::Rounding(name.clone()));
@@ -94,12 +94,12 @@ impl<'a> Sema<'a> {
             let row_member = tname == "Row"
                 && matches!(
                     name.as_str(),
-                    "Empty" | "GetString" | "GetInt" | "GetDecimal"
+                    "empty" | "getString" | "getInt" | "getDecimal"
                 );
             let file_member = tname == "File"
                 && matches!(
                     name.as_str(),
-                    "Read" | "ReadLine" | "Write" | "WriteLine" | "Close"
+                    "read" | "readLine" | "write" | "writeLine" | "close"
                 );
             if row_member || file_member {
                 self.sl(e.id).res = Some(Res::StaticBuiltin(tname.clone(), name.clone()));
@@ -616,10 +616,10 @@ impl<'a> Sema<'a> {
         };
         let _t = |k: TyS| -> Ty { Rc::new(k) };
         let sig: Option<(Vec<Ty>, Ty)> = match (name, mname.as_str()) {
-            ("Row", "Empty") => Some((vec![], t_bool())),
-            ("Row", "GetString") => Some((vec![t_string()], t_string())),
-            ("Row", "GetInt") => Some((vec![t_string()], t_int())),
-            ("Row", "GetDecimal") => Some((vec![t_string()], t_decimal())),
+            ("Row", "empty") => Some((vec![], t_bool())),
+            ("Row", "getString") => Some((vec![t_string()], t_string())),
+            ("Row", "getInt") => Some((vec![t_string()], t_int())),
+            ("Row", "getDecimal") => Some((vec![t_string()], t_decimal())),
             ("File", "close") => Some((vec![], t_void())),
             ("File", "read") => Some((vec![], t_result(t_string()))),
             ("File", "readLine") => Some((vec![], t_nullable(t_string()))),
@@ -705,7 +705,7 @@ impl<'a> Sema<'a> {
             return self.check_builtin_static(e, args, type_name);
         }
         if type_name == "Rounding" {
-            if !matches!(name.as_str(), "HalfUp" | "HalfEven" | "Down") {
+            if !matches!(name.as_str(), "halfUp" | "halfEven" | "down") {
                 self.err("E3003", &e.tok, "N-17", "Rounding 没有成员 `{0}`", &[&name]);
             }
             return t_named(DefId::Name("Rounding"), Vec::new());
@@ -713,10 +713,10 @@ impl<'a> Sema<'a> {
         if type_name == "Row" || type_name == "File" {
             let _t = |k: TyS| -> Ty { Rc::new(k) };
             let (ptypes, ret): (Vec<Ty>, Ty) = match name.as_str() {
-                "Empty" => (vec![], t_bool()),
-                "GetString" => (vec![t_string()], t_string()),
-                "GetInt" => (vec![t_string()], t_int()),
-                "GetDecimal" => (vec![t_string()], t_decimal()),
+                "empty" => (vec![], t_bool()),
+                "getString" => (vec![t_string()], t_string()),
+                "getInt" => (vec![t_string()], t_int()),
+                "getDecimal" => (vec![t_string()], t_decimal()),
                 "close" => (vec![], t_void()),
                 "read" => (vec![], t_result(t_string())),
                 "readLine" => (vec![], t_nullable(t_string())),
@@ -1917,12 +1917,12 @@ impl<'a> Sema<'a> {
             }
             TyS::Decimal => Some(vec![
                 (
-                    "Round",
+                    "round",
                     vec![t_int(), t_named(DefId::Name("Rounding"), Vec::new())],
                     t_decimal(),
                 ),
                 (
-                    "Divide",
+                    "divide",
                     vec![
                         t_decimal(),
                         t_int(),
@@ -2071,7 +2071,7 @@ impl<'a> Sema<'a> {
         // 遍历期修改长度
         let tgt = self.iter_targets.last().cloned();
         if let Some(tg) = tgt {
-            if matches!(name.as_str(), "Push" | "Pop" | "Remove" | "Clear") {
+            if matches!(name.as_str(), "push" | "pop" | "remove" | "clear") {
                 if let Expr::Path { segs, .. } = &e.k {
                     if segs[0] == tg {
                         self.err("E4026", &e.tok, "文稿 5.2", "不能在遍历 `{0}` 期间修改它的长度（`{1}`）", &[&tg, &name]);

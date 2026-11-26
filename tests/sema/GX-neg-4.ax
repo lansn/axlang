@@ -2,8 +2,8 @@
 // GX-09：泛型实例化递归超 64 层——每层把 Box<T> 包一层传下去，
 // 类型完全正确，实例无限繁衍直到触发深度上限
 class Box<T> {
-    public T V
-    constructor(T v) { this.V = v }
+    public T v
+    constructor(T v) { this.v = v }
 }
 int depth<T>(Box<T> b) {
     Box<Box<T>> bb = new Box(b)

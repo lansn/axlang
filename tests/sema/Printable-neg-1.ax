@@ -1,5 +1,5 @@
 // EXPECT: E3018
 // 内建 interface 不可重名声明（文稿 7.1：Comparable/Hashable/Printable 是语言契约面）
 interface Printable {
-    string ToString()
+    string toString()
 }

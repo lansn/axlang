@@ -5,14 +5,14 @@
 import catalog.product
 
 public class WholesaleProduct extend product.Product {
-    public int MinQty
+    public int minQty
 
     constructor(string sku, string name, decimal price, int min_qty) {
         parent(sku, name, price)          // 父类构造必须是第一条语句
-        this.MinQty = min_qty
+        this.minQty = min_qty
     }
 
-    public string BatchLabel() {
-        return "{this.Label()}，{this.MinQty} 件起订"
+    public string batchLabel() {
+        return "{this.label()}，{this.minQty} 件起订"
     }
 }

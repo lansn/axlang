@@ -1,22 +1,22 @@
 public interface Describable {
-    string Describe()
+    string describe()
 }
 
 public class Outer {
     public class Inner {
-        public string Value
+        public string value
         constructor(string v) {
-            this.Value = v
+            this.value = v
         }
     }
 }
 
 public class Base {
-    public int X
+    public int x
     constructor(int x) {
-        this.X = x
+        this.x = x
     }
-    public string GetName() {
+    public string getName() {
         return "Base"
     }
 }

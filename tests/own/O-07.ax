@@ -1,15 +1,15 @@
 // EXPECT: E7006
 // O-07：ArenaRef 不能作为返回值逃出 arena 的作用域
 class Node {
-    public int V
+    public int v
     constructor(int v) {
-        this.V = v
+        this.v = v
     }
 }
 
 ArenaRef<Node> make() {
     var arena = new Arena()
-    ArenaRef<Node> a = arena.Alloc(new Node(1))
+    ArenaRef<Node> a = arena.alloc(new Node(1))
     return a
 }
 

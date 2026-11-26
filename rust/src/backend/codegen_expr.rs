@@ -412,9 +412,9 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             }
             Some(crate::sema::Res::Rounding(name)) => {
                 return match name.as_str() {
-                    "HalfUp" => "0".to_string(),
-                    "HalfEven" => "1".to_string(),
-                    "Down" => "2".to_string(),
+                    "halfUp" => "0".to_string(),
+                    "halfEven" => "1".to_string(),
+                    "down" => "2".to_string(),
                     _ => "0".to_string(),
                 };
             }
@@ -481,7 +481,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 TyS::Map(kt, vt) => self.push_map_interp(sb, val, kt, vt),
                 TyS::Tuple(elems) => self.push_tuple_interp(sb, val, elems),
                 TyS::Named(did, _) => {
-                    // Printable（文稿 7.1）：实现类/struct 直接调 ToString；
+                    // Printable（文稿 7.1）：实现类/struct 直接调 toString；
                     // Printable 类型变量本身经虚表动态派发。可空形式已在
                     // 上面的 Nullable 分支拆包，落到这里的内层值。
                     let printable = self.cg.s.types.get("Printable").copied();
@@ -508,7 +508,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                             } else if td.kind == "interface" && c == p {
                                 let iname = format!("Iface_{}", san(&td.name));
                                 self.emit(format!(
-                                    "ax_sb_push(&{sb}, (({iname}_VT*){val}.vt)->ToString((void*){val}.obj));",
+                                    "ax_sb_push(&{sb}, (({iname}_VT*){val}.vt)->toString((void*){val}.obj));",
                                     sb = sb,
                                     iname = iname,
                                     val = val
@@ -1714,15 +1714,15 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             .unwrap_or_default();
         match b.as_str() {
             "row.empty" => format!("ax_row_empty({})", tv),
-            "row.get_string" => {
+            "row.getString" => {
                 let a = self.gen(&args[0].k.expr, None, false, false);
                 format!("ax_row_get({}, {})", tv, a)
             }
-            "row.get_int" => {
+            "row.getInt" => {
                 let a = self.gen(&args[0].k.expr, None, false, false);
                 format!("str_to_i64(ax_row_get({}, {}))", tv, a)
             }
-            "row.get_decimal" => {
+            "row.getDecimal" => {
                 let a = self.gen(&args[0].k.expr, None, false, false);
                 format!(
                     "ax_dec_parse_or(ax_row_get({}, {}), ax_dec_from_i64(0))",
@@ -2306,7 +2306,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             }
             /* ---------------- unique 模块（对标 Go unique，Handle[T] 装箱/解箱） ---------------- */
             // unique.Make(v: T) -> Handle[T]：将值装箱为 ax_box*，句柄即 box 指针（void*）
-            ("unique", "Make") => {
+            ("unique", "make") => {
                 let v_ty = self.ty_or_int(args[0].k.expr.id);
                 let tv = self.declare(&v_ty, &a[0]);
                 let tag = tag_of(&v_ty);
@@ -2314,7 +2314,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 format!("ax_box_new({}u, &{}, (int64_t)sizeof({}))", tag, tv, vtc)
             }
             // unique.Value(h: Handle[T]) -> T：从句柄（ax_box*）解出原值
-            ("unique", "Value") => {
+            ("unique", "value") => {
                 let h_ty = self.ty_or_int(args[0].k.expr.id);
                 let inner_ty = match &*h_ty {
                     TyS::Named(DefId::Name("Handle"), args) if args.len() == 1 => args[0].clone(),
@@ -3336,7 +3336,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                         ));
                         out
                     }
-                    "TryPop" => {
+                    "tryPop" => {
                         let out = self.tmpn();
                         let tmp = self.tmpn();
                         let elem_ty = args.first().cloned().unwrap_or_else(t_object);
@@ -3366,25 +3366,25 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 let tv = self.declare(&rt, &rv);
                 match td.map(|d| d.name.as_str()) {
                     Some("Mutex") => match name.as_str() {
-                        "Lock" => { self.emit(format!("ax_std_mutex_lock(&{});", tv)); "0".to_string() }
-                        "Unlock" => { self.emit(format!("ax_std_mutex_unlock(&{});", tv)); "0".to_string() }
+                        "lock" => { self.emit(format!("ax_std_mutex_lock(&{});", tv)); "0".to_string() }
+                        "unlock" => { self.emit(format!("ax_std_mutex_unlock(&{});", tv)); "0".to_string() }
                         _ => "0".to_string(),
                     },
                     Some("RWMutex") => match name.as_str() {
-                        "Lock" => { self.emit(format!("ax_std_rwmutex_lock(&{});", tv)); "0".to_string() }
-                        "Unlock" => { self.emit(format!("ax_std_rwmutex_unlock(&{});", tv)); "0".to_string() }
-                        "RLock" => { self.emit(format!("ax_std_rwmutex_rlock(&{});", tv)); "0".to_string() }
-                        "Runlock" => { self.emit(format!("ax_std_rwmutex_runlock(&{});", tv)); "0".to_string() }
+                        "lock" => { self.emit(format!("ax_std_rwmutex_lock(&{});", tv)); "0".to_string() }
+                        "unlock" => { self.emit(format!("ax_std_rwmutex_unlock(&{});", tv)); "0".to_string() }
+                        "rLock" => { self.emit(format!("ax_std_rwmutex_rlock(&{});", tv)); "0".to_string() }
+                        "runlock" => { self.emit(format!("ax_std_rwmutex_runlock(&{});", tv)); "0".to_string() }
                         _ => "0".to_string(),
                     },
                     Some("WaitGroup") => match name.as_str() {
                         "add" => format!("ax_std_waitgroup_add(&{}, {})", tv, self.gen(&args[0].k.expr, Some(&t_int()), false, false)),
-                        "Done" => { self.emit(format!("ax_std_waitgroup_done(&{});", tv)); "0".to_string() }
-                        "Wait" => { self.emit(format!("ax_std_waitgroup_wait(&{});", tv)); "0".to_string() }
+                        "done" => { self.emit(format!("ax_std_waitgroup_done(&{});", tv)); "0".to_string() }
+                        "wait" => { self.emit(format!("ax_std_waitgroup_wait(&{});", tv)); "0".to_string() }
                         _ => "0".to_string(),
                     },
                     Some("Once") => match name.as_str() {
-                        "Do" => { self.emit(format!("ax_std_once_do(&{});", tv)); "0".to_string() }
+                        "do" => { self.emit(format!("ax_std_once_do(&{});", tv)); "0".to_string() }
                         _ => "0".to_string(),
                     },
                     _ => "0".to_string(),
@@ -3513,9 +3513,9 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             }
             Some(crate::sema::Res::Rounding(n)) => {
                 return match n.as_str() {
-                    "HalfUp" => "0".to_string(),
-                    "HalfEven" => "1".to_string(),
-                    "Down" => "2".to_string(),
+                    "halfUp" => "0".to_string(),
+                    "halfEven" => "1".to_string(),
+                    "down" => "2".to_string(),
                     _ => "0".to_string(),
                 };
             }

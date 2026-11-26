@@ -1,6 +1,6 @@
 // EXPECT: E3009
 class A {
-    public int X
+    public int x
     constructor(int a) {
     }
 }

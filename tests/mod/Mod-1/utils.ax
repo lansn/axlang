@@ -11,19 +11,19 @@ int helper(int x) {               // 私有函数：仅模块内可用
     return x * 2
 }
 
-public int double_it(int x) {
+public int doubleIt(int x) {
     return helper(x)              // 模块内裸名调用私有函数
 }
 
 public class Calc {
-    public int Base
+    public int base
     constructor(int base) {
-        this.Base = base
+        this.base = base
     }
-    public static Calc Zero() {
+    public static Calc zero() {
         return new Calc(0)
     }
-    public int Twice() {
-        return this.Base * 2
+    public int twice() {
+        return this.base * 2
     }
 }
