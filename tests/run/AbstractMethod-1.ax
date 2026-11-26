@@ -1,13 +1,13 @@
 abstract class Shape {
-    public int Id
-    constructor(int id) { this.Id = id }
-    public abstract void Draw();
+    public int id
+    constructor(int id) { this.id = id }
+    public abstract void draw();
 }
 
 class Circle extend Shape {
-    public int R
-    constructor(int id, int r) { parent(id); this.R = r }
-    public override void Draw() { println("circle id={this.Id} r={this.R}") }
+    public int r
+    constructor(int id, int r) { parent(id); this.r = r }
+    public override void draw() { println("circle id={this.id} r={this.r}") }
 }
 
 int main() {

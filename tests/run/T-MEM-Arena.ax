@@ -1,22 +1,22 @@
 // 内存安全：arena 与 ArenaRef
 class Node {
-    public int V
-    public ArenaRef<Node> Next
+    public int v
+    public ArenaRef<Node> next
     constructor(int v) {
-        this.V = v
+        this.v = v
     }
 }
 
 int main() {
     var arena = new Arena()
-    ArenaRef<Node> a = arena.alloc(new Node(1))
-    ArenaRef<Node> b = arena.alloc(new Node(2))
-    a.Next = b
-    b.Next = a
-    ArenaRef<Node> c = a.Next
-    println("a.V={a.V} b.V={b.V} c.V={c.V}")
-    println("next.V={a.Next.V}")
-    int total = a.V + a.Next.V + a.Next.Next.V
+    ArenaRef<Node> a = arena.Alloc(new Node(1))
+    ArenaRef<Node> b = arena.Alloc(new Node(2))
+    a.next = b
+    b.next = a
+    ArenaRef<Node> c = a.next
+    println("a.v={a.v} b.v={b.v} c.v={c.v}")
+    println("next.v={a.next.v}")
+    int total = a.v + a.next.v + a.next.next.v
     println("total={total}")
     return 0
 }

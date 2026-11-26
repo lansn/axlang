@@ -1,21 +1,21 @@
 // struct 是值类型：位置构造 `Point(1, 2)`、字段可直接读写、赋值即复制
 struct Point {
-    int X
-    int Y
+    int x
+    int y
 }
 
 struct Box {
-    Point Tl
-    Point Br
+    Point tl
+    Point br
 }
 
 int main() {
     Point a = Point(1, 2)
     Point b = a
-    b.X = 99
-    println("a={a.X},{a.Y} b={b.X},{b.Y}")
+    b.x = 99
+    println("a={a.x},{a.y} b={b.x},{b.y}")
 
     Box box = Box(Point(0, 0), Point(10, 20))
-    println("box={box.Tl.X},{box.Br.Y}")
+    println("box={box.tl.x},{box.br.y}")
     return 0
 }

@@ -2,31 +2,31 @@
 // 变量调用；类实现子 interface 即隐式实现父 interface。
 
 interface Animal {
-    string Speak()
+    string speak()
 }
 
 interface Pet extend Animal {
-    string Name()
+    string name()
 }
 
 class Dog implement Pet {
     constructor() {}
 
-    public string Speak() {
-        return "{this.Name()}：汪"
+    public string speak() {
+        return "{this.name()}：汪"
     }
 
-    public string Name() {
+    public string name() {
         return "旺财"
     }
 }
 
 int main() {
     Pet p = new Dog()
-    println(p.Speak())        // speak 来自 extends 的父 interface
-    println(p.Name())
+    println(p.speak())        // speak 来自 extends 的父 interface
+    println(p.name())
 
     Animal a = new Dog()      // 实现 Pet 即隐式实现 Animal（直接上转到父 interface）
-    println(a.Speak())
+    println(a.speak())
     return 0
 }

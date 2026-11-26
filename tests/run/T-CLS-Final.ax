@@ -1,13 +1,13 @@
 // 类：final class 不可被继承
 final class Config {
-    public string Path
+    public string path
     constructor(string path) {
-        this.Path = path
+        this.path = path
     }
 }
 
 int main() {
     Config cfg = new Config("/etc/ax")
-    println("path={cfg.Path}")
+    println("path={cfg.path}")
     return 0
 }

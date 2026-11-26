@@ -1,22 +1,22 @@
 // is(T : Interface)：编译期接口实现检查
 interface Shape {
-    int Area()
+    int area()
 }
 
 class Circle implement Shape {
-    public int R
+    public int r
     constructor(int r) {
-        this.R = r
+        this.r = r
     }
-    public int Area() {
-        return this.R * this.R
+    public int area() {
+        return this.r * this.r
     }
 }
 
 class Box {
-    public int W
+    public int w
     constructor(int w) {
-        this.W = w
+        this.w = w
     }
 }
 

@@ -1,22 +1,22 @@
 // arena 与 ArenaRef（O-17…O-20）：图/循环引用 + 同区域多别名 + 整体释放
 class Node {
-    public int V
-    public ArenaRef<Node> Next
+    public int v
+    public ArenaRef<Node> next
     constructor(int v) {
-        this.V = v
+        this.v = v
     }
 }
 
 int main() {
     var arena = new Arena()
-    ArenaRef<Node> a = arena.alloc(new Node(1))
-    ArenaRef<Node> b = arena.alloc(new Node(2))
-    a.Next = b          // 区域内对象的字段可以存 ArenaRef——图结构
-    b.Next = a          // 循环引用：唯一靠 arena 才写得出来
-    ArenaRef<Node> c = a.Next   // 同区域别名，copy 语义
-    println("a.V={a.V} b.V={b.V} c.V={c.V}")
-    println("next.V={a.Next.V}")
-    int total = a.V + a.Next.V + a.Next.Next.V
+    ArenaRef<Node> a = arena.Alloc(new Node(1))
+    ArenaRef<Node> b = arena.Alloc(new Node(2))
+    a.next = b          // 区域内对象的字段可以存 ArenaRef——图结构
+    b.next = a          // 循环引用：唯一靠 arena 才写得出来
+    ArenaRef<Node> c = a.next   // 同区域别名，copy 语义
+    println("a.v={a.v} b.v={b.v} c.v={c.v}")
+    println("next.v={a.next.v}")
+    int total = a.v + a.next.v + a.next.next.v
     println("total={total}")
     return 0
 }

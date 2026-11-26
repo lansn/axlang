@@ -5,14 +5,14 @@
 // 上转后仍调到子类的 override 实现。
 
 class Animal {
-    public string Name
+    public string name
 
     constructor(string name) {
-        this.Name = name
+        this.name = name
     }
 
-    public string Speak() {
-        return "{this.Name}：喵"
+    public string speak() {
+        return "{this.name}：喵"
     }
 }
 
@@ -21,8 +21,8 @@ class Dog extend Animal {
         parent(name)
     }
 
-    public override string Speak() {
-        return "{this.Name}：汪汪"
+    public override string speak() {
+        return "{this.name}：汪汪"
     }
 }
 
@@ -31,16 +31,16 @@ Animal make(string name) {
 }
 
 string shout(Animal a) {
-    return a.Speak() + "!"        // 上转：传参处
+    return a.speak() + "!"        // 上转：传参处
 }
 
 int main() {
     Animal a = new Dog("旺财")     // 上转：声明处
-    println(a.Speak())
+    println(a.speak())
     a = new Animal("阿咪")         // 同类型赋值（不应多余强转）
-    println(a.Speak())
+    println(a.speak())
     println(shout(new Dog("小黑")))
     Animal b = make("豆豆")
-    println(b.Speak())
+    println(b.speak())
     return 0
 }

@@ -1,5 +1,5 @@
 // rand 模块：Int / Float / Seed（对标 Go math/rand）
-import rand
+import std.rand
 import math
 
 int main() {

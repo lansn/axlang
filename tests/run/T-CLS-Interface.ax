@@ -1,17 +1,17 @@
 // 类：接口 implement
 interface Drawable {
-    void Draw()
+    void draw()
 }
 
 class Rect implement Drawable {
-    public int W
-    public int H
+    public int w
+    public int h
     constructor(int w, int h) {
-        this.W = w
-        this.H = h
+        this.w = w
+        this.h = h
     }
-    public override void Draw() {
-        println("draw rect {this.W}x{this.H}")
+    public override void draw() {
+        println("draw rect {this.w}x{this.h}")
     }
 }
 

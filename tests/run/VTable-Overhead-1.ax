@@ -10,12 +10,12 @@
 // 具体耗时因机器而异，不写入 .out，避免回归误报。
 
 interface IFoo {
-    int Calc(int x)
+    int calc(int x)
 }
 
 class Impl implement IFoo {
     constructor() {}
-    public override int Calc(int x) {
+    public override int calc(int x) {
         int r = 0
         for i in 0..x {
             r = r + i
@@ -32,13 +32,13 @@ int main() {
     // ---------- 直接调用 ----------
     int r1 = 0
     for i in 0..N {
-        r1 = r1 + obj.Calc(100)
+        r1 = r1 + obj.calc(100)
     }
 
     // ---------- 接口 vtable 调用 ----------
     int r2 = 0
     for i in 0..N {
-        r2 = r2 + ifc.Calc(100)
+        r2 = r2 + ifc.calc(100)
     }
 
     println("r1={r1}")

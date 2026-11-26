@@ -1,15 +1,15 @@
 // 命名 constructor：类可定义多个构造入口，用 new ClassName.Name(args) 调用
 class Point {
-    public int X
-    public int Y
-    constructor() { this.X = 0; this.Y = 0 }
-    constructor.fromJson(int x, int y) { this.X = x; this.Y = y }
+    public int x
+    public int y
+    constructor() { this.x = 0; this.y = 0 }
+    constructor.fromJson(int x, int y) { this.x = x; this.y = y }
 }
 
 int main() {
     Point p1 = new Point()
-    println("p1={p1.X},{p1.Y}")
+    println("p1={p1.x},{p1.y}")
     Point p2 = new Point.fromJson(3, 4)
-    println("p2={p2.X},{p2.Y}")
+    println("p2={p2.x},{p2.y}")
     return 0
 }

@@ -4,11 +4,11 @@ class Counter {
     constructor() {
     }
 
-    public static int GetCount() {
+    public static int getCount() {
         return 3
     }
 
-    public int InstanceMethod() {
+    public int instanceMethod() {
         return 3
     }
 }
@@ -18,9 +18,9 @@ int main() {
     Counter c2 = new Counter()
     Counter c3 = new Counter()
 
-    println("count={Counter.GetCount()}")   // 期望 3
-    println("c1={c1.InstanceMethod()}")     // 期望 3
-    println("c2={c2.InstanceMethod()}")     // 期望 3
-    println("c3={c3.InstanceMethod()}")     // 期望 3
+    println("count={Counter.getCount()}")   // 期望 3
+    println("c1={c1.instanceMethod()}")     // 期望 3
+    println("c2={c2.instanceMethod()}")     // 期望 3
+    println("c3={c3.instanceMethod()}")     // 期望 3
     return 0
 }

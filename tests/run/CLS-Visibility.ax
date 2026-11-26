@@ -1,19 +1,19 @@
 // 类可见性正例：public/private/protected 成员访问
 class BankAccount {
-    public string Owner
-    private decimal Balance
+    public string owner
+    private decimal balance
 
     constructor(string owner, decimal initial) {
-        this.Owner = owner
-        this.Balance = initial
+        this.owner = owner
+        this.balance = initial
     }
 
-    public decimal GetBalance() {
-        return this.Balance
+    public decimal getBalance() {
+        return this.balance
     }
 
-    protected decimal ApplyRate(decimal rate) {
-        return this.Balance * rate
+    protected decimal applyRate(decimal rate) {
+        return this.balance * rate
     }
 }
 
@@ -22,16 +22,16 @@ class SavingsAccount extend BankAccount {
         parent(owner, initial)
     }
 
-    public decimal AfterYear(decimal rate) {
+    public decimal afterYear(decimal rate) {
         // protected 成员在子类内可访问
-        return this.ApplyRate(rate)
+        return this.applyRate(rate)
     }
 }
 
 int main() {
     SavingsAccount acc = new SavingsAccount("李四", 1000.00d)
-    println("owner={acc.Owner}")
-    println("balance={acc.GetBalance()}")
-    println("after year={acc.AfterYear(1.05d)}")
+    println("owner={acc.owner}")
+    println("balance={acc.getBalance()}")
+    println("after year={acc.afterYear(1.05d)}")
     return 0
 }

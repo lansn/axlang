@@ -1,8 +1,8 @@
 // 类：protected 可见性
 class Base {
-    protected int Secret
+    protected int secret
     constructor(int s) {
-        this.Secret = s
+        this.secret = s
     }
 }
 
@@ -10,13 +10,13 @@ class Child extend Base {
     constructor(int s) {
         parent(s)
     }
-    public int Reveal() {
-        return this.Secret
+    public int reveal() {
+        return this.secret
     }
 }
 
 int main() {
     Child c = new Child(42)
-    println("secret={c.Reveal()}")
+    println("secret={c.reveal()}")
     return 0
 }

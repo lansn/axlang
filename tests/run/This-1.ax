@@ -1,18 +1,18 @@
 class Calc {
-    public int Base
+    public int base
     constructor(int base) {
-        this.Base = base
+        this.base = base
     }
-    public int DoubleIt() {
-        return this.Base * 2
+    public int doubleIt() {
+        return this.base * 2
     }
-    public static int Add(int a, int b) {
+    public static int add(int a, int b) {
         return a + b
     }
 }
 int main() {
     Calc c = new Calc(3)
-    int d = c.DoubleIt()
+    int d = c.doubleIt()
     int s = Calc.add(1, 2)
     println("d = {d}, s = {s}")
     return 0

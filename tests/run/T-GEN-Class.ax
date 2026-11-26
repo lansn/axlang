@@ -1,15 +1,15 @@
 // 泛型：泛型类与泛型 struct
 class Box<T> {
-    public T Value
-    constructor(T v) { this.Value = v }
-    public T Get() {
-        return this.Value
+    public T value
+    constructor(T v) { this.value = v }
+    public T get() {
+        return this.value
     }
 }
 
 struct Pair<T> {
-    T First
-    T Second
+    T first
+    T second
 }
 
 int main() {
@@ -18,6 +18,6 @@ int main() {
     Box<string> sb = new Box("文本")
     println("sbox={sb.get()}")
     Pair<int> p = Pair(1, 2)
-    println("pair={p.First}+{p.Second}={p.First + p.Second}")
+    println("pair={p.first}+{p.second}={p.first + p.second}")
     return 0
 }

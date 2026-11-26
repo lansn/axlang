@@ -1,8 +1,8 @@
 class Util {
-    public static int Add(int a, int b) {
+    public static int add(int a, int b) {
         return a + b
     }
-    public static Util Zero() {
+    public static Util zero() {
         return new Util()
     }
     constructor() { }
@@ -10,6 +10,6 @@ class Util {
 int main() {
     int s = Util.add(2, 3)
     println("s = {s}")
-    Util u = Util.Zero()
+    Util u = Util.zero()
     return 0
 }
