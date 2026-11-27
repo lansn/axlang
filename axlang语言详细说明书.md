@@ -280,8 +280,8 @@ class Person extend Entity implement Drawable {
 
 ```ax
 interface Drawable {
-    draw(): void;
-    area(): float;
+    void draw();
+    float area();
 }
 ```
 

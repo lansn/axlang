@@ -1055,6 +1055,7 @@ impl<'a> Parser<'a> {
         if self.at("{") {
             body = Some(self.parse_block()?);
         }
+        self.expect_term();
         Ok(Some(self.nn(
             nm.clone(),
             MethodSig { ret: ty, name: nm.text().to_string(), params, default_body: body },
