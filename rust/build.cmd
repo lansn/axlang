@@ -16,7 +16,7 @@ setlocal
 
 cd /d "%~dp0"
 
-where cargo >nul 2>nul
+where /q cargo
 if %errorlevel%==0 goto build
 
 if exist "%USERPROFILE%\.cargo\bin\cargo.exe" (
@@ -32,9 +32,9 @@ echo cargo: %PATH%
 
 rem 确保交叉编译目标已安装
 echo 检查并安装编译目标...
-rustup target add x86_64-pc-windows-msvc    >nul 2>&1 || true
-rustup target add x86_64-unknown-linux-musl >nul 2>&1 || true
-rustup target add x86_64-apple-darwin       >nul 2>&1 || true
+rustup target add x86_64-pc-windows-msvc    > "%TEMP%\axc_rustup_msvc.log" 2>&1 || true
+rustup target add x86_64-unknown-linux-musl > "%TEMP%\axc_rustup_musl.log" 2>&1 || true
+rustup target add x86_64-apple-darwin       > "%TEMP%\axc_rustup_darwin.log" 2>&1 || true
 
 rem 确保 dist 目录存在
 if not exist "..\dist" mkdir "..\dist"
@@ -48,7 +48,7 @@ if %errorlevel% neq 0 (
     echo Windows 版构建失败
     exit /b 1
 )
-copy /y "target\release\axc.exe" "%DIST_DIR%\axc.exe" >nul
+copy /y "target\release\axc.exe" "%DIST_DIR%\axc.exe" > "%TEMP%\axc_copy_win.log"
 echo 已输出: %DIST_DIR%\axc.exe
 
 rem ===== 2. Linux 版（musl 静态链接） =====
@@ -59,15 +59,15 @@ if %errorlevel% neq 0 (
     echo Linux 版构建失败
     exit /b 1
 )
-copy /y "target\x86_64-unknown-linux-musl\release\axc" "%DIST_DIR%\axc-linux" >nul
+copy /y "target\x86_64-unknown-linux-musl\release\axc" "%DIST_DIR%\axc-linux" > "%TEMP%\axc_copy_linux.log"
 echo 已输出: %DIST_DIR%\axc-linux
 
 rem ===== 3. macOS 版（可选，需 macOS SDK） =====
 echo.
 echo === 尝试构建 macOS 版 axc (x86_64-apple-darwin) ===
-cargo build --release --target x86_64-apple-darwin %* >nul 2>&1
+cargo build --release --target x86_64-apple-darwin %* > "%TEMP%\axc_build_darwin.log" 2>&1
 if %errorlevel% equ 0 (
-    copy /y "target\x86_64-apple-darwin\release\axc" "%DIST_DIR%\axc-macos" >nul
+    copy /y "target\x86_64-apple-darwin\release\axc" "%DIST_DIR%\axc-macos" > "%TEMP%\axc_copy_macos.log"
     echo 已输出: %DIST_DIR%\axc-macos
 ) else (
     echo macOS 版构建跳过（缺 macOS SDK/链接器，请在 macOS 机器上构建：cd rust && cargo build --release --target x86_64-apple-darwin）
