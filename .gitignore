@@ -16,6 +16,9 @@ Thumbs.db
 # WorkBuddy 本地项目内存与工作日志，不应入库
 .workbuddy/
 
+# Windows 保留设备名，无法删除，也绝不应入库
+nul
+
 # 测试临时目录（根目录）
 /.build/
 
