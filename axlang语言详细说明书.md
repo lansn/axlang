@@ -182,8 +182,8 @@ func map Self range Rounding Arena ArenaRef
 
 ```ax
 var x = 42;           // 类型推断
-var y: int = 10;      // 显式类型
-var z: int? = null;   // 可空
+int y = 10;           // 显式类型：类型 名 = 值（C 风格）
+int? z = null;        // 可空
 ```
 
 - `var` 只能用于局部变量（`E3006`）。
@@ -195,7 +195,7 @@ var z: int? = null;   // 可空
 
 ```ax
 const MAX = 100;
-const PI: float = 3.14;
+const float PI = 3.14;
 ```
 
 - `const` 初始化器必须是常量表达式（`E3003`）。
@@ -1044,11 +1044,11 @@ int main() {
 
 ```ax
 var x = 42;
-var y: float = 3.14;
-var z: float32 = 2.5f32;
-var money: decimal = 19.99d;
-var name: string = "axlang";
-var opt: int? = null;
+float y = 3.14;
+float32 z = 2.5f32;
+decimal money = 19.99d;
+string name = "axlang";
+int? opt = null;
 
 if (opt != null) {
     println(opt);
