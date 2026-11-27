@@ -113,7 +113,7 @@ func map Self range Rounding Arena ArenaRef
 
 - 仅允许 `[A-Za-z_][A-Za-z0-9_]*`，不允许非 ASCII 字符。
 - `_` 作为独立标识符（丢弃值），可用于忽略。
-- 命名风格：成员名（方法/字段/枚举成员等）强制 **camelCase**，违规报 `E3043`。
+- 命名风格：成员名（方法/字段/枚举成员等）**强烈建议 camelCase**，编译器不做强制性检查，不再报 `E3043`。
 
 ### 2.6 运算符（最长匹配）
 
@@ -221,7 +221,7 @@ enum Color { Red, Green, Blue }
 - 枚举成员不能带初值或载荷（`E3031`）。
 - 枚举成员名重复报 `E3044`。
 - 枚举是 `uint32_t`，不能从整数转换，也不能转成整数（`E4019`）。
-- 枚举成员名强制 camelCase（`E3043`）。
+- 枚举成员名**强烈建议 camelCase**，编译器不做强制性检查。
 
 #### 3.2.5 结构体
 
@@ -267,7 +267,7 @@ class Person extend Entity implement Drawable {
 - `this` 只能在 class/struct 方法体内使用（`E3034`）。
 - 静态方法体内没有 `this`（`E3038`）。
 - 类成员缺少可见性修饰符报 `E3037`（必须显式写 `public`/`private`/`protected`）。
-- 成员名强制 camelCase（`E3043`）。
+- 成员名**强烈建议 camelCase**，编译器不做强制性检查。
 - `final` 类不能被 `extend`（`E3046`）。
 - 抽象方法必须在子类中实现（`E3047`）。
 - 非抽象类不能声明抽象方法（`E3048`）。
@@ -562,12 +562,11 @@ defer println("cleanup");
 - 接口成员不能写可见性修饰词（`E3011`）。
 - 结构体成员不能写可见性修饰词（一律 public，`E3011`）。
 
-### 5.2 命名规则（camelCase）
+### 5.2 命名规则（camelCase，建议不强制）
 
-- **成员名一律 camelCase**（方法、字段、枚举成员等），违规报 `E3043`。
-- 诊断文案会点名正确拼写（如 `read` → `Read`、`min_qty` → `MinQty`）。
+- 成员名（方法、字段、枚举成员等）**强烈建议 camelCase**，编译器不做强制性检查，不再报 `E3043`。
 - 不在检查范围：`constructor` 关键字、类型名、模块级函数、局部变量、参数、常量。
-- 模块函数调用（如 `utils.add(2, 3)`）不受 E3043 影响。
+- 模块函数调用（如 `utils.add(2, 3)`）不受成员名命名规则影响，仅需匹配 `module_sig` 注册的标准库成员名（如 `io.readLine`、`math.abs`）。
 
 ### 5.3 常量折叠
 
@@ -789,7 +788,7 @@ sync, atomic, file, string
 |------|------|------|
 | E1xxx | 词法错误 | E1001 禁止前导零 |
 | E2xxx | 语法错误 | E2001 期望某 token |
-| E3xxx | 语义错误（命名/可见性/模块） | E3003 未定义标识符，E3043 camelCase |
+| E3xxx | 语义错误（命名/可见性/模块） | E3003 未定义标识符 |
 | E4xxx | 类型错误 | E4001 类型不匹配，E4003 无隐式转换 |
 | E5xxx | 转换/object 错误 | E5001 bool 无转换，E5002 object 不能直接用 |
 | E6xxx | 控制流/匹配错误 | E6001 match 非穷尽，E6010 throw 位置 |
@@ -858,7 +857,7 @@ sync, atomic, file, string
 | E3040 | 导入名称冲突 | import name conflict |
 | E3041 | 主函数与顶层语句冲突 | main vs top-level statements |
 | E3042 | 歧义导出类型 | ambiguous exported type |
-| E3043 | 成员名非 camelCase | member names must be camelCase |
+| E3043 | ~~成员名非 camelCase~~ **已废止**：编译器不再对用户定义的成员名做 camelCase 强制性检查 | ~~member names must be camelCase~~ |
 | E3044 | enum 成员名重复 | duplicate enum member |
 | E3045 | 具名导入歧义 | ambiguous named import |
 | E3046 | 不能 extend final 类 | cannot extend final class |
