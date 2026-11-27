@@ -67,7 +67,7 @@
 | `import` | `use` | 行业通用词 |
 | `public` | `pub` | 不缩写 |
 | `int a = 10` 直接声明、`var b = 10` 推断、`const` 不可变 | `let` / `mut` 声明词 | 与 C/C# 完全一致；var 只管推断，const 管不可变 |
-| `string` 一个类型搞定全部文本，"字符"就是长度 1 的 `string` | `char` / `rune` / `wchar_t` | 文本只留一种类型，免得"取一个字符"又衍生成第二个类型 + 一堆来回转换；判定单字符用 `s.Len() == 1`，不需要专门的类型 |
+| `string` 一个类型搞定全部文本，"字符"就是长度 1 的 `string` | `char` / `rune` / `wchar_t` | 文本只留一种类型，免得"取一个字符"又衍生成第二个类型 + 一堆来回转换；判定单字符用 `s.len() == 1`，不需要专门的类型 |
 | `int` / `uint` / `int32` / `float` | `i64` / `u32` / `f64` / `double` | 字母缩写类型名必须查表才懂；"双精度"这个词本身也需要解释 |
 | `int32(a)` / `Dog(a)`（只有一种转换写法） | `as` 兼做转换、`(int)a` 前缀式 | 转换就是"转成这个类型"，形式只有一种；`as` 只留给 `import` 别名 |
 | `T[]` 数组 + `map<K,V>` 两种集合 | `list` / `vector` / `ArrayList` / `slice` / `HashMap` | 集合只有两种、名字各一个；"一串同类型的东西"永远叫数组，"按键查值"永远叫 `map` |
@@ -278,7 +278,7 @@ axlang 的设计哲学是"关键词少、语法面窄"。每新增一个关键�
 
 ### 2.7 关键词全览与设计决策
 
-#### 2.7.1 已收录关键词（共 43 个）
+#### 2.7.1 已收录关键词（共 44 个）
 
 下表为 axlang 当前所有关键词，按功能分组。每个关键词均为完整英文单词或行业通用词，**无一缩写**。
 
@@ -288,19 +288,19 @@ axlang 的设计哲学是"关键词少、语法面窄"。每新增一个关键�
 | 继承与实现 | `extend`, `implement`, `override`, `parent` | 4 |
 | 控制流 | `if`, `else`, `for`, `while`, `in`, `match`, `return`, `break`, `continue` | 9 |
 | 错误处理 | `try`, `catch`, `finally`, `throw`, `defer` | 5 |
-| 模块与可见性 | `import`, `public`, `protected`, `private` | 4 |
+| 模块与可见性 | `import`, `public`, `protected`, `private`, `export` | 5 |
 | 函数与内存 | `static`, `new`, `as`, `constructor`, `extern`, `unsafe`, `ref` | 7 |
 | 类修饰 | `abstract`, `final` | 2 |
 | 类型判断与字面量 | `is`, `this`, `true`, `false`, `null` | 5 |
-| **合计** | | **43** |
+| **合计** | | **44** |
 
-> **内建类型名不是关键词**：`bool`, `int`, `int8`, `int16`, `int32`, `uint`, `uint8`, `uint16`, `uint32`, `float`, `float32`, `decimal`, `string`, `object`, `void`, `result`, `error`, `func`, `map`, `Self`, `range`, `Rounding`, `Arena`, `ArenaRef` 属于标准库根模块内建类型（保留字 `RESERVED_TYPES`），不是 `KEYWORDS` 表中的项，同样遵循“不缩写”规则。
+> **内建类型名不是关键词**：`bool`, `int`, `int64`, `int8`, `int16`, `int32`, `uint`, `uint8`, `uint16`, `uint32`, `float`, `float64`, `float32`, `decimal`, `string`, `object`, `void`, `result`, `error`, `func`, `map`, `Self`, `range`, `Rounding`, `Arena`, `ArenaRef` 属于标准库根模块内建类型（保留字 `RESERVED_TYPES`），不是 `KEYWORDS` 表中的项，同样遵循“不缩写”规则。
 
 #### 2.7.2 与主流语言关键词数量对比
 
 | 语言 | 关键词数（约） | 标准版本 | 与 ax 相对 |
 |------|---------------|----------|-----------|
-| **ax** | **43** | 自定义 | 基准 |
+| **ax** | **44** | 自定义 | 基准 |
 | Go | 25 | Go 1.x | ax 多 18 个，但 ax 有泛型、OOP、所有权等 Go 早期缺失特性 |
 | C (C11) | 44 | ISO C11 | 基本持平，但 C 有大量前缀下划线关键字（`_Alignas` 等） |
 | Python 3 | 35~40 | Python 3.11+ | ax 略多，但 Python 有大量内建函数（`len`, `range`, `dict` 等）属于“准关键词” |
@@ -454,6 +454,8 @@ if price > 0
 
 ### 3.3 标识符与关键字
 
+**axlang 语法命名风格统一为 camelCase**（首单词小写，多词后续单词首字母大写，不含下划线）。本节下列各规则均遵循此风格；任何违背 camelCase 的写法均属于违规。
+
 - 标识符：`[A-Za-z_][A-Za-z0-9_]*`；命名风格不参与词法与语义。命名按三档处理——**内建名字的拼写**与**`.` 右侧的成员名**是硬约束（写错就报错或根本找不到），**其余用户自选的名字只推荐**，编译器不检查：
   - **内建类型名一律全小写**：`int` `float` `decimal` `string` `error` `result` `object`。
   - **裸调用的一等函数一律 camelCase**（多词首个单词小写，其余首字母大写）：`print` / `println` / `ok` / `fail` / `parent` / `typeof` / `sizeof`，以及将来的全局 `len(x)` / `max(a, b)` / `min(a, b)`。
@@ -463,7 +465,7 @@ if price > 0
   - **其余用户侧命名一律 camelCase（强制，为命名风格统一）**：类型、模块级函数、局部变量、参数、常量均写 camelCase（`session`、`config`、`checkEmail`、`doubleIt`、`userId`、`maxRetry`）。编译器检查 `E3043`，不符合 camelCase 即报错。
   - 上面几条里，内建类型名、裸调用函数名、`.` 右侧的成员名是**语法级硬约束**：标准库与内建的拼写就是名字本身——`len` 不是 `Len` 的 PascalCase 版，`Len` 就是个不存在的名字（反过来 `s.len()` 也不存在）。分界依据是 2.2 第 3 判据：标准库名字可枚举（几百个），统一成本为零且必须统一，否则用户猜不出拼写；用户代码里"可自由取名"的部分（类型、函数、变量）几十万个、各有所好，编译器无从裁决，强制只会让 C/Python/Rust 程序员集体改肌肉记忆，而收益只是"好看一点"；用户自己写的**成员**不在此列——它不是一个可以随便叫的名字，而是某个语法位置上唯一允许的写法（写成 `Read` 就报 `E3043`）。风格上仍统一：**内建裸函数 camelCase（`print`）、凡带 `.` 的成员 camelCase（`io.readLine`）、用户类型与函数也 camelCase（`session` / `checkEmail`）**。
   - 单独的 `_` 不是标识符（保留给 `match` 通配模式）；`@` 不属于标识符字符，`@name(...)` 是编译期属性语法，只允许 `@os` / `@arch` / `@pure` / `@nothrow` / `@nogc` / `@deprecated`（见 9.3）。
-- 保留关键字（全部，共 37 个）：
+- 保留关键字（全部，共 44 个）：
 
 ```
 var         const       class       struct      interface   extend
@@ -472,6 +474,7 @@ if          else        for         in          match       return
 try         catch       finally     throw       defer       import
 public      protected   private     static      new         as          break
 continue    constructor true        false       null
+abstract    final       is          extern      unsafe      ref         export
 ```
 
 每个关键词都是完整英文单词或行业通用词，无一缩写（`var` 在此仅作类型推断关键词保留）。内建类型名（`int`、`float`、`object` 等）不是关键字，是标准库根模块中的类型，但同样遵守「不缩写」规则——`object` 因此也不需要占一个关键字名额。`as` 也只保留一个用途——`import` 别名（9.2），不参与类型转换。
@@ -492,16 +495,17 @@ continue    constructor true        false       null
 | 类别 | 类型 | 大小 | 说明 |
 |---|---|---|---|
 | 布尔 | `bool` | 1 字节 | 只有 `true` / `false`，与整数不互通 |
-| 整数（默认） | `int` | 64 位 | 日常默认类型，所有平台恒定 64 位有符号 |
+| 整数（默认） | `int` / `int64` | 64 位 | 日常默认类型，所有平台恒定 64 位有符号；`int64` 为 `int` 的显式别名，两者完全等价 |
 | 整数（窄宽度） | `int8` `int16` `int32` | 8/16/32 位 | 文件格式、协议解析等确需窄宽度时显式使用 |
 | 整数（无符号） | `uint` `uint8` `uint16` `uint32` | 同宽度无符号 | 位运算、哈希、二进制数据 |
-| 浮点（唯一） | `float` | 64 位 | IEEE 754 64 位（精度等同 C 的 `double`，但本语言只此一个浮点类型，不必选型）。仅用于科学计算、图形，**禁止用于金额**（linter 强制警告） |
+| 浮点 | `float` / `float64` | 64 位 | IEEE 754 64 位（精度等同 C 的 `double`）。仅用于科学计算、图形，**禁止用于金额**（linter 强制警告）；`float64` 为 `float` 的显式别名，两者完全等价 |
+| 浮点（单精度） | `float32` | 32 位 | IEEE 754 32 位单精度浮点，对应 C 的 `float`。字面量可用 `f32` 后缀。同样禁止用于金额 |
 | 金融 | `decimal` | 16 字节 | 见 3.2，金额唯一合法类型 |
 | 字符串 | `string` | — | UTF-8，不可变。**没有独立的字符类型**：一个字符就是长度为 1 的 `string`（见 3.5、12.2） |
 | 任意值 | `object` | 引用的宽度（盒子另有类型标签） | **任何值都能装进来**的顶层类型：内建值类型、`string`、数组、`map`、`class` 实例；赋值即装箱，目标类型已知时自动解箱（见 7.7）。没有任何成员。`struct` 除外——用户定义的可变值类型，装箱后"改的是哪一份"有歧义 |
 | 单元 | `void` | — | 仅作函数无返回值标注 |
 
-命名规则一句话：**整数有符号 `int` 家族、无符号 `uint` 家族，数字后缀即位宽、不带数字就是 64 位；浮点只有 `float` 一个，恒定 64 位。** 日常代码 99% 只写 `int` 和 `float`。旧式 `i8`/`u32`/`f64`/`double` 这类缩写与别名全部废除。**文本侧同理只有一个 `string`**：没有 `char`、没有宽字符、没有"字符数组"，一个字符即长度 1 的 `string`（判定 `s.Len() == 1`）。
+命名规则一句话：**整数有符号 `int`/`int64` 家族、无符号 `uint` 家族，数字后缀即位宽、不带数字就是 64 位；浮点有 `float`/`float64`（64 位）与 `float32`（32 位）两种，金额一律用 `decimal`。** 日常代码 99% 只写 `int` 和 `float`。旧式 `i8`/`u32`/`f64`/`double` 这类缩写与别名全部废除。**文本侧同理只有一个 `string`**：没有 `char`、没有宽字符、没有"字符数组"，一个字符即长度 1 的 `string`（判定 `s.Len() == 1`）。
 
 除上表的基础类型，根模块还预置下列类型，同样无需 `import`：`result<T>` 与 `error`（第 10 章）、`func(参数) 返回`（函数类型，4.1）、`Self`（类型体内的"当前类型"，7.1）、`range`（区间值，5.2）、`Rounding`（舍入方式枚举，3.2）、`Arena` / `ArenaRef<T>`（区域分配，8.4）。它们不是基础类型，但属于"语言直接给的"，一并在根命名空间里。
 
@@ -518,7 +522,7 @@ uint8 d = n            // 编译错误：变量之间没有隐式转换
 
 `int` 的最小值可以直接写 `-9223372036854775808`：**一元负号紧贴字面量时，按"带符号字面量"整体解析**（只在字面量位置生效，不影响 `-x` 的运算语义），范围检查针对合成后的值——否则最小整数将无法书写。负号落到无符号类型的目标上是编译错误（`uint8 x = -1`）。其余宽度的极值同理可写（`-2147483648` 对 `int32`）。
 
-**字符串 ↔ 数值只有一个方向**：数值转字符串写 `x.ToString()`（12.2）；字符串转数值写 `int.Parse(s)` / `float.Parse(s)` / `decimal.Parse(s)`，全部返回 `result<T>`——解析失败是"外部数据不合法"，走 `fail`，不终止进程。不存在 `int(s)` 这种转换（3.1 矩阵最后一条）。
+**字符串 ↔ 数值只有一个方向**：数值转字符串写 `x.toString()`（12.2）；字符串转数值写 `int.parse(s)` / `float.parse(s)` / `decimal.parse(s)`，全部返回 `result<T>`——解析失败是"外部数据不合法"，走 `fail`，不终止进程。不存在 `int(s)` 这种转换（3.1 矩阵最后一条）。
 
 **整数与浮点之间、不同宽度之间均无隐式转换**，必须显式转换。写法与 Go 一致：**`类型(值)`**：
 
@@ -540,14 +544,14 @@ float f = float(p)               // decimal → float 允许，linter 警告精�
 
 | 源 → 目标 | 规则 |
 |---|---|
-| `int`/`uint` 家族之间 | 允许；**值超出目标范围时终止进程**（不做 C 的静默截断），要截断只能写 `int32.Truncate(x)` |
+| `int`/`uint` 家族之间 | 允许；**值超出目标范围时终止进程**（不做 C 的静默截断），要截断只能写 `int32.truncate(x)` |
 | 整数 → `float` | 允许（整数超过 2^53 时 linter 警告精度损失） |
 | 整数 → `decimal` | 允许，精确无损 |
 | `decimal` → 整数 | 允许，丢弃小数部分（不四舍五入） |
 | `decimal` → `float` | 允许（linter 警告） |
-| `float` → `decimal` | **禁止** `decimal(x)`，必须 `decimal.Parse(string)` |
+| `float` → `decimal` | **禁止** `decimal(x)`，必须 `decimal.parse(string)` |
 | `float` → 整数 | 允许，向零截断 |
-| 任何类型 → `string` | **不存在这个转换**：`string(x)` 一律编译错误（Go 的 `string(65)` 得 `"A"` 是著名坑）。数字转字符串写 `x.ToString()`；码点数值转单码点字符串写 `string.FromCodepoint(n)`，返回 `result<string>`（12.2） |
+| 任何类型 → `string` | **不存在这个转换**：`string(x)` 一律编译错误（Go 的 `string(65)` 得 `"A"` 是著名坑）。数字转字符串写 `x.toString()`；码点数值转单码点字符串写 `string.fromCodepoint(n)`，返回 `result<string>`（12.2） |
 | 任何类型 ↔ `bool` | 禁止，两者不互通 |
 | 派生类 → 父类/interface | 隐式，无需任何标注（`Animal a = new Dog(...)`） |
 | 任意值 → `object` | **隐式（装箱）**：`object o = 42`、`object o = nums`、`object o = new Dog(...)`。`object` 是所有类型的顶层类型，这条和上一行是同一条规则（父类型可隐式接收子类型的值） |
@@ -583,7 +587,7 @@ decimal paid = 123.456d.Round(2, Rounding.HalfUp)       // 对已有值收尾：
 - **`decimal` 也有边界**：128 位十进制只能精确表示约 28~29 位有效数字，超出范围或精度上限时**终止进程**（与整数溢出同一条路径，见 3.7、10.2）——不做静默截断、不做舍入兜底。要处理超范围金额，只能拆成整数分位存储或走库类型。
 - **币种不进入 `decimal`**：`decimal` 是纯数值类型，不带币种。带币种的金额用 `struct Money { decimal amount; string currency; }`（见 6.5），跨币种运算由标准库模块显式处理——货币语义不塞进内建类型，避免"每个 decimal 都要带币种"的负担。
 
-- 与 `float` 互转必须显式：`float(total)`（触发 linter 警告）；`float` 转 `decimal` 禁止 `decimal(x)`，必须走 `decimal.Parse(string)`——浮点天生带误差，进 decimal 只能走字符串这条路。
+- 与 `float` 互转必须显式：`float(total)`（触发 linter 警告）；`float` 转 `decimal` 禁止 `decimal(x)`，必须走 `decimal.parse(string)`——浮点天生带误差，进 decimal 只能走字符串这条路。
 
 ### 4.3 声明、数组与映射（含读写规则）
 
@@ -625,7 +629,7 @@ MAX_RETRY = 4                    // 编译错误：const 不可重新赋值
 // 数组：长度写在类型里 = 定长（栈上），不写 = 可变长（堆上）
 int[4] arr = [1, 2, 3, 4]
 int[]  nums = [0, 1, 2, 3]
-nums.Push(4)                       // 只有"不写长度"的那种才能增长
+nums.push(4)                       // 只有"不写长度"的那种才能增长
 
 string[] names = ["sgg", "err"]
 string[] cs = ["a", "b", "c"]      // 每个元素是一个字符（长度 1 的 string）
@@ -640,7 +644,7 @@ var pair = (1, "one")                     // 类型为 (int, string)
 var (n, s) = pair                         // 解构，唯一的多返回值取用方式
 ```
 
-"集合"在本文档里只是中文俗称，**语言里没有 `collection` 这个类型、没有 `Container` 接口、也没有 `Iterable`**——数组和 `map` 各自内建，编译器直接认识 `[]`、`for x in`、`.Len()`，中间不存在一层"容器抽象"。可遍历的东西只有三样：数组、`map`、`string`（见 5.2），全是语言直接给的。
+"集合"在本文档里只是中文俗称，**语言里没有 `collection` 这个类型、没有 `Container` 接口、也没有 `Iterable`**——数组和 `map` 各自内建，编译器直接认识 `[]`、`for x in`、`.len()`，中间不存在一层"容器抽象"。可遍历的东西只有三样：数组、`map`、`string`（见 5.2），全是语言直接给的。
 
 规则：
 
@@ -676,7 +680,7 @@ for total in 0..3 { }   // 编译错误：循环变量遮蔽外层 total
   - **读**：`nums[i]` 得 `T`，`prices["apple"]` 得 `V`——直接是元素类型，不带 `?`。
   - **写**：`nums[i] = 9`、`prices["kiwi"] = 3.3d`——直接写，不需要任何方法。数组写越界终止进程；map 写键不存在则插入（永远成功）。
   - **位置不存在**（数组下标越界、map 读的键缺失）→ **终止进程**，归入 10.2 的崩溃清单。这正是"下标越界是 bug"：bug 当场停下，不往下传。（record 的键写在类型里，键名写错是**编译错误**，连终止进程都用不上，见下文。）
-  - 要"**可能没有**"的语义，用带 `?` 的安全版：`nums.At(i)` → `T?`、`prices.Get(k)` → `V?`，缺失得 `null`，用 `??` 兜底或判空收窄。
+  - 要"**可能没有**"的语义，用带 `?` 的安全版：`nums.at(i)` → `T?`、`prices.get(k)` → `V?`，缺失得 `null`，用 `??` 兜底或判空收窄。
 
 ```ax
 int[4] a = [1, 2, 3, 4]
@@ -702,7 +706,7 @@ int[] all  = nums[0..5]  // [0, 1, 2, 3, 4]
 map<string, decimal> prices = {"apple": 9.9d}
 decimal p = prices["apple"]        // 键不存在 → 终止进程
 prices["kiwi"] = 1.5d              // 键不存在则插入
-decimal? q = prices.Get("pear")    // 键不存在得 null
+decimal? q = prices.get("pear")    // 键不存在得 null
 ```
 
 - **为什么 `[]` 崩、`At`/`Get` 不崩**：两者回答两个不同问题。「这里一定有」——读不到就是 bug，立即停下并指出行号，比把 `null` 往下传十层、最后以"莫名其妙的结果"冒出来好得多；「可能有，也可能没有」——那是预期内的分支，用 `At`/`Get` 把 `?` 写进类型，编译器逼你处理。**崩溃是显式的、即时的、可定位的；`null` 是留给预期内缺失的。**
@@ -799,7 +803,7 @@ string  h = "\u{4F60}"     // Unicode 码点字面量，结果仍是 string
 - **原始字符串** `r"..."`：内容原样使用，`r"C:\path\a"` 里 `\` 就是反斜杠。
 - **多行字符串** `"""..."""`：保留内部换行与缩进原文，首尾各一个换行自动去除。
 - **没有 `char`：字符即长度 1 的 `string`**。理由有三：① 语言层面只需回答"这是文本吗"，不必再回答"这是字符还是字符串"，`s[0]`、`string(c)`、`char[]` 与 `string` 互转这一整类问题连同代码一起消失；② 少一个类型就少一套字面量、一套转换矩阵、一套数组元素规则（对照 Java 的 `char`/`Character`/`String` 三件套与 `codePointAt`，那是纯负担）；③ 单码点字符串是不可变值，赋值、比较、拼装与普通字符串完全同规则，学习成本为零。
-- 代价是"取一个字符"会分配一个长度为 1 的字符串。这在文本处理里可忽略，真要按码点数值批量运算（编码、加解密、字节协议）就走 `s.CodepointAt(i)` / `string.FromCodepoint(n)`，那是显式的底层入口，不在日常写法里。
+- 代价是"取一个字符"会分配一个长度为 1 的字符串。这在文本处理里可忽略，真要按码点数值批量运算（编码、加解密、字节协议）就走 `s.codepointAt(i)` / `string.fromCodepoint(n)`，那是显式的底层入口，不在日常写法里。
 - 字符串不可变，`==` 比较内容（见 12.2）。
 
 ### 4.6 类型别名
@@ -2124,16 +2128,16 @@ println("总价", total, "元")           // 总价 59.97 元
 
 - **实参允许直接是"能插值的值"**：`println(123)`、`println(ok)`、`println(total)` 都等于在两端补上花括号（`println("{123}")`），可接受的范围与插值完全一致——`int`/`uint` 系、`decimal`、`float`、`bool`、`string`、`enum`、实现了 `Printable` 的 class/struct，以及它们的可空形式。这**不是**第二套格式化能力，只是把"写花括号"这一步省掉；`int[]`、`map`、元组这类复合类型照样报 `E4001`（要打印先自己拼接）。
 
-- **`fmt` 模块（0.0.27 新增）**：根模块内建，无需 `import`，提供三个成员，成员名一律 PascalCase（见 2.3）：
+- **`fmt` 模块（0.0.27 新增）**：根模块内建，无需 `import`，提供三个成员，成员名一律 camelCase（见 3.3）：
 
-  - `fmt.Print(args...)` / `fmt.Println(args...)`：与 `print` / `println` 语义完全一致（多实参、空格分隔、末尾是否换行），只是给习惯 `Print`/`Println` 命名的用户留的入口。
-  - `fmt.Printf(fmt, args...)`：编译期安全的格式化输出。第一个实参必须是**纯字符串字面量**（不含 `{...}` 插值），编译期解析占位符并核对个数与类型：
+  - `fmt.print(args...)` / `fmt.println(args...)`：与 `print` / `println` 语义完全一致（多实参、空格分隔、末尾是否换行），只是给习惯 `Print`/`Println` 命名的用户留的入口。
+  - `fmt.printf(fmt, args...)`：编译期安全的格式化输出。第一个实参必须是**纯字符串字面量**（不含 `{...}` 插值），编译期解析占位符并核对个数与类型：
 
 ```ax
 int n = 5
-fmt.Printf("%d 件\n", n)              // 5 件
-fmt.Printf("价格 %.2f 元\n", 19.99d)   // 价格 19.99 元
-fmt.Printf("ok=%t\n", true)           // ok=true
+fmt.printf("%d 件\n", n)              // 5 件
+fmt.printf("价格 %.2f 元\n", 19.99d)   // 价格 19.99 元
+fmt.printf("ok=%t\n", true)           // ok=true
 ```
 
   支持的占位符：

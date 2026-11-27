@@ -7,6 +7,14 @@
 > **1.0 及以上永远保留给语法冻结**（语言设计不再做破坏性变更）之后。
 > 阶段进位条件见 `ARCHITECTURE.md` §8。
 
+## [0.0.28] — 2026-11
+
+### 文档与版本同步（设计文稿 v0.50 ↔ 编译器 v0.0.28）
+
+- **关键词表补全**：`lexer.rs` `KEYWORDS` 实际 44 个，设计文稿 §2.7.1 与 §3.3 统一为 44，新增 `export` 至“模块与可见性”分组，并补全 `abstract`、`final`、`is`、`extern`、`unsafe`、`ref` 7 个缺失关键词
+- **浮点类型 `float32` 落地**：`types.rs` 实现 `Float32`、`t_float32()`、`"float32"` 映射、`f32` 字面量后缀，C 层对应 `float`；`builtin_scalar` 已包含 `"float32"`；`assignable` 实现 `float32 → float` 隐式扩大（`f32_to_f64`）。设计文稿 §4.1 新增 `float32` 行，命名规则改为“浮点有 float（64 位）与 float32（32 位）两种”
+- **interface 默认方法体**：`ast.rs` `MethodSig.default_body`、`parser.rs` 解析、`sema/mod.rs` 第 2351 行 `m.k.default_body.as_ref()` 均已落地，设计文稿 §8.3 示例与规则保持一致
+
 ## [0.0.27] — 2026-11
 
 ### 新增：`fmt` 模块与 `print`/`println` 多实参（文稿 11.2，规格书 §6.5/§9.4/§13.7/§15）
