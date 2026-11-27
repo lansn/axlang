@@ -1,0 +1,26 @@
+// tests/run/varargs.ax —— 用户定义函数可变参数 (...)
+import std.io
+
+// 可变参数函数：至少 1 个固定参数，后面可接任意数量实参
+int sum(int first, ...) {
+    io.writeLine("sum called")
+    return first
+}
+
+void printAll(string prefix, ...) {
+    io.writeLine(prefix)
+}
+
+int main() {
+    int r1 = sum(10)
+    io.writeLine("r1 done")
+    
+    int r2 = sum(10, 20, 30)
+    io.writeLine("r2 done")
+    
+    printAll("hello")
+    printAll("hello", "world")
+    printAll("a", "b", "c", "d")
+    
+    return 0
+}

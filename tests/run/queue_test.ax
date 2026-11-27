@@ -1,0 +1,41 @@
+// tests/run/queue_test.ax —— 队列（queue<T>：push/pop/tryPop/close）
+import std.io
+import std.strconv
+
+int main() {
+    queue<int> q = queue<int>()
+
+    q.push(10)
+    q.push(20)
+    q.push(30)
+    io.writeLine("queue push 3 items ok")
+
+    // pop 按 FIFO 顺序取出（队列非空时可用）
+    int? v1 = q.pop()
+    io.writeLine("pop1=")
+    io.writeLine(strconv.itoa(v1 ?? -1))
+
+    int? v2 = q.pop()
+    io.writeLine("pop2=")
+    io.writeLine(strconv.itoa(v2 ?? -1))
+
+    int? v3 = q.pop()
+    io.writeLine("pop3=")
+    io.writeLine(strconv.itoa(v3 ?? -1))
+
+    // tryPop 在空队列时立即返回 null（非阻塞）
+    int? v4 = q.tryPop()
+    io.writeLine("tryPop empty=")
+    io.writeLine(strconv.itoa(v4 ?? -1))
+
+    // 再 push 一个，tryPop 取出
+    q.push(100)
+    int? v5 = q.tryPop()
+    io.writeLine("tryPop=")
+    io.writeLine(strconv.itoa(v5 ?? -1))
+
+    q.close()
+    io.writeLine("queue close ok")
+
+    return 0
+}

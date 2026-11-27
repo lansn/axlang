@@ -1,0 +1,15 @@
+// tests/run/json_test.ax —— 标准库 std.json
+import std.io
+import std.json
+import std.strconv
+
+int main() {
+    string s = "{\"name\":\"ax\",\"version\":1}"
+    int ok = json.valid(s)
+    io.writeLine("valid=")
+    io.writeLine(strconv.itoa(ok))
+    string out = json.stringify(s)
+    io.writeLine("stringify=")
+    io.writeLine(out)
+    return 0
+}

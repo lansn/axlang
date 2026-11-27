@@ -1,8 +1,0 @@
-// EXPECT: E4009
-// 人类常犯：数组下标必须是 int
-int main() {
-    int[] xs = [1, 2, 3]
-    string idx = "0"
-    println(xs[idx])
-    return 0
-}

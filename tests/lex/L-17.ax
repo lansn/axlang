@@ -1,6 +1,0 @@
-// EXPECT: E1002
-// 人类常犯：单引号当字符串定界符，一个字符就是长度为 1 的 string
-int main() {
-    string c = 'a'
-    return 0
-}

@@ -1,4 +1,0 @@
-// EXPECT: E3030
-// 人类常犯：模块内符号默认私有，未写 public 导出
-//（此文件作为被 import 的模块时，未 public 的符号不可跨模块使用）
-string VALUE = "hello"

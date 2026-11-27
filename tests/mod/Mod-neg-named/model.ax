@@ -1,7 +1,0 @@
-public string greet(string who) {
-    return "hello, {who}"
-}
-
-public string hidden(string who) {
-    return "secret"
-}

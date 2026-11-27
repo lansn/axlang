@@ -1,0 +1,8 @@
+// EXPECT: E4001
+// 类型不匹配：把 int 赋给 string
+import std.io
+
+int main() {
+    string s = 42
+    return 0
+}

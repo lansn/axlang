@@ -1,0 +1,16 @@
+// tests/run/maps_test.ax —— 内建模块 maps
+import std.io
+import std.strconv
+
+int main() {
+    map<string, int> m = {}
+    m["a"] = 1
+    m["b"] = 2
+    int v = m["a"]
+    io.writeLine("m[a]=")
+    io.writeLine(strconv.itoa(v))
+    bool has = m["b"] != 0
+    io.writeLine("has b=")
+    io.writeLine(strconv.formatBool(has))
+    return 0
+}

@@ -1,0 +1,8 @@
+// EXPECT: E3030
+// 模块内符号默认私有，未导出
+import std.io
+
+int main() {
+    std.io.nonexistentFunc()
+    return 0
+}

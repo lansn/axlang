@@ -1,5 +1,6 @@
 // EXPECT: E1005
+// 数值字面量缺少数字（下划线结尾）
 int main() {
-    int a = 1__0
-    return a
+    int x = 12_
+    return 0
 }

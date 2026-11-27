@@ -1,9 +1,0 @@
-int twice(func(int) int f, int x) { return f(f(x)) }
-
-int main() {
-    int base = 5
-    int r = twice((int n) { return n + 1 }, base)
-    println("r={r}")
-    println("base={base}")
-    return 0
-}

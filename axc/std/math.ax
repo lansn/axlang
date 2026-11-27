@@ -21,36 +21,36 @@ extern "C" {
     float ax_math_ldexp(float x, int exp);
 
     /* C 标准库 math.h（标准 C11，无 GNU/Clang 扩展） */
-    float fabs(float x);
-    float fmax(float a, float b);
-    float fmin(float a, float b);
-    float sqrt(float x);
-    float pow(float a, float b);
-    float exp(float x);
-    float log(float x);
-    float sin(float x);
-    float cos(float x);
-    float tan(float x);
-    float ceil(float x);
-    float floor(float x);
-    float round(float x);
-    float fmod(float x, float y);
-    float exp2(float x);
-    float log2(float x);
-    float log10(float x);
-    float log1p(float x);
+    float ax_math_fabs(float x);
+    float ax_math_fmax(float a, float b);
+    float ax_math_fmin(float a, float b);
+    float ax_math_sqrt(float x);
+    float ax_math_pow(float a, float b);
+    float ax_math_exp(float x);
+    float ax_math_log(float x);
+    float ax_math_sin(float x);
+    float ax_math_cos(float x);
+    float ax_math_tan(float x);
+    float ax_math_ceil(float x);
+    float ax_math_floor(float x);
+    float ax_math_round(float x);
+    float ax_math_fmod(float x, float y);
+    float ax_math_exp2(float x);
+    float ax_math_log2(float x);
+    float ax_math_log10(float x);
+    float ax_math_log1p(float x);
 
     /* 双曲与反三角函数，立方根，向零取整（C11 math.h） */
-    float sinh(float x);
-    float cosh(float x);
-    float tanh(float x);
-    float asin(float x);
-    float acos(float x);
-    float atan(float x);
-    float atan2(float y, float x);
-    float hypot(float p, float q);
-    float cbrt(float x);
-    float trunc(float x);
+    float ax_math_sinh(float x);
+    float ax_math_cosh(float x);
+    float ax_math_tanh(float x);
+    float ax_math_asin(float x);
+    float ax_math_acos(float x);
+    float ax_math_atan(float x);
+    float ax_math_atan2(float y, float x);
+    float ax_math_hypot(float p, float q);
+    float ax_math_cbrt(float x);
+    float ax_math_trunc(float x);
 
     /* math.Frexp：将 x 分解为尾数和 2 的幂指数，拆为两个 axrt 原语 */
     float ax_math_frexp_frac(float x);
@@ -59,228 +59,494 @@ extern "C" {
 
 // ---------- 模块级函数（C 风格命名：小写 + 下划线） ----------
 
+/**
+ * 函数名：abs
+ * 功能：返回 x 的绝对值
+ * 输入参数：x (float) - 输入浮点数
+ * 输出参数：float - x 的绝对值
+ * 修订日期：2026-11-27
+ */
 public float abs(float x) {
     unsafe {
-        return fabs(x)
+        return ax_math_fabs(x)
     }
 }
 
+/**
+ * 函数名：max
+ * 功能：返回 a 和 b 中的较大值
+ * 输入参数：a (float) - 第一个浮点数；b (float) - 第二个浮点数
+ * 输出参数：float - 较大值
+ * 修订日期：2026-11-27
+ */
 public float max(float a, float b) {
     unsafe {
-        return fmax(a, b)
+        return ax_math_fmax(a, b)
     }
 }
 
+/**
+ * 函数名：min
+ * 功能：返回 a 和 b 中的较小值
+ * 输入参数：a (float) - 第一个浮点数；b (float) - 第二个浮点数
+ * 输出参数：float - 较小值
+ * 修订日期：2026-11-27
+ */
 public float min(float a, float b) {
     unsafe {
-        return fmin(a, b)
+        return ax_math_fmin(a, b)
     }
 }
 
+/**
+ * 函数名：sqrt
+ * 功能：返回 x 的平方根
+ * 输入参数：x (float) - 输入浮点数
+ * 输出参数：float - x 的平方根
+ * 修订日期：2026-11-27
+ */
 public float sqrt(float x) {
     unsafe {
-        return sqrt(x)
+        return ax_math_sqrt(x)
     }
 }
 
+/**
+ * 函数名：pow
+ * 功能：返回 a 的 b 次幂
+ * 输入参数：a (float) - 底数；b (float) - 指数
+ * 输出参数：float - a 的 b 次幂
+ * 修订日期：2026-11-27
+ */
 public float pow(float a, float b) {
     unsafe {
-        return pow(a, b)
+        return ax_math_pow(a, b)
     }
 }
 
+/**
+ * 函数名：exp
+ * 功能：返回 e 的 x 次幂
+ * 输入参数：x (float) - 指数
+ * 输出参数：float - e 的 x 次幂
+ * 修订日期：2026-11-27
+ */
 public float exp(float x) {
     unsafe {
-        return exp(x)
+        return ax_math_exp(x)
     }
 }
 
+/**
+ * 函数名：log
+ * 功能：返回 x 的自然对数
+ * 输入参数：x (float) - 输入浮点数
+ * 输出参数：float - x 的自然对数
+ * 修订日期：2026-11-27
+ */
 public float log(float x) {
     unsafe {
-        return log(x)
+        return ax_math_log(x)
     }
 }
 
+/**
+ * 函数名：sin
+ * 功能：返回 x 的正弦值（弧度）
+ * 输入参数：x (float) - 角度（弧度）
+ * 输出参数：float - 正弦值
+ * 修订日期：2026-11-27
+ */
 public float sin(float x) {
     unsafe {
-        return sin(x)
+        return ax_math_sin(x)
     }
 }
 
+/**
+ * 函数名：cos
+ * 功能：返回 x 的余弦值（弧度）
+ * 输入参数：x (float) - 角度（弧度）
+ * 输出参数：float - 余弦值
+ * 修订日期：2026-11-27
+ */
 public float cos(float x) {
     unsafe {
-        return cos(x)
+        return ax_math_cos(x)
     }
 }
 
+/**
+ * 函数名：tan
+ * 功能：返回 x 的正切值（弧度）
+ * 输入参数：x (float) - 角度（弧度）
+ * 输出参数：float - 正切值
+ * 修订日期：2026-11-27
+ */
 public float tan(float x) {
     unsafe {
-        return tan(x)
+        return ax_math_tan(x)
     }
 }
 
+/**
+ * 函数名：ceil
+ * 功能：返回不小于 x 的最小整数（向上取整）
+ * 输入参数：x (float) - 输入浮点数
+ * 输出参数：float - 向上取整后的值
+ * 修订日期：2026-11-27
+ */
 public float ceil(float x) {
     unsafe {
-        return ceil(x)
+        return ax_math_ceil(x)
     }
 }
 
+/**
+ * 函数名：floor
+ * 功能：返回不大于 x 的最大整数（向下取整）
+ * 输入参数：x (float) - 输入浮点数
+ * 输出参数：float - 向下取整后的值
+ * 修订日期：2026-11-27
+ */
 public float floor(float x) {
     unsafe {
-        return floor(x)
+        return ax_math_floor(x)
     }
 }
 
+/**
+ * 函数名：round
+ * 功能：返回 x 四舍五入后的整数
+ * 输入参数：x (float) - 输入浮点数
+ * 输出参数：float - 四舍五入后的值
+ * 修订日期：2026-11-27
+ */
 public float round(float x) {
     unsafe {
-        return round(x)
+        return ax_math_round(x)
     }
 }
 
+/**
+ * 函数名：sign
+ * 功能：返回 x 的符号，正数返回 1，负数返回 -1，零返回 0
+ * 输入参数：x (float) - 输入浮点数
+ * 输出参数：int - 符号值（1/-1/0）
+ * 修订日期：2026-11-27
+ */
 public int sign(float x) {
     unsafe {
         return ax_math_sign(x)
     }
 }
 
+/**
+ * 函数名：mod
+ * 功能：返回 x 除以 y 的余数（浮点取模）
+ * 输入参数：x (float) - 被除数；y (float) - 除数
+ * 输出参数：float - 余数
+ * 修订日期：2026-11-27
+ */
 public float mod(float x, float y) {
     unsafe {
         return ax_math_mod(x, y)
     }
 }
 
+/**
+ * 函数名：equals
+ * 功能：判断 a 和 b 是否在 eps 容差范围内相等
+ * 输入参数：a (float) - 第一个浮点数；b (float) - 第二个浮点数；eps (float) - 容差
+ * 输出参数：int - 1 表示相等，0 表示不相等
+ * 修订日期：2026-11-27
+ */
 public int equals(float a, float b, float eps) {
     unsafe {
-        return (ax_math_sign(fabs(a - b) - eps) <= 0) ? 1 : 0
+        return (ax_math_sign(ax_math_fabs(a - b) - eps) <= 0) ? 1 : 0
     }
 }
 
+/**
+ * 函数名：compare
+ * 功能：比较 a 和 b
+ * 输入参数：a (float) - 第一个浮点数；b (float) - 第二个浮点数
+ * 输出参数：int - -1 表示 a<b，0 表示 a=b，1 表示 a>b
+ * 修订日期：2026-11-27
+ */
 public int compare(float a, float b) {
     unsafe {
         return ax_math_sign(a - b)
     }
 }
 
+/**
+ * 函数名：exp2
+ * 功能：返回 2 的 x 次幂
+ * 输入参数：x (float) - 指数
+ * 输出参数：float - 2 的 x 次幂
+ * 修订日期：2026-11-27
+ */
 public float exp2(float x) {
     unsafe {
-        return exp2(x)
+        return ax_math_exp2(x)
     }
 }
 
+/**
+ * 函数名：log10
+ * 功能：返回 x 的以 10 为底的对数
+ * 输入参数：x (float) - 输入浮点数
+ * 输出参数：float - x 的以 10 为底的对数
+ * 修订日期：2026-11-27
+ */
 public float log10(float x) {
     unsafe {
-        return log10(x)
+        return ax_math_log10(x)
     }
 }
 
+/**
+ * 函数名：log2
+ * 功能：返回 x 的以 2 为底的对数
+ * 输入参数：x (float) - 输入浮点数
+ * 输出参数：float - x 的以 2 为底的对数
+ * 修订日期：2026-11-27
+ */
 public float log2(float x) {
     unsafe {
-        return log2(x)
+        return ax_math_log2(x)
     }
 }
 
+/**
+ * 函数名：log1p
+ * 功能：返回 ln(1 + x)
+ * 输入参数：x (float) - 输入浮点数
+ * 输出参数：float - ln(1 + x) 的值
+ * 修订日期：2026-11-27
+ */
 public float log1p(float x) {
     unsafe {
-        return log1p(x)
+        return ax_math_log1p(x)
     }
 }
 
+/**
+ * 函数名：isNaN
+ * 功能：判断 x 是否为 NaN
+ * 输入参数：x (float) - 输入浮点数
+ * 输出参数：int - 1 表示是 NaN，0 表示不是
+ * 修订日期：2026-11-27
+ */
 public int isNaN(float x) {
     unsafe {
         return ax_math_isnan(x)
     }
 }
 
+/**
+ * 函数名：isInf
+ * 功能：判断 x 是否为无穷大
+ * 输入参数：x (float) - 输入浮点数；sign (int) - 符号标志（>0 检查正无穷，<0 检查负无穷，=0 检查任意无穷）
+ * 输出参数：int - 1 表示是无穷大，0 表示不是
+ * 修订日期：2026-11-27
+ */
 public int isInf(float x, int sign) {
     unsafe {
         return ax_math_isinf(x, sign)
     }
 }
 
+/**
+ * 函数名：signbit
+ * 功能：判断 x 的符号位是否为负
+ * 输入参数：x (float) - 输入浮点数
+ * 输出参数：int - 1 表示符号位为负，0 表示不是
+ * 修订日期：2026-11-27
+ */
 public int signbit(float x) {
     unsafe {
         return ax_math_signbit(x)
     }
 }
 
+/**
+ * 函数名：copysign
+ * 功能：返回带 y 符号的 x 的绝对值
+ * 输入参数：x (float) - 输入浮点数；y (float) - 符号来源浮点数
+ * 输出参数：float - 带 y 符号的 |x|
+ * 修订日期：2026-11-27
+ */
 public float copysign(float x, float y) {
     unsafe {
         return ax_math_copysign(x, y)
     }
 }
 
+/**
+ * 函数名：dim
+ * 功能：返回 max(x - y, 0)
+ * 输入参数：x (float) - 第一个浮点数；y (float) - 第二个浮点数
+ * 输出参数：float - max(x - y, 0) 的值
+ * 修订日期：2026-11-27
+ */
 public float dim(float x, float y) {
     unsafe {
         return ax_math_dim(x, y)
     }
 }
 
+/**
+ * 函数名：ldexp
+ * 功能：返回 x × 2^exp
+ * 输入参数：x (float) - 底数；exp (int) - 指数
+ * 输出参数：float - x × 2^exp 的值
+ * 修订日期：2026-11-27
+ */
 public float ldexp(float x, int exp) {
     unsafe {
         return ax_math_ldexp(x, exp)
     }
 }
 
+/**
+ * 函数名：sinh
+ * 功能：返回 x 的双曲正弦值
+ * 输入参数：x (float) - 输入浮点数
+ * 输出参数：float - 双曲正弦值
+ * 修订日期：2026-11-27
+ */
 public float sinh(float x) {
     unsafe {
-        return sinh(x)
+        return ax_math_sinh(x)
     }
 }
 
+/**
+ * 函数名：cosh
+ * 功能：返回 x 的双曲余弦值
+ * 输入参数：x (float) - 输入浮点数
+ * 输出参数：float - 双曲余弦值
+ * 修订日期：2026-11-27
+ */
 public float cosh(float x) {
     unsafe {
-        return cosh(x)
+        return ax_math_cosh(x)
     }
 }
 
+/**
+ * 函数名：tanh
+ * 功能：返回 x 的双曲正切值
+ * 输入参数：x (float) - 输入浮点数
+ * 输出参数：float - 双曲正切值
+ * 修订日期：2026-11-27
+ */
 public float tanh(float x) {
     unsafe {
-        return tanh(x)
+        return ax_math_tanh(x)
     }
 }
 
+/**
+ * 函数名：asin
+ * 功能：返回 x 的反正弦值（弧度）
+ * 输入参数：x (float) - 输入浮点数
+ * 输出参数：float - 反正弦值（弧度）
+ * 修订日期：2026-11-27
+ */
 public float asin(float x) {
     unsafe {
-        return asin(x)
+        return ax_math_asin(x)
     }
 }
 
+/**
+ * 函数名：acos
+ * 功能：返回 x 的反余弦值（弧度）
+ * 输入参数：x (float) - 输入浮点数
+ * 输出参数：float - 反余弦值（弧度）
+ * 修订日期：2026-11-27
+ */
 public float acos(float x) {
     unsafe {
-        return acos(x)
+        return ax_math_acos(x)
     }
 }
 
+/**
+ * 函数名：atan
+ * 功能：返回 x 的反正切值（弧度）
+ * 输入参数：x (float) - 输入浮点数
+ * 输出参数：float - 反正切值（弧度）
+ * 修订日期：2026-11-27
+ */
 public float atan(float x) {
     unsafe {
-        return atan(x)
+        return ax_math_atan(x)
     }
 }
 
+/**
+ * 函数名：atan2
+ * 功能：返回 y/x 的反正切值（考虑象限，弧度）
+ * 输入参数：y (float) - 分子；x (float) - 分母
+ * 输出参数：float - 反正切值（弧度）
+ * 修订日期：2026-11-27
+ */
 public float atan2(float y, float x) {
     unsafe {
-        return atan2(y, x)
+        return ax_math_atan2(y, x)
     }
 }
 
+/**
+ * 函数名：hypot
+ * 功能：返回 sqrt(p² + q²)
+ * 输入参数：p (float) - 第一个浮点数；q (float) - 第二个浮点数
+ * 输出参数：float - sqrt(p² + q²) 的值
+ * 修订日期：2026-11-27
+ */
 public float hypot(float p, float q) {
     unsafe {
-        return hypot(p, q)
+        return ax_math_hypot(p, q)
     }
 }
 
+/**
+ * 函数名：cbrt
+ * 功能：返回 x 的立方根
+ * 输入参数：x (float) - 输入浮点数
+ * 输出参数：float - x 的立方根
+ * 修订日期：2026-11-27
+ */
 public float cbrt(float x) {
     unsafe {
-        return cbrt(x)
+        return ax_math_cbrt(x)
     }
 }
 
+/**
+ * 函数名：trunc
+ * 功能：返回 x 向零取整的整数部分
+ * 输入参数：x (float) - 输入浮点数
+ * 输出参数：float - 向零取整后的值
+ * 修订日期：2026-11-27
+ */
 public float trunc(float x) {
     unsafe {
-        return trunc(x)
+        return ax_math_trunc(x)
     }
 }
 
+/**
+ * 函数名：frexp
+ * 功能：将 f 分解为尾数和 2 的幂指数
+ * 输入参数：f (float) - 输入浮点数
+ * 输出参数：(float, int) - 尾数和指数
+ * 修订日期：2026-11-27
+ */
 public (float, int) frexp(float f) {
     unsafe {
         return (ax_math_frexp_frac(f), ax_math_frexp_exp(f))

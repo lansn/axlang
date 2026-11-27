@@ -1,7 +1,0 @@
-sum_arr      =124999750000
-sum_arr_plain=124999750000
-ffi-ok
-ffi_once ret=0
-10kx move BigObj(100) mv_sum=1000000
-500kx identity(int) id_sum=124999750000
-Perf-1 done

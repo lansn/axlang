@@ -1,9 +1,0 @@
-mkdir=0
-exists-a=1
-exists-missing=0
-rename=0
-exists-b=1
-exists-a-after-rename=0
-remove=0
-exists-b-after-remove=0
-remove-missing=1

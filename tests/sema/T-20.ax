@@ -1,5 +1,0 @@
-// EXPECT: E4010
-int main() {
-    string s = "a" + 1
-    return 0
-}

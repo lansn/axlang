@@ -1,0 +1,21 @@
+// tests/run/arithmetic.ax —— 算术运算
+import std.io
+import std.strconv
+
+int main() {
+    int a = 10
+    int b = 3
+    io.writeLine("add=")
+    io.writeLine(strconv.itoa(a + b))
+    io.writeLine("sub=")
+    io.writeLine(strconv.itoa(a - b))
+    io.writeLine("mul=")
+    io.writeLine(strconv.itoa(a * b))
+    io.writeLine("div=")
+    io.writeLine(strconv.itoa(a / b))
+    io.writeLine("mod=")
+    io.writeLine(strconv.itoa(a % b))
+    io.writeLine("neg=")
+    io.writeLine(strconv.itoa(-a))
+    return 0
+}

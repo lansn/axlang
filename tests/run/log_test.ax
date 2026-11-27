@@ -1,0 +1,8 @@
+// tests/run/log_test.ax —— 内建模块 log
+import std.io
+
+int main() {
+    log.print("hello")
+    log.printf("value=%d", 42)
+    return 0
+}

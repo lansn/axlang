@@ -1,5 +1,0 @@
-// import 模块正例：已移至 tests/mod/ 多文件结构测试
-// 单文件测试无法 import 外部模块，此处仅做占位
-int main() {
-    return 0
-}

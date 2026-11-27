@@ -1,0 +1,6 @@
+// tests/mod/Mod-Cycle/main.ax —— 循环导入入口
+import a
+
+int main() {
+    return 0
+}

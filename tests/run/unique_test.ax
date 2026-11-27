@@ -1,0 +1,11 @@
+// tests/run/unique_test.ax —— 内建模块 unique
+import std.io
+import std.strconv
+
+int main() {
+    var h = unique.make(42)
+    string u = strconv.itoa(unique.value(h))
+    io.writeLine("unique.value(make(42))=")
+    io.writeLine(u)
+    return 0
+}

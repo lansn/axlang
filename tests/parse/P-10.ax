@@ -1,0 +1,6 @@
+// EXPECT: E2001
+// 类型名后缺少变量名，直接是赋值
+int main() {
+    int =
+    return 0
+}

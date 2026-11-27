@@ -1,6 +1,0 @@
-int secret() {
-    return 1
-}
-public int open() {
-    return secret()
-}

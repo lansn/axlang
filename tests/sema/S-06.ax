@@ -1,0 +1,6 @@
+// EXPECT: E4001
+// 把 string 赋给 int 变量
+int main() {
+    int x = "hello"
+    return 0
+}

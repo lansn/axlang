@@ -14,24 +14,52 @@ extern "C" {
     bool ax_atomic_compare_and_swap_int(ref int addr, int old, int replacement);
 }
 
+/**
+ * 函数名：addInt
+ * 功能：原子地将 delta 加到 *addr
+ * 输入参数：addr (ref int) - 目标整数变量的引用；delta (int) - 增量
+ * 输出参数：int - 加法后的值
+ * 修订日期：2026-11-27
+ */
 public int addInt(ref int addr, int delta) {
     unsafe {
         ax_atomic_add_int(addr, delta)
     }
 }
 
+/**
+ * 函数名：loadInt
+ * 功能：原子地读取 *addr 的值
+ * 输入参数：addr (ref int) - 目标整数变量的引用
+ * 输出参数：int - *addr 的当前值
+ * 修订日期：2026-11-27
+ */
 public int loadInt(ref int addr) {
     unsafe {
         ax_atomic_load_int(addr)
     }
 }
 
+/**
+ * 函数名：storeInt
+ * 功能：原子地将 val 存入 *addr
+ * 输入参数：addr (ref int) - 目标整数变量的引用；val (int) - 要存储的值
+ * 输出参数：无
+ * 修订日期：2026-11-27
+ */
 public void storeInt(ref int addr, int val) {
     unsafe {
         ax_atomic_store_int(addr, val)
     }
 }
 
+/**
+ * 函数名：compareAndSwapInt
+ * 功能：原子比较并交换，*addr 等于 old 时替换为 replacement
+ * 输入参数：addr (ref int) - 目标整数变量的引用；old (int) - 期望的旧值；replacement (int) - 新值
+ * 输出参数：bool - true 表示交换成功，false 表示失败
+ * 修订日期：2026-11-27
+ */
 public bool compareAndSwapInt(ref int addr, int old, int replacement) {
     unsafe {
         ax_atomic_compare_and_swap_int(addr, old, replacement)

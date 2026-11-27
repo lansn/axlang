@@ -1,0 +1,6 @@
+// EXPECT: E3002
+// 变量声明必须有初值
+int main() {
+    int x
+    return 0
+}

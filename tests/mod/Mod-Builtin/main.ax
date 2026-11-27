@@ -1,0 +1,14 @@
+// tests/mod/Mod-Builtin/main.ax —— 内建模块直接使用（无需 import）
+import std.io
+import std.strconv
+
+int main() {
+    var arr = [0, 0, 0]
+    arr[0] = 3
+    arr[1] = 1
+    arr[2] = 2
+    sort.ints(arr)
+    io.writeLine("sorted[0]=")
+    io.writeLine(strconv.itoa(arr[0]))
+    return 0
+}

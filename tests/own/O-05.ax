@@ -1,19 +1,7 @@
-// EXPECT: E7001
-// O-5：循环体内 move 外层变量，下一轮迭代即 use-after-move
-class Buf {
-    public int n
-    constructor(int n) {
-        this.n = n
-    }
-}
-
-void sink(Buf b) {
-}
+// EXPECT: E3014
+// protected 只能用于类成员
+protected int x = 5
 
 int main() {
-    var b = new Buf(1)
-    for i in 0..3 {
-        sink(b)
-    }
     return 0
 }

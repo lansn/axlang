@@ -1,7 +1,0 @@
-// wrapping_add：int 带环绕加法
-int main() {
-    int a = 100
-    int b = a.wrappingAdd(200)
-    println("b={b}")
-    return 0
-}

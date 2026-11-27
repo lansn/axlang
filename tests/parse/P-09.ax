@@ -1,0 +1,6 @@
+// EXPECT: E2001
+// 函数声明缺少函数体
+int foo()
+int main() {
+    return 0
+}

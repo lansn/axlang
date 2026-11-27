@@ -37,117 +37,247 @@ const int FILE_MODE_READ = 0
 const int FILE_MODE_WRITE = 1
 const int FILE_MODE_APPEND = 2
 
+/**
+ * 函数名：open
+ * 功能：打开指定路径的文件
+ * 输入参数：path (string) - 文件路径
+ * 输出参数：File - 文件句柄
+ * 修订日期：2026-11-27
+ */
 public File open(string path) {
     unsafe {
         return ax_file_open(path)
     }
 }
 
+/**
+ * 函数名：create
+ * 功能：创建并打开指定路径的文件
+ * 输入参数：path (string) - 文件路径
+ * 输出参数：File - 文件句柄
+ * 修订日期：2026-11-27
+ */
 public File create(string path) {
     unsafe {
         return ax_file_create(path)
     }
 }
 
+/**
+ * 函数名：append
+ * 功能：以追加模式打开指定路径的文件
+ * 输入参数：path (string) - 文件路径
+ * 输出参数：File - 文件句柄
+ * 修订日期：2026-11-27
+ */
 public File append(string path) {
     unsafe {
         return ax_file_append(path)
     }
 }
 
+/**
+ * 函数名：remove
+ * 功能：删除指定路径的文件
+ * 输入参数：path (string) - 文件路径
+ * 输出参数：int - 0 表示成功，非 0 表示失败
+ * 修订日期：2026-11-27
+ */
 public int remove(string path) {
     unsafe {
         return ax_file_remove(path)
     }
 }
 
+/**
+ * 函数名：rename
+ * 功能：重命名文件
+ * 输入参数：old_path (string) - 原文件路径；new_path (string) - 新文件路径
+ * 输出参数：int - 0 表示成功，非 0 表示失败
+ * 修订日期：2026-11-27
+ */
 public int rename(string old_path, string new_path) {
     unsafe {
         return ax_file_rename(old_path, new_path)
     }
 }
 
+/**
+ * 函数名：exists
+ * 功能：判断路径是否存在
+ * 输入参数：path (string) - 待判断的路径
+ * 输出参数：int - 1 表示存在，0 表示不存在
+ * 修订日期：2026-11-27
+ */
 public int exists(string path) {
     unsafe {
         return ax_file_exists(path)
     }
 }
 
+/**
+ * 函数名：mkdir
+ * 功能：创建目录
+ * 输入参数：path (string) - 目录路径
+ * 输出参数：int - 0 表示成功，非 0 表示失败
+ * 修订日期：2026-11-27
+ */
 public int mkdir(string path) {
     unsafe {
         return ax_dir_create(path)
     }
 }
 
+/**
+ * 函数名：isDir
+ * 功能：判断路径是否为目录
+ * 输入参数：path (string) - 待判断的路径
+ * 输出参数：int - 1 表示是目录，0 表示不是
+ * 修订日期：2026-11-27
+ */
 public int isDir(string path) {
     unsafe {
         return ax_file_is_dir(path)
     }
 }
 
+/**
+ * 函数名：isFile
+ * 功能：判断路径是否为普通文件
+ * 输入参数：path (string) - 待判断的路径
+ * 输出参数：int - 1 表示是普通文件，0 表示不是
+ * 修订日期：2026-11-27
+ */
 public int isFile(string path) {
     unsafe {
         return ax_file_is_file(path)
     }
 }
 
+/**
+ * 函数名：size
+ * 功能：返回文件大小（字节）
+ * 输入参数：path (string) - 文件路径
+ * 输出参数：int - 文件大小（字节），失败返回 -1
+ * 修订日期：2026-11-27
+ */
 public int size(string path) {
     unsafe {
         return ax_file_size(path)
     }
 }
 
+/**
+ * 函数名：modTime
+ * 功能：返回文件修改时间（Unix 时间戳，秒）
+ * 输入参数：path (string) - 文件路径
+ * 输出参数：int - 修改时间（Unix 时间戳，秒），失败返回 -1
+ * 修订日期：2026-11-27
+ */
 public int modTime(string path) {
     unsafe {
         return ax_file_modtime(path)
     }
 }
 
+/**
+ * 函数名：writeAll
+ * 功能：将字符串 s 写入指定路径的文件
+ * 输入参数：path (string) - 文件路径；s (string) - 要写入的字符串
+ * 输出参数：int - 0 表示成功，非 0 表示失败
+ * 修订日期：2026-11-27
+ */
 public int writeAll(string path, string s) {
     unsafe {
         return ax_file_write_all(path, s)
     }
 }
 
+/**
+ * 函数名：chmod
+ * 功能：修改文件权限模式
+ * 输入参数：path (string) - 文件路径；mode (int) - 权限模式
+ * 输出参数：int - 0 表示成功，非 0 表示失败
+ * 修订日期：2026-11-27
+ */
 public int chmod(string path, int mode) {
     unsafe {
         return ax_file_chmod(path, mode)
     }
 }
 
+/**
+ * 函数名：chtimes
+ * 功能：修改文件访问时间和修改时间
+ * 输入参数：path (string) - 文件路径；atime (int) - 访问时间；mtime (int) - 修改时间
+ * 输出参数：int - 0 表示成功，非 0 表示失败
+ * 修订日期：2026-11-27
+ */
 public int chtimes(string path, int atime, int mtime) {
     unsafe {
         return ax_file_chtimes(path, atime, mtime)
     }
 }
 
+/**
+ * 函数名：tempFile
+ * 功能：在指定目录创建带前缀的临时文件
+ * 输入参数：dir (string) - 目录路径；prefix (string) - 文件名前缀
+ * 输出参数：File - 临时文件句柄
+ * 修订日期：2026-11-27
+ */
 public File tempFile(string dir, string prefix) {
     unsafe {
         return ax_file_tempfile(dir, prefix)
     }
 }
 
-// File 实例风格函数（对标 File.Read / ReadLine / Write / WriteLine / Close）
-// 第一个参数为 File 或 ref File，ax 代码中通过 std.file.readAll(f) 调用。
-
+/**
+ * 函数名：readAll
+ * 功能：读取文件 f 的全部内容
+ * 输入参数：f (File) - 文件句柄
+ * 输出参数：string - 文件全部内容
+ * 修订日期：2026-11-27
+ */
 public string readAll(File f) {
     unsafe {
         return ax_file_read_all_val(f)
     }
 }
 
+/**
+ * 函数名：write
+ * 功能：将字符串 s 写入文件 f
+ * 输入参数：f (ref File) - 文件句柄引用；s (string) - 要写入的字符串
+ * 输出参数：int - 写入的字节数或状态码
+ * 修订日期：2026-11-27
+ */
 public int write(ref File f, string s) {
     unsafe {
         return ax_file_write(f, s)
     }
 }
 
+/**
+ * 函数名：writeLine
+ * 功能：将字符串 s 换行写入文件 f
+ * 输入参数：f (ref File) - 文件句柄引用；s (string) - 要写入的字符串
+ * 输出参数：int - 写入的字节数或状态码
+ * 修订日期：2026-11-27
+ */
 public int writeLine(ref File f, string s) {
     unsafe {
         return ax_file_write_line(f, s)
     }
 }
 
+/**
+ * 函数名：close
+ * 功能：关闭文件 f
+ * 输入参数：f (ref File) - 文件句柄引用
+ * 输出参数：无
+ * 修订日期：2026-11-27
+ */
 public void close(ref File f) {
     unsafe {
         ax_file_close(f)

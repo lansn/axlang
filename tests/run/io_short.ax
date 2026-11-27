@@ -1,0 +1,7 @@
+// tests/run/io_short.ax —— 验证 import 后是否可用短名 io.xxx
+import std.io
+
+int main() {
+    io.writeLine("hello via io.short")
+    return 0
+}

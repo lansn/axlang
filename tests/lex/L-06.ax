@@ -1,5 +1,6 @@
-// EXPECT: PASS
+// EXPECT: E1007
+// \u 转义未闭合
 int main() {
-    decimal p = 19.99d
+    string s = "\u"
     return 0
 }

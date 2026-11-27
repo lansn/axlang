@@ -1,0 +1,24 @@
+add=
+13
+sub=
+7
+mul=
+30
+div=
+3
+mod=
+1
+neg=
+-10
+float add=
+9.5
+float sub=
+5.5
+float mul=
+15.0
+float div=
+3.75
+int->float div=
+3.33333333333333
+int8->int16->int32=
+10

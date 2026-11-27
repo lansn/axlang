@@ -1,0 +1,16 @@
+// tests/run/strconv_test.ax —— 标准库 std.strconv
+import std.io
+import std.strconv
+
+int main() {
+    string s = strconv.itoa(42)
+    io.writeLine("itoa(42)=")
+    io.writeLine(s)
+    string b = strconv.formatBool(true)
+    io.writeLine("formatBool(true)=")
+    io.writeLine(b)
+    string f = strconv.formatFloat(3.14)
+    io.writeLine("formatFloat(3.14)=")
+    io.writeLine(f)
+    return 0
+}

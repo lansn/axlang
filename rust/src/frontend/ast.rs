@@ -144,6 +144,7 @@ pub struct Param {
     pub borrow: Option<String>, // None | "mut" | "const"
     pub ty: TPtr,
     pub name: String,
+    pub varargs: bool,          // true 表示该参数为可变参数 (...)，须为最后一个参数
 }
 
 #[derive(Clone, Debug)]
@@ -770,7 +771,8 @@ fn dump_params(ps: &[N<Param>]) -> String {
                 Some("mut") => "&",
                 _ => "",
             };
-            format!("({}{},{})", pre, ex_ty(&p.k.ty), p.k.name)
+            let var = if p.k.varargs { "..." } else { "" };
+            format!("({}{},{}{})", pre, ex_ty(&p.k.ty), p.k.name, var)
         })
         .collect();
     format!("[{}]", out.join(","))

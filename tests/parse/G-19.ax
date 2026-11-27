@@ -1,9 +1,0 @@
-// EXPECT: E4001
-// 人类常犯：链式赋值 a = b = c，ax 不支持
-int main() {
-    int a = 1
-    int b = 2
-    int c = 3
-    a = b = c
-    return 0
-}

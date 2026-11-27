@@ -1,0 +1,13 @@
+// samples/08_defer.ax —— defer 延迟执行
+import std.io
+
+public void cleanup() {
+    io.writeLine("deferred cleanup")
+}
+
+int main() {
+    io.writeLine("start")
+    defer cleanup()
+    io.writeLine("working")
+    return 0
+}

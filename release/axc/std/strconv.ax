@@ -27,66 +27,143 @@ extern "C" {
 
 // ---------- 模块级函数（C 风格命名：小写 + 下划线） ----------
 
+/**
+ * 函数名：itoa
+ * 功能：把 int 转成十进制字符串（integer to ASCII，如 42 → "42"）
+ * 输入参数：v (int) - 要转换的整数
+ * 输出参数：string - 十进制字符串表示
+ * 修订日期：2026-11-27
+ */
 public string itoa(int v) {
     unsafe {
         return ax_str_of_int(v)
     }
 }
 
+/**
+ * 函数名：formatUint
+ * 功能：将整数 v 转换为指定进制的字符串表示（无符号）
+ * 输入参数：v (int) - 要转换的整数；base (int) - 进制基数
+ * 输出参数：string - 指定进制的字符串表示
+ * 修订日期：2026-11-27
+ */
 public string formatUint(int v, int base) {
     unsafe {
         return ax_str_of_uint_base(v, base)
     }
 }
 
+/**
+ * 函数名：formatInt
+ * 功能：将整数 v 转换为指定进制的字符串表示（有符号）
+ * 输入参数：v (int) - 要转换的整数；base (int) - 进制基数
+ * 输出参数：string - 指定进制的字符串表示
+ * 修订日期：2026-11-27
+ */
 public string formatInt(int v, int base) {
     unsafe {
         return ax_str_of_int_base(v, base)
     }
 }
 
+/**
+ * 函数名：formatBool
+ * 功能：将布尔值 v 转换为字符串 "true" 或 "false"
+ * 输入参数：v (bool) - 要转换的布尔值
+ * 输出参数：string - "true" 或 "false"
+ * 修订日期：2026-11-27
+ */
 public string formatBool(bool v) {
     unsafe {
         return ax_str_of_bool(v)
     }
 }
 
+/**
+ * 函数名：formatFloat
+ * 功能：将浮点数 v 转换为字符串表示
+ * 输入参数：v (float) - 要转换的浮点数
+ * 输出参数：string - 浮点数的字符串表示
+ * 修订日期：2026-11-27
+ */
 public string formatFloat(float v) {
     unsafe {
         return ax_str_of_f64(v)
     }
 }
 
+/**
+ * 函数名：parseBool
+ * 功能：将字符串 s 解析为布尔值
+ * 输入参数：s (string) - 待解析的字符串
+ * 输出参数：int - 1 表示 true，0 表示 false，-1 表示非法
+ * 修订日期：2026-11-27
+ */
 public int parseBool(string s) {
     unsafe {
         return ax_parse_bool(s)
     }
 }
 
+/**
+ * 函数名：parseInt
+ * 功能：将字符串 s 按指定进制解析为整数
+ * 输入参数：s (string) - 待解析的字符串；base (int) - 进制基数
+ * 输出参数：int - 解析后的整数值
+ * 修订日期：2026-11-27
+ */
 public int parseInt(string s, int base) {
     unsafe {
         return ax_parse_int_base(s, base)
     }
 }
 
+/**
+ * 函数名：parseUint
+ * 功能：将字符串 s 按指定进制解析为无符号整数
+ * 输入参数：s (string) - 待解析的字符串；base (int) - 进制基数
+ * 输出参数：int - 解析后的无符号整数值
+ * 修订日期：2026-11-27
+ */
 public int parseUint(string s, int base) {
     unsafe {
         return ax_parse_uint_base(s, base)
     }
 }
 
+/**
+ * 函数名：canBackquote
+ * 功能：判断字符串 s 是否可以用反引号直接表示（不含特殊字符）
+ * 输入参数：s (string) - 待判断的字符串
+ * 输出参数：int - 1 表示可以，0 表示不可以
+ * 修订日期：2026-11-27
+ */
 public int canBackquote(string s) {
     unsafe {
         return ax_str_can_backquote(s)
     }
 }
 
+/**
+ * 函数名：quote
+ * 功能：将字符串 s 加上 Go 风格的双引号和转义
+ * 输入参数：s (string) - 要加引号的字符串
+ * 输出参数：string - 加引号后的字符串
+ * 修订日期：2026-11-27
+ */
 public string quote(string s) {
     unsafe {
         return ax_str_quote(s)
     }
 }
 
+/**
+ * 函数名：unquote
+ * 功能：去除字符串 s 的 Go 风格双引号和转义
+ * 输入参数：s (string) - 要去引号的字符串
+ * 输出参数：string - 去引号后的字符串
+ * 修订日期：2026-11-27
+ */
 public string unquote(string s) {
     unsafe {
         return ax_str_unquote(s)

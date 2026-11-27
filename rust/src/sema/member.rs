@@ -1269,7 +1269,7 @@ impl<'a> Sema<'a> {
     ///
     /// - `fmt.print(args...)` / `fmt.println(args...)`：与 `print` / `println` 完全同实现
     ///   （多实参、空格分隔），只是给 C/Print 习惯留的入口，语义不二。
-    /// - `fmt.Printf(fmt, args...)`：格式串必须是纯字符串字面量，编译期解析占位符
+    /// - `fmt.printf(fmt, args...)`：格式串必须是纯字符串字面量，编译期解析占位符
     ///   （`%%` `%d` `%f` `%.Nf` `%s` `%t` `%v`）并核对个数与类型——
     ///   这是 C 风格 `printf` 在 axlang 里唯一被允许的形态：类型和个数都在编译期堵死，
     ///   `%n`/`%x` 等危险或歧义占位符根本不开放（E4044）。
@@ -1301,14 +1301,14 @@ impl<'a> Sema<'a> {
             self.sl(e.id).mkind = Some("module");
             return self.call_print(e, args, &format!("fmt.{}", name));
         }
-        // ---- fmt.Sprint ----
+        // ---- fmt.sprint ----
         if name == "sprint" {
             // 与 Print 同款实参校验，但返回 string 而非 void
             self.sl(e.id).mkind = Some("module");
             self.call_print(e, args, &format!("fmt.{}", name));
             return t_string();
         }
-        // ---- fmt.Fprintf ----
+        // ---- fmt.fprintf ----
         if name == "fprintf" {
             // 第 0 个实参是 Writer（File 类型），第 1 个是格式字符串，其余为占位符实参
             self.sl(e.id).mkind = Some("module");
@@ -1317,7 +1317,7 @@ impl<'a> Sema<'a> {
                     "E4031",
                     &e.tok,
                     "文稿 11.2",
-                    "`fmt.Fprintf` 至少需要 2 个实参（Writer + 格式字符串），得到 {0}",
+                    "`fmt.fprintf` 至少需要 2 个实参（Writer + 格式字符串），得到 {0}",
                     &[&args.len()],
                 );
                 return t_int();
@@ -1328,7 +1328,7 @@ impl<'a> Sema<'a> {
                     "E4032",
                     &args[0].tok,
                     "文稿 11.2",
-                    "`fmt.Fprintf` 的第一个实参必须是 `File`（来自 file.Open/Create/Append），得到 {0}",
+                    "`fmt.fprintf` 的第一个实参必须是 `File`（来自 file.Open/Create/Append），得到 {0}",
                     &[&self.ts(&w_ty)],
                 );
                 return t_int();
@@ -1347,7 +1347,7 @@ impl<'a> Sema<'a> {
                         "E4032",
                         &fexpr.tok,
                         "文稿 11.2",
-                        "`fmt.Fprintf` 的格式串必须是纯字符串字面量（不含 `{...}` 插值），才能在编译期核对占位符；得到 {1}",
+                        "`fmt.fprintf` 的格式串必须是纯字符串字面量（不含 `{...}` 插值），才能在编译期核对占位符；得到 {1}",
                         &[&name, &self.ts(&self.ty_of(fexpr.id).unwrap_or_else(t_object))],
                     );
                     return t_int();
@@ -1424,7 +1424,7 @@ impl<'a> Sema<'a> {
             }
             return t_int();
         }
-        // ---- fmt.Errorf ----
+        // ---- fmt.errorf ----
         if name == "errorf" {
             // 第 0 个实参是格式字符串，其余为占位符实参；返回 error
             self.sl(e.id).mkind = Some("module");
@@ -1433,7 +1433,7 @@ impl<'a> Sema<'a> {
                     "E4031",
                     &e.tok,
                     "文稿 11.2",
-                    "`fmt.Errorf` 至少需要 1 个实参（格式字符串）",
+                    "`fmt.errorf` 至少需要 1 个实参（格式字符串）",
                     &[&name],
                 );
                 return t_error();
@@ -1452,7 +1452,7 @@ impl<'a> Sema<'a> {
                         "E4032",
                         &fexpr.tok,
                         "文稿 11.2",
-                        "`fmt.Errorf` 的格式串必须是纯字符串字面量（不含 `{...}` 插值），才能在编译期核对占位符；得到 {1}",
+                        "`fmt.errorf` 的格式串必须是纯字符串字面量（不含 `{...}` 插值），才能在编译期核对占位符；得到 {1}",
                         &[&name, &self.ts(&self.ty_of(fexpr.id).unwrap_or_else(t_object))],
                     );
                     return t_error();
@@ -1528,7 +1528,7 @@ impl<'a> Sema<'a> {
             }
             return t_error();
         }
-        // ---- fmt.Scanf ----
+        // ---- fmt.scanf ----
         if name == "scanf" {
             // 从 stdin 按格式读取，返回读取的项数；格式串必须是纯字符串字面量
             self.sl(e.id).mkind = Some("module");
@@ -1537,7 +1537,7 @@ impl<'a> Sema<'a> {
                     "E4031",
                     &e.tok,
                     "文稿 11.2",
-                    "`fmt.Scanf` 至少需要 1 个实参（格式字符串）",
+                    "`fmt.scanf` 至少需要 1 个实参（格式字符串）",
                     &[&name],
                 );
                 return t_int();
@@ -1556,7 +1556,7 @@ impl<'a> Sema<'a> {
                         "E4032",
                         &fexpr.tok,
                         "文稿 11.2",
-                        "`fmt.Scanf` 的格式串必须是纯字符串字面量；得到 {1}",
+                        "`fmt.scanf` 的格式串必须是纯字符串字面量；得到 {1}",
                         &[&name, &self.ts(&self.ty_of(fexpr.id).unwrap_or_else(t_object))],
                     );
                     return t_int();
@@ -1570,14 +1570,14 @@ impl<'a> Sema<'a> {
                         "E4032",
                         &a.tok,
                         "文稿 11.2",
-                        "`fmt.Scanf` 实参仅支持 int / float / string 类型，得到 {0}",
+                        "`fmt.scanf` 实参仅支持 int / float / string 类型，得到 {0}",
                         &[&self.ts(&t)],
                     );
                 }
             }
             return t_int();
         }
-        // ---- fmt.Printf / fmt.Sprintf ----
+        // ---- fmt.printf / fmt.sprintf ----
         if name == "printf" || name == "sprintf" {
             self.sl(e.id).mkind = Some("module");
             if args.is_empty() {

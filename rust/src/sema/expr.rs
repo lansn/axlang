@@ -4,7 +4,7 @@
 
 use crate::frontend::ast;
 use crate::frontend::ast::Expr;
-use crate::sema::{BUILTIN_MODULES, is_builtin_type_name, is_reserved, ConstVal, ExportSym, Res, Sema, StmtUse, UseKind, VarState};
+use crate::sema::{INTERNAL_BUILTINS, is_builtin_type_name, is_reserved, ConstVal, ExportSym, Res, Sema, StmtUse, UseKind, VarState};
 use crate::types::*;
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::rc::Rc;
@@ -12,129 +12,23 @@ use std::rc::Rc;
 pub fn module_sig(mod_: &str, name: &str) -> Option<(Vec<Option<Ty>>, Ty)> {
     let t = |k: TyS| -> Ty { Rc::new(k) };
     Some(match (mod_, name) {
-        ("io", "readLine") => (vec![], t(TyS::Nullable(t_string()))),
-        ("io", "readFile") => (vec![Some(t_string())], t_result(t_string())),
-        ("io", "write") => (vec![Some(t_string())], t_void()),
-        ("io", "writeLine") => (vec![Some(t_string())], t_void()),
-        ("math", "equals") => (
-            vec![Some(t_float()), Some(t_float()), Some(t_float())],
-            t_bool(),
-        ),
-        ("math", "compare") => (vec![Some(t_float()), Some(t_float())], t_int()),
-        ("math", "abs") => (vec![Some(t_float())], t_float()),
-        ("math", "max") => (vec![Some(t_float()), Some(t_float())], t_float()),
-        ("math", "min") => (vec![Some(t_float()), Some(t_float())], t_float()),
-        ("math", "sqrt") => (vec![Some(t_float())], t_float()),
-        ("math", "pow") => (vec![Some(t_float()), Some(t_float())], t_float()),
-        ("math", "exp") => (vec![Some(t_float())], t_float()),
-        ("math", "log") => (vec![Some(t_float())], t_float()),
-        ("math", "sin") => (vec![Some(t_float())], t_float()),
-        ("math", "cos") => (vec![Some(t_float())], t_float()),
-        ("math", "tan") => (vec![Some(t_float())], t_float()),
-        ("math", "ceil") => (vec![Some(t_float())], t_float()),
-        ("math", "floor") => (vec![Some(t_float())], t_float()),
-        ("math", "round") => (vec![Some(t_float())], t_float()),
-        ("math", "sign") => (vec![Some(t_float())], t_int()),
-        ("math", "mod") => (vec![Some(t_float()), Some(t_float())], t_float()),
-        ("math", "exp2") => (vec![Some(t_float())], t_float()),
-        ("math", "log2") => (vec![Some(t_float())], t_float()),
-        ("math", "log10") => (vec![Some(t_float())], t_float()),
-        ("math", "log1p") => (vec![Some(t_float())], t_float()),
-        ("math", "isNaN") => (vec![Some(t_float())], t_bool()),
-        ("math", "isInf") => (vec![Some(t_float()), Some(t_int())], t_bool()),
-        ("math", "sinh") => (vec![Some(t_float())], t_float()),
-        ("math", "cosh") => (vec![Some(t_float())], t_float()),
-        ("math", "tanh") => (vec![Some(t_float())], t_float()),
-        ("math", "asin") => (vec![Some(t_float())], t_float()),
-        ("math", "acos") => (vec![Some(t_float())], t_float()),
-        ("math", "atan") => (vec![Some(t_float())], t_float()),
-        ("math", "atan2") => (vec![Some(t_float()), Some(t_float())], t_float()),
-        ("math", "hypot") => (vec![Some(t_float()), Some(t_float())], t_float()),
-        ("math", "cbrt") => (vec![Some(t_float())], t_float()),
-        ("math", "trunc") => (vec![Some(t_float())], t_float()),
-        ("json", "parse") => (
-            vec![Some(t_string())],
-            t_result(t_map(t_string(), t_object())),
-        ),
-        ("json", "stringify") => (vec![Some(t_object())], t_string()),
-        ("json", "marshalIndent") => (
-            vec![Some(t_object()), Some(t_string()), Some(t_string())],
-            t_string(),
-        ),
-        ("json", "valid") => (vec![Some(t_string())], t_bool()),
+        /* db 模块：纯内建，需数据库驱动（planned 状态） */
         ("db", "query") => (
             vec![Some(t_string())],
             t_result(t_named(DefId::Name("Row"), Vec::new())),
         ),
-        /* file 模块（单段名，向后兼容；std.file 现已改为 axc/std/file.ax） */
-        ("file", "open") => (
-            vec![Some(t_string())],
-            t_result(t_named(DefId::Name("File"), Vec::new())),
-        ),
-        ("file", "create") => (
-            vec![Some(t_string())],
-            t_result(t_named(DefId::Name("File"), Vec::new())),
-        ),
-        ("file", "append") => (
-            vec![Some(t_string())],
-            t_result(t_named(DefId::Name("File"), Vec::new())),
-        ),
-        ("file", "remove") => (vec![Some(t_string())], t_int()),
-        ("file", "rename") => (vec![Some(t_string()), Some(t_string())], t_int()),
-        ("file", "exists") => (vec![Some(t_string())], t_int()),
-        ("file", "mkdir") => (vec![Some(t_string())], t_int()),
-        ("file", "isDir") => (vec![Some(t_string())], t_int()),
-        ("file", "isFile") => (vec![Some(t_string())], t_int()),
-        ("file", "size") => (vec![Some(t_string())], t_int()),
-        ("file", "modTime") => (vec![Some(t_string())], t_int()),
-        ("file", "readAll") => (vec![Some(t_string())], t_result(t_string())),
-        ("file", "writeAll") => (vec![Some(t_string()), Some(t_string())], t_int()),
-        ("file", "chmod") => (vec![Some(t_string()), Some(t_int())], t_int()),
-        ("file", "chtimes") => (vec![Some(t_string()), Some(t_int()), Some(t_int())], t_int()),
-        ("file", "tempFile") => (vec![Some(t_string()), Some(t_string())], t_result(t_named(DefId::Name("File"), Vec::new()))),
-        /* string 模块（单段名，向后兼容；std.string 现已改为 axc/std/string.ax） */
-        ("string", "fromCodepoint") => (vec![Some(t_int())], t_result(t_string())),
-        ("string", "compare") => (vec![Some(t_string()), Some(t_string())], t_int()),
-        ("string", "fields") => (vec![Some(t_string())], t_array(t_string(), None)),
-        ("string", "toUpperRune") => (vec![Some(t_int())], t_int()),
-        ("string", "toLowerRune") => (vec![Some(t_int())], t_int()),
-        ("time", "nowMs") => (vec![], t_int()),
-        ("time", "now") => (vec![], t_named(DefId::Name("time"), Vec::new())),
-        ("time", "fromUnixMs") => (vec![Some(t_int())], t_named(DefId::Name("time"), Vec::new())),
-        ("time", "sleep") => (vec![Some(t_int())], t_void()),
-        ("time", "unix") => (vec![Some(t_int()), Some(t_int())], t_named(DefId::Name("time"), Vec::new())),
-        ("time", "unixMilli") => (vec![Some(t_int())], t_named(DefId::Name("time"), Vec::new())),
-        ("time", "unixMicro") => (vec![Some(t_int())], t_named(DefId::Name("time"), Vec::new())),
-        ("time", "unixNano") => (vec![Some(t_int())], t_named(DefId::Name("time"), Vec::new())),
-        ("time", "since") => (vec![Some(t_named(DefId::Name("time"), Vec::new()))], t_int()),
-        ("time", "date") => (vec![
-            Some(t_int()), Some(t_int()), Some(t_int()),
-            Some(t_int()), Some(t_int()), Some(t_int()), Some(t_int()),
-        ], t_named(DefId::Name("time"), Vec::new())),
-        ("time", "until") => (vec![Some(t_named(DefId::Name("time"), Vec::new()))], t_int()),
-        ("time", "parse") => (
-            vec![Some(t_string()), Some(t_string())],
-            t_result(t_named(DefId::Name("time"), Vec::new())),
-        ),
-        /* os 模块 */
-        ("os", "getenv") => (vec![Some(t_string())], t_string()),
-        ("os", "exit") => (vec![Some(t_int())], t_void()),
-        ("os", "args") => (vec![], t_array(t_string(), None)),
-        ("os", "getwd") => (vec![], t_string()),
-        ("os", "chdir") => (vec![Some(t_string())], t_int()),
-        ("os", "getpid") => (vec![], t_int()),
-        ("os", "getppid") => (vec![], t_int()),
-        ("os", "hostname") => (vec![], t_string()),
-        ("os", "environ") => (vec![], t_array(t_string(), None)),
-        ("os", "setenv") => (vec![Some(t_string()), Some(t_string())], t_int()),
-        ("os", "unsetenv") => (vec![Some(t_string())], t_int()),
-        ("os", "userHomeDir") => (vec![], t_string()),
-        /* atomic 模块（单段名，向后兼容；std.atomic 现已改为 axc/std/atomic.ax） */
-        ("atomic", "addInt") => (vec![Some(t_int()), Some(t_int())], t_int()),
-        ("atomic", "loadInt") => (vec![Some(t_int())], t_int()),
-        ("atomic", "storeInt") => (vec![Some(t_int()), Some(t_int())], t_void()),
-        ("atomic", "compareAndSwapInt") => (vec![Some(t_int()), Some(t_int()), Some(t_int())], t_bool()),
-        /* sort 模块 */
+        /* fmt 模块：fmt.print/println/printf，与内建 print/println 同实现 */
+        ("fmt", "print") => (vec![Some(t_string())], t_void()),
+        ("fmt", "println") => (vec![Some(t_string())], t_void()),
+        ("fmt", "printf") => (vec![Some(t_string()), None], t_void()),
+        /* log 模块：纯内建，Print/Fatal 走多实参 print，printf 复用 fmt.printf */
+        ("log", "print") => (vec![None], t_void()),
+        ("log", "printf") => (vec![Some(t_string()), None], t_void()),
+        ("log", "fatal") => (vec![None], t_void()),
+        /* reflect 模块：编译期类型查询，零运行时开销 */
+        ("reflect", "typeOf") => (vec![Some(t_object())], t_string()),
+        ("reflect", "numField") => (vec![Some(t_object())], t_int()),
+        /* sort 模块：排序原语 */
         ("sort", "ints") => (vec![Some(t_array(t_int(), None))], t_void()),
         ("sort", "strings") => (vec![Some(t_array(t_string(), None))], t_void()),
         ("sort", "float64s") => (vec![Some(t_array(t_float(), None))], t_void()),
@@ -156,42 +50,6 @@ pub fn module_sig(mod_: &str, name: &str) -> Option<(Vec<Option<Ty>>, Ty)> {
             ],
             t_void(),
         ),
-        ("errors", "new") => (vec![Some(t_string())], t_error()),
-        ("errors", "is") => (vec![Some(t_error()), Some(t_error())], t_bool()),
-        ("errors", "as") => (vec![Some(t_error()), Some(t_error())], t_bool()),
-        /* log 模块（对标 Go log，2026-11-23；P2。Print/Fatal 走多实参 print，Printf 复用 fmt.Printf） */
-        ("log", "print") => (vec![None], t_void()),
-        ("log", "printf") => (vec![Some(t_string()), None], t_void()),
-        ("log", "fatal") => (vec![None], t_void()),
-        /* strconv 模块 */
-        ("strconv", "atoi") => (vec![Some(t_string())], t_int()),
-        ("strconv", "itoa") => (vec![Some(t_int())], t_string()),
-        ("strconv", "parseFloat") => (vec![Some(t_string())], t_float()),
-        ("strconv", "formatFloat") => (vec![Some(t_float())], t_string()),
-        ("strconv", "parseInt") => (vec![Some(t_string()), Some(t_int())], t_int()),
-        ("strconv", "formatInt") => (vec![Some(t_int()), Some(t_int())], t_string()),
-        ("strconv", "parseBool") => (vec![Some(t_string())], t_bool()),
-        ("strconv", "formatBool") => (vec![Some(t_bool())], t_string()),
-        ("strconv", "parseUint") => (vec![Some(t_string()), Some(t_int())], t_int()),
-        ("strconv", "formatUint") => (vec![Some(t_int()), Some(t_int())], t_string()),
-        ("strconv", "canBackquote") => (vec![Some(t_string())], t_bool()),
-        ("strconv", "quote") => (vec![Some(t_string())], t_string()),
-        ("strconv", "unquote") => (vec![Some(t_string())], t_string()),
-        /* filepath 模块 */
-        ("filepath", "join") => (vec![Some(t_array(t_string(), None))], t_string()),
-        ("filepath", "dir") => (vec![Some(t_string())], t_string()),
-        ("filepath", "base") => (vec![Some(t_string())], t_string()),
-        ("filepath", "ext") => (vec![Some(t_string())], t_string()),
-        ("filepath", "split") => (vec![Some(t_string())], t_array(t_string(), None)),
-        ("filepath", "clean") => (vec![Some(t_string())], t_string()),
-        ("filepath", "abs") => (vec![Some(t_string())], t_string()),
-        ("filepath", "isAbs") => (vec![Some(t_string())], t_bool()),
-        ("filepath", "evalSymlinks") => (vec![Some(t_string())], t_string()),
-        ("filepath", "glob") => (vec![Some(t_string())], t_array(t_string(), None)),
-        ("filepath", "walk") => (vec![Some(t_string())], t_array(t_string(), None)),
-        /* reflect 模块：编译期类型查询，零运行时开销 */
-        ("reflect", "typeOf") => (vec![Some(t_object())], t_string()),
-        ("reflect", "numField") => (vec![Some(t_object())], t_int()),
         _ => return None,
     })
 }
@@ -444,6 +302,7 @@ impl<'a> Sema<'a> {
                 is_export: false,
                 parent: None,
                 nested: BTreeMap::new(),
+                    varargs: false,
                     body: Some(leaked),
                 });
                 self.anon_funcs.push(f);
@@ -1099,9 +958,10 @@ impl<'a> Sema<'a> {
             self.sl(e.id).res = Some(Res::Module(name.clone()));
             return Rc::new(TyS::ModuleT(name.clone()));
         }
-        // 内建模块（db/file/io/json/math/string/time 等）无需 import 即可作为模块名使用，
-        // 如 `time.Now()` / `math.Compare(...)`；与裸类型名 `time` 的声明位置用法不冲突。
-        if BUILTIN_MODULES.contains(&name.as_str()) {
+// 纯内建模块（db/log/maps/reflect/sort/unique）无需 import 即可作为模块名使用，
+// 如 `sort.ints(arr)` / `log.print(...)`；与裸类型名的声明位置用法不冲突。
+// 标准库模块（std.io/std.math 等）必须先 `import std.xxx`，再用 `std.xxx.func()`。
+        if INTERNAL_BUILTINS.contains(&name.as_str()) {
             self.sl(e.id).res = Some(Res::Module(name.clone()));
             return Rc::new(TyS::ModuleT(name.clone()));
         }
@@ -1260,8 +1120,14 @@ impl<'a> Sema<'a> {
         borrows: Option<&[Option<String>]>,
         _eid: u32,
     ) {
+        let fixed_len = want.map_or(0, |w| w.len());
         for (i, a) in args.iter().enumerate() {
-            let exp = want.and_then(|w| w.get(i)).cloned();
+            let exp = if i < fixed_len {
+                want.and_then(|w| w.get(i)).cloned()
+            } else {
+                // 可变参数位置：不做类型期望与 coerce
+                None
+            };
             self.check_expr(&a.k.expr, exp.as_ref());
             let rejected = self.reject_arena_ref_arg(&a.k.expr);
             if a.k.borrow {
@@ -1601,7 +1467,7 @@ impl<'a> Sema<'a> {
     /// `print` / `println`（文稿 11.2）：签名是 `void print(string)`，但允许
     /// 「可直接插值的单个值」直接传——语义等价于 `print("{x}")`，只是省掉花括号。
     /// 仍然只有一种格式化能力（插值），占位符与多实参依旧不支持。
-    /// `print` / `println`（以及等价入口 `fmt.Print` / `fmt.Println`）。
+    /// `print` / `println`（以及等价入口 `fmt.print` / `fmt.println`）。
     ///
     /// 文稿 11.2（0.0.27 起）：**多实参合法**，实参之间以一个空格分隔输出
     /// （FreeBASIC 风格的方便写法；分隔符固定为空格，写死在规则里就不再"没约定就不猜"）。
@@ -1652,10 +1518,11 @@ impl<'a> Sema<'a> {
             );
         }
         self.sl(e.id).ckind = Some("builtin");
-        // `fmt.Print` / `fmt.Println` 与 `print` / `println` 同实现，codegen 按小写基名分派
+        // `fmt.print` / `fmt.println` / `fmt.printf` 与 `print` / `println` 同实现，codegen 按小写基名分派
         let base = match name {
-            "fmt.Print" => "print",
-            "fmt.Println" => "println",
+            "fmt.print" => "print",
+            "fmt.println" => "println",
+            "fmt.printf" => "printf",
             other => other,
         };
         self.sl(e.id).bname = Some(base.to_string());
@@ -1791,6 +1658,7 @@ impl<'a> Sema<'a> {
         self.sl(e.id).generic_args = generic_args.clone();
         // 参数替换
         let mut params = self.funcs[f].params.clone();
+        let f_varargs = self.funcs[f].varargs;
         let ret;
         if !generics.is_empty() && !generic_args.is_empty() {
             let subst: HashMap<String, Ty> = generics
@@ -1862,6 +1730,7 @@ impl<'a> Sema<'a> {
                         is_export: fi.is_export,
                         parent: None,
                         nested: BTreeMap::new(),
+                        varargs: fi.varargs,
                     };
                     let inst = self.funcs.len();
                     self.funcs.push(inst_fi);
@@ -1883,11 +1752,17 @@ impl<'a> Sema<'a> {
             }
         }
         // 实参个数
-        if args.len() != params.len() {
-            self.err("E4031", &e.tok, "N-20", "`{0}` 需要 {1} 个实参，得到 {2}", &[&fname, &params.len(), &args.len()]);
+        let min_args = params.len();
+        if args.len() < min_args {
+            self.err("E4031", &e.tok, "N-20", "`{0}` 至少需要 {1} 个实参，得到 {2}", &[&fname, &min_args, &args.len()]);
         }
         for (i, a) in args.iter().enumerate() {
-            let exp = params.get(i).map(|p| p.1.clone());
+            // 可变参数位置及之后：不做类型期望与 coerce
+            let exp = if f_varargs && i >= params.len() {
+                None
+            } else {
+                params.get(i).map(|p| p.1.clone())
+            };
             if !prechecked {
                 self.check_expr(&a.k.expr, exp.as_ref());
             } else if matches!(a.k.expr.k, Expr::AnonFunc { .. }) {
@@ -2275,6 +2150,7 @@ impl<'a> Sema<'a> {
                 is_export: false,
                 parent: None,
                 nested: BTreeMap::new(),
+                varargs: false,
             });
             self.inst_slot_of.insert(nfid, iid);
             self.inst_env.insert(nfid, env.clone());
@@ -2335,6 +2211,7 @@ impl<'a> Sema<'a> {
                 is_export: false,
                 parent: None,
                 nested: BTreeMap::new(),
+                varargs: false,
             });
             self.inst_slot_of.insert(nfid, iid);
             self.inst_env.insert(nfid, env.clone());

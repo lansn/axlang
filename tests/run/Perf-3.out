@@ -1,5 +1,0 @@
-sum_arr      =49999995000000
-sum_arr_plain=49999995000000
-1kx move BigData(10000) mv_sum=10000000
-10Mx identity(int) id_sum=49999995000000
-Perf-3 done

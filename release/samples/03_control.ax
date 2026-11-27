@@ -1,0 +1,29 @@
+// samples/03_control.ax —— 控制流：if/else/for/while
+import std.io
+import std.strconv
+
+int main() {
+    int score = 85
+    if (score >= 90) {
+        io.writeLine("grade: A")
+    } else if (score >= 80) {
+        io.writeLine("grade: B")
+    } else {
+        io.writeLine("grade: C")
+    }
+
+    int sum = 0
+    for i in 1..101 {
+        sum = sum + i
+    }
+    io.writeLine("sum(1..100)=")
+    io.writeLine(strconv.itoa(sum))
+
+    int count = 0
+    while (count < 3) {
+        io.writeLine("count=")
+        io.writeLine(strconv.itoa(count))
+        count = count + 1
+    }
+    return 0
+}

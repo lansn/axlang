@@ -1,0 +1,18 @@
+// tests/run/print_test.ax —— 内建 print/println 函数（无需 import）
+int main() {
+    print("hello ")
+    print("world")
+    println()
+    println("line1")
+    println("line2")
+    int n = 42
+    print("value=")
+    print(n)
+    println()
+    string s = "axlang"
+    print(s)
+    println()
+    bool b = true
+    println(b)
+    return 0
+}

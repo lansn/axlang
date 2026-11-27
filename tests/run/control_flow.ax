@@ -1,0 +1,25 @@
+// tests/run/control_flow.ax —— if/else/for/while
+import std.io
+import std.strconv
+
+int main() {
+    int x = 5
+    if (x > 0) {
+        io.writeLine("pos")
+    } else {
+        io.writeLine("non-pos")
+    }
+    int sum = 0
+    for i in 0..5 {
+        sum = sum + i
+    }
+    io.writeLine("sum=")
+    io.writeLine(strconv.itoa(sum))
+    int j = 0
+    while (j < 3) {
+        io.writeLine("j=")
+        io.writeLine(strconv.itoa(j))
+        j = j + 1
+    }
+    return 0
+}

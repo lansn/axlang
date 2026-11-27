@@ -1,0 +1,6 @@
+// EXPECT: E3041
+// 模块级出现赋值语句
+int main() {
+    return 0
+}
+x = 1

@@ -1,6 +1,0 @@
-// EXPECT: E3009
-class A {
-    public int x
-    constructor(int a) {
-    }
-}

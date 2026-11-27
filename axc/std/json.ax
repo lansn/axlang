@@ -18,18 +18,39 @@ extern "C" {
 
 // ---------- 模块级函数（C 风格命名：小写 + 下划线） ----------
 
+/**
+ * 函数名：stringify
+ * 功能：将对象 v 序列化为 JSON 字符串
+ * 输入参数：v (object) - 要序列化的对象
+ * 输出参数：string - JSON 格式的字符串
+ * 修订日期：2026-11-27
+ */
 public string stringify(object v) {
     unsafe {
         return ax_json_stringify(v)
     }
 }
 
+/**
+ * 函数名：marshalIndent
+ * 功能：将对象 v 序列化为带缩进的 JSON 字符串
+ * 输入参数：v (object) - 要序列化的对象；prefix (string) - 每行前缀；indent (string) - 缩进字符串
+ * 输出参数：string - 带缩进的 JSON 格式字符串
+ * 修订日期：2026-11-27
+ */
 public string marshalIndent(object v, string prefix, string indent) {
     unsafe {
         return ax_json_marshal_indent(v, prefix, indent)
     }
 }
 
+/**
+ * 函数名：valid
+ * 功能：判断字符串 s 是否为合法的 JSON
+ * 输入参数：s (string) - 待判断的字符串
+ * 输出参数：int - 1 表示合法，0 表示非法
+ * 修订日期：2026-11-27
+ */
 public int valid(string s) {
     unsafe {
         return ax_json_valid(s)

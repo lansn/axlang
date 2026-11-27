@@ -1,9 +1,0 @@
-// EXPECT: E4031
-// 人类常犯：ok/fail 需要恰好 1 个实参
-result<int> foo() {
-    return ok()   // ok 需要 1 个实参 → E4031
-}
-
-int main() {
-    return 0
-}

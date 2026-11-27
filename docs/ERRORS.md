@@ -1,4 +1,5 @@
 <!-- 本文件由 tools/gen_errdoc.py 生成，请勿手改；修改诊断文案后重新运行。 -->
+<!-- 生成时间：2026-11-27 15:59:00 -->
 
 # axlang 错误码清单（多语言）
 
@@ -6,7 +7,7 @@
 `E4xxx` 类型与表达式 / `E5xxx` 转换与装箱 / `E6xxx` match 与错误传播 /
 `E7xxx` 所有权与借用。输出语言由 `--lang` / `AXC_LANG` / `axc.toml`（`lang = "zh"`）决定，默认英文。
 
-共 136 个码、341 条文案。
+共 146 个码、349 条文案。
 
 ## E1（词法）
 
@@ -49,7 +50,7 @@
 
 | 码 | 中文 | English |
 |---|---|---|
-| `E2001` | `@` 后必须是属性名（`@os` 或 `@arch`）（L-23） | an attribute name is required after `@` (`@os` or `@arch`) |
+| `E2001` | `@` 后必须是属性名（`@os` 或 `@arch`） | an attribute name is required after `@` (`@os` or `@arch`) |
 | `E2001` | `catch` 的捕获类型必须是 `error` 或 `error.变体`（文稿 10.2） | the catch type must be `error` or `error.Variant` |
 | `E2001` | `func` 类型请写成 `func(参数) 返回`（G-1） | `func` types are written `func(params) return` |
 | `E2001` | `throw` 后必须是 `error.变体(消息)`（文稿 10.1） | `throw` must be followed by `error.Variant(message)` |
@@ -100,7 +101,7 @@
 | `E3002` | 变量声明必须有初值（文稿 3.3） | a variable declaration must have an initializer |
 
 | `E3003` | Rounding 没有成员 `{0}`（N-17） | Rounding has no member `{0}` |
-| `E3003` | 内置库函数名一律小写：`{0}` 请写 `{1}`（文稿 2.3） | built-in function names are lowercase: write `{1}` instead of `{0}` |
+| `E3003` | 内置库函数名一律小写：`{0}` 请写 `{1}` | built-in function names are lowercase: write `{1}` instead of `{0}` |
 | `E3003` | `{0}.{1}` 不存在（N-17） | `{0}.{1}` does not exist |
 | `E3003` | `{0}.{1}` 是常量，不可调用（文稿 9.2） | `{0}.{1}` is a constant and cannot be called |
 | `E3003` | `{0}` 不是 enum（N-18） | `{0}` is not an enum |
@@ -190,14 +191,14 @@
 | `E3026` | 循环导入：{0} | circular import: {0} |
 
 | `E3027` | 找不到模块 `{0}`（已在 {1} 下查找） | module `{0}` not found (searched under {1}) |
-| `E3027` | 找不到模块 `{0}`（模块路径即目录结构：`import a.b` 对应入口文件同目录的 `a/b.ax`）（文稿 9.2） | module `{0}` not found (a module path is a directory structure: `import a.b` maps to `a/b.ax` next to the entry file) |
+| `E3027` | 找不到模块 `{0}`（模块路径即目录结构：`import a.b` 对应入口文件同目录的 `a/b.ax`） | module `{0}` not found (a module path is a directory structure: `import a.b` maps to `a/b.ax` next to the entry file) |
 | `E3027` | 未知的错误变体 `error.{0}`（可用：NotFound/Invalid/Money/IO）（文稿 10.1） | unknown error variant `error.{0}` (available: NotFound/Invalid/Money/IO) |
 | `E3027` | 模块文件不是合法 UTF-8：{0} | module file is not valid UTF-8: {0} |
 | `E3027` | 模块文件读取失败：{0} | failed to read module file: {0} |
 
 | `E3028` | `main` 只能出现在程序入口文件（被导入的模块不能声明 main）（文稿 9.4） | `main` can only appear in the program entry file (imported modules cannot declare main) |
 
-| `E3029` | 未知属性 `@{0}`（只支持 @os 与 @arch）（L-23） | unknown attribute `@{0}` (only @os and @arch are supported) |
+| `E3029` | 未知属性 `@{0}`（只支持 @os 与 @arch） | unknown attribute `@{0}` (only @os and @arch are supported) |
 
 | `E3030` | `{0}` 不在 `import {1}.{{...}}` 的具名导入清单里（文稿 9.2） | `{0}` is not in the named-import list of `import {1}.{{...}}` |
 | `E3030` | 模块 `{0}` 没有公开成员 `{1}`（文件内符号默认私有，导出需写 `public`）（文稿 9.1） | module `{0}` has no public member `{1}` (symbols inside a file are private by default; export them with `public`) |
@@ -205,9 +206,10 @@
 | `E3030` | 模块 `{0}` 没有公开类型 `{1}`（文件内符号默认私有，导出需写 `public`）（文稿 9.1） | module `{0}` has no public type `{1}` (symbols inside a file are private by default; export them with `public`) |
 
 | `E3031` | enum 成员不能带初值或载荷（文稿 6.4） | enum members cannot have initializers or payloads |
-| `E3031` | enum 成员名重复（文稿 6.4） | duplicate enum member name |
 
 | `E3032` | interface 不能有 constructor（文稿 6.3） | an interface cannot have a constructor |
+
+| `E3033` | `extern` 函数不支持泛型，请去掉类型实参 | `extern` functions do not support generics; remove the type arguments |
 
 | `E3034` | `parent(...)` 只能在子类 constructor 内使用（G-8） | `parent(...)` can only be used inside a subclass constructor |
 | `E3034` | `parent` 只能用于有父类的类内（G-8） | `parent` can only be used inside a class that has a parent class |
@@ -230,7 +232,9 @@
 
 | `E3042` | `{0}` 有歧义：{1} 都导出了同名类型；请写全路径 `{2}.{3}` 或改用 `import {4}.{{{5}}}` | `{0}` is ambiguous: both {1} export a type with that name; write the full path `{2}.{3}` or use `import {4}.{{{5}}}` |
 
-| `E3043` | 成员名一律 PascalCase：{0} `{1}` 应写作 `{2}`（文稿 2.3） | member names are always PascalCase: {0} `{1}` should be written `{2}` |
+| `E3043` | 成员名一律 camelCase：{0} `{1}` 应写作 `{2}` | member names are always camelCase: {0} `{1}` should be written `{2}` |
+
+| `E3044` | enum 成员名重复（文稿 6.4） | duplicate enum member name |
 
 | `E3045` | `{0}` 有歧义：{1} 都通过具名导入引入了同名符号；请写全路径或使用 `import {2} as 别名` 加以区分（文稿 9.2） | `{0}` is ambiguous: both {1} introduce the same symbol via named imports; write the full path or use `import {2} as alias` to disambiguate |
 
@@ -238,8 +242,7 @@
 
 | `E3047` | 抽象方法 `{0}` 未在子类 `{1}` 中实现（文稿 6.2） | abstract method `{0}` is not implemented in subclass `{1}` |
 
-| `E3048` | `extern` 函数不支持泛型，请去掉类型实参 | `extern` functions do not support generics; remove the type arguments |
-| `E3048` | 非抽象类不能声明抽象方法 `{0}`（文稿 6.2） | non-abstract class cannot declare abstract method `{0}` |
+| `E3048` | 非抽象类不能声明抽象方法 `{0}` | non-abstract class cannot declare abstract method `{0}` |
 
 | `E3049` | 抽象方法不能是 `static`（文稿 6.1） | abstract method cannot be `static` |
 
@@ -379,9 +382,9 @@
 | `E4031` | `{0}(...)` 缺少实参（N-20） | `{0}(...)` is missing arguments |
 | `E4031` | `{0}` 的 constructor 需要 {1} 个实参，得到 {2} | the constructor of `{0}` takes {1} arguments, found {2} |
 | `E4031` | `{0}` 需要 {1} 个实参，得到 {2}（N-20） | `{0}` takes {1} arguments, found {2} |
-| `E4031` | `fmt.Printf` 至少需要 1 个实参（格式字符串）（文稿 11.2） | `fmt.Printf` takes at least 1 argument (the format string) |
+| `E4031` | `fmt.printf` 至少需要 1 个实参（格式字符串） | `fmt.printf` takes at least 1 argument (the format string) |
 
-| `E4032` | `fmt.Printf` 的格式串必须是纯字符串字面量（不含 `{...}` 插值），才能在编译期核对占位符；得到 {0}（文稿 11.2） | the format string of `fmt.Printf` must be a plain string literal (no `{...}` interpolation) so placeholders can be checked at compile time; found {0} |
+| `E4032` | `fmt.printf` 的格式串必须是纯字符串字面量（不含 `{...}` 插值），才能在编译期核对占位符；得到 {0} | the format string of `fmt.printf` must be a plain string literal (no `{...}` interpolation) so placeholders can be checked at compile time; found {0} |
 | `E4032` | 格式串里有 {0} 个占位符，但实参有 {1} 个（不含格式串本身）（文稿 11.2） | the format string has {0} placeholders but {1} arguments were given (excluding the format string itself) |
 | `E4032` | 占位符 `%{0}` 与实参类型 `{1}` 不匹配（`%d`=整数, `%f`=小数, `%s`=字符串, `%t`=布尔, `%v`=任意可打印值；可空值请用 `%v` 或先判空）（文稿 11.2） | placeholder `%{0}` does not match argument type `{1}` (`%d`=integer, `%f`=decimal, `%s`=string, `%t`=bool, `%v`=any printable value; use `%v` for nullables or unwrap first) |
 | `E4032` | `%.N` 精度只支持 `%f`，不支持 `%{0}`（与插值 `{x:.N}` 同规则）（文稿 11.2） | precision `%.N` is only supported on `%f`, not `%{0}` (same rule as interpolation `{x:.N}`) |
@@ -425,7 +428,7 @@
 | `E5001` | bool 与其他类型之间没有转换（C-10） | no conversion exists between bool and other types |
 | `E5001` | float 不能直接转 decimal（C-6）；请用 `decimal.Parse(s)`（C-6） | float cannot convert to decimal directly (C-6); use `decimal.Parse(s)` |
 | `E5001` | 不能用 `string(x)` 转字符串（C-8） | cannot convert to string with `string(x)` |
-| `E5001` | 不能用 `string(x)` 转字符串；请写 `x.ToString()`，码点用 `string.FromCodepoint`（C-8） | cannot convert to string with `string(x)`; write `x.ToString()`, and `string.FromCodepoint` for code points |
+| `E5001` | 不能用 `string(x)` 转字符串；请写 `x.toString()`，码点用 `string.FromCodepoint`（C-8） | cannot convert to string with `string(x)`; write `x.toString()`, and `string.FromCodepoint` for code points |
 | `E5001` | 不能用 `{0}(x)` 解析字符串；请用 `{1}.Parse(s)`（返回 result）（C-9） | cannot parse a string with `{0}(x)`; use `{1}.Parse(s)` (returns result) |
 
 | `E5002` | `object` 不能直接作为条件；先落到 bool 变量或写 `bool(o)`（T-10） | `object` cannot be used as a condition directly; bind it to a bool variable or write `bool(o)` |
@@ -489,6 +492,14 @@
 | `E6013` | `break` 会跳出 try 块（finally 不会执行）；把循环移到 try 外面（文稿 10.2） | `break` would leave the try block (finally would not run); move the loop outside the try |
 | `E6013` | `continue` 会跳出 try 块（finally 不会执行）；把循环移到 try 外面（文稿 10.2） | `continue` would leave the try block (finally would not run); move the loop outside the try |
 
+| `E6014` | `nothrow` 函数 `{0}` 内不能 `throw`（文稿 10.1） | `nothrow` function `{0}` cannot `throw` |
+
+| `E6015` | `pure` 函数 `{0}` 不能调用非纯函数 `{1}`（文稿 10.1） | `pure` function `{0}` cannot call non-pure function `{1}` |
+
+| `E6016` | 编译期断言失败：{0} | compile-time assert failed: {0} |
+
+| `E6017` | `@nogc` 函数 `{0}` 内不得出现 `new` 表达式（堆分配）；`@nogc` 承诺函数体内零堆分配 | `@nogc` function `{0}` must not contain `new` expressions (heap allocation) |
+
 ## E7（所有权 / 借用）
 
 | 码 | 中文 | English |
@@ -496,6 +507,8 @@
 | `E7001` | `{0}` 已被移走，此处不可再用（重新赋一个值可复活）（O-2） | `{0}` has been moved and can no longer be used here (assign it a new value to revive it) |
 
 | `E7002` | 同一语句内对 `{0}` 有多个借用（至少一个是可变的）（O-7） | multiple borrows of `{0}` within one statement (at least one is mutable) |
+
+| `E7003` | 借用不能作为返回值、赋给变量或存入容器（借用逃逸，`&` 不是一等值） | borrow cannot escape: return, assign to variable, or store in container |
 
 | `E7004` | `{0}` 正在被借用，同一语句内不能移动或写入它（O-12） | `{0}` is borrowed and cannot be moved or written in the same statement |
 
@@ -506,6 +519,8 @@
 | `E7007` | `&` 只能作用于可写位置（变量、字段、元素）（O-8） | `&` can only be applied to writable places (variables, fields, elements) |
 
 | `E7009` | 不能对 const `{0}` 取可变借用（写 `&const`）（O-9） | cannot take a mutable borrow of const `{0}` (write `&const`) |
+
+| `E7010` | 返回局部变量 `{0}` 的引用会悬垂（局部变量随函数结束而释放）（O-10） | returning reference to local variable `{0}` would dangle |
 
 ## FILE_NOT_FOUND（CLI）
 
@@ -524,3 +539,15 @@
 | 码 | 中文 | English |
 |---|---|---|
 | `W1003` | 对 copy 类型 `{0}` 写借用等价于传值，`&` 是多余的 | a borrow of copy type `{0}` is equivalent to pass-by-value; `&` is redundant |
+
+## W1004（W1004）
+
+| 码 | 中文 | English |
+|---|---|---|
+| `W1004` | 符号 `{0}` 已弃用（`@deprecated`），建议不再使用 | symbol `{0}` is deprecated (`@deprecated`), consider not using it anymore |
+
+## W1005（W1005）
+
+| 码 | 中文 | English |
+|---|---|---|
+| `W1005` | 局部变量 `{0}` 声明后未被使用 | local variable `{0}` is declared but never used |

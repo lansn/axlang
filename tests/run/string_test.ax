@@ -1,0 +1,21 @@
+// tests/run/string_test.ax —— 标准库 std.string
+import std.io
+import std.string
+import std.strconv
+
+int main() {
+    string s = "hello"
+    int c = std.string.compare(s, "hello")
+    io.writeLine("compare(hello,hello)=")
+    io.writeLine(strconv.itoa(c))
+    string upper = std.string.toUpper(s)
+    io.writeLine("upper=")
+    io.writeLine(upper)
+    string lower = std.string.toLower("HELLO")
+    io.writeLine("lower=")
+    io.writeLine(lower)
+    int has = std.string.contains("hello world", "world")
+    io.writeLine("contains=")
+    io.writeLine(strconv.itoa(has))
+    return 0
+}

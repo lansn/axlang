@@ -1,5 +1,0 @@
-int main() {
-    string s = "中文"
-    println("{s.ByteLen()}")
-    return 0
-}

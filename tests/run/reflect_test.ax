@@ -1,0 +1,8 @@
+// tests/run/reflect_test.ax —— 内建模块 reflect
+import std.io
+
+int main() {
+    string t = reflect.typeOf(42)
+    io.writeLine(t)
+    return 0
+}

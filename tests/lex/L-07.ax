@@ -1,5 +1,6 @@
-// EXPECT: PASS
+// EXPECT: E1004
+// 非法转义序列 \z
 int main() {
-    decimal p = 19d
+    string s = "\z"
     return 0
 }

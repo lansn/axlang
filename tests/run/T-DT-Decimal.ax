@@ -1,8 +1,0 @@
-// 数据类型：decimal 十进制
-int main() {
-    decimal price = 19.99d
-    int count = 3
-    decimal total = price * count
-    println("decimal total={total:.2}")
-    return 0
-}

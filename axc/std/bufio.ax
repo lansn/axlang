@@ -15,18 +15,39 @@ extern "C" {
 
 // ---------- 模块级函数（C 风格命名：小写 + 下划线） ----------
 
+/**
+ * 函数名：newReader
+ * 功能：为文件 r 创建带缓冲的读取器
+ * 输入参数：r (File) - 要包装的文件句柄
+ * 输出参数：File - 带缓冲的读取器句柄
+ * 修订日期：2026-11-27
+ */
 public File newReader(File r) {
     unsafe {
         return ax_file_buf_reader(r)
     }
 }
 
+/**
+ * 函数名：newWriter
+ * 功能：为文件 w 创建带缓冲的写入器
+ * 输入参数：w (File) - 要包装的文件句柄
+ * 输出参数：File - 带缓冲的写入器句柄
+ * 修订日期：2026-11-27
+ */
 public File newWriter(File w) {
     unsafe {
         return ax_file_buf_writer(w)
     }
 }
 
+/**
+ * 函数名：scanner
+ * 功能：为文件 r 创建扫描器
+ * 输入参数：r (File) - 要扫描的文件句柄
+ * 输出参数：File - 扫描器句柄
+ * 修订日期：2026-11-27
+ */
 public File scanner(File r) {
     unsafe {
         return ax_file_buf_scanner(r)

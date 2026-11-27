@@ -1,0 +1,29 @@
+grade_level(100)=5
+grade_level(85)=0
+grade_level(55)=0
+day_type(Saturday)=weekend
+day_type(Monday)=workday
+day_type(Friday)=other
+risk_level(2)=low
+risk_level(5)=medium
+risk_level(9)=high
+bool_desc(true)=yes
+bool_desc(false)=no
+null_desc(null)=nothing
+null_desc(hello)=something
+num_sign(0)=zero
+num_sign(42)=nonzero, abs=42
+num_sign(-7)=nonzero, abs=7
+abs_expr(5)=5
+abs_expr(-3)=3
+abs_expr(0)=0
+nested_match(0,0)=1
+nested_match(0,1)=2
+nested_match(1,0)=3
+nested_match(2,3)=5
+apply_in_match(add,3,4)=7
+apply_in_match(sub,10,4)=6
+apply_in_match(other,1,2)=0
+describe_object(42)=int: 42
+describe_object(hello)=string: hello
+describe_object(3.14)=other type

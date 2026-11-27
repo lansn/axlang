@@ -1,5 +1,6 @@
-// EXPECT: E1005
+// EXPECT: E1003
+// 字符串未闭合
 int main() {
-    int a = 0x
-    return a
+    string s = "hello
+    return 0
 }

@@ -5,7 +5,7 @@
 // 通过 extern "C" 声明 + unsafe 块调用，不引入 ax 编译器内建能力。
 //
 // 导出函数命名采用 C 风格：全部小写，下划线分隔，如 rand_int / rand_float / rand_seed。
-// ax 代码中通过 std.rand.int(...) 调用模块级函数。
+// ax 代码中通过 std.rand.rand_int(...) 调用模块级函数。
 
 extern "C" {
     int ax_rand_int(int n);
@@ -15,18 +15,39 @@ extern "C" {
 
 // ---------- 模块级函数（C 风格命名：小写 + 下划线） ----------
 
-public int int(int n) {
+/**
+ * 函数名：rand_int
+ * 功能：返回 [0, n) 范围内的随机整数
+ * 输入参数：n (int) - 上限（不包含）
+ * 输出参数：int - [0, n) 范围内的随机整数
+ * 修订日期：2026-11-27
+ */
+public int rand_int(int n) {
     unsafe {
         return ax_rand_int(n)
     }
 }
 
-public float float() {
+/**
+ * 函数名：rand_float
+ * 功能：返回 [0.0, 1.0) 范围内的随机浮点数
+ * 输入参数：无
+ * 输出参数：float - [0.0, 1.0) 范围内的随机浮点数
+ * 修订日期：2026-11-27
+ */
+public float rand_float() {
     unsafe {
         return ax_rand_float()
     }
 }
 
+/**
+ * 函数名：seed
+ * 功能：设置随机数生成器的种子
+ * 输入参数：seed (int) - 随机种子
+ * 输出参数：无
+ * 修订日期：2026-11-27
+ */
 public void seed(int seed) {
     unsafe {
         ax_rand_seed(seed)

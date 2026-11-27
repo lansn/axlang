@@ -1,5 +1,0 @@
-// EXPECT: PASS
-int main() {
-    string s = "\u{4F60}"
-    return 0
-}

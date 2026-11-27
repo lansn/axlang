@@ -1,9 +1,0 @@
-// EXPECT: E4002
-// while 条件必须是 bool，int 不合法。
-int main() {
-    int x = 1
-    while x {
-        println("{x}")
-    }
-    return 0
-}

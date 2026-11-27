@@ -1,8 +1,0 @@
-// 数据类型：uint 无符号整数
-int main() {
-    uint x = 100
-    uint y = 200
-    uint z = x + y
-    println("uint sum={z}")
-    return 0
-}

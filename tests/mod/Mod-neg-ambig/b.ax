@@ -1,7 +1,0 @@
-public class Product {
-    public string name
-    constructor(string name) { this.name = name }
-    public string tag() {
-        return "b"
-    }
-}

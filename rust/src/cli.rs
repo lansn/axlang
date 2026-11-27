@@ -146,7 +146,7 @@ fn load_module_rec(
     for item in &m.items {
         if let ast::Item::Import { path, .. } = &item.k {
             let j = path.join(".");
-            if !sema::BUILTIN_MODULES.contains(&path[0].as_str()) {
+            if !sema::INTERNAL_BUILTINS.contains(&path[0].as_str()) {
                 load_module_rec(
                     &j,
                     roots,
@@ -175,7 +175,7 @@ fn load_module_rec(
 }
 
 /// 加载入口文件 import 的全部用户模块。返回 (extras, path_canon)。
-/// 内建模块名（`io`/`file`/`db`/`json`/`math`/`string`/`time`）是**保留名**：
+/// 内建模块名（`db`/`log`/`maps`/`reflect`/`sort`/`unique`）是**保留名**：
 /// 用户若建了同名文件，编译器一律用内建实现，那份文件被静默忽略——这里补一条明确诊断，
 /// 否则报出来的是「模块 `io` 没有符号 `my_val`」，看不出真正原因是文件压根没被加载。
 fn check_builtin_shadow(name: &str, roots: &[std::path::PathBuf], d: &mut Diags) {
@@ -246,7 +246,7 @@ fn load_user_imports<'a>(
     for item in &entry.items {
         if let ast::Item::Import { path, .. } = &item.k {
             let j = path.join(".");
-            if !sema::BUILTIN_MODULES.contains(&path[0].as_str()) {
+            if !sema::INTERNAL_BUILTINS.contains(&path[0].as_str()) {
                 load_module_rec(
                     &j,
                     &roots,
@@ -575,8 +575,28 @@ pub fn run(argv: &[String]) -> i32 {
 
 /// 语义检查通过后的产出阶段：emit-c / build / run。
 fn finish(s: &sema::Sema, opts: &Opts, path: &str, kind: &str) -> i32 {
+    // 标准库 .o 缓存完整时，跳过标准库模块的 C 代码生成，
+    // 直接链接预编译的 .o，避免每次重新编译标准库代码。
+    // 缓存不完整时（首次运行或缓存失效）：先把 axc/std/*.ax 预转译为独立的 .c 文件，
+    // 再编译为 .o 缓存，供后续编译复用。
+    let mut skip_stdlib = crate::driver::compile::stdlib_obj_cache_complete();
+    if !skip_stdlib {
+        if !crate::driver::compile::stdlib_src_complete() {
+            crate::driver::compile::precompile_stdlib();
+        }
+        if let (Some(sdir), Some(odir)) =
+            (crate::driver::compile::stdlib_gen_dir(), crate::driver::compile::stdlib_obj_dir())
+        {
+            if let (Some(rt), Some(hdir)) =
+                (crate::driver::compile::rt_dir(), crate::driver::compile::stdlib_header_dir())
+            {
+                let _ = crate::driver::compile::stdlib_obj_files(&sdir, &odir, &opts.cc, &rt, &hdir);
+            }
+        }
+        skip_stdlib = crate::driver::compile::stdlib_obj_cache_complete();
+    }
     if opts.emit_c || opts.dump.as_deref() == Some("c") {
-        let csrc = backend::CodeGen::build_c(s, path, kind);
+        let csrc = backend::CodeGen::build_c(s, path, kind, skip_stdlib, None);
         println!("{}", csrc);
         return 0;
     }
@@ -584,7 +604,7 @@ fn finish(s: &sema::Sema, opts: &Opts, path: &str, kind: &str) -> i32 {
         return 0;
     }
 
-    let csrc = backend::CodeGen::build_c(s, path, kind);
+    let csrc = backend::CodeGen::build_c(s, path, kind, skip_stdlib, None);
 
     // run 的产物是临时的：落到临时目录，跑完即删，避免在工作目录里堆 exe；
     // 显式给了 -o 就尊重用户的选择（也方便"编译一次跑多次"）。
@@ -602,7 +622,7 @@ fn finish(s: &sema::Sema, opts: &Opts, path: &str, kind: &str) -> i32 {
         std::path::PathBuf::from(opts.out.clone().unwrap_or_else(|| default_out(path, kind)))
     };
 
-    let res = compile::compile_c_files(&csrc, opts, &out, kind);
+    let res = compile::compile_c_files(&csrc, opts, &out, kind, skip_stdlib);
     let rc = match res {
         None => 1,
         Some(()) => {

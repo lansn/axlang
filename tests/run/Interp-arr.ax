@@ -1,5 +1,0 @@
-int main() {
-    string[] xs = ["aa", "bb"]
-    println("arr={xs}")
-    return 0
-}

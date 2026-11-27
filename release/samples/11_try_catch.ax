@@ -1,0 +1,24 @@
+// samples/11_try_catch.ax —— try/catch 详细示例
+import std.io
+import std.strconv
+
+public int divide(int a, int b) {
+    return a / b
+}
+
+int main() {
+    try {
+        int b = 0
+        if (b == 0) {
+            throw error.Invalid("cannot divide by zero")
+        }
+        int r = divide(10, b)
+        io.writeLine("result=")
+        io.writeLine(strconv.itoa(r))
+    } catch (error.Invalid e) {
+        io.writeLine("invalid argument")
+    } catch (error e) {
+        io.writeLine("other error")
+    }
+    return 0
+}

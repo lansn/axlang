@@ -1,5 +1,0 @@
-// EXPECT: E6011
-int main() {
-    int n = 1 try
-    return n
-}

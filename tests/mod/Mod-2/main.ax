@@ -1,6 +1,0 @@
-import mathx.{square, LIMIT}
-int main() {
-    int q = mathx.square(4)
-    println("q = {q}, limit = {mathx.LIMIT}")
-    return 0
-}

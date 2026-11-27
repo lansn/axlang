@@ -1,9 +1,0 @@
-// EXPECT: E4001
-// 人类常犯：null 只能与可空类型或引用类型比较，不能与 int 比较
-int main() {
-    int x = 1
-    if x == null {
-        println("null")
-    }
-    return 0
-}

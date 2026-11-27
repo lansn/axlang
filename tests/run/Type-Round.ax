@@ -1,9 +1,0 @@
-// round：float 四舍五入到指定小数位
-int main() {
-    float x = 3.14159
-    float y = x.round(2)
-    float z = 2.5.round(0)
-    println("y={y}")
-    println("z={z}")
-    return 0
-}

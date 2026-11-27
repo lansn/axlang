@@ -1,0 +1,10 @@
+// tests/mod/Mod-Basic/main.ax —— 入口文件
+import std.io
+import utils
+
+int main() {
+    io.writeLine("main start")
+    utils.sayHello()
+    io.writeLine("main end")
+    return 0
+}

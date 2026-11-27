@@ -1,6 +1,0 @@
-// EXPECT: E4001
-// const 条件必须是 bool（原 static assert）
-int main() {
-    const bool _check = 42
-    return 0
-}

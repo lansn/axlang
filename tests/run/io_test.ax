@@ -1,0 +1,9 @@
+// tests/run/io_test.ax —— 标准库 std.io
+import std.io
+
+int main() {
+    io.write("std.io.write: ")
+    io.writeLine("hello")
+    io.writeLine("std.io.writeLine: world")
+    return 0
+}

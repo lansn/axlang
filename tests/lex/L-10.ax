@@ -1,5 +1,6 @@
-// EXPECT: E1004
+// EXPECT: E1003
+// 多行字符串未闭合
 int main() {
-    string s = "\q"
+    string s = """hello
     return 0
 }

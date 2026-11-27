@@ -1,0 +1,64 @@
+// tests/run/type_conv.ax —— 各变量类型直接互相转换
+import std.io
+import std.strconv
+
+int main() {
+    // int <-> float 显式转换
+    int i = 42
+    float f = float(i)
+    io.writeLine("int->float=")
+    io.writeLine(strconv.formatFloat(f))
+
+    float f2 = 3.75
+    int i2 = int(f2)
+    io.writeLine("float->int=")
+    io.writeLine(strconv.itoa(i2))
+
+    // int <-> string 通过 strconv
+    string s1 = strconv.itoa(i)
+    io.writeLine("int->string=")
+    io.writeLine(s1)
+
+    string s2 = "123"
+    int i3 = strconv.parseInt(s2, 10)
+    io.writeLine("string->int=")
+    io.writeLine(strconv.itoa(i3))
+
+    // bool <-> string 通过 strconv
+    bool b = true
+    string s3 = strconv.formatBool(b)
+    io.writeLine("bool->string=")
+    io.writeLine(s3)
+
+    string s4 = "true"
+    int b2 = strconv.parseBool(s4)
+    io.writeLine("string->bool=")
+    io.writeLine(strconv.itoa(b2))
+
+    // float <-> string 通过 strconv
+    float f3 = 3.14
+    string s5 = strconv.formatFloat(f3)
+    io.writeLine("float->string=")
+    io.writeLine(s5)
+
+    // 不同宽度整数互转（需使用目标类型构造函数，无跨类型隐式转换）
+    int8 i8 = 10
+    int16 i16 = int16(i8)
+    int32 i32 = int32(i16)
+    int64 i64 = int64(i32)
+    io.writeLine("int8->int16->int32->int64=")
+    io.writeLine(strconv.itoa(int(i64)))
+
+    // byte <-> uint8
+    byte by = 200
+    uint8 u8 = uint8(by)
+    io.writeLine("byte->uint8=")
+    io.writeLine(strconv.itoa(int(u8)))
+
+    // decimal 与 int/float 的混合运算（用 println 多参数插值输出 decimal）
+    decimal d = 10.5d
+    decimal d2 = d * 2d
+    println("decimal mul=", d2)
+
+    return 0
+}

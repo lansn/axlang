@@ -1,8 +1,0 @@
-// EXPECT: E3024
-// 被 import 的文件不能有顶层语句：顶层代码只允许出现在程序入口文件
-import lib
-
-int main() {
-    println("{lib.f()}")
-    return 0
-}

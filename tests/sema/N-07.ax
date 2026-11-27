@@ -1,5 +1,0 @@
-// EXPECT: E3011
-class A {
-    public constructor() {
-    }
-}

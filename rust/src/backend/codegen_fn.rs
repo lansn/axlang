@@ -191,6 +191,10 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
         if let Some(sp) = self_param {
             ps.insert(0, sp);
         }
+        // 可变参数：固定参数后追加 C 的 `...`
+        if self.f.varargs {
+            ps.push("...".to_string());
+        }
         if ps.is_empty() {
             ps.push("void".to_string());
         }
@@ -239,6 +243,10 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             };
             ps.push(format!("{} {}", ct_str, self.pv(&name)));
         }
+        // 可变参数：固定参数后追加 C 的 `...`
+        if self.f.varargs {
+            ps.push("...".to_string());
+        }
         if ps.is_empty() {
             ps.push("void".to_string());
         }
@@ -277,16 +285,33 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             }
         }
         let body = self.f.body;
-        self.block(body, None, None);
-        // 只有 main 允许末尾省略 `return`（文稿 9.4）——等价 `return 0`。
-        // 少了这一句，C 的函数会"掉出末尾"，返回值是寄存器里的残留，退出码随机。
-        if self.is_main && self.f.ret == t_int() {
-            let ends_with_return = matches!(
-                body.and_then(|b| b.stmts.last()).map(|sp| &sp.k),
-                Some(Stmt::Return { .. })
-            );
-            if !ends_with_return {
-                self.emit("return 0;".to_string());
+        let ret_ty = &self.f.ret;
+        let is_void = matches!(&**ret_ty, TyS::Void);
+        let ends_with_return = body
+            .and_then(|b| b.stmts.last())
+            .map(|sp| matches!(&sp.k, Stmt::Return { .. }))
+            .unwrap_or(false);
+        // 非 main、非 void 函数若以 `match` 表达式语句结尾且无显式 return，
+        // 则末尾 match 的值即为函数返回值（与 sema 的 block_value_type / block_returns
+        // 隐式返回语义一致）。仅对 match 启用，避免改动 if/表达式语句的既有行为。
+        let last_is_match = body
+            .and_then(|b| b.stmts.last())
+            .map(|sp| matches!(&sp.k, Stmt::Match(_)))
+            .unwrap_or(false);
+        if !self.is_main && !is_void && !ends_with_return && last_is_match {
+            let tv = self.tmpn();
+            let tyc = self.cg.ct(ret_ty);
+            self.emit(format!("{} {};", tyc, tv));
+            self.block(body, Some(ret_ty), Some(&tv));
+            self.emit(format!("return {};", tv));
+        } else {
+            self.block(body, None, None);
+            // 只有 main 允许末尾省略 `return`（文稿 9.4）——等价 `return 0`。
+            // 少了这一句，C 的函数会"掉出末尾"，返回值是寄存器里的残留，退出码随机。
+            if self.is_main && self.f.ret == t_int() {
+                if !ends_with_return {
+                    self.emit("return 0;".to_string());
+                }
             }
         }
         self.raw("}");

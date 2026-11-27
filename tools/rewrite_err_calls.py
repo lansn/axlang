@@ -144,19 +144,28 @@ def transform(path):
         is_dummy = name == "err_dummy"
         is_fail = name == "fail"
         is_lexer = base in LEXER_FILES
-        # 形态识别
+        # 形态识别（先校验长度，避免参数不足时 IndexError）
         if is_dummy:
-            ok_shape = len(args) == 3
-            code_a, msg_a, tail_a = args[0], args[1], args[2]
+            ok_shape = len(args) >= 3
+            if ok_shape:
+                code_a, msg_a, tail_a = args[0], args[1], args[2]
+            else:
+                code_a, msg_a, tail_a = "", "", []
         elif is_lexer:
             ok_shape = len(args) == 5 or len(args) == 6
-            if len(args) == 6:  # 已改写的新形态，跳过由外层 already 判定
-                code_a, msg_a, tail_a = args[0], "", args[1:]
+            if ok_shape:
+                if len(args) == 6:  # 已改写的新形态，跳过由外层 already 判定
+                    code_a, msg_a, tail_a = args[0], "", args[1:]
+                else:
+                    code_a, msg_a, tail_a = args[0], args[1], args[2:]  # i0,i1,rule
             else:
-                code_a, msg_a, tail_a = args[0], args[1], args[2:]  # i0,i1,rule
+                code_a, msg_a, tail_a = "", "", []
         else:
-            ok_shape = len(args) == 4
-            code_a, msg_a, tail_a = args[0], args[1], args[2:]  # tok,rule
+            ok_shape = len(args) >= 4
+            if ok_shape:
+                code_a, msg_a, tail_a = args[0], args[1], args[2:]  # tok,rule
+            else:
+                code_a, msg_a, tail_a = "", "", []
         already = args[-1].startswith("&[") or (len(args) >= 1 and args[-1].strip() == "&[]")
         if already:
             continue

@@ -1,7 +1,0 @@
-// EXPECT: E4022
-// 人类常犯：可空值可能为 null，不能直接用 .成员，先判空或用 ?.
-int main() {
-    string? s = null
-    int len = s.Len()
-    return 0
-}

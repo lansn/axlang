@@ -1,0 +1,37 @@
+// tests/run/sync_test.ax —— 多线程同步（std.sync：Mutex/RWMutex/WaitGroup/Once）
+import std.io
+import std.strconv
+import std.sync
+
+int main() {
+    // Mutex：加锁/解锁配对
+    Mutex m = null
+    m.lock()
+    m.unlock()
+    io.writeLine("mutex lock/unlock ok")
+
+    // RWMutex：写锁/读锁配对
+    RWMutex rw = null
+    rw.lock()
+    rw.unlock()
+    io.writeLine("rwmutex write lock/unlock ok")
+
+    rw.rLock()
+    rw.runlock()
+    io.writeLine("rwmutex read lock/unlock ok")
+
+    // WaitGroup：add/done/wait
+    WaitGroup wg = null
+    wg.add(1)
+    wg.done()
+    wg.wait()
+    io.writeLine("waitgroup add/done/wait ok")
+
+    // Once：只执行一次，重复调用 do 不会重复执行
+    Once o = null
+    o.do()
+    o.do()
+    io.writeLine("once do twice ok")
+
+    return 0
+}

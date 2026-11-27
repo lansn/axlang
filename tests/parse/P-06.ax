@@ -1,0 +1,7 @@
+// EXPECT: E2003
+// 行首不能是运算符
+int main() {
+    int x = 5
+    + 3
+    return 0
+}

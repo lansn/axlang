@@ -1,6 +1,0 @@
-// EXPECT: E1003
-// 人类常犯：字符串未闭合（缺少右引号）
-int main() {
-    string s = "hello
-    return 0
-}

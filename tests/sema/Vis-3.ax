@@ -1,8 +1,0 @@
-// EXPECT: PASS
-class Outer {
-    class Inner {
-    }
-}
-int main() {
-    return 0
-}

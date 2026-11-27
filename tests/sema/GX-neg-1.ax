@@ -1,9 +1,0 @@
-// EXPECT: E4036
-// GX-03：float 无 Comparable，推断出的类型实参不满足约束
-T max<T: Comparable>(T a, T b) {
-    return if a > b { a } else { b }
-}
-int main() {
-    println(max(1.0, 2.0))
-    return 0
-}

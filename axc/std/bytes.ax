@@ -20,48 +20,104 @@ extern "C" {
 
 // ---------- 模块级函数（C 风格命名：小写 + 下划线） ----------
 
+/**
+ * 函数名：contains
+ * 功能：判断字节序列 s 是否包含子序列 sub
+ * 输入参数：s (bytes) - 字节序列；sub (bytes) - 子序列
+ * 输出参数：bool - true 表示包含，false 表示不包含
+ * 修订日期：2026-11-27
+ */
 public bool contains(bytes s, bytes sub) {
     unsafe {
         return ax_bytes_contains(s, sub)
     }
 }
 
+/**
+ * 函数名：equal
+ * 功能：判断两个字节序列是否相等
+ * 输入参数：a (bytes) - 第一个字节序列；b (bytes) - 第二个字节序列
+ * 输出参数：bool - true 表示相等，false 表示不相等
+ * 修订日期：2026-11-27
+ */
 public bool equal(bytes a, bytes b) {
     unsafe {
         return ax_bytes_equal(a, b)
     }
 }
 
+/**
+ * 函数名：index
+ * 功能：返回子序列 sub 在 s 中首次出现的索引
+ * 输入参数：s (bytes) - 字节序列；sub (bytes) - 子序列
+ * 输出参数：int - 首次出现的索引，未找到返回 -1
+ * 修订日期：2026-11-27
+ */
 public int index(bytes s, bytes sub) {
     unsafe {
         return ax_bytes_index(s, sub)
     }
 }
 
+/**
+ * 函数名：split
+ * 功能：按分隔符 sep 分割字节序列 s
+ * 输入参数：s (bytes) - 字节序列；sep (bytes) - 分隔符
+ * 输出参数：bytes[] - 分割后的片段数组
+ * 修订日期：2026-11-27
+ */
 public bytes[] split(bytes s, bytes sep) {
     unsafe {
         return ax_bytes_split(s, sep)
     }
 }
 
+/**
+ * 函数名：trimSpace
+ * 功能：去除字节序列 s 两端的空白字符
+ * 输入参数：s (bytes) - 待处理的字节序列
+ * 输出参数：bytes - 去除空白后的字节序列
+ * 修订日期：2026-11-27
+ */
 public bytes trimSpace(bytes s) {
     unsafe {
         return ax_bytes_trim_space(s)
     }
 }
 
+/**
+ * 函数名：toUpper
+ * 功能：将字节序列 s 转换为大写
+ * 输入参数：s (bytes) - 待转换的字节序列
+ * 输出参数：bytes - 大写后的字节序列
+ * 修订日期：2026-11-27
+ */
 public bytes toUpper(bytes s) {
     unsafe {
         return ax_bytes_to_upper(s)
     }
 }
 
+/**
+ * 函数名：toLower
+ * 功能：将字节序列 s 转换为小写
+ * 输入参数：s (bytes) - 待转换的字节序列
+ * 输出参数：bytes - 小写后的字节序列
+ * 修订日期：2026-11-27
+ */
 public bytes toLower(bytes s) {
     unsafe {
         return ax_bytes_to_lower(s)
     }
 }
 
+/**
+ * 函数名：repeat
+ * 功能：将字节序列 s 重复 count 次
+ * 输入参数：s (bytes) - 字节序列；count (int) - 重复次数
+ * 输出参数：bytes - 重复后的字节序列
+ * 修订日期：2026-11-27
+ */
 public bytes repeat(bytes s, int count) {
     unsafe {
         return ax_bytes_repeat(s, count)

@@ -473,7 +473,6 @@ impl<'a> Parser<'a> {
         if self.tok(k).is("IDENT") {
             return self.tok(k + 1).is("=");
         }
-        // 其余都是语句：`f(`、`x = 1`、`x++`、`x += 1`
         true
     }
 
@@ -653,6 +652,30 @@ impl<'a> Parser<'a> {
         let mut prev_borrow: Option<String> = None;
         while !self.at(")") {
             self.nl();
+            // 可变参数标记 `...`：须为最后一个参数，后面紧跟 `)`
+            if self.at("...") {
+                self.advance(); // 吃掉 "..."
+                self.nl();
+                if self.at(")") {
+                    // 裸 `...`：不命名可变参数，用占位符类型 void + 名称 "args"
+                    let tok = self.tok(0).clone();
+                    let void_ty = Box::new(self.nn(tok.clone(), Ty::Named { path: vec!["void".to_string()], args: Vec::new() }));
+                    ps.push(self.nn(
+                        tok,
+                        Param { borrow: None, ty: void_ty, name: "args".to_string(), varargs: true },
+                    ));
+                    break;
+                }
+                // `... int args`：带名可变参数（ax 扩展，实际调用时仍按 C ... 处理）
+                let ty = self.parse_type()?;
+                let name = self.expect_ident("可变参数名")?;
+                ps.push(self.nn(
+                    name.clone(),
+                    Param { borrow: None, ty, name: name.text().to_string(), varargs: true },
+                ));
+                self.nl();
+                break;
+            }
             let (borrow, ty, name): (Option<String>, TPtr, Tok) = if self.at("ref") {
                 // ref 参数：按引用传递，避免拷贝
                 self.advance();
@@ -702,7 +725,7 @@ impl<'a> Parser<'a> {
             prev_borrow = borrow.clone();
             ps.push(self.nn(
                 name.clone(),
-                Param { borrow, ty, name: name.text().to_string() },
+                Param { borrow, ty, name: name.text().to_string(), varargs: false },
             ));
             self.nl();
             if self.accept(",").is_none() {
@@ -755,7 +778,12 @@ impl<'a> Parser<'a> {
                 Ok(None) => {}
                 Err(e) => {
                     self.report(&e);
+                    let before = self.p;
                     self.sync();
+                    if self.p == before {
+                        // sync 未前进（如停在 `)`/`]`/`}` 上），强制跳过一个 token，避免死循环
+                        self.advance();
+                    }
                 }
             }
         }
@@ -2490,7 +2518,7 @@ impl<'a> Parser<'a> {
                 let nm = self.advance();
                 params.push(self.nn(
                     nm.clone(),
-                    Param { borrow, ty, name: nm.text().to_string() },
+                    Param { borrow, ty, name: nm.text().to_string(), varargs: false },
                 ));
                 self.nl();
                 if self.accept(",").is_none() {

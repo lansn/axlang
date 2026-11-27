@@ -1,7 +1,0 @@
-int.Parse 42=42
-int.Parse abc fail=parse failed
-float.Parse 3.14=3.14
-float.Parse bad fail=parse failed
-decimal.Parse 19.99=19.99
-decimal.Parse bad fail=parse failed
-int8.truncate(100)=100 int16.truncate(20000)=20000 int32.truncate(2000000000)=2000000000

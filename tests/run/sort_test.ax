@@ -1,0 +1,24 @@
+// tests/run/sort_test.ax —— 内建模块 sort
+import std.io
+import std.strconv
+
+int main() {
+    var arr = [0, 0, 0, 0]
+    arr[0] = 3
+    arr[1] = 1
+    arr[2] = 4
+    arr[3] = 2
+    sort.ints(arr)
+    io.writeLine("sorted=")
+    io.writeLine(strconv.itoa(arr[0]))
+    io.writeLine(strconv.itoa(arr[1]))
+    io.writeLine(strconv.itoa(arr[2]))
+    io.writeLine(strconv.itoa(arr[3]))
+    bool sorted = sort.intsAreSorted(arr)
+    io.writeLine("isSorted=")
+    io.writeLine(strconv.formatBool(sorted))
+    int idx = sort.searchInts(arr, 3)
+    io.writeLine("search(3)=")
+    io.writeLine(strconv.itoa(idx))
+    return 0
+}

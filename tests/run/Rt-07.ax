@@ -1,7 +1,0 @@
-int main() {
-    float f = 1.0
-    float z = 0.0
-    float g = f / z
-    println("{g}")
-    return 0
-}

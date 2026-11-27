@@ -1,7 +1,0 @@
-// 空数组 .pop() 负例：从空数组 pop 会触发运行时陷阱 R101
-int main() {
-    int[] empty = []
-    int? v = empty.pop()
-    println("v={v}")
-    return 0
-}

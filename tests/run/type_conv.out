@@ -1,0 +1,19 @@
+int->float=
+42.0
+float->int=
+3
+int->string=
+42
+string->int=
+123
+bool->string=
+true
+string->bool=
+1
+float->string=
+3.14
+int8->int16->int32->int64=
+10
+byte->uint8=
+200
+decimal mul= 21

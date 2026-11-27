@@ -1,8 +1,0 @@
-// 数据类型：type 别名
-type UserId = int
-
-int main() {
-    UserId id = 42
-    println("id={id}")
-    return 0
-}

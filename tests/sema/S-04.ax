@@ -1,0 +1,7 @@
+// EXPECT: E3024
+// 模块级不能声明变量
+int x = 5
+
+int main() {
+    return 0
+}

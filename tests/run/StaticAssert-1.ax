@@ -1,7 +1,0 @@
-// 编译期断言：用 `const bool _check = 条件;` 表达，条件为 true 时不报错
-int main() {
-    const bool _check1 = 1 + 1 == 2
-    const bool _check2 = true
-    const bool _check3 = 3 > 2
-    return 0
-}

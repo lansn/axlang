@@ -1,6 +1,0 @@
-sum(0..3)=3
-break at 5, sum=13
-even sum=6
-name=a
-name=b
-name=c

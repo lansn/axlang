@@ -1,0 +1,6 @@
+itoa(42)=
+42
+formatBool(true)=
+true
+formatFloat(3.14)=
+3.14

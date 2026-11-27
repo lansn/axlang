@@ -19,8 +19,8 @@
 
 ### 新增：`fmt` 模块与 `print`/`println` 多实参（文稿 11.2，规格书 §6.5/§9.4/§13.7/§15）
 
-- **`fmt.Printf(fmt, args...)`**：第一个实参必须是纯字符串字面量，占位符 `%% %d %f %.Nf %s %t %v` 在**编译期**解析并核对个数与类型；个数/类型不符报 `E4032`，不支持的占位符（`%n` `%x` `%c` 等，或串尾孤 `%`）报 `E4044`。运行时不做任何格式串解析，展开为与字符串插值完全相同的 `ax_sb` 拼接，`%.Nf` 复用插值的 `:.N`，零额外开销
-- **`fmt.Print` / `fmt.Println`**：与 `print` / `println` 语义一致（多实参、空格分隔、末尾是否换行），给习惯 `Print`/`Println` 命名的用户留的入口，成员名一律 PascalCase
+- **`fmt.printf(fmt, args...)`**：第一个实参必须是纯字符串字面量，占位符 `%% %d %f %.Nf %s %t %v` 在**编译期**解析并核对个数与类型；个数/类型不符报 `E4032`，不支持的占位符（`%n` `%x` `%c` 等，或串尾孤 `%`）报 `E4044`。运行时不做任何格式串解析，展开为与字符串插值完全相同的 `ax_sb` 拼接，`%.Nf` 复用插值的 `:.N`，零额外开销
+- **`fmt.print` / `fmt.println`**：与 `print` / `println` 语义一致（多实参、空格分隔、末尾是否换行），给习惯 `print`/`println` 命名的用户留的入口，成员名一律小写
 - **`print` / `println` 支持 N 个实参**：实参之间以一个空格拼接后输出；单个非字符串但可插值的实参等价于补花括号（`println(123)` == `println("{123}")`）
 - 新增 `rust/src/fmt_spec.rs` 格式串解析器（sema 与 codegen 共用，保证"核对什么"和"生成什么"永远一致）；`sema/mod.rs` `BUILTIN_MODULES` 加入 `"fmt"`；`diag_msg.rs` 登记 `E4032` 多条模板与 `E4044` 中英文
 - 新增测试 `tests/run/Print-2`、`tests/run/Fmt-1`、`tests/sema/Print-neg-2`、`tests/sema/Fmt-neg-1..5`

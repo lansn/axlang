@@ -1,0 +1,11 @@
+// tests/run/time_test.ax —— 标准库 std.time
+import std.io
+import std.time
+import std.strconv
+
+int main() {
+    int64 ms = time.nowMs()
+    io.writeLine("nowMs=")
+    io.writeLine(strconv.itoa(ms))
+    return 0
+}

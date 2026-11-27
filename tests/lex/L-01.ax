@@ -1,5 +1,6 @@
 // EXPECT: E1001
+// 禁止前导零十进制
 int main() {
-    int a = 010
-    return a
+    int x = 0123
+    return 0
 }

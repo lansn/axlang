@@ -1,0 +1,11 @@
+// samples/09_trap.ax —— 错误抛出与捕获
+import std.io
+
+int main() {
+    try {
+        throw error.Invalid("value must be positive")
+    } catch (error e) {
+        io.writeLine("caught error")
+    }
+    return 0
+}

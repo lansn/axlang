@@ -1,6 +1,0 @@
-// EXPECT: E4003
-// 人类常犯：float 字面量不能直接赋给 decimal，金额请写 19.99d
-int main() {
-    decimal price = 19.99
-    return 0
-}

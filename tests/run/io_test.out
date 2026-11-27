@@ -1,0 +1,2 @@
+std.io.write: hello
+std.io.writeLine: world

@@ -21,60 +21,130 @@ extern "C" {
     void ax_once_do(ref Once o);
 }
 
+/**
+ * 函数名：mutexLock
+ * 功能：对互斥锁 m 加锁，阻塞直到获得锁
+ * 输入参数：m (ref Mutex) - 互斥锁引用
+ * 输出参数：无
+ * 修订日期：2026-11-27
+ */
 public void mutexLock(ref Mutex m) {
     unsafe {
         ax_mutex_lock(m)
     }
 }
 
+/**
+ * 函数名：mutexUnlock
+ * 功能：对互斥锁 m 解锁
+ * 输入参数：m (ref Mutex) - 互斥锁引用
+ * 输出参数：无
+ * 修订日期：2026-11-27
+ */
 public void mutexUnlock(ref Mutex m) {
     unsafe {
         ax_mutex_unlock(m)
     }
 }
 
+/**
+ * 函数名：rwmutexLock
+ * 功能：对读写锁 rw 加写锁，阻塞直到获得锁
+ * 输入参数：rw (ref RWMutex) - 读写锁引用
+ * 输出参数：无
+ * 修订日期：2026-11-27
+ */
 public void rwmutexLock(ref RWMutex rw) {
     unsafe {
         ax_rwmutex_lock(rw)
     }
 }
 
+/**
+ * 函数名：rwmutexUnlock
+ * 功能：对读写锁 rw 解写锁
+ * 输入参数：rw (ref RWMutex) - 读写锁引用
+ * 输出参数：无
+ * 修订日期：2026-11-27
+ */
 public void rwmutexUnlock(ref RWMutex rw) {
     unsafe {
         ax_rwmutex_unlock(rw)
     }
 }
 
+/**
+ * 函数名：rwmutexRLock
+ * 功能：对读写锁 rw 加读锁，阻塞直到获得锁
+ * 输入参数：rw (ref RWMutex) - 读写锁引用
+ * 输出参数：无
+ * 修订日期：2026-11-27
+ */
 public void rwmutexRLock(ref RWMutex rw) {
     unsafe {
         ax_rwmutex_rlock(rw)
     }
 }
 
+/**
+ * 函数名：rwmutexRunlock
+ * 功能：对读写锁 rw 解读锁
+ * 输入参数：rw (ref RWMutex) - 读写锁引用
+ * 输出参数：无
+ * 修订日期：2026-11-27
+ */
 public void rwmutexRunlock(ref RWMutex rw) {
     unsafe {
         ax_rwmutex_runlock(rw)
     }
 }
 
+/**
+ * 函数名：waitgroupAdd
+ * 功能：为等待组 wg 添加 delta 个计数
+ * 输入参数：wg (ref WaitGroup) - 等待组引用；delta (int) - 增加的计数值
+ * 输出参数：无
+ * 修订日期：2026-11-27
+ */
 public void waitgroupAdd(ref WaitGroup wg, int delta) {
     unsafe {
         ax_waitgroup_add(wg, delta)
     }
 }
 
+/**
+ * 函数名：waitgroupDone
+ * 功能：为等待组 wg 的计数减 1
+ * 输入参数：wg (ref WaitGroup) - 等待组引用
+ * 输出参数：无
+ * 修订日期：2026-11-27
+ */
 public void waitgroupDone(ref WaitGroup wg) {
     unsafe {
         ax_waitgroup_done(wg)
     }
 }
 
+/**
+ * 函数名：waitgroupWait
+ * 功能：阻塞直到等待组 wg 的计数为 0
+ * 输入参数：wg (ref WaitGroup) - 等待组引用
+ * 输出参数：无
+ * 修订日期：2026-11-27
+ */
 public void waitgroupWait(ref WaitGroup wg) {
     unsafe {
         ax_waitgroup_wait(wg)
     }
 }
 
+/**
+ * 函数名：onceDo
+ * 功能：确保只执行一次，适用于单例初始化
+ * 输入参数：o (ref Once) - Once 控制引用
+ * 输出参数：无
+ * 修订日期：2026-11-27
+ */
 public void onceDo(ref Once o) {
     unsafe {
         ax_once_do(o)

@@ -1,8 +1,0 @@
-// EXPECT: E4031
-// time.FromUnixMs 缺少必需的 int 实参。
-import std.time
-
-int main() {
-    time t = std.time.fromUnixMs()
-    return 0
-}

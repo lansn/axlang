@@ -1,0 +1,14 @@
+// tests/run/os_test.ax —— 标准库 std.os
+import std.io
+import std.os
+import std.strconv
+
+int main() {
+    int pid = os.getpid()
+    io.writeLine("pid=")
+    io.writeLine(strconv.itoa(pid))
+    string home = os.userHomeDir()
+    io.writeLine("home=")
+    io.writeLine(home)
+    return 0
+}

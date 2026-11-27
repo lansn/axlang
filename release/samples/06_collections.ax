@@ -1,0 +1,25 @@
+// samples/06_collections.ax —— 数组与 map
+import std.io
+import std.strconv
+
+int main() {
+    // 数组
+    var nums = [0, 0, 0, 0, 0]
+    nums[0] = 10
+    nums[1] = 20
+    nums[2] = 30
+    int total = 0
+    for i in 0..3 {
+        total = total + nums[i]
+    }
+    io.writeLine("array sum=")
+    io.writeLine(strconv.itoa(total))
+
+    // map
+    map<string, int> scores = {}
+    scores["Alice"] = 95
+    scores["Bob"] = 87
+    io.writeLine("Alice's score=")
+    io.writeLine(strconv.itoa(scores["Alice"]))
+    return 0
+}

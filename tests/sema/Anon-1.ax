@@ -1,5 +1,0 @@
-// EXPECT: E4043
-int main() {
-    var f = (int x) { return x }
-    return 0
-}

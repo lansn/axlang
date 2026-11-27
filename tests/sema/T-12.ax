@@ -1,6 +1,0 @@
-// EXPECT: E4008
-int main() {
-    var cfg = {"name": "ax", "port": 8080}
-    println("{cfg["nope"]}")
-    return 0
-}

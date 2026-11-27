@@ -1,2 +1,0 @@
-[safe-delete][SAFE_DELETE_BULK_CONFIRM_REQUIRED] {"count":50,"threshold":50,"scope":"turn","targets":["D:\\Project\\axlang\\tests\\.build\\FFI-1.exe"],"targetCount":1}
-编译器：axc.exe

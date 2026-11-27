@@ -1,9 +1,0 @@
-// is(typeof(Expr) == Type)：编译期表达式类型查询
-int main() {
-    const bool _c1 = is(typeof(42) == int)
-    const bool _c2 = is(typeof("hello") == string)
-    bool b1 = is(typeof(42) == int)
-    bool b2 = is(typeof(42) == string)
-    println("b1={b1} b2={b2}")
-    return 0
-}

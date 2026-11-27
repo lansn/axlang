@@ -1,0 +1,17 @@
+// samples/07_decimal.ax —— decimal 类型（金额专用）
+// decimal 是内建类型，用于精确金额计算，避免浮点误差
+// 字面量使用 d 后缀（如 19.99d），与整数可混算，不支持 % 运算符
+
+int main() {
+    decimal price = 19.99d
+    decimal qty = 2d
+    decimal total = price * qty
+    decimal tax = total * 13 / 100
+    decimal payable = total + tax
+    println("price = ", price)
+    println("qty   = ", qty)
+    println("total = ", total)
+    println("tax   = ", tax)
+    println("pay   = ", payable)
+    return 0
+}

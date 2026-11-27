@@ -1,7 +1,0 @@
-import net.http.server
-
-int main() {
-    println("ping = {net.http.server.ping()}")
-    println("PORT = {net.http.server.PORT}")
-    return 0
-}

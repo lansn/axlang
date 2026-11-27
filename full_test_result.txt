@@ -1,2 +1,0 @@
-编译器：axc.exe
-[safe-delete][SAFE_DELETE_BULK_CONFIRM_REQUIRED] {"count":50,"threshold":50,"scope":"turn","targets":["D:\\Project\\axlang\\tests\\.build\\File-ChmodChtimesTempfile.exe"],"targetCount":1}

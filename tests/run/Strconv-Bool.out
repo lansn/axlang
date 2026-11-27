@@ -1,8 +1,0 @@
-parse-bool-true=true
-parse-bool-false=false
-parse-bool-1=true
-parse-bool-0=false
-parse-bool-invalid=false
-parse-bool-empty=false
-format-bool-true=true
-format-bool-false=false

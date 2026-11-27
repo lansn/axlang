@@ -1,6 +1,0 @@
-empty len=0
-single len=1
-normal len=5
-empty==""=true
-single=="a"=true
-normal!=single=true

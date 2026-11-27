@@ -35,108 +35,234 @@ extern "C" {
 
 // ---------- 模块级函数（C 风格命名：小写 + 下划线） ----------
 
+/**
+ * 函数名：getenv
+ * 功能：获取环境变量 name 的值
+ * 输入参数：name (string) - 环境变量名
+ * 输出参数：string - 环境变量值，未设置返回空字符串
+ * 修订日期：2026-11-27
+ */
 public string getenv(string name) {
     unsafe {
         return ax_os_getenv(name)
     }
 }
 
+/**
+ * 函数名：userHomeDir
+ * 功能：返回当前用户的主目录路径
+ * 输入参数：无
+ * 输出参数：string - 用户主目录路径
+ * 修订日期：2026-11-27
+ */
 public string userHomeDir() {
     unsafe {
         return ax_os_user_home_dir()
     }
 }
 
+/**
+ * 函数名：exit
+ * 功能：以退出码 code 终止当前进程
+ * 输入参数：code (int) - 退出码
+ * 输出参数：无
+ * 修订日期：2026-11-27
+ */
 public void exit(int code) {
     unsafe {
         ax_os_exit(code)
     }
 }
 
+/**
+ * 函数名：getwd
+ * 功能：返回当前工作目录路径
+ * 输入参数：无
+ * 输出参数：string - 当前工作目录路径
+ * 修订日期：2026-11-27
+ */
 public string getwd() {
     unsafe {
         return ax_os_getwd()
     }
 }
 
+/**
+ * 函数名：chdir
+ * 功能：将当前工作目录切换为 path
+ * 输入参数：path (string) - 目标目录路径
+ * 输出参数：int - 0 表示成功，非 0 表示失败
+ * 修订日期：2026-11-27
+ */
 public int chdir(string path) {
     unsafe {
         return ax_os_chdir(path)
     }
 }
 
+/**
+ * 函数名：getpid
+ * 功能：返回当前进程 ID
+ * 输入参数：无
+ * 输出参数：int - 当前进程 ID
+ * 修订日期：2026-11-27
+ */
 public int getpid() {
     unsafe {
         return ax_os_getpid()
     }
 }
 
+/**
+ * 函数名：getppid
+ * 功能：返回当前进程的父进程 ID
+ * 输入参数：无
+ * 输出参数：int - 父进程 ID
+ * 修订日期：2026-11-27
+ */
 public int getppid() {
     unsafe {
         return ax_os_getppid()
     }
 }
 
+/**
+ * 函数名：hostname
+ * 功能：返回主机名
+ * 输入参数：无
+ * 输出参数：string - 主机名
+ * 修订日期：2026-11-27
+ */
 public string hostname() {
     unsafe {
         return ax_os_hostname()
     }
 }
 
+/**
+ * 函数名：setenv
+ * 功能：设置环境变量 name 为 value
+ * 输入参数：name (string) - 环境变量名；value (string) - 环境变量值
+ * 输出参数：int - 0 表示成功，非 0 表示失败
+ * 修订日期：2026-11-27
+ */
 public int setenv(string name, string value) {
     unsafe {
         return ax_os_setenv(name, value)
     }
 }
 
+/**
+ * 函数名：unsetenv
+ * 功能：删除环境变量 name
+ * 输入参数：name (string) - 环境变量名
+ * 输出参数：int - 0 表示成功，非 0 表示失败
+ * 修订日期：2026-11-27
+ */
 public int unsetenv(string name) {
     unsafe {
         return ax_os_unsetenv(name)
     }
 }
 
+/**
+ * 函数名：userCacheDir
+ * 功能：返回当前用户的缓存目录路径
+ * 输入参数：无
+ * 输出参数：string - 用户缓存目录路径
+ * 修订日期：2026-11-27
+ */
 public string userCacheDir() {
     unsafe {
         return ax_os_user_cache_dir()
     }
 }
 
+/**
+ * 函数名：getpagesize
+ * 功能：返回系统页面大小（字节）
+ * 输入参数：无
+ * 输出参数：int - 系统页面大小（字节）
+ * 修订日期：2026-11-27
+ */
 public int getpagesize() {
     unsafe {
         return ax_os_getpagesize()
     }
 }
 
+/**
+ * 函数名：getuid
+ * 功能：返回当前用户 ID
+ * 输入参数：无
+ * 输出参数：int - 当前用户 ID
+ * 修订日期：2026-11-27
+ */
 public int getuid() {
     unsafe {
         return ax_os_getuid()
     }
 }
 
+/**
+ * 函数名：getgid
+ * 功能：返回当前组 ID
+ * 输入参数：无
+ * 输出参数：int - 当前组 ID
+ * 修订日期：2026-11-27
+ */
 public int getgid() {
     unsafe {
         return ax_os_getgid()
     }
 }
 
+/**
+ * 函数名：geteuid
+ * 功能：返回当前有效用户 ID
+ * 输入参数：无
+ * 输出参数：int - 当前有效用户 ID
+ * 修订日期：2026-11-27
+ */
 public int geteuid() {
     unsafe {
         return ax_os_geteuid()
     }
 }
 
+/**
+ * 函数名：getegid
+ * 功能：返回当前有效组 ID
+ * 输入参数：无
+ * 输出参数：int - 当前有效组 ID
+ * 修订日期：2026-11-27
+ */
 public int getegid() {
     unsafe {
         return ax_os_getegid()
     }
 }
 
+/**
+ * 函数名：getgroups
+ * 功能：返回当前用户所属的组 ID 列表
+ * 输入参数：无
+ * 输出参数：int[] - 组 ID 列表
+ * 修订日期：2026-11-27
+ */
 public int[] getgroups() {
     unsafe {
         return ax_os_getgroups()
     }
 }
 
+/**
+ * 函数名：executable
+ * 功能：返回当前可执行文件的路径
+ * 输入参数：无
+ * 输出参数：string - 可执行文件路径
+ * 修订日期：2026-11-27
+ */
 public string executable() {
     unsafe {
         return ax_os_executable()

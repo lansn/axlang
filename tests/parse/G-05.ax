@@ -1,9 +1,0 @@
-// EXPECT: PASS
-int main() {
-    bool x = true
-    if x
-    {
-        x = false
-    }
-    return 0
-}

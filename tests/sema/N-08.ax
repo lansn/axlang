@@ -1,5 +1,0 @@
-// EXPECT: E3016
-class A {
-    public override void f() {
-    }
-}

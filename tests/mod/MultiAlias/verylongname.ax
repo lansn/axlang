@@ -1,5 +1,0 @@
-public const int VALUE = 999
-
-public string greet() {
-    return "hello from verylongname"
-}

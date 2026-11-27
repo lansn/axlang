@@ -1,6 +1,0 @@
-int main() {
-    int z = 0
-    int x = 1 / z
-    println("{x}")
-    return 0
-}

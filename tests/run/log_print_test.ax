@@ -1,0 +1,13 @@
+// tests/run/log_print_test.ax —— 内建 log 模块 print/printf/fatal
+import std.strconv
+
+int main() {
+    log.print("log.print: ")
+    log.print("hello")
+    log.print("\n")
+    log.print("value=")
+    log.print(strconv.itoa(99))
+    log.print("\n")
+    log.printf("printf: %s = %d\n", "count", 3)
+    return 0
+}

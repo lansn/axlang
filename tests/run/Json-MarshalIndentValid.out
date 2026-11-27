@@ -1,9 +1,0 @@
-{
-  "a":   1,
-  "c":   {
-    "d":     "y"
-  },
-  "b":   2
-}
-valid-good=true
-valid-bad=false

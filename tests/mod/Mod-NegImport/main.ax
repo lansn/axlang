@@ -1,0 +1,7 @@
+// EXPECT: E3027
+// 导入不存在的模块
+import nonexistent_module_xyz
+
+int main() {
+    return 0
+}

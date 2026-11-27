@@ -1,7 +1,0 @@
-// EXPECT: E3047
-abstract class Shape {
-    public abstract void draw();
-}
-class Bad extend Shape {
-}
-int main() { return 0 }

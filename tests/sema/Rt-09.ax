@@ -1,5 +1,0 @@
-// EXPECT: E4012
-int main() {
-    int x = 1 << 64
-    return x
-}

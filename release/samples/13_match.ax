@@ -1,0 +1,157 @@
+// samples/13_match.ax —— match 表达式全覆盖测试
+// 包含：字面量、通配符、范围、多值、绑定、类型、result 模式，以及匿名函数与 match 结合使用
+import std.io
+import std.strconv
+
+// 基础字面量匹配（int）
+int grade_level(int score) {
+    match score {
+        100 => 5,
+        90 => 4,
+        80 => 3,
+        70 => 2,
+        60 => 1,
+        _ => 0,
+    }
+}
+
+// 字面量匹配（string）+ 通配符
+string day_type(string day) {
+    match day {
+        "Saturday" => "weekend",
+        "Sunday" => "weekend",
+        "Monday" => "workday",
+        _ => "other",
+    }
+}
+
+// 范围匹配 + 多值替代
+string risk_level(int value) {
+    match value {
+        0, 1, 2 => "low",
+        3..=7 => "medium",
+        8..=10 => "high",
+        _ => "unknown",
+    }
+}
+
+// 布尔字面量匹配
+string bool_desc(bool b) {
+    match b {
+        true => "yes",
+        false => "no",
+        _ => "unknown",
+    }
+}
+
+// 空值匹配
+string null_desc(string? s) {
+    match s {
+        null => "nothing",
+        _ => "something",
+    }
+}
+
+// 绑定模式：匹配非零值，绑定到变量 n，调用匿名函数计算绝对值
+string num_sign(int n) {
+    func(int) int abs_fn = (int v) { if v < 0 { return -v; } else { return v; } }
+    match n {
+        0 => "zero",
+        _ => "nonzero, abs=" + strconv.itoa(abs_fn(n)),
+    }
+}
+
+// match 作为表达式：直接返回 match 表达式的值
+int abs_expr(int x) {
+    func(int) int abs_fn = (int v) { if v < 0 { return -v; } else { return v; } }
+    match x {
+        0 => 0,
+        _ => abs_fn(x),
+    }
+}
+
+// 嵌套 match
+int nested_match(int a, int b) {
+    match a {
+        0 => match b {
+            0 => 1,
+            _ => 2,
+        },
+        1 => match b {
+            0 => 3,
+            _ => 4,
+        },
+        _ => 5,
+    }
+}
+
+// 匿名函数作为 match 体的逻辑
+int apply_in_match(string op, int x, int y) {
+    func(int, int) int add_fn = (int a, int b) { return a + b; }
+    func(int, int) int sub_fn = (int a, int b) { return a - b; }
+    match op {
+        "add" => add_fn(x, y),
+        "sub" => sub_fn(x, y),
+        _ => 0,
+    }
+}
+
+// 类型模式：匹配 object 并绑定为具体类型
+string describe_object(object o) {
+    match o {
+        int i => "int: " + strconv.itoa(i),
+        string s => "string: " + s,
+        _ => "other type",
+    }
+}
+
+// result 模式：ok(x) / fail(x)
+string divide_desc(result<int> r) {
+    match r {
+        ok(v) => "ok: " + strconv.itoa(v),
+        fail(e) => "fail",
+    }
+}
+
+int main() {
+    io.writeLine("grade_level(100)=" + strconv.itoa(grade_level(100)))
+    io.writeLine("grade_level(85)=" + strconv.itoa(grade_level(85)))
+    io.writeLine("grade_level(55)=" + strconv.itoa(grade_level(55)))
+
+    io.writeLine("day_type(Saturday)=" + day_type("Saturday"))
+    io.writeLine("day_type(Monday)=" + day_type("Monday"))
+    io.writeLine("day_type(Friday)=" + day_type("Friday"))
+
+    io.writeLine("risk_level(2)=" + risk_level(2))
+    io.writeLine("risk_level(5)=" + risk_level(5))
+    io.writeLine("risk_level(9)=" + risk_level(9))
+
+    io.writeLine("bool_desc(true)=" + bool_desc(true))
+    io.writeLine("bool_desc(false)=" + bool_desc(false))
+
+    io.writeLine("null_desc(null)=" + null_desc(null))
+    io.writeLine("null_desc(hello)=" + null_desc("hello"))
+
+    io.writeLine("num_sign(0)=" + num_sign(0))
+    io.writeLine("num_sign(42)=" + num_sign(42))
+    io.writeLine("num_sign(-7)=" + num_sign(-7))
+
+    io.writeLine("abs_expr(5)=" + strconv.itoa(abs_expr(5)))
+    io.writeLine("abs_expr(-3)=" + strconv.itoa(abs_expr(-3)))
+    io.writeLine("abs_expr(0)=" + strconv.itoa(abs_expr(0)))
+
+    io.writeLine("nested_match(0,0)=" + strconv.itoa(nested_match(0, 0)))
+    io.writeLine("nested_match(0,1)=" + strconv.itoa(nested_match(0, 1)))
+    io.writeLine("nested_match(1,0)=" + strconv.itoa(nested_match(1, 0)))
+    io.writeLine("nested_match(2,3)=" + strconv.itoa(nested_match(2, 3)))
+
+    io.writeLine("apply_in_match(add,3,4)=" + strconv.itoa(apply_in_match("add", 3, 4)))
+    io.writeLine("apply_in_match(sub,10,4)=" + strconv.itoa(apply_in_match("sub", 10, 4)))
+    io.writeLine("apply_in_match(other,1,2)=" + strconv.itoa(apply_in_match("other", 1, 2)))
+
+    io.writeLine("describe_object(42)=" + describe_object(42))
+    io.writeLine("describe_object(hello)=" + describe_object("hello"))
+    io.writeLine("describe_object(3.14)=" + describe_object(3.14))
+
+    return 0
+}

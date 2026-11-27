@@ -1,7 +1,0 @@
-import shop.stock
-
-public const int VALUE = 42
-
-public int double_stock(int x) {
-    return stock.double_value(x);
-}

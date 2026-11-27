@@ -17,7 +17,7 @@ mod codegen_expr;
 mod codegen_fn;
 
 use crate::frontend::ast;
-use crate::sema::{ConstVal, Sema, TypeDef};
+use crate::sema::{ConstVal, Sema, TypeDef, STDLIB_MODULES};
 use crate::types::*;
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
@@ -182,6 +182,12 @@ pub struct CodeGen<'s, 'a> {
     pub emitted_shared: HashSet<String>,
     /// 共享库模式下收集的导出函数 C 名，用于生成链接器导出列表。
     pub export_names: Vec<String>,
+    /// 跳过标准库模块（STDLIB_MODULES）的 C 代码生成。
+    /// 为 true 时，标准库函数的定义将由预编译的 .o 文件提供，避免与 unit.c 重复定义。
+    pub skip_stdlib: bool,
+    /// 当 skip_stdlib=true 且此字段为 Some 时，仅为指定的标准库模块生成 C 代码，
+    /// 用于预编译单个标准库模块为独立的 .o 文件。None 表示跳过所有标准库模块。
+    pub compile_stdlib_mod: Option<String>,
 }
 
 impl<'s, 'a> CodeGen<'s, 'a> {
@@ -213,6 +219,8 @@ impl<'s, 'a> CodeGen<'s, 'a> {
             erased_map: HashMap::new(),
             emitted_shared: HashSet::new(),
             export_names: Vec::new(),
+            skip_stdlib: false,
+            compile_stdlib_mod: None,
         }
     }
 
@@ -813,6 +821,8 @@ impl<'s, 'a> CodeGen<'s, 'a> {
             .filter(|&i| s.funcs[i].generics.is_empty())
             // extern "C" 函数不生成 C 定义，调用点直接使用原 C 函数名
             .filter(|&i| !s.funcs[i].is_extern)
+            // 跳过标准库模块函数：定义由预编译的 .o 文件提供
+            .filter(|&i| self.should_gen_func(i))
             .collect();
         for fid in free_ids {
             let cname = self.fn_name_idx(fid);
@@ -952,22 +962,36 @@ impl<'s, 'a> CodeGen<'s, 'a> {
     pub fn gen_consts(&mut self) -> Vec<String> {
         let mut out = Vec::new();
         let s = self.s;
-        // 收集入口文件（decl_mod 为 None）自己定义的常量名
-        let local_const_names: std::collections::HashSet<&String> = s
+        // 收集常量名及其所属模块（decl_mod：None=入口文件，Some=导入模块）
+        let const_mods: Vec<(&String, Option<&String>)> = s
             .decl_order
             .iter()
             .zip(s.decl_mod.iter())
-            .filter(|(_, modc)| modc.is_none())
-            .filter_map(|(item, _)| match &item.k {
-                ast::Item::ConstDecl { name, .. } => Some(name),
+            .filter_map(|(item, modc)| match &item.k {
+                ast::Item::ConstDecl { name, .. } => Some((name, modc.as_ref())),
                 _ => None,
             })
             .collect();
         let mut names: Vec<&String> = s.consts.keys().collect();
         names.sort();
         for n in names {
-            // 只生成入口文件自己定义的常量，跳过导入模块的常量
-            if !local_const_names.contains(n) {
+            // 查找常量所属模块
+            let const_mod = const_mods
+                .iter()
+                .find(|(name, _)| name.as_str() == n.as_str())
+                .map(|(_, modc)| modc.map(|m| m.as_str()));
+
+            let should_skip = if self.skip_stdlib {
+                match &self.compile_stdlib_mod {
+                    None => const_mod.is_some(), // skip_stdlib 且无目标模块：跳过导入（标准库）常量，保留入口常量
+                    Some(target_mod) => const_mod != Some(Some(target_mod.as_str())), // 非目标模块跳过
+                }
+            } else {
+                // 正常编译：只生成入口文件（decl_mod 为 None）的常量
+                const_mod.is_some()
+            };
+
+            if should_skip {
                 continue;
             }
             let c = s.consts[n].clone();
@@ -1042,10 +1066,18 @@ impl<'s, 'a> CodeGen<'s, 'a> {
         let mut out = Vec::new();
         // 为每个命名 constructor 生成 init + new 函数
         for (ctor_name, &ctor_fid) in &d.ctors {
+            // 标准库预编译时，只生成目标模块的构造函数
+            if self.skip_stdlib && !self.should_gen_func(ctor_fid) {
+                continue;
+            }
             out.push(self.gen_ctor(d, ctor_name, ctor_fid));
         }
         let method_ids: Vec<usize> = d.methods.values().copied().collect();
         for fid in method_ids {
+            // 标准库预编译时，只生成目标模块的方法
+            if self.skip_stdlib && !self.should_gen_func(fid) {
+                continue;
+            }
             let nm = format!(
                 "{}__{}",
                 self.class_name(d),
@@ -1439,9 +1471,35 @@ impl<'s, 'a> CodeGen<'s, 'a> {
         .join("\n")
     }
 
+    /// 判断给定函数 fid 是否应生成 C 定义。
+    /// 用于标准库预编译：skip_stdlib=true 且 compile_stdlib_mod 为 Some 时，
+    /// 仅生成指定标准库模块的函数；None 时跳过所有标准库函数。
+    fn should_gen_func(&self, fid: usize) -> bool {
+        let s = self.s;
+        let mod_name = &s.funcs[fid].module;
+        if !self.skip_stdlib {
+            return true;
+        }
+        match &self.compile_stdlib_mod {
+            None => {
+                // skip_stdlib 且无目标模块：用于用户程序编译。
+                // 跳过标准库模块函数（定义由预编译的 .o 提供），保留用户/入口函数，
+                // 以免入口 main 的前置声明缺失而导致隐式函数声明错误。
+                !STDLIB_MODULES.contains(&mod_name.as_str())
+            }
+            Some(target_mod) => mod_name == target_mod.as_str(), // 仅生成目标模块
+        }
+    }
+
     /// 顶层入口：生成整份 C 源码。`kind` 为 "exe"（默认）或 "shared"。
-    pub fn build_c(s: &'s Sema<'a>, path: &str, kind: &str) -> String {
+    /// `skip_stdlib` 为 true 时，跳过标准库模块（STDLIB_MODULES）的函数 C 代码生成，
+    /// 这些函数的定义由预编译的 .o 文件提供。
+    /// `compile_stdlib_mod` 为 Some 时，skip_stdlib 生效但仅为指定的标准库模块生成代码，
+    /// 用于预编译单个标准库模块为独立的 .o 文件。
+    pub fn build_c(s: &'s Sema<'a>, path: &str, kind: &str, skip_stdlib: bool, compile_stdlib_mod: Option<&str>) -> String {
         let mut cg = CodeGen::new(s, path, kind);
+        cg.skip_stdlib = skip_stdlib;
+        cg.compile_stdlib_mod = compile_stdlib_mod.map(|m| m.to_string());
         cg.run()
     }
 }

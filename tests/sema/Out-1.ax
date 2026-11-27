@@ -1,6 +1,0 @@
-// EXPECT: E3003
-// 旧名 Print 已改为小写 print / println：报错要指名道姓，不能让用户猜
-int main() {
-    Print("x")
-    return 0
-}

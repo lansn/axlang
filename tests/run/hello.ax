@@ -1,0 +1,7 @@
+// tests/run/hello.ax —— 基础 Hello World
+import std.io
+
+int main() {
+    io.writeLine("hello, axlang")
+    return 0
+}

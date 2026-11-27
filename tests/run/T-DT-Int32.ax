@@ -1,8 +1,0 @@
-// 数据类型：int32 32位整数
-int main() {
-    int32 a = 1000
-    int32 b = 2000
-    int32 c = a + b
-    println("int32 sum={c}")
-    return 0
-}

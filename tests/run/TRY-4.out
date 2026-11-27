@@ -1,6 +1,0 @@
-i=0
-i=1
-finally 照常执行
-c=0
-c=2
-continue 版也照常收尾

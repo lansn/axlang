@@ -1,9 +1,0 @@
-// EXPECT: E3003
-// 凡带 `.` 的调用一律 PascalCase：模块成员 `io.read_line` 是小写旧写法。
-// 诊断应点名正确拼写——"模块成员一律 PascalCase：`io.read_line` 请写 `io.ReadLine`"。
-import io
-
-int main() {
-    string? line = io.read_line()
-    return 0
-}

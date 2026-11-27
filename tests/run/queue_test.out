@@ -1,0 +1,12 @@
+queue push 3 items ok
+pop1=
+10
+pop2=
+20
+pop3=
+30
+tryPop empty=
+-1
+tryPop=
+100
+queue close ok

@@ -1,7 +1,0 @@
-# MSVC 工具链需要 Visual Studio 的 link.exe，本机没装。
-# 改用 GNU target + Rust 自带的 rust-lld 与 self-contained mingw 库：
-#   系统 TDM-GCC 9.2 缺 libgcc_eh.a，直接用它当 linker 会链接失败。
-# 这只影响 cxc.exe 自己的构建方式，不影响它生成的目标代码（仍是 C11 + 系统 gcc）。
-[build]
-target = "x86_64-pc-windows-gnu"
-rustflags = ["-C", "linker=rust-lld", "-C", "link-self-contained=yes"]

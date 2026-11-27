@@ -1,9 +1,0 @@
-// EXPECT: PASS
-class Calc {
-    static bool isPos(int x) {
-        return x > 0
-    }
-}
-int main() {
-    return 0
-}

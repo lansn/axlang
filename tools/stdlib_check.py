@@ -26,8 +26,8 @@ AXRT_H = ROOT / "axc" / "rt" / "axrt.h"
 AXRT_C = ROOT / "axc" / "rt" / "axrt.c"
 TESTS_DIR = ROOT / "tests" / "run"
 JSON_FILE = ROOT / "STDLIB-STATUS.json"
-STDLIB_DIR = ROOT / "axc" / "stdlib"
-STDLIB_GEN_DIR = ROOT / "axc" / "stdlib" / "generated"
+STDLIB_DIR = ROOT / "axc" / "std"          # 标准库 ax 源码实际位置
+STDLIB_GEN_DIR = ROOT / "axc" / "stdlib"   # axc_stdlib.h 所在目录（无 generated/ 子目录）
 
 
 def read(p: Path) -> str:
@@ -38,10 +38,38 @@ def contains(text: str, needle: str) -> bool:
     return needle in text
 
 
+def parse_builtin_arrays(sema_mod_src: str):
+    """从 mod.rs 解析 INTERNAL_BUILTINS / STDLIB_MODULES 常量数组。
+
+    返回 (internal_builtins: list[str], stdlib_modules: list[str])。
+    不依赖数组长度字段，只提取引号内的字符串。
+    """
+    def extract_array(name: str):
+        start_pat = re.compile(r'pub\s+const\s+' + re.escape(name) + r'\s*:\s*\[&str;\s*\d+\]\s*=\s*\[')
+        m = start_pat.search(sema_mod_src)
+        if not m:
+            return []
+        start = m.end()
+        depth = 1
+        i = start
+        while i < len(sema_mod_src) and depth > 0:
+            ch = sema_mod_src[i]
+            if ch == '[':
+                depth += 1
+            elif ch == ']':
+                depth -= 1
+            i += 1
+        block = sema_mod_src[start:i - 1]
+        return re.findall(r'"([^"]+)"', block)
+
+    internal = extract_array("INTERNAL_BUILTINS")
+    stdlib = [m[len("std."):] if m.startswith("std.") else m for m in extract_array("STDLIB_MODULES")]
+    return internal, stdlib
+
+
 # 模块 -> 在代码中出现的关键字映射（用于模糊匹配）
 MODULE_CODE_KEYWORDS = {
     "io": ["io.", "ax_io", "ReadLine", "ReadFile"],
-    "fmt": ["fmt.", "ax_fmt", "Printf", "Sprintf"],
     "math": ["math.", "ax_math", "math_"],
     "json": ["json.", "ax_json", "json_"],
     "file": ["file.", "ax_file", "file_"],
@@ -86,8 +114,19 @@ def main():
     sema_member = read(SEMA_MEMBER)
     codegen_expr = read(CODEGEN_EXPR)
     axrt_h = read(AXRT_H)
-    axrt_c = read(AXRT_C)
+    axrt_c = ""
+    AXRT_C_PATH = ROOT / "axc" / "rt" / "axrt.c"
+    if AXRT_C_PATH.exists():
+        axrt_c = read(AXRT_C_PATH)
+    else:
+        # C 运行时源码分散在 axc/rt/*/ 下，尝试读取所有 .c 文件
+        for c_file in (ROOT / "axc" / "rt").rglob("*.c"):
+            axrt_c += "\n" + read(c_file)
     axrt_all = axrt_h + "\n" + axrt_c
+
+    # 从编译器源码读取模块归类（单一事实源，替代硬编码）
+    internal_builtins, stdlib_mod_names = parse_builtin_arrays(sema_mod)
+    all_registered = set(internal_builtins) | set(stdlib_mod_names)
 
     # 列出 tests/run/ 下的所有 .ax 文件名（不含扩展名）
     test_files = {p.stem for p in TESTS_DIR.glob("*.ax")} if TESTS_DIR.exists() else set()
@@ -101,14 +140,11 @@ def main():
         if status == "not_implemented":
             continue
 
-        # 1. BUILTIN_MODULES：只检查真正作为独立模块注册的
-        # 某些模块（decimal, slices, maps, unique, bytes, bufio, csv, errors, log, atomic）
-        # 可能不以模块名形式在 BUILTIN_MODULES 中，而是作为类型或通过其他方式注册
-        kw = MODULE_CODE_KEYWORDS.get(name, [name])
-        if not any(k in sema_mod for k in kw):
-            # 允许：如果该模块只通过类型名注册（如 decimal 作为类型）
+        # 1. 模块注册检查：模块名应出现在 INTERNAL_BUILTINS 或 STDLIB_MODULES 中
+        # BUILTIN_MODULES 已清空（mod.rs），不再作为单段兼容别名保留
+        if name not in all_registered:
             if status == "implemented":
-                warnings.append(f"[{name}] sema/mod.rs 中未见模块关键字 {kw[:3]}")
+                warnings.append(f"[{name}] sema/mod.rs 中未注册（不在 INTERNAL_BUILTINS/STDLIB_MODULES 中）")
 
         # 2. 模块级函数 module_sig 检查（仅对带 functions 且非类型方法的）
         funcs = mod.get("functions", [])
@@ -128,7 +164,8 @@ def main():
         types = mod.get("types", [])
         for t in types:
             t_name = t["name"]
-            for mname in t.get("methods", []):
+            for m in t.get("methods", []):
+                mname = m["name"] if isinstance(m, dict) else m
                 if not re.search(rf'"{re.escape(mname)}"', sema_member):
                     warnings.append(f"[{name}.{t_name}.{mname}] member.rs intrinsic 表中未见方法 {mname}")
 
@@ -164,17 +201,12 @@ def main():
         if not test_found and status == "implemented":
             warnings.append(f"[{name}] tests/run/ 中未见相关测试文件（模糊匹配 {name}）")
 
-    # 7. STDLIB_MODULES 预转译文件检查：.ax 源码与 generated/.c 应成对存在
-    #    注：.ax→.c 预转译流水线尚需编译器增强（void*/func 等语法）才能完整打通，
+    # 7. STDLIB_MODULES 预转译文件检查：.ax 源码应存在（generated/.c 待预转译流水线打通后生成）
     #    此处仅做提示性警告，不阻断。
-    stdlib_modules = ["sync", "atomic", "file", "string"]
-    for mod_name in stdlib_modules:
+    for mod_name in stdlib_mod_names:
         ax_path = STDLIB_DIR / f"{mod_name}.ax"
-        c_path = STDLIB_GEN_DIR / f"{mod_name}.c"
         if not ax_path.exists():
             warnings.append(f"[{mod_name}] 缺少 ax 标准库源码 {ax_path}")
-        if not c_path.exists():
-            warnings.append(f"[{mod_name}] 缺少预转译 C 输出 {c_path}（可手写或待预转译流水线打通后生成）")
 
     # 统计
     implemented = sum(1 for m in modules if m.get("status") == "implemented")

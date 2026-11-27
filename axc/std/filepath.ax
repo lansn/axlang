@@ -24,72 +24,156 @@ extern "C" {
 
 // ---------- 模块级函数（C 风格命名：小写 + 下划线） ----------
 
+/**
+ * 函数名：rel
+ * 功能：返回从 basepath 到 targpath 的相对路径
+ * 输入参数：basepath (string) - 基准路径；targpath (string) - 目标路径
+ * 输出参数：string - 相对路径字符串
+ * 修订日期：2026-11-27
+ */
 public string rel(string basepath, string targpath) {
     unsafe {
         return ax_filepath_rel(basepath, targpath)
     }
 }
 
+/**
+ * 函数名：join
+ * 功能：将多个路径片段连接为单一路径
+ * 输入参数：parts (string[]) - 路径片段数组
+ * 输出参数：string - 连接后的路径字符串
+ * 修订日期：2026-11-27
+ */
 public string join(string[] parts) {
     unsafe {
         return ax_filepath_join(parts)
     }
 }
 
+/**
+ * 函数名：dir
+ * 功能：返回路径的目录部分
+ * 输入参数：path (string) - 文件路径
+ * 输出参数：string - 目录部分字符串
+ * 修订日期：2026-11-27
+ */
 public string dir(string path) {
     unsafe {
         return ax_filepath_dir(path)
     }
 }
 
+/**
+ * 函数名：base
+ * 功能：返回路径的文件名部分
+ * 输入参数：path (string) - 文件路径
+ * 输出参数：string - 文件名部分字符串
+ * 修订日期：2026-11-27
+ */
 public string base(string path) {
     unsafe {
         return ax_filepath_base(path)
     }
 }
 
+/**
+ * 函数名：ext
+ * 功能：返回路径的扩展名（含点）
+ * 输入参数：path (string) - 文件路径
+ * 输出参数：string - 扩展名字符串（含点）
+ * 修订日期：2026-11-27
+ */
 public string ext(string path) {
     unsafe {
         return ax_filepath_ext(path)
     }
 }
 
+/**
+ * 函数名：split
+ * 功能：将路径分割为目录和文件名两部分
+ * 输入参数：path (string) - 文件路径
+ * 输出参数：string[] - 分割后的字符串数组
+ * 修订日期：2026-11-27
+ */
 public string[] split(string path) {
     unsafe {
         return ax_filepath_split(path)
     }
 }
 
+/**
+ * 函数名：clean
+ * 功能：规范化路径，删除冗余的斜杠和 .. 等
+ * 输入参数：path (string) - 待规范化的路径
+ * 输出参数：string - 规范化后的路径字符串
+ * 修订日期：2026-11-27
+ */
 public string clean(string path) {
     unsafe {
         return ax_filepath_clean(path)
     }
 }
 
+/**
+ * 函数名：abs
+ * 功能：返回路径的绝对路径形式
+ * 输入参数：path (string) - 待转换的路径
+ * 输出参数：string - 绝对路径字符串
+ * 修订日期：2026-11-27
+ */
 public string abs(string path) {
     unsafe {
         return ax_filepath_abs(path)
     }
 }
 
+/**
+ * 函数名：isAbs
+ * 功能：判断路径是否为绝对路径
+ * 输入参数：path (string) - 待判断的路径
+ * 输出参数：int - 1 表示绝对路径，0 表示相对路径
+ * 修订日期：2026-11-27
+ */
 public int isAbs(string path) {
     unsafe {
         return ax_filepath_is_abs(path)
     }
 }
 
+/**
+ * 函数名：evalSymlinks
+ * 功能：解析路径中的符号链接，返回实际路径
+ * 输入参数：path (string) - 待解析的路径
+ * 输出参数：string - 解析后的实际路径字符串
+ * 修订日期：2026-11-27
+ */
 public string evalSymlinks(string path) {
     unsafe {
         return ax_filepath_eval_symlinks(path)
     }
 }
 
+/**
+ * 函数名：glob
+ * 功能：根据模式匹配文件
+ * 输入参数：pattern (string) - 文件匹配模式
+ * 输出参数：string[] - 匹配到的路径数组
+ * 修订日期：2026-11-27
+ */
 public string[] glob(string pattern) {
     unsafe {
         return ax_filepath_glob(pattern)
     }
 }
 
+/**
+ * 函数名：walk
+ * 功能：递归遍历根目录
+ * 输入参数：root (string) - 根目录路径
+ * 输出参数：string[] - 所有文件路径数组
+ * 修订日期：2026-11-27
+ */
 public string[] walk(string root) {
     unsafe {
         return ax_filepath_walk(root)

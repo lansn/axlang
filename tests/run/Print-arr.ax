@@ -1,5 +1,0 @@
-int main() {
-    int[] xs = [1, 2]
-    println(xs)
-    return 0
-}

@@ -47,6 +47,11 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             }
         }
         if matches!(&**dst, TyS::Object) && !matches!(&**src, TyS::Object) {
+            // null → object：Object 在 C 层是 ax_box* 指针，可直接用 NULL，
+            // 无需装箱（装箱会生成非法的 int64_t t1 = NULL;，导致 gcc 失败）。
+            if matches!(&**src, TyS::Null) {
+                return "NULL".to_string();
+            }
             return self.box_(v, src);
         }
         // 解箱（object → 具体类型，文稿 6.7）：目标类型已知时自动进行，
@@ -230,7 +235,28 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                         let tc = self.cg.ct(t);
                         format!("({}){{0}}", tc)
                     }
-                    _ => "NULL".to_string(),
+                    Some(t) => {
+                        // 值类型结构体（kind: "struct"，如 Mutex/RWMutex/WaitGroup/Once）
+                        // 不能用 `= NULL` 初始化（C 标准禁止），改为 `({ct}){0}` 零初始化。
+                        // Object / class / interface 仍走 `NULL`（它们在 C 层是指针/胖指针）。
+                        let is_struct = if let TyS::Named(DefId::Name(name), _) = &**t {
+                            self.cg
+                                .s
+                                .types
+                                .get(&**name)
+                                .map(|&id| self.cg.s.typedefs[id as usize].kind)
+                                == Some("struct")
+                        } else {
+                            false
+                        };
+                        let tc = self.cg.ct(t);
+                        if is_struct {
+                            format!("({}){{0}}", tc)
+                        } else {
+                            "NULL".to_string()
+                        }
+                    }
+                    None => "NULL".to_string(),
                 }
             }
             Expr::StrLit { .. } => self.str_lit(e),
@@ -1302,10 +1328,19 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             let is_extern_c_lib = f.is_extern && !nm.starts_with("ax_");
             let ret_is_str = matches!(&*f.ret, TyS::Str);
             let params = f.params.clone();
+            let f_varargs = f.varargs;
+            let fixed_param_count = params.len();
             let mut out = Vec::new();
             for (i, arg) in args.iter().enumerate() {
-                let v = match params.get(i) {
-                    Some(p) => {
+                // 可变参数位置（含 varargs 形参本身及超出实参）：不做类型期望，直接传递
+                let expect_ty = if f_varargs && i >= fixed_param_count {
+                    None
+                } else {
+                    params.get(i).map(|p| p.1.clone())
+                };
+                let v = match expect_ty {
+                    Some(ty) => {
+                        let p = &params[i];
                         // ref 形参：实参需传地址。
                         //   - 局部变量：取 &var
                         //   - 本身是 ref 形参：直接传指针（var_c 取 base，不走 path() 的 *ptr）
@@ -1325,14 +1360,14 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                                 }
                             }
                             // 非左值实参：创建临时变量，传其地址
-                            let val = self.gen(&arg.k.expr, Some(&p.1), false, false);
-                            let temp = self.declare(&p.1, &val);
+                            let val = self.gen(&arg.k.expr, Some(&ty), false, false);
+                            let temp = self.declare(&ty, &val);
                             out.push(format!("&{}", temp));
                             continue;
                         }
                         let mut val =
-                            self.gen(&arg.k.expr, Some(&p.1), false, false);
-                        if is_extern_c_lib && matches!(&*p.1, TyS::Str) {
+                            self.gen(&arg.k.expr, Some(&ty), false, false);
+                        if is_extern_c_lib && matches!(&*ty, TyS::Str) {
                             // ax_str -> const char*：取底层指针（AX_S 等字面量已空终止）
                             val = format!("(const char*)({}).p", val);
                         }
@@ -1861,33 +1896,33 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
         } else {
             module.strip_prefix("std.").unwrap_or(&module).to_string()
         };
-        // fmt.Printf 在 sema 已被解析并核对，这里直接展开成插值式拼接——
+        // fmt.printf 在 sema 已被解析并核对，这里直接展开成插值式拼接——
         // 要赶在下面的通用实参 gen 循环之前，避免格式串字面量被多生成一份未使用的临时串
         if module == "fmt" && name == "printf" {
             return self.fmt_printf(e);
         }
-        // fmt.Print / fmt.Println：sema 走的是 print 同款（多实参、空格分隔）
+        // fmt.print / fmt.println：sema 走的是 print 同款（多实参、空格分隔）
         if module == "fmt" && (name == "print" || name == "println") {
             self.emit_print(args, name == "println");
             return "0".to_string();
         }
-        // fmt.Sprint：与 Print 同款实参拼串，但返回 ax_str 而非写 stdout
+        // fmt.sprint：与 Print 同款实参拼串，但返回 ax_str 而非写 stdout
         if module == "fmt" && name == "sprint" {
             return self.fmt_sprint(args);
         }
-        // fmt.Sprintf：与 Printf 同款格式解析，但返回 ax_str 而非写 stdout
+        // fmt.sprintf：与 Printf 同款格式解析，但返回 ax_str 而非写 stdout
         if module == "fmt" && name == "sprintf" {
             return self.fmt_sprintf(e);
         }
-        // fmt.Fprintf：与 fmt_sprintf 同款格式解析，但将结果写入 ax_file*（Writer），返回写入字节数
+        // fmt.fprintf：与 fmt_sprintf 同款格式解析，但将结果写入 ax_file*（Writer），返回写入字节数
         if module == "fmt" && name == "fprintf" {
             return self.fmt_fprintf(e);
         }
-        // fmt.Errorf：与 fmt_sprintf 同款格式解析，但返回 ax_err（error），对标 Go fmt.Errorf / C 错误构造
+        // fmt.errorf：与 fmt_sprintf 同款格式解析，但返回 ax_err（error），对标 Go fmt.errorf / C 错误构造
         if module == "fmt" && name == "errorf" {
             return self.fmt_errorf(e);
         }
-        // fmt.Scanf：从 stdin 按格式读取，返回读取的项数，对标 Go fmt.Scanf / C scanf
+        // fmt.scanf：从 stdin 按格式读取，返回读取的项数，对标 Go fmt.scanf / C scanf
         if module == "fmt" && name == "scanf" {
             return self.fmt_scanf(e);
         }
@@ -1901,7 +1936,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             }
             return "0".to_string();
         }
-        // log.Printf：对标 Go log.Printf，复用 fmt.Printf 的格式化（编译期核对占位符）。
+        // log.printf：对标 Go log.printf，复用 fmt.printf 的格式化（编译期核对占位符）。
         if module == "log" && name == "printf" {
             return self.fmt_printf(e);
         }
@@ -2347,7 +2382,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
         }
     }
 
-    /// `print` / `println` / `fmt.Print` / `fmt.Println` 的公共生成（0.0.27 起支持多实参）：
+    /// `print` / `println` / `fmt.print` / `fmt.println` 的公共生成（0.0.27 起支持多实参）：
     /// 统一走字符串缓冲，实参之间以一个空格分隔；可插值的实参（sema 标在实参节点上的
     /// interp_arg）按 `"{x}"` 拼串，string 实参直接 push。0 个实参时输出空串（`println()` 打印空行）。
     fn emit_print(&mut self, args: &'a [ast::N<ast::Arg>], newline: bool) {
@@ -2380,7 +2415,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
         }
     }
 
-    /// `fmt.Printf("%d 件\n", n)`（文稿 11.2）：格式串在 sema 已被编译期解析并核对
+    /// `fmt.printf("%d 件\n", n)`（文稿 11.2）：格式串在 sema 已被编译期解析并核对
     /// （个数/类型/精度，非法占位符 E4044），这里把占位符展开成与字符串插值完全相同的
     /// `ax_sb` 拼接——运行时没有任何格式串解析，`%.Nf` 复用插值的 `:.N` 生成。
     fn fmt_printf(&mut self, e: &'a ast::EPtr) -> String {
@@ -2438,7 +2473,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
         "0".to_string()
     }
 
-    /// `fmt.Sprint(args...)`：与 `emit_print` 同款空格分隔拼串，但返回 `ax_str` 而非写 stdout。
+    /// `fmt.sprint(args...)`：与 `emit_print` 同款空格分隔拼串，但返回 `ax_str` 而非写 stdout。
     fn fmt_sprint(&mut self, args: &'a [ast::N<ast::Arg>]) -> String {
         let sb = self.tmpn();
         self.emit(format!("ax_sb {}; ax_sb_init(&{});", sb, sb));
@@ -2466,7 +2501,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
         t
     }
 
-    /// `fmt.Sprintf(fmt, args...)`：与 `fmt_printf` 同款格式解析，但返回 `ax_str` 而非写 stdout。
+    /// `fmt.sprintf(fmt, args...)`：与 `fmt_printf` 同款格式解析，但返回 `ax_str` 而非写 stdout。
     fn fmt_sprintf(&mut self, e: &'a ast::EPtr) -> String {
         let args: &'a [ast::N<ast::Arg>] = match &e.k {
             Expr::MethodCall { args, .. } => args,
@@ -2519,7 +2554,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
         t
     }
 
-    /// `fmt.Fprintf(w, fmt, args...)`：与 `fmt_sprintf` 同款格式解析，但将结果写入
+    /// `fmt.fprintf(w, fmt, args...)`：与 `fmt_sprintf` 同款格式解析，但将结果写入
     /// `ax_file*`（Writer），返回写入字节数。Writer 是 file.Open/Create/Append 得到的 File 值。
     fn fmt_fprintf(&mut self, e: &'a ast::EPtr) -> String {
         let args: &'a [ast::N<ast::Arg>] = match &e.k {
@@ -2576,19 +2611,19 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
         "0".to_string()
     }
 
-    /// `fmt.Errorf(format, args...)`：与 `fmt_sprintf` 同款格式解析，但返回 `ax_err`（error），
-    /// 对标 Go `fmt.Errorf`。构造一个带错误码 1 的错误值，消息为格式化后的字符串。
+    /// `fmt.errorf(format, args...)`：与 `fmt_sprintf` 同款格式解析，但返回 `ax_err`（error），
+    /// 对标 Go `fmt.errorf`。构造一个带错误码 1 的错误值，消息为格式化后的字符串。
     fn fmt_errorf(&mut self, e: &'a ast::EPtr) -> String {
         let args: &'a [ast::N<ast::Arg>] = match &e.k {
             Expr::MethodCall { args, .. } => args,
-            _ => return "ax_err_new(1, AX_S(\"fmt.Errorf: no format\"))".to_string(),
+            _ => return "ax_err_new(1, AX_S(\"fmt.errorf: no format\"))".to_string(),
         };
         if args.is_empty() {
-            return "ax_err_new(1, AX_S(\"fmt.Errorf: no format\"))".to_string();
+            return "ax_err_new(1, AX_S(\"fmt.errorf: no format\"))".to_string();
         }
         let parts: &'a [SPart] = match &args[0].k.expr.k {
             Expr::StrLit { parts } => parts,
-            _ => return "ax_err_new(1, AX_S(\"fmt.Errorf: bad format\"))".to_string(),
+            _ => return "ax_err_new(1, AX_S(\"fmt.errorf: bad format\"))".to_string(),
         };
         let fmt_str: String = parts
             .iter()
@@ -2631,8 +2666,8 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
         format!("(ax_err){{ .code = 1, .msg = {} }}", t)
     }
 
-    /// `fmt.Scanf(format, args...)`：从 stdin 按格式读取，返回成功解析的项数。
-    /// 对标 Go `fmt.Scanf` / C `scanf`。目前支持 `%d`、`%f`、`%s`，实参必须是 int / float / string 变量。
+    /// `fmt.scanf(format, args...)`：从 stdin 按格式读取，返回成功解析的项数。
+    /// 对标 Go `fmt.scanf` / C `scanf`。目前支持 `%d`、`%f`、`%s`，实参必须是 int / float / string 变量。
     fn fmt_scanf(&mut self, e: &'a ast::EPtr) -> String {
         let args: &'a [ast::N<ast::Arg>] = match &e.k {
             Expr::MethodCall { args, .. } => args,
@@ -3930,6 +3965,10 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 }
             }
             Pat::Lit { expr } => {
+                // `match opt { null => ... }`：对可空类型，null 即「无值」，检查 `.has`
+                if matches!(&**st, TyS::Nullable(_)) {
+                    return Some(format!("(!{}.has)", sv));
+                }
                 let lit = self.gen(expr, None, false, false);
                 if matches!(&**st, TyS::Str) {
                     Some(format!("ax_str_eq({}, {})", sv, lit))

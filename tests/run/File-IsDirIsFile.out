@@ -1,7 +1,0 @@
-isdir-dir=1
-isfile-dir=0
-write=0
-isdir-file=0
-isfile-file=1
-isdir-missing=0
-isfile-missing=0

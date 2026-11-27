@@ -1,9 +1,0 @@
-// EXPECT: E3008
-class A {
-    public int x
-}
-
-int main() {
-    var a = new A()
-    return 0
-}

@@ -1,5 +1,0 @@
-int main() {
-    var t = (42, "hello")
-    println("t={t}")
-    return 0
-}

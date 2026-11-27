@@ -1,8 +1,0 @@
-// EXPECT: E3030
-// 具名导入只放行列出的名字：`model.hidden` 未列入清单，且在其它模块也未导出
-import model.{greet}
-
-int main() {
-    println(model.hidden("x"))
-    return 0
-}

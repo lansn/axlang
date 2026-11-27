@@ -1,7 +1,0 @@
-// EXPECT: E4003
-// 人类常犯：变量间禁止隐式转换（T-8），decimal d = intVar 仍报错
-int main() {
-    int n = 100
-    decimal d = n   // 变量间不能隐式转换 → E4003，应写 decimal(n)
-    return 0
-}

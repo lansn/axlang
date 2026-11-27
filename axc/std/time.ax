@@ -32,66 +32,143 @@ extern "C" {
 
 // ---------- 模块级函数（C 风格命名：小写 + 下划线） ----------
 
+/**
+ * 函数名：nowMs
+ * 功能：返回当前时间的毫秒时间戳（Unix 时间戳，整数）
+ * 输入参数：无
+ * 输出参数：int - 当前时间的毫秒时间戳
+ * 修订日期：2026-11-27
+ */
 public int nowMs() {
     unsafe {
         return ax_now_ms()
     }
 }
 
+/**
+ * 函数名：now
+ * 功能：返回当前的 time 值
+ * 输入参数：无
+ * 输出参数：time - 当前时间值
+ * 修订日期：2026-11-27
+ */
 public time now() {
     unsafe {
         return ax_time_now()
     }
 }
 
+/**
+ * 函数名：sleep
+ * 功能：休眠指定的毫秒数
+ * 输入参数：ms (int) - 休眠毫秒数
+ * 输出参数：无
+ * 修订日期：2026-11-27
+ */
 public void sleep(int ms) {
     unsafe {
         ax_time_sleep(ms)
     }
 }
 
+/**
+ * 函数名：unix
+ * 功能：根据秒和纳秒构造 time 值
+ * 输入参数：sec (int) - 秒；nsec (int) - 纳秒
+ * 输出参数：time - 构造的时间值
+ * 修订日期：2026-11-27
+ */
 public time unix(int sec, int nsec) {
     unsafe {
         return ax_time_from_unix(sec, nsec)
     }
 }
 
+/**
+ * 函数名：unixMilli
+ * 功能：根据毫秒时间戳构造 time 值
+ * 输入参数：ms (int) - 毫秒时间戳
+ * 输出参数：time - 构造的时间值
+ * 修订日期：2026-11-27
+ */
 public time unixMilli(int ms) {
     unsafe {
         return ax_time_from_unix_ms(ms)
     }
 }
 
+/**
+ * 函数名：fromUnixMs
+ * 功能：根据毫秒时间戳构造 time 值（与 unixMilli 相同）
+ * 输入参数：ms (int) - 毫秒时间戳
+ * 输出参数：time - 构造的时间值
+ * 修订日期：2026-11-27
+ */
 public time fromUnixMs(int ms) {
     unsafe {
         return ax_time_from_unix_ms(ms)
     }
 }
 
+/**
+ * 函数名：unixMicro
+ * 功能：根据微秒时间戳构造 time 值
+ * 输入参数：us (int) - 微秒时间戳
+ * 输出参数：time - 构造的时间值
+ * 修订日期：2026-11-27
+ */
 public time unixMicro(int us) {
     unsafe {
         return ax_time_from_unix_us(us)
     }
 }
 
+/**
+ * 函数名：unixNano
+ * 功能：根据纳秒时间戳构造 time 值
+ * 输入参数：nsec (int) - 纳秒时间戳
+ * 输出参数：time - 构造的时间值
+ * 修订日期：2026-11-27
+ */
 public time unixNano(int nsec) {
     unsafe {
         return ax_time_from_unix_ns(nsec)
     }
 }
 
+/**
+ * 函数名：since
+ * 功能：返回从 t 到现在经过的毫秒数
+ * 输入参数：t (time) - 起始时间值
+ * 输出参数：int - 经过的毫秒数
+ * 修订日期：2026-11-27
+ */
 public int since(time t) {
     unsafe {
         return ax_time_since(t)
     }
 }
 
+/**
+ * 函数名：date
+ * 功能：根据日期时间构造 time 值
+ * 输入参数：year (int) - 年；month (int) - 月；day (int) - 日；hour (int) - 时；min (int) - 分；sec (int) - 秒；nsec (int) - 纳秒
+ * 输出参数：time - 构造的时间值
+ * 修订日期：2026-11-27
+ */
 public time date(int year, int month, int day, int hour, int min, int sec, int nsec) {
     unsafe {
         return ax_time_date(year, month, day, hour, min, sec, nsec)
     }
 }
 
+/**
+ * 函数名：until
+ * 功能：返回从现在到 t 的剩余毫秒数
+ * 输入参数：t (time) - 目标时间值
+ * 输出参数：int - 剩余毫秒数
+ * 修订日期：2026-11-27
+ */
 public int until(time t) {
     unsafe {
         return ax_time_until(t)

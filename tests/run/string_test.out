@@ -1,0 +1,8 @@
+compare(hello,hello)=
+0
+upper=
+HELLO
+lower=
+hello
+contains=
+1

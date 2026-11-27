@@ -9,7 +9,7 @@
   - 重扫调用点 → 若 CATALOG 缺条目则报错退出（提示先补英文）
   - 生成 docs/ERRORS.md（代码 + 中文释义 + 英文释义 + 出处）
 """
-import os, re, sys, collections
+import os, re, sys, collections, datetime
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, "rust", "src")
@@ -153,6 +153,7 @@ def main():
 
     lines = [
         "<!-- 本文件由 tools/gen_errdoc.py 生成，请勿手改；修改诊断文案后重新运行。 -->",
+        "<!-- 生成时间：%s -->" % datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "",
         "# axlang 错误码清单（多语言）",
         "",

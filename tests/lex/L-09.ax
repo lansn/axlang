@@ -1,5 +1,6 @@
-// EXPECT: PASS
+// EXPECT: E1005
+// 小数点后必须有数字
 int main() {
-    string s = "a\n"
+    float f = 1.e3
     return 0
 }

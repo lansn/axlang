@@ -416,6 +416,14 @@ impl<'a> Sema<'a> {
         if let Some(t) = explicit_ty {
             ty = Some(self.resolve_type(t));
         }
+        // 禁止声明 void / never 类型的变量：C 层无法表示，会导致 gcc 失败。
+        if let Some(t) = &ty {
+            if matches!(&**t, TyS::Void | TyS::Never) {
+                self.err("E4007", &s.tok, "T-11", "变量不能声明为 {0} 类型", &[&self.ts(t)]);
+                // 恢复为 object，避免后续级联错误
+                ty = Some(t_object());
+            }
+        }
         let init = match init {
             Some(i) => i,
             None => {
@@ -448,7 +456,25 @@ impl<'a> Sema<'a> {
         // 但若初始化表达式已是 Null/Void/Range（已在上方报 E4007），跳过 coerce 避免重复 E4001。
         let dst = ty.clone().unwrap();
         let init_ty = self.ty_of(init.id).unwrap_or_else(|| t_object());
-        if !matches!(&*init_ty, TyS::Null | TyS::Void | TyS::Range | TyS::Never) {
+        // null 只能赋给可空类型（Nullable）、object（C 层指针）或值类型结构体
+        //（如 Mutex/RWMutex/WaitGroup/Once，codegen 会生成 ({ct}){0} 零初始化）。
+        // 赋给 int/float/string 等基本类型会生成非法 C（如 int64_t v = NULL;），
+        // 必须在 sema 阶段拦截。
+        if matches!(&*init_ty, TyS::Null) {
+            let dst_is_nullable = matches!(&*dst, TyS::Nullable(_));
+            let dst_is_object = matches!(&*dst, TyS::Object);
+            let dst_is_struct = if let TyS::Named(DefId::Name(name), _) = &*dst {
+                self.types
+                    .get(&**name)
+                    .map(|&id| self.typedefs[id as usize].kind)
+                    == Some("struct")
+            } else {
+                false
+            };
+            if !dst_is_nullable && !dst_is_object && !dst_is_struct {
+                self.err("E4001", &init.tok, "T-5", "null 只能赋给可空类型、object 或结构体类型，得到 {0}", &[&self.ts(&dst)]);
+            }
+        } else if !matches!(&*init_ty, TyS::Void | TyS::Range | TyS::Never) {
             self.coerce(init, &dst, "变量初始化");
         }
         let ty = ty.unwrap();
@@ -744,12 +770,70 @@ impl<'a> Sema<'a> {
         }
     }
 
+    /// `match` 是否穷尽：一定会选中一条臂并产出一个值，因此作为块的最后一语句时
+    /// 能保证块“返回”（用于 E2006 路径检查）。判据与 `check_match` 保持一致：
+    /// 有 `_`/绑定臂即穷尽；`result<T>` 同时有 ok 与 fail 臂即穷尽；`bool` 同时有
+    /// true 与 false 臂即穷尽。
+    fn match_is_exhaustive(&self, n: &ast::MatchNode) -> bool {
+        if n.arms.is_empty() {
+            return false;
+        }
+        let mut has_wild = false;
+        let mut result_ok = false;
+        let mut result_fail = false;
+        let mut bool_true = false;
+        let mut bool_false = false;
+        for arm in &n.arms {
+            match &arm.pat.k {
+                ast::Pat::Wild | ast::Pat::Bind { .. } => has_wild = true,
+                ast::Pat::Multi { pats } => {
+                    if pats
+                        .iter()
+                        .any(|p| matches!(&p.k, ast::Pat::Wild | ast::Pat::Bind { .. }))
+                    {
+                        has_wild = true;
+                    }
+                }
+                ast::Pat::Result { is_ok, .. } => {
+                    if *is_ok {
+                        result_ok = true;
+                    } else {
+                        result_fail = true;
+                    }
+                }
+                ast::Pat::Lit { expr } => match &expr.k {
+                    Expr::BoolLit { value } => {
+                        if *value {
+                            bool_true = true;
+                        } else {
+                            bool_false = true;
+                        }
+                    }
+                    _ => {}
+                },
+                _ => {}
+            }
+        }
+        if has_wild {
+            return true;
+        }
+        let st = self.ty_of(n.scrutinee.id);
+        match st.as_deref() {
+            Some(TyS::Result(_)) => result_ok && result_fail,
+            Some(TyS::Bool) => bool_true && bool_false,
+            _ => false,
+        }
+    }
+
     pub fn stmt_must_exit(&self, s: &ast::SPtr) -> bool {
         match &s.k {
             Stmt::Return { .. } | Stmt::Throw { .. } | Stmt::Break { .. } | Stmt::Continue { .. } => true,
             Stmt::Block(b) => self.block_must_exit_block(b),
             Stmt::If(n) => self.ifnode_must_exit(n),
             Stmt::Match(n) => {
+                if self.match_is_exhaustive(n) {
+                    return true;
+                }
                 !n.arms.is_empty() && n.arms.iter().all(|a| self.expr_must_exit(&a.body))
             }
             Stmt::Simple { lhs, .. } => matches!(&lhs.k, Expr::Call { .. }),
@@ -788,6 +872,9 @@ impl<'a> Sema<'a> {
             Expr::Call { .. } => true,
             Expr::If(n) => self.ifnode_must_exit(n),
             Expr::Match(n) => {
+                if self.match_is_exhaustive(n) {
+                    return true;
+                }
                 !n.arms.is_empty() && n.arms.iter().all(|a| self.expr_must_exit(&a.body))
             }
             _ => false,
@@ -1330,6 +1417,7 @@ impl<'a> Sema<'a> {
                                     is_export: false,
                                     parent,
                                     nested: BTreeMap::new(),
+                                    varargs: false,
                                 };
                                 let inst = self.funcs.len();
                                 self.funcs.push(inst_fi);

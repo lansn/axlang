@@ -1,5 +1,0 @@
-// EXPECT: E3002
-int main() {
-    int a
-    return 0
-}

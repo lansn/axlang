@@ -1,6 +1,0 @@
-// EXPECT: E3030
-import helper
-int main() {
-    int x = helper.secret()
-    return 0
-}

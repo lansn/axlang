@@ -1,16 +1,9 @@
-// EXPECT: E7001
-class Buffer {
-    public int n
-    constructor(int n) {
-        this.n = n
-    }
-    public void write(string s) {
-    }
+// EXPECT: E3032
+// interface 不能有 constructor
+interface IFace {
+    constructor()
 }
 
 int main() {
-    var b = new Buffer(8)
-    var c = b
-    b.write("x")
     return 0
 }

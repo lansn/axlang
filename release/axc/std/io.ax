@@ -16,24 +16,52 @@ extern "C" {
 
 // ---------- 模块级函数（C 风格命名：小写 + 下划线） ----------
 
+/**
+ * 函数名：readLine
+ * 功能：从标准输入读取一行，存入 out
+ * 输入参数：out (ref string) - 存储读取内容的输出参数
+ * 输出参数：int - 读取的字节数，EOF 返回 -1
+ * 修订日期：2026-11-27
+ */
 public int readLine(ref string out) {
     unsafe {
         return ax_read_line(out)
     }
 }
 
+/**
+ * 函数名：readFile
+ * 功能：读取指定路径文件的全部内容，存入 out
+ * 输入参数：path (string) - 文件路径；out (ref string) - 存储文件内容的输出参数
+ * 输出参数：int - 0 表示成功，非 0 表示失败
+ * 修订日期：2026-11-27
+ */
 public int readFile(string path, ref string out) {
     unsafe {
         return ax_read_file(path, out)
     }
 }
 
+/**
+ * 函数名：write
+ * 功能：将字符串 s 输出到标准输出（不换行）
+ * 输入参数：s (string) - 要输出的字符串
+ * 输出参数：无
+ * 修订日期：2026-11-27
+ */
 public void write(string s) {
     unsafe {
         ax_write_stdout(s)
     }
 }
 
+/**
+ * 函数名：writeLine
+ * 功能：将字符串 s 输出到标准输出并换行
+ * 输入参数：s (string) - 要输出的字符串
+ * 输出参数：无
+ * 修订日期：2026-11-27
+ */
 public void writeLine(string s) {
     unsafe {
         ax_write_stdout(s)

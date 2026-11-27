@@ -592,106 +592,42 @@ defer println("cleanup");
 
 ## 6. 标准库
 
-axlang 标准库分为三层：
+axlang 标准库分为两层，**严格互斥，不得并存**：
 
-1. **编译器内建模块**（14 个）：无法独立表达的能力，保留在编译器 Rust 端内建，由 codegen 硬编码 axrt 调用。
-2. **标准库模块**（16 个）：用 ax 语法编写，位于 `axc/std/`，预转译为标准 C，通过 gcc 参与编译。
-3. **兼容别名**（4 个）：保留单段名 `file`/`string`/`sync`/`atomic` 以兼容现有代码。
+1. **编译器内建模块**（7 个）：无法用纯 ax 语法独立实现，长期保留在编译器 Rust 端内建，由 codegen 硬编码 axrt 调用。不涉及 `axc/std/` 下的任何 `.ax` 源码。
+2. **标准库模块**（16 个）：用 ax 语法编写，位于 `axc/std/`，预转译为标准 C，通过 gcc 参与编译。ax 层仅包装 axrt C 运行时原语，通过 `extern "C"` 调用，不引入 ax 编译器内建能力。
 
-### 6.1 编译器内建模块（INTERNAL_BUILTINS，14 个）
+### 6.1 编译器内建模块（INTERNAL_BUILTINS，7 个）
+
+以下 7 个模块为编译器 Rust 端内建，无 `axc/std/` 下的 `.ax` 源码，由 codegen 硬编码 axrt 调用。用裸模块名直接使用，无需 `import`：
 
 | 模块 | 函数 | 签名 | 说明 |
 |------|------|------|------|
-| io | `readLine()` | `() -> string?` | 读取一行 |
-| io | `readFile(path)` | `(string) -> result<string>` | 读取文件 |
-| io | `write(s)` | `(string) -> void` | 写 stdout |
-| io | `writeLine(s)` | `(string) -> void` | 写 stdout 并换行 |
-| math | `equals(a, b, eps)` | `(float, float, float) -> bool` | 浮点相等比较 |
-| math | `compare(a, b)` | `(float, float) -> int` | 浮点比较 |
-| math | `abs(x)` | `(float) -> float` | 绝对值 |
-| math | `max(a, b)` | `(float, float) -> float` | 最大值 |
-| math | `min(a, b)` | `(float, float) -> float` | 最小值 |
-| math | `sqrt(x)` | `(float) -> float` | 平方根 |
-| math | `pow(a, b)` | `(float, float) -> float` | 幂 |
-| math | `exp(x)` | `(float) -> float` | 指数 |
-| math | `log(x)` | `(float) -> float` | 自然对数 |
-| math | `sin/cos/tan(x)` | `(float) -> float` | 三角函数 |
-| math | `ceil/floor/round(x)` | `(float) -> float` | 取整 |
-| math | `sign(x)` | `(float) -> int` | 符号 |
-| math | `mod(x, y)` | `(float, float) -> float` | 取模 |
-| math | `exp2/log2/log10/log1p(x)` | `(float) -> float` | 对数/指数变体 |
-| math | `isNaN(x)` | `(float) -> bool` | 是否 NaN |
-| math | `isInf(x, sign)` | `(float, int) -> bool` | 是否无穷 |
-| math | `sinh/cosh/tanh(x)` | `(float) -> float` | 双曲函数 |
-| math | `asin/acos/atan(x)` | `(float) -> float` | 反三角函数 |
-| math | `atan2(y, x)` | `(float, float) -> float` | 反正切 |
-| math | `hypot(p, q)` | `(float, float) -> float` | 斜边 |
-| math | `cbrt(x)` | `(float) -> float` | 立方根 |
-| math | `trunc(x)` | `(float) -> float` | 向零取整 |
-| math | `signbit(x)` | `(float) -> int` | 符号位 |
-| math | `copysign(x, y)` | `(float, float) -> float` | 复制符号 |
-| math | `dim(x, y)` | `(float, float) -> float` | 正差 |
-| math | `ldexp(x, exp)` | `(float, int) -> float` | 乘以 2 的幂 |
-| math | `frexp(f)` | `(float) -> (float, int)` | 分解尾数和指数 |
-| json | `parse(s)` | `(string) -> result<map<string, object>>` | JSON 解析 |
-| json | `stringify(o)` | `(object) -> string` | JSON 序列化 |
-| json | `marshalIndent(o, prefix, indent)` | `(object, string, string) -> string` | 带缩进序列化 |
-| json | `valid(s)` | `(string) -> bool` | JSON 合法性检查 |
-| db | `query(sql)` | `(string) -> result<Row>` | 数据库查询（编译器内建，需运行时类型反射 / 数据库驱动设计） |
-| file | `open/create/append(path)` | `(string) -> result<File>` | 打开/创建/追加文件 |
-| file | `remove/rename/exists/mkdir(path)` | `(string) -> int` | 文件操作 |
-| file | `isDir/isFile/size/modTime(path)` | `(string) -> int` | 文件属性 |
-| file | `readAll/writeAll(path, content)` | `(string) -> result<string>` / `(string, string) -> int` | 读写整文件 |
-| file | `chmod(path, mode)` | `(string, int) -> int` | 修改权限 |
-| file | `chtimes(path, atime, mtime)` | `(string, int, int) -> int` | 修改时间 |
-| file | `tempFile(prefix, suffix)` | `(string, string) -> result<File>` | 临时文件 |
-| string | `fromCodepoint(cp)` | `(int) -> result<string>` | 码点转字符串 |
-| string | `compare(a, b)` | `(string, string) -> int` | 字符串比较 |
-| string | `fields(s)` | `(string) -> string[]` | 字段分割 |
-| string | `toUpperRune/toLowerRune(cp)` | `(int) -> int` | 码点大小写 |
-| time | `nowMs()` | `() -> int` | 毫秒时间戳 |
-| time | `now()` | `() -> time` | 当前时间 |
-| time | `fromUnixMs(ms)` | `(int) -> time` | 从 Unix 毫秒 |
-| time | `sleep(ms)` | `(int) -> void` | 睡眠 |
-| time | `unix/sec/nsec/milli/micro(n)` | 各签名 -> time | Unix 时间构造 |
-| time | `since(t)` | `(time) -> int` | 时间差 |
-| time | `date(y, M, d, h, m, s, ns)` | 7 个 int -> time | 构造日期时间 |
-| time | `until(t)` | `(time) -> int` | 直到 t 的时间差 |
-| time | `parse(format, s)` | `(string, string) -> result<time>` | 时间解析 |
-| os | `getenv(k)` | `(string) -> string` | 获取环境变量 |
-| os | `exit(code)` | `(int) -> void` | 退出程序 |
-| os | `args()` | `() -> string[]` | 命令行参数 |
-| os | `getwd()` | `() -> string` | 工作目录 |
-| os | `chdir(path)` | `(string) -> int` | 切换目录 |
-| os | `getpid/getppid()` | `() -> int` | 进程 ID |
-| os | `hostname()` | `() -> string` | 主机名 |
-| os | `environ()` | `() -> string[]` | 环境变量列表 |
-| os | `setenv(k, v)` | `(string, string) -> int` | 设置环境变量 |
-| os | `unsetenv(k)` | `(string) -> int` | 删除环境变量 |
-| os | `userHomeDir()` | `() -> string` | 用户主目录 |
-| atomic | `addInt(addr, delta)` | `(int, int) -> int` | 原子加 |
-| atomic | `loadInt(addr)` | `(int) -> int` | 原子读 |
-| atomic | `storeInt(addr, val)` | `(int, int) -> void` | 原子写 |
-| atomic | `compareAndSwapInt(addr, old, new)` | `(int, int, int) -> bool` | CAS |
-| sort | `ints/strings/float64s(arr)` | `(T[]) -> void` | 排序 |
-| sort | `intsAreSorted/stringsAreSorted(arr)` | `(T[]) -> bool` | 是否已排序 |
-| sort | `searchInts/searchStrings(arr, target)` | `(T[], T) -> int` | 二分查找 |
-| sort | `slice(arr, cmp)` | `(object[], func(int,int)int) -> void` | 带比较函数排序 |
-| sort | `sliceStable(arr, cmp)` | 同上 | 稳定排序 |
-| errors | `new(msg)` | `(string) -> error` | 创建错误 |
-| errors | `is/as(err1, err2)` | `(error, error) -> bool` | 错误比较/类型断言 |
-| log | `print(args...)` | 多实参 -> void | 打印日志 |
+| db | `query(sql)` | `(string) -> result<Row>` | 数据库查询（planned，需运行时类型反射 / 数据库驱动设计） |
+| fmt | `print(s)` | `(string) -> void` | 将字符串输出到标准输出，不换行 |
+| fmt | `println(s)` | `(string) -> void` | 将字符串输出到标准输出并换行 |
+| fmt | `printf(format, args...)` | `(string, any...) -> void` | 格式化输出，编译期核对占位符（%d/%f/%s/%.Nf/%t/%v/%%） |
+| fmt | `sprintf(format, args...)` | `(string, any...) -> string` | 格式化并返回字符串 |
+| fmt | `sprint(args...)` | `(any...) -> string` | 将任意参数格式化为字符串返回 |
+| fmt | `fprintf(w, format, args...)` | `(File, string, any...) -> int` | 将格式化内容写入文件句柄 |
+| fmt | `errorf(format, args...)` | `(string, any...) -> error` | 格式化错误信息并返回 error |
+| fmt | `scanf(format, args...)` | `(string, any...) -> int` | 从 stdin 按格式读取 |
+| log | `print(args...)` | 多实参 `-> void` | 打印日志到标准输出 |
 | log | `printf(fmt, args...)` | `(string, ...) -> void` | 格式化日志 |
-| log | `fatal(args...)` | 多实参 -> void | 致命日志 |
-| strconv | `atoi/itoa/parseFloat/formatFloat/parseInt/formatInt/parseBool/formatBool/parseUint/formatUint` | 各签名 | 字符串↔数字转换 |
-| strconv | `canBackquote/quote/unquote(s)` | `(string) -> bool/string` | 字符串引用处理 |
-| filepath | `join/dir/base/ext/split/clean/abs/isAbs/evalSymlinks/glob/walk(path)` | 各签名 | 路径操作 |
-| reflect | `typeOf(o)` | `(object) -> string` | 编译期类型查询 |
-| reflect | `numField(o)` | `(object) -> int` | 字段数量 |
-| fmt | `Printf(fmt, args...)` | 格式化打印 | 编译期占位符核对 |
-| fmt | `Print/Println(args...)` | 多实参 | 打印 |
-| maps | `*` | — | Map 模块函数 |
-| unique | `*` | — | 唯一句柄模块 |
+| log | `fatal(args...)` | 多实参 `-> void` | 致命日志，输出后终止进程 |
+| maps | `*` | — | Map 集合工具函数（planned，运行时类型反射相关） |
+| reflect | `typeOf(o)` | `(object) -> string` | 编译期类型查询，返回静态类型显示名 |
+| reflect | `numField(o)` | `(object) -> int` | 结构体字段数量 |
+| sort | `ints(arr)` | `(int[]) -> void` | 对 int 数组升序排序 |
+| sort | `strings(arr)` | `(string[]) -> void` | 对 string 数组升序排序 |
+| sort | `float64s(arr)` | `(float[]) -> void` | 对 float 数组升序排序 |
+| sort | `intsAreSorted(arr)` | `(int[]) -> bool` | 判断 int 数组是否已排序 |
+| sort | `stringsAreSorted(arr)` | `(string[]) -> bool` | 判断 string 数组是否已排序 |
+| sort | `searchInts(arr, x)` | `(int[], int) -> int` | 二分查找 int |
+| sort | `searchStrings(arr, x)` | `(string[], string) -> int` | 二分查找 string |
+| sort | `slice(arr, cmp)` | `(object[], func(int,int)int) -> void` | 通用切片排序 |
+| sort | `sliceStable(arr, cmp)` | `(object[], func(int,int)int) -> void` | 稳定通用切片排序 |
+| unique | `Handle[T]` | 泛型类型 | 唯一句柄类型 |
 
 ### 6.2 标准库模块（STDLIB_MODULES，16 个）
 
@@ -709,12 +645,12 @@ axlang 标准库分为三层：
 | std.strconv | `strconv.ax` | `axc/rt/string/axrt_strconv.c` |
 | std.math | `math.ax` | `axc/rt/math/axrt_math.c` |
 | std.errors | `errors.ax` | `axc/rt/errors/axrt_errors.c` |
-| std.fmt | `fmt.ax` | `axc/rt/string/axrt_str.c` |
 | std.time | `time.ax` | `axc/rt/time/axrt_time.c` |
 | std.rand | `rand.ax` | `axc/rt/rand/axrt_rand.c` |
 | std.bytes | `bytes.ax` | `axc/rt/bytes/axrt_bytes.c` |
 | std.bufio | `bufio.ax` | `axc/rt/bytes/axrt_bufio.c` |
 | std.csv | `csv.ax` | `axc/rt/csv/axrt_csv.c` |
+| std.filepath | `filepath.ax` | `axc/rt/file/axrt_filepath.c` |
 
 **导出函数命名**：C 风格，全部小写，下划线分隔（如 `read_line`、`write_line`）。ax 层通过 camelCase 包装调用。
 
@@ -739,44 +675,57 @@ public void write(string s) {
 }
 ```
 
-ax 调用端：`std.io.readLine(ref line)`、`std.io.writeLine("hello")`。
+ax 调用端：`io.readLine(ref line)`、`io.writeLine("hello")`。
 
-### 6.3 兼容别名（BUILTIN_MODULES，18 个）
 
+## 7. fmt 模块与格式化输出
+
+### 7.1 fmt 模块（内建模块）
+
+`fmt` 是编译器内建模块（`INTERNAL_BUILTINS`，无 `axc/std/fmt.ax`），**无需 `import std.fmt`**，直接用裸模块名 `fmt` 调用即可。与标准库模块严格互斥，不得并存。
+
+| 函数 | 签名 | 说明 |
+|------|------|------|
+| `fmt.print` | `(string) -> void` | 将字符串输出到标准输出，不换行 |
+| `fmt.println` | `(string) -> void` | 将字符串输出到标准输出并换行 |
+| `fmt.printf` | `(string, any...) -> void` | 格式化输出，编译期核对占位符（%d/%f/%s/%.Nf/%t/%v/%%） |
+| `fmt.sprintf` | `(string, any...) -> string` | 格式化并返回字符串 |
+| `fmt.sprint` | `(any...) -> string` | 将任意参数格式化为字符串返回 |
+| `fmt.fprintf` | `(File, string, any...) -> int` | 将格式化内容写入文件句柄 |
+| `fmt.errorf` | `(string, any...) -> error` | 格式化错误信息并返回 error |
+| `fmt.scanf` | `(string, any...) -> int` | 从 stdin 按格式读取 |
+
+### 7.2 格式化占位符
+
+`fmt.printf` / `fmt.sprintf` / `fmt.fprintf` / `fmt.errorf` / `fmt.scanf` 的首个参数是格式字符串，编译器在编译期对占位符与实参类型进行核对，不匹配时报 `E4032`（格式串/占位符错误）或 `E4031`（参数个数错误）。
+
+| 占位符 | 含义 | 示例 |
+|--------|------|------|
+| `%d` | 有符号整数（int/int64/定宽整数） | `fmt.printf("count = %d\n", 42)` |
+| `%f` | 浮点（float/float64，默认 6 位小数） | `fmt.printf("pi = %f\n", 3.14159)` |
+| `%.Nf` | 浮点保留 N 位小数 | `fmt.printf("pi = %.2f\n", 3.14159)` |
+| `%s` | 字符串 | `fmt.printf("name = %s\n", "axlang")` |
+| `%t` | 布尔 | `fmt.printf("flag = %t\n", true)` |
+| `%v` | 通用值（自动按类型格式化） | `fmt.printf("val = %v\n", x)` |
+| `%%` | 字面量 `%` | `fmt.printf("100%%\n")` |
+
+### 7.3 格式化输出示例
+
+```ax
+var pi = 3.14159
+var count = 42
+var name = "axlang"
+
+fmt.print("hello\n")                   // 不换行输出
+fmt.println("world")                   // 换行输出
+fmt.printf("pi = %.2f\n", pi)          // 输出：pi = 3.14
+fmt.printf("count = %d\n", count)      // 输出：count = 42
+fmt.printf("name = %s\n", name)        // 输出：name = axlang
+var s = fmt.sprintf("price = %.2f\n", 19.99d)
+fmt.print(s)
 ```
-db, fmt, io, json, errors, log, maps, math,
-os, reflect, sort, strconv, filepath, unique,
-sync, atomic, file, string
-```
 
-单段名 `file`/`string`/`sync`/`atomic` 保留向后兼容，但新代码建议使用 `std.file`/`std.string`/`std.sync`/`std.atomic`。
-
----
-
-## 7. 格式字符串（fmt.Printf）
-
-### 7.1 支持的占位符
-
-| 占位符 | 含义 | 类型要求 |
-|--------|------|----------|
-| `%%` | 字面 `%` | — |
-| `%d` | 整数 | int/uint 等 |
-| `%f` | 小数 | float/float32/decimal |
-| `%.Nf` | 带 N 位小数的浮点 | float/float32/decimal |
-| `%s` | 字符串 | string |
-| `%t` | 布尔 | bool |
-| `%v` | 任意可打印值 | 任意支持插值的类型 |
-
-### 7.2 编译期检查
-
-- 格式串必须是纯字符串字面量（不含 `{...}` 插值），才能在编译期核对占位符（`E4032`）。
-- 占位符个数与实参个数必须匹配（`E4032`）。
-- 占位符类型与实参类型必须匹配（`E4032`）。
-- 不支持的占位符（`%n` `%x` `%c` `%e` `%g` `%o` 等，或串尾孤 `%`）报 `E4044`。
-- `%.N` 精度只支持 `%f`，不支持 `%d` 等（`E4032`）。
-- 可空值请用 `%v` 或先判空（`E4030`）。
-
-运行时不做任何格式串解析，展开为与字符串插值完全相同的 `ax_sb` 拼接，`%.Nf` 复用插值的 `:.N`，零额外开销。
+字符串插值（§2.7）也可用于简单格式化，如 `fmt.print("pi = {pi:.2}\n")`，与 `%.2f` 占位符等价；两者可根据需要选择。
 
 ---
 
@@ -1034,7 +983,7 @@ sync, atomic, file, string
 import std.io;
 
 int main() {
-    std.io.writeLine("Hello, axlang!");
+    io.writeLine("Hello, axlang!");
     return 0;
 }
 ```
@@ -1090,8 +1039,8 @@ import std.file;
 import std.io;
 
 int main() {
-    var f = try std.file.readAll("config.txt");
-    std.io.writeLine(f);
+    var f = try file.readAll("config.txt");
+    io.writeLine(f);
     return 0;
 }
 ```
@@ -1099,16 +1048,21 @@ int main() {
 ### 12.5 格式化输出
 
 ```ax
-import std.fmt;
-
 int main() {
     var pi = 3.14159;
-    fmt.Printf("pi = %.2f\n", pi);
-    fmt.Printf("count = %d\n", 42);
-    fmt.Printf("name = %s\n", "axlang");
+    var count = 42;
+    var name = "axlang";
+
+    fmt.print("hello\n");
+    fmt.println("world");
+    fmt.printf("pi = %.2f\n", pi);      // 输出：pi = 3.14
+    fmt.printf("count = %d\n", count);  // 输出：count = 42
+    fmt.printf("name = %s\n", name);    // 输出：name = axlang
     return 0;
 }
 ```
+
+> 说明：`fmt` 是编译器内建模块，**无需 `import std.fmt`**，直接使用 `fmt.printf`/`fmt.println` 等即可。`fmt.printf` 支持编译期占位符核对（%d/%f/%s/%.Nf/%t/%v/%%）；字符串插值 `"{pi:.2}"` 也可用于简单格式化（见 §2.7 字符串字面量）。
 
 ---
 

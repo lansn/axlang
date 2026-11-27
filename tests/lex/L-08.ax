@@ -1,5 +1,6 @@
-// EXPECT: PASS
+// EXPECT: E1003
+// 块注释未闭合
 int main() {
-    float f = 1.5e-3
+    /* 未闭合
     return 0
 }

@@ -1,0 +1,5 @@
+// tests/mod/Mod-Cycle/b.ax —— 循环导入 B
+import a
+
+public void funcB() {
+}

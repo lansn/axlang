@@ -1,0 +1,21 @@
+// tests/run/functions.ax —— 函数定义与调用
+import std.io
+import std.strconv
+
+public int add(int a, int b) {
+    return a + b
+}
+
+public int mul(int a, int b) {
+    return a * b
+}
+
+int main() {
+    int r = add(3, 4)
+    io.writeLine("add(3,4)=")
+    io.writeLine(strconv.itoa(r))
+    int m = mul(r, 2)
+    io.writeLine("mul=")
+    io.writeLine(strconv.itoa(m))
+    return 0
+}

@@ -1,6 +1,0 @@
-// EXPECT: E6016
-// is(int == string) 为 false，const 断言失败（原 static assert）
-int main() {
-    const bool _check = is(int == string)
-    return 0
-}

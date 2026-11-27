@@ -1,0 +1,6 @@
+// tests/mod/Mod-Basic/utils.ax —— 工具模块
+import std.io
+
+public void sayHello() {
+    io.writeLine("hello from utils")
+}

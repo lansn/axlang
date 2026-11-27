@@ -38,30 +38,26 @@ pub fn is_reserved(name: &str) -> bool {
     is_builtin_scalar(name) || RESERVED_EXTRA.contains(&name)
 }
 
-/// axlang 内建模块（INTERNAL_BUILTINS）：无法独立表达的能力，保留在编译器 Rust 端内建。
-/// 包括：print/println/fmt（变参、编译期占位符核对）、泛型相关、底层 I/O、JSON、数据库、
-/// 日志、数学、操作系统、随机数、排序、字符串转换、时间、文件路径、字节、唯一句柄、
-/// 缓冲 I/O、数组切片、Map 等。这些模块的函数直接由 codegen 硬编码 axrt 调用或内建实现。
-pub const INTERNAL_BUILTINS: [&str; 14] = [
-    "db", "fmt", "io", "json", "errors", "log", "maps", "math",
-    "os", "reflect", "sort", "strconv", "filepath", "unique",
+/// axlang 内建模块（INTERNAL_BUILTINS）：无法用纯 ax 语法独立实现，长期保留在编译器
+/// Rust 端内建。不涉及 axc/std/ 下的任何 .ax 源码，与标准库模块互斥，不得并存。
+/// 包括：数据库驱动（db.query）、日志（log.print/printf/fatal）、Map 集合工具（maps.*）、
+/// 运行时类型反射（reflect.typeOf/numField）、排序原语（sort.ints/strings/slice 等）、
+/// 唯一句柄（unique.Handle[T]）、格式化输出（fmt.print/println/printf/sprintf/fprintf/scanf）。
+pub const INTERNAL_BUILTINS: [&str; 7] = [
+    "db", "fmt", "log", "maps", "reflect", "sort", "unique",
 ];
 
 /// axlang 标准库模块（STDLIB_MODULES）：用 ax 语法编写，预转译为标准 C，随编译器发布，
 /// 通过 gcc 参与编译。ax 层仅包装 axrt C 运行时原语，通过 extern "C" 调用，
 /// 不引入 ax 编译器内建能力。codegen 将模块方法调用映射为 ax_std_* 标准库 C 接口调用。
 /// 模块名统一以 `std.` 前缀开头，如 `std.string`、`std.file`、`std.sync`、`std.atomic`，
-/// 与用户库 import/use 方式一致。
-pub const STDLIB_MODULES: [&str; 16] = ["std.string", "std.file", "std.sync", "std.atomic", "std.io", "std.json", "std.os", "std.strconv", "std.math", "std.errors", "std.fmt", "std.time", "std.rand", "std.bytes", "std.bufio", "std.csv"];
+/// 与用户库 import/use 方式一致。每个模块对应 axc/std/ 下的同名 .ax 文件。
+pub const STDLIB_MODULES: [&str; 16] = ["std.string", "std.file", "std.sync", "std.atomic", "std.io", "std.json", "std.os", "std.strconv", "std.math", "std.errors", "std.time", "std.rand", "std.bytes", "std.bufio", "std.csv", "std.filepath"];
 
-/// 向后兼容别名：BUILTIN_MODULES = INTERNAL_BUILTINS + 单段标准库别名
-///（`std.file`/`std.string`/`std.sync`/`std.atomic` 现已改为从 axc/std/ 加载，
-/// 但保留单段名 `file`/`string`/`sync`/`atomic` 以兼容现有代码）
-pub const BUILTIN_MODULES: [&str; 18] = [
-    "db", "fmt", "io", "json", "errors", "log", "maps", "math",
-    "os", "reflect", "sort", "strconv", "filepath", "unique",
-    "sync", "atomic", "file", "string",
-];
+/// 兼容别名列表（现已清空）。编译器处于剧烈变动阶段，不保留单段兼容名：
+/// 用户必须统一使用 `std.*` 多段名导入标准库模块（如 `import std.file` 而非 `import file`）。
+/// 空数组保留该常量名以避免 cli.rs 引用处编译失败，后续可彻底移除。
+pub const BUILTIN_MODULES: [&str; 0] = [];
 
 pub fn is_builtin_type_name(name: &str) -> bool {
     is_builtin_scalar(name)
@@ -346,7 +342,7 @@ impl std::fmt::Debug for ConstCell {
     }
 }
 
-pub struct FuncInfo<'a> {
+    pub struct FuncInfo<'a> {
     pub name: String,
     pub tok: Tok,
     pub module: String,
@@ -383,6 +379,8 @@ pub struct FuncInfo<'a> {
     pub parent: Option<usize>,
     /// 该函数体内直接声明的嵌套函数：源码名 → fid（供裸名调用解析）。
     pub nested: BTreeMap<String, usize>,
+    /// 可变参数：最后一个形参为 `...` 时为 true，调用时允许任意数量实参
+    pub varargs: bool,
 }
 
 #[derive(Clone)]
@@ -606,7 +604,7 @@ pub struct Sema<'a> {
     /// 当前正在检查的模块：None = 入口文件，Some = 用户模块前缀。
     /// 决定裸名解析的限定名与模块级符号的注册名。
     cur_mod_prefix: Option<String>,
-    /// 当前模块的文件路径（FuncInfo.module 用）
+    /// 当前模块的文件路径（诊断归属；FuncInfo.module 现存储 cur_mod_prefix 规范名）
     cur_mod_path: String,
     /// 当前模块生效的导入视图
     active_views: HashMap<String, String>,
@@ -833,6 +831,7 @@ impl<'a> Sema<'a> {
                 is_export: false,
                 parent: None,
                 nested: BTreeMap::new(),
+                varargs: false,
             };
             self.funcs.push(f);
             let fid = self.funcs.len() - 1;
@@ -1338,8 +1337,8 @@ impl<'a> Sema<'a> {
                         let joined = path.join(".");
                         let view = alias.clone().unwrap_or_else(|| joined.clone());
                         // 标准库模块使用多段名（如 "std.string"），完整匹配 STDLIB_MODULES；
-                        // 内建模块使用单段名（如 "io", "fmt"），匹配 BUILTIN_MODULES 的第一段。
-                        let builtin = BUILTIN_MODULES.contains(&path[0].as_str());
+                        // 内建模块使用单段名（如 "sort", "log"），匹配 INTERNAL_BUILTINS。
+                        let builtin = INTERNAL_BUILTINS.contains(&path[0].as_str());
                         let is_stdlib = STDLIB_MODULES.contains(&joined.as_str());
                         let target = if builtin {
                             // 单段内建模块（io/fmt/math 等），不从文件系统加载
@@ -1529,7 +1528,7 @@ impl<'a> Sema<'a> {
         let f = FuncInfo {
             name: reg.clone(),
             tok: item.tok.clone(),
-            module: self.cur_mod_path.clone(),
+            module: self.cur_mod_prefix.clone().unwrap_or_default(),
             owner: None,
             params: Vec::new(),
             ret: t_void(),
@@ -1554,6 +1553,7 @@ impl<'a> Sema<'a> {
             is_export,
             parent: None,
             nested: BTreeMap::new(),
+            varargs: false,
         };
         self.funcs.push(f);
         self.func_by_name.insert(reg.clone(), self.funcs.len() - 1);
@@ -1587,7 +1587,7 @@ impl<'a> Sema<'a> {
         let f = FuncInfo {
             name: reg.clone(),
             tok: item.tok.clone(),
-            module: self.cur_mod_path.clone(),
+            module: self.cur_mod_prefix.clone().unwrap_or_default(),
             owner: None,
             params: param_tys,
             ret: ret_ty,
@@ -1609,6 +1609,7 @@ impl<'a> Sema<'a> {
             is_export: false,
             parent: None,
             nested: BTreeMap::new(),
+            varargs: false,
         };
         self.funcs.push(f);
         self.func_by_name.insert(reg.clone(), self.funcs.len() - 1);
@@ -1710,6 +1711,7 @@ impl<'a> Sema<'a> {
                         }
                         "Row" => return t_named(DefId::Name("Row"), Vec::new()),
                         "File" => return t_named(DefId::Name("File"), Vec::new()),
+                        "error" => return t_error(),
                         "void" => return t_void(),
                         "range" => return t_range(),
                         "Arena" => return t_named(DefId::Name("Arena"), Vec::new()),
@@ -2046,11 +2048,21 @@ impl<'a> Sema<'a> {
             .map(|g| (g.name.clone(), Rc::new(TyS::Param(g.name.clone())) as Ty))
             .collect();
         let mut ps = Vec::new();
+        let mut varargs = false;
         for p in params {
             let ty = self.resolve_type(&p.k.ty);
             ps.push((p.k.name.clone(), ty, p.k.borrow.clone()));
+            if p.k.varargs {
+                varargs = true;
+            }
+        }
+        // 可变参数占位符（void 类型）仅用于标记 varargs，不进入 C 形参列表；
+        // C 层通过 `...` 后缀表达，调用时超出固定参数的实参直接透传。
+        if varargs {
+            ps.pop();
         }
         self.funcs[f].params = ps;
+        self.funcs[f].varargs = varargs;
         self.funcs[f].ret = self.resolve_type(ret);
         // 声明期校验：约束必须是 interface 名（GX-07）
         // 裸名约束需经 lookup_type_name 解析，才能识别跨模块导入的接口（#9）
@@ -2232,7 +2244,7 @@ impl<'a> Sema<'a> {
                             let f = FuncInfo {
                                 name: name.clone(),
                                 tok: m.tok.clone(),
-                                module: self.path.clone(),
+                                module: self.cur_mod_prefix.clone().unwrap_or_default(),
                                 owner: Some(d),
                                 params: Vec::new(),
                                 ret: t_void(),
@@ -2253,6 +2265,7 @@ impl<'a> Sema<'a> {
                                 is_export: false,
                                 parent: Some(d as usize),
                                 nested: BTreeMap::new(),
+                                varargs: false,
                                 body: Some(body),
                             };
                             self.funcs.push(f);
@@ -2277,7 +2290,7 @@ impl<'a> Sema<'a> {
                             let f = FuncInfo {
                                 name: name.clone(),
                                 tok: m.tok.clone(),
-                                module: self.path.clone(),
+                                module: self.cur_mod_prefix.clone().unwrap_or_default(),
                                 owner: Some(d),
                                 params: Vec::new(),
                                 ret: t_void(),
@@ -2298,6 +2311,7 @@ impl<'a> Sema<'a> {
                                 is_export: false,
                                 parent: Some(d as usize),
                                 nested: BTreeMap::new(),
+                                varargs: false,
                                 body: Some(body),
                             };
                             self.funcs.push(f);
@@ -2321,7 +2335,7 @@ impl<'a> Sema<'a> {
                     let f = FuncInfo {
                         name: m.k.name.clone(),
                         tok: m.tok.clone(),
-                        module: self.path.clone(),
+                        module: self.cur_mod_prefix.clone().unwrap_or_default(),
                         owner: Some(d),
                         params: Vec::new(),
                         ret: t_void(),
@@ -2343,6 +2357,7 @@ impl<'a> Sema<'a> {
                 parent: Some(d as usize),
                 nested: BTreeMap::new(),
                         body: m.k.default_body.as_ref(),
+                        varargs: false,
                     };
                     self.funcs.push(f);
                     let fid = self.funcs.len() - 1;

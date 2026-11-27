@@ -1,0 +1,20 @@
+// tests/run/math_test.ax —— 标准库 std.math
+import std.io
+import std.math
+import std.strconv
+
+int main() {
+    io.writeLine("abs(-5)=")
+    io.writeLine(strconv.itoa(int(math.abs(float(-5)))))
+    io.writeLine("max(3,7)=")
+    io.writeLine(strconv.itoa(int(math.max(float(3), float(7)))))
+    io.writeLine("min(3,7)=")
+    io.writeLine(strconv.itoa(int(math.min(float(3), float(7)))))
+    io.writeLine("sqrt(16)=")
+    io.writeLine(strconv.itoa(int(math.sqrt(float(16)))))
+    io.writeLine("sin(0)=")
+    io.writeLine(strconv.formatFloat(math.sin(float(0))))
+    io.writeLine("cos(0)=")
+    io.writeLine(strconv.formatFloat(math.cos(float(0))))
+    return 0
+}

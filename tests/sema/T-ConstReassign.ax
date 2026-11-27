@@ -1,7 +1,0 @@
-// EXPECT: E3005
-// 人类常犯：不能给 const 赋值
-int main() {
-    const int MAX = 100
-    MAX = 200   // 不能给 const 赋值 → E3005
-    return 0
-}

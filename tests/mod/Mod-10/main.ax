@@ -1,7 +1,0 @@
-import model
-
-int main() {
-    println("v={model.VALUE}")
-    println("g={model.greet()}")
-    return 0
-}

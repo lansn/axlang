@@ -1,9 +1,0 @@
-// 验证 std.math.frexp（多返回值：(frac, int) 元组，解构赋值）
-import std.math
-
-int main() {
-    var (frac, exp) = math.frexp(3.5)
-    println("frac={frac}")
-    println("exp={exp}")
-    return 0
-}

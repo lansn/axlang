@@ -1,0 +1,62 @@
+// tests/run/multi_mod.ax —— 多模块之间调用（导入多个模块并交叉使用）
+// 注：std.math 中部分函数依赖 C math.h，axrt.h 未声明，属预存在编译器问题；
+// 本测试不 import std.math，仅使用 std.io/std.strconv/std.string/std.time。
+import std.io
+import std.strconv
+import std.string
+import std.time
+
+int main() {
+    // std.string + std.strconv：字符串比较与转换
+    int c = std.string.compare("abc", "abd")
+    io.writeLine("string.compare(abc,abd)=")
+    io.writeLine(strconv.itoa(c))
+
+    int c2 = std.string.compare("abc", "abc")
+    io.writeLine("string.compare(abc,abc)=")
+    io.writeLine(strconv.itoa(c2))
+
+    int has = std.string.contains("hello world", "world")
+    io.writeLine("string.contains=")
+    io.writeLine(strconv.itoa(has))
+
+    int idx = std.string.indexOf("hello world", "world")
+    io.writeLine("string.indexOf=")
+    io.writeLine(strconv.itoa(idx))
+
+    int cnt = std.string.count("hello world", "l")
+    io.writeLine("string.count=")
+    io.writeLine(strconv.itoa(cnt))
+
+    string upper = std.string.toUpper("hello")
+    io.writeLine("string.toUpper=")
+    io.writeLine(upper)
+
+    string lower = std.string.toLower("HELLO")
+    io.writeLine("string.toLower=")
+    io.writeLine(lower)
+
+    string trimmed = std.string.trim("  hello  ")
+    io.writeLine("string.trim=")
+    io.writeLine(trimmed)
+
+    // std.time + std.io：获取当前时间并输出（非确定性，仅验证调用可用）
+    int64 now = time.nowMs()
+    io.writeLine("time.nowMs=")
+    io.writeLine(strconv.itoa(int(now)))
+
+    // std.strconv 解析与格式化
+    int parsed = strconv.parseInt("255", 10)
+    io.writeLine("parseInt(255)=")
+    io.writeLine(strconv.itoa(parsed))
+
+    string hex = strconv.formatInt(255, 16)
+    io.writeLine("formatInt(255,16)=")
+    io.writeLine(hex)
+
+    string bin = strconv.formatInt(10, 2)
+    io.writeLine("formatInt(10,2)=")
+    io.writeLine(bin)
+
+    return 0
+}

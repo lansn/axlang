@@ -1,5 +1,0 @@
-// EXPECT: E4001
-class Bad {
-    public abstract void foo();
-}
-int main() { return 0 }

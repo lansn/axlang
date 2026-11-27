@@ -14,12 +14,26 @@ extern "C" {
 
 // ---------- 模块级函数（C 风格命名：小写 + 下划线） ----------
 
+/**
+ * 函数名：readAll
+ * 功能：读取 CSV 文件 r 的全部记录
+ * 输入参数：r (File) - CSV 文件句柄
+ * 输出参数：string[][] - 二维字符串数组，每行一个记录，每列一个字段
+ * 修订日期：2026-11-27
+ */
 public string[][] readAll(File r) {
     unsafe {
         return ax_csv_read_all(r)
     }
 }
 
+/**
+ * 函数名：write
+ * 功能：将一条记录写入 CSV 文件 w
+ * 输入参数：w (File) - CSV 文件句柄；record (string[]) - 要写入的一条记录
+ * 输出参数：int - 0 表示成功，非 0 表示失败
+ * 修订日期：2026-11-27
+ */
 public int write(File w, string[] record) {
     unsafe {
         return ax_csv_write(w, record)

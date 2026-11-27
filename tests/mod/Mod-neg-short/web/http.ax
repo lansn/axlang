@@ -1,3 +1,0 @@
-public string ping() {
-    return "web-pong"
-}

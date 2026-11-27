@@ -1,0 +1,5 @@
+// EXPECT: E3003
+// 未定义的变量
+int main() {
+    return undefined_var
+}

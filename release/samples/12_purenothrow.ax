@@ -1,0 +1,21 @@
+// samples/12_purenothrow.ax —— @pure 与 @nothrow 属性
+import std.io
+import std.strconv
+
+@pure
+public int square(int x) {
+    return x * x
+}
+
+@nothrow
+public void safeLog(string msg) {
+    io.writeLine(msg)
+}
+
+int main() {
+    int s = square(5)
+    io.writeLine("square(5)=")
+    io.writeLine(strconv.itoa(s))
+    safeLog("done")
+    return 0
+}

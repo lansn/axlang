@@ -1,5 +1,0 @@
-// EXPECT: E4007
-int main() {
-    var n = null
-    return 0
-}

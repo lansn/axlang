@@ -1,0 +1,7 @@
+// EXPECT: E2002
+// 两条语句共享一行
+int main() {
+    int x = 5
+    int y = 10 z = 20
+    return 0
+}

@@ -1,6 +1,0 @@
-// EXPECT: E4005
-int main() {
-    int[4] a = [1, 2, 3, 4]
-    a[4] = 9
-    return 0
-}

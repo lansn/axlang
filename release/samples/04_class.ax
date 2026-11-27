@@ -1,0 +1,23 @@
+// samples/04_class.ax —— 类定义与方法
+import std.io
+import std.strconv
+
+class Product {
+    public string name
+    public int price
+
+    constructor(string n, int p) {
+        this.name = n
+        this.price = p
+    }
+
+    public string desc() {
+        return this.name + ": " + strconv.itoa(this.price)
+    }
+}
+
+int main() {
+    var p = Product("Widget", 99)
+    io.writeLine(p.desc())
+    return 0
+}

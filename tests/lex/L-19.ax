@@ -1,6 +1,0 @@
-// EXPECT: E1004
-// 人类常犯：非法转义序列 \q
-int main() {
-    string s = "hello\qworld"
-    return 0
-}

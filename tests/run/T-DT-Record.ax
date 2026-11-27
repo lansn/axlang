@@ -1,6 +1,0 @@
-// 数据类型：record 字面量
-int main() {
-    var cfg = {"name": "ax", "port": 8080}
-    println("name={cfg["name"]} port={cfg["port"]}")
-    return 0
-}

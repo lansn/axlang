@@ -1,4 +1,0 @@
-// net/http 模块
-public string get() {
-    return "response content"
-}

@@ -1,0 +1,5 @@
+// EXPECT: E2001
+// 缺少右大括号
+int main() {
+    if (true) {
+        return 1

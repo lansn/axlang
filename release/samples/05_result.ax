@@ -1,0 +1,21 @@
+// samples/05_result.ax —— 结果类型 result<T>
+import std.io
+import std.strconv
+
+public result<int> safeDiv(int a, int b) {
+    if (b == 0) {
+        throw error.Invalid("divisor cannot be zero")
+    }
+    return ok(a / b)
+}
+
+int main() {
+    try {
+        int r = safeDiv(10, 2)
+        io.writeLine("result=")
+        io.writeLine(strconv.itoa(r))
+    } catch (error e) {
+        io.writeLine("error occurred")
+    }
+    return 0
+}

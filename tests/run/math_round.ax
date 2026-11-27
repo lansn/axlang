@@ -1,0 +1,49 @@
+// tests/run/math_round.ax —— 数字四舍五入与数值运算（axlang 内建运算，不依赖 std.math）
+// 注：std.math 中部分函数依赖 C math.h，axrt.h 未声明，属预存在编译器问题；
+// 本测试仅使用 axlang 内建算术运算与类型转换。
+import std.io
+import std.strconv
+
+int main() {
+    // 基本整数算术运算
+    int a = 10
+    int b = 3
+    io.writeLine("add=")
+    io.writeLine(strconv.itoa(a + b))
+    io.writeLine("sub=")
+    io.writeLine(strconv.itoa(a - b))
+    io.writeLine("mul=")
+    io.writeLine(strconv.itoa(a * b))
+    io.writeLine("div=")
+    io.writeLine(strconv.itoa(a / b))
+    io.writeLine("mod=")
+    io.writeLine(strconv.itoa(a % b))
+    io.writeLine("neg=")
+    io.writeLine(strconv.itoa(-a))
+
+    // 浮点算术运算
+    float x = 7.5
+    float y = 2.0
+    io.writeLine("float add=")
+    io.writeLine(strconv.formatFloat(x + y))
+    io.writeLine("float sub=")
+    io.writeLine(strconv.formatFloat(x - y))
+    io.writeLine("float mul=")
+    io.writeLine(strconv.formatFloat(x * y))
+    io.writeLine("float div=")
+    io.writeLine(strconv.formatFloat(x / y))
+
+    // 浮点与整数混合运算（需要显式转换）
+    float f = float(a) / float(b)
+    io.writeLine("int->float div=")
+    io.writeLine(strconv.formatFloat(f))
+
+    // 不同宽度整数运算
+    int8 i8 = 10
+    int16 i16 = int16(i8)
+    int32 i32 = int32(i16)
+    io.writeLine("int8->int16->int32=")
+    io.writeLine(strconv.itoa(int(i32)))
+
+    return 0
+}

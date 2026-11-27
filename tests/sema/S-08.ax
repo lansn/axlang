@@ -1,0 +1,7 @@
+// EXPECT: E3027
+// 导入不存在的标准库模块
+import std.nonexistent
+
+int main() {
+    return 0
+}

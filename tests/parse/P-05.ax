@@ -1,0 +1,6 @@
+// EXPECT: E2001
+// 函数调用缺少右括号
+int main() {
+    foo(
+    return 0
+}

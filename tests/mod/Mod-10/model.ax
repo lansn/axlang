@@ -1,4 +1,0 @@
-public const int VALUE = 42
-public string greet() {
-    return "hi"
-}

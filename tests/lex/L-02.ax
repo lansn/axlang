@@ -1,5 +1,6 @@
 // EXPECT: E1002
+// 单引号不是字符串定界符
 int main() {
-    string c = 'a'
+    string s = 'a'
     return 0
 }

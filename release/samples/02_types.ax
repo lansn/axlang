@@ -1,0 +1,21 @@
+// samples/02_types.ax —— 基本类型与变量
+import std.io
+import std.strconv
+
+int main() {
+    int age = 30
+    string name = "axlang"
+    float score = 95.5
+    bool active = true
+
+    io.writeLine("name=")
+    io.writeLine(name)
+    io.writeLine("age=")
+    io.writeLine(strconv.itoa(age))
+    io.writeLine("score=")
+    io.writeLine(strconv.formatFloat(score))
+    io.writeLine("active=")
+    io.writeLine(strconv.formatBool(active))
+    println("name.len=",name.len())
+    return 0
+}

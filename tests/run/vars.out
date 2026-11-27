@@ -1,0 +1,33 @@
+int=
+42
+string=
+axlang
+float=
+3.14
+bool=
+true
+int8=
+1
+int16=
+2
+int32=
+3
+int64=
+4
+byte=
+5
+uint8=
+6
+uint16=
+7
+uint32=
+8
+float32=
+2.5
+decimal price= 19.99
+decimal qty= 2
+decimal total= 39.98
+string? has_value=
+hello
+string? null=
+<null>

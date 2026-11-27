@@ -1,0 +1,78 @@
+// tests/run/vars.ax —— 变量声明与全部类型覆盖
+import std.io
+import std.strconv
+
+int main() {
+    // 基本标量类型
+    int i = 42
+    string s = "axlang"
+    float f = 3.14
+    bool b = true
+
+    // 不同宽度的整数类型
+    int8 i8 = 1
+    int16 i16 = 2
+    int32 i32 = 3
+    int64 i64 = 4
+    byte by = 5
+    uint8 u8 = 6
+    uint16 u16 = 7
+    uint32 u32 = 8
+
+    // 浮点类型
+    float32 f32 = 2.5f32
+
+    // decimal 类型（金额专用，避免浮点误差）
+    decimal price = 19.99d
+    decimal qty = 2d
+    decimal total = price * qty
+
+    // 可空类型（string?）
+    string? opt_s = "hello"
+    string? opt_null = null
+
+    // 基本类型输出
+    io.writeLine("int=")
+    io.writeLine(strconv.itoa(i))
+    io.writeLine("string=")
+    io.writeLine(s)
+    io.writeLine("float=")
+    io.writeLine(strconv.formatFloat(f))
+    io.writeLine("bool=")
+    io.writeLine(strconv.formatBool(b))
+
+    // 不同宽度整数输出（需先转 int 再 itoa）
+    io.writeLine("int8=")
+    io.writeLine(strconv.itoa(int(i8)))
+    io.writeLine("int16=")
+    io.writeLine(strconv.itoa(int(i16)))
+    io.writeLine("int32=")
+    io.writeLine(strconv.itoa(int(i32)))
+    io.writeLine("int64=")
+    io.writeLine(strconv.itoa(int(i64)))
+    io.writeLine("byte=")
+    io.writeLine(strconv.itoa(int(by)))
+    io.writeLine("uint8=")
+    io.writeLine(strconv.itoa(int(u8)))
+    io.writeLine("uint16=")
+    io.writeLine(strconv.itoa(int(u16)))
+    io.writeLine("uint32=")
+    io.writeLine(strconv.itoa(int(u32)))
+
+    // float32 输出
+    io.writeLine("float32=")
+    io.writeLine(strconv.formatFloat(f32))
+
+    // decimal 输出（println 支持直接插值）
+    println("decimal price=", price)
+    println("decimal qty=", qty)
+    println("decimal total=", total)
+
+    // 可空类型输出（?? 空合并，null 时输出默认值）
+    io.writeLine("string? has_value=")
+    io.writeLine(opt_s ?? "<null>")
+    io.writeLine("string? null=")
+    io.writeLine(opt_null ?? "<null>")
+
+    return 0
+}

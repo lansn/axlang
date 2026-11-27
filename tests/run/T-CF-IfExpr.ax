@@ -1,9 +1,0 @@
-// 控制流：if 作表达式（必须有 else）
-int main() {
-    int a = 10
-    int b = 20
-    int max = if a > b { a } else { b }
-    int min = if a < b { a } else { b }
-    println("max={max} min={min}")
-    return 0
-}
