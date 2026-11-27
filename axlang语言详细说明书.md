@@ -227,8 +227,8 @@ enum Color { Red, Green, Blue }
 
 ```ax
 struct Point {
-    x: int;
-    y: int;
+    int x;
+    int y;
 }
 ```
 
@@ -241,10 +241,10 @@ struct Point {
 
 ```ax
 class Person extend Entity implement Drawable {
-    name: string;
-    age: int;
+    string name;
+    int age;
 
-    constructor(name: string, age: int) {
+    constructor(string name, int age) {
         this.name = name;
         this.age = age;
     }
@@ -1058,8 +1058,8 @@ if (opt != null) {
 
 ```ax
 class Animal {
-    name: string;
-    constructor(name: string) {
+    string name;
+    constructor(string name) {
         this.name = name;
     }
     public method speak() {
@@ -1068,7 +1068,7 @@ class Animal {
 }
 
 class Dog extend Animal {
-    constructor(name: string) {
+    constructor(string name) {
         parent(name);
     }
     public override method speak() {

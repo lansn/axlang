@@ -887,6 +887,7 @@ impl<'a> Parser<'a> {
             self.nl();
             self.parse_expr()?;
         }
+        self.expect_term();
         Ok(Some(self.nn(
             name.clone(),
             Member::Field { vis, ty, name: name.text().to_string() },
@@ -990,6 +991,7 @@ impl<'a> Parser<'a> {
             self.nl();
             self.parse_expr()?;
         }
+        self.expect_term();
         Ok(Some(self.nn(
             nm.clone(),
             Member::Field { vis: None, ty, name: nm.text().to_string() },
