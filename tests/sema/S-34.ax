@@ -1,0 +1,11 @@
+// tests/sema/S-34.ax
+// EXPECT: E4022
+// 可空值不能直接访问成员，必须先判空收窄或用 ?.
+import std.io
+import std.strconv
+
+int main() {
+    string? s = "hello"
+    io.writeLine(s.length())
+    return 0
+}

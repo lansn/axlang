@@ -1,0 +1,7 @@
+// tests/sema/S-36.ax
+// EXPECT: E2002
+// 同一行不能写两条语句
+int main() {
+    int x = 5 int y = 10
+    return 0
+}

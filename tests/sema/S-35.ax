@@ -1,0 +1,10 @@
+// tests/sema/S-35.ax
+// EXPECT: E4028
+// `object` 没有成员方法，先解箱到具体类型
+import std.io
+
+int main() {
+    object o = "hello"
+    io.writeLine(o.length())
+    return 0
+}

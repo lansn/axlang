@@ -1,0 +1,10 @@
+// tests/sema/S-33.ax
+// EXPECT: E4007
+// `var` 不能从 null 推断类型
+import std.io
+
+int main() {
+    var x = null
+    io.writeLine(x)
+    return 0
+}

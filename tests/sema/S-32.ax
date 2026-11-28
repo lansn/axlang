@@ -1,0 +1,12 @@
+// tests/sema/S-32.ax
+// EXPECT: E4001
+// `null` 只能与可空类型或引用类型比较
+import std.io
+
+int main() {
+    int x = 5
+    if (x == null) {
+        io.writeLine("null cmp")
+    }
+    return 0
+}

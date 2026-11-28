@@ -1,0 +1,13 @@
+// tests/sema/S-37.ax
+// EXPECT: E2004
+// if 和 else 的分支体都只有一句且不加 {}
+import std.io
+
+int main() {
+    int x = 5
+    if (x > 0)
+        io.writeLine("pos")
+    else
+        io.writeLine("neg")
+    return 0
+}
