@@ -296,7 +296,7 @@ pub struct Opts {
     pub version: bool,
     /// `--lang=en|zh`（None = 走 AXC_LANG / axc.toml / 默认英文）
     pub lang: Option<String>,
-    /// 产物类型："exe"（默认）或 "shared"，共享库模式下跳过 main 包装并加 -shared
+    /// 产物类型："exe"（默认可执行文件）、"shared"（共享库，跳过 main 包装并加 -shared）、"static"（静态链接库，使用 ar 打包 .a/.lib，不生成 main）
     pub kind: String,
     /// `axc env` 子命令：是否显示/设置编译器环境
     pub env_cmd: bool,
@@ -628,7 +628,7 @@ pub fn print_help() {
     println!("  --set=KEY=VALUE     axc env 子命令：持久化设置编译器路径（如 --set AX_CC=D:/mingw/bin/gcc.exe）");
     println!("  --lang=en|zh        诊断文案语言（默认 en；也可用 AXC_LANG 环境变量或 axc.toml）");
     println!("  -k | --keep         保留构建目录（排查生成代码用）");
-    println!("  --kind=exe|shared   产物类型：exe（默认可执行文件）或 shared（动态链接库 .dll/.so/.dylib）");
+    println!("  --kind=exe|shared|static   产物类型：exe（默认可执行文件）、shared（动态链接库 .dll/.so/.dylib）、static（静态链接库 .a/.lib）");
     println!("  -v, -V, --version   打印版本号后退出");
 }
 
@@ -838,7 +838,9 @@ pub fn run(argv: &[String]) -> i32 {
     }
 
     // check 阶段不要求 main；shared 模式生成动态库，也不需要 main 入口
-    let need_main = matches!(opts.cmd.as_str(), "build" | "run") && opts.kind != "shared";
+    let need_main = matches!(opts.cmd.as_str(), "build" | "run")
+        && opts.kind != "shared"
+        && opts.kind != "static";
 
     // 用户模块加载（文稿 9）：解析 import，递归加载非内建模块，循环导入报错
     let mut arena: Vec<(String, String, ast::Module)> = Vec::new();
@@ -959,6 +961,13 @@ fn default_out(path: &str, kind: &str) -> String {
                 format!("lib{}.dylib", base)
             } else {
                 format!("lib{}.so", base)
+            }
+        }
+        "static" => {
+            if cfg!(windows) {
+                format!("{}.lib", base)
+            } else {
+                format!("lib{}.a", base)
             }
         }
         _ => {

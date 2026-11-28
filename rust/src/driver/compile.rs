@@ -747,6 +747,7 @@ pub fn compile_c_files(
     };
 
     let is_shared = kind == "shared";
+    let is_static = kind == "static";
 
     // 共享库模式：收集导出符号
     let mut export_list_path: Option<PathBuf> = None;
@@ -794,6 +795,135 @@ pub fn compile_c_files(
                 }
             }
         }
+    }
+
+    // 静态链接库：将所有 .o 打包为 .a/.lib，不生成可执行文件，不调用 gcc 链接
+    if is_static {
+        // 1. 编译 unit.c 为 unit.o
+        let unit_obj = workdir.join("unit.o");
+        let mut cc_cmd = std::process::Command::new(&opts.cc);
+        cc_cmd.arg("-std=c11")
+            .arg("-O2")
+            .arg("-Wall")
+            .arg("-Wno-unused-function")
+            .arg("-Wno-return-type")
+            .arg("-I")
+            .arg(&workdir)
+            .arg("-c")
+            .arg(&cpath)
+            .arg("-o")
+            .arg(&unit_obj)
+            .current_dir(&workdir);
+        let cc_out = cc_cmd.output();
+        match cc_out {
+            Ok(o) if o.status.success() => {}
+            Ok(o) => {
+                eprintln!("axc: 静态库 unit.c 编译失败");
+                eprint!("{}", String::from_utf8_lossy(&o.stderr));
+                return None;
+            }
+            Err(e) => {
+                eprintln!("axc: 无法调用 C 编译器 {}：{}", opts.cc, e);
+                return None;
+            }
+        }
+
+        // 2. 收集所有 .o 文件：unit.o + axrt .o + 编译后的 axrt .c .o + 标准库 .o + 编译后的 stdlib .c .o
+        let mut all_objs: Vec<PathBuf> = Vec::new();
+        all_objs.push(unit_obj);
+        for obj in &rt_obj_in_workdir {
+            all_objs.push(obj.clone());
+        }
+        // 编译 rt_c_in_workdir 中的 .c 文件为 .o
+        for cfile in &rt_c_in_workdir {
+            let stem = cfile.file_stem().unwrap().to_string_lossy().to_string();
+            let obj_path = workdir.join(format!("{}.o", stem));
+            let mut cc_cmd = std::process::Command::new(&opts.cc);
+            cc_cmd.arg("-std=c11")
+                .arg("-O2")
+                .arg("-Wall")
+                .arg("-Wno-unused-function")
+                .arg("-Wno-return-type")
+                .arg("-I")
+                .arg(&workdir)
+                .arg("-c")
+                .arg(cfile)
+                .arg("-o")
+                .arg(&obj_path)
+                .current_dir(&workdir);
+            if cc_cmd.output().map(|o| o.status.success()).unwrap_or(false) {
+                all_objs.push(obj_path);
+            } else {
+                eprintln!("axc: 静态库 axrt 文件 {} 编译失败", cfile.display());
+            }
+        }
+        for obj in &stdlib_obj_in_workdir {
+            all_objs.push(obj.clone());
+        }
+        // 编译 stdlib_c_in_workdir 中的 .c 文件为 .o
+        for cfile in &stdlib_c_in_workdir {
+            let stem = cfile.file_stem().unwrap().to_string_lossy().to_string();
+            let obj_path = workdir.join(format!("{}.o", stem));
+            let mut cc_cmd = std::process::Command::new(&opts.cc);
+            cc_cmd.arg("-std=c11")
+                .arg("-O2")
+                .arg("-Wall")
+                .arg("-Wno-unused-function")
+                .arg("-Wno-return-type")
+                .arg("-I")
+                .arg(&workdir)
+                .arg("-c")
+                .arg(cfile)
+                .arg("-o")
+                .arg(&obj_path)
+                .current_dir(&workdir);
+            if cc_cmd.output().map(|o| o.status.success()).unwrap_or(false) {
+                all_objs.push(obj_path);
+            } else {
+                eprintln!("axc: 静态库 stdlib 文件 {} 编译失败", cfile.display());
+            }
+        }
+
+        // 3. 查找 ar 工具（优先与 cc 同目录）
+        let ar_path = std::path::Path::new(&opts.cc)
+            .parent()
+            .and_then(|dir| {
+                ["ar.exe", "ar", "llvm-ar.exe", "llvm-ar", "gcc-ar.exe", "gcc-ar"]
+                    .iter()
+                    .find_map(|name| {
+                        let p = dir.join(name);
+                        p.is_file().then(|| p.to_string_lossy().to_string())
+                    })
+            })
+            .unwrap_or_else(|| "ar".to_string());
+
+        // 4. 使用 ar rcs 打包静态库
+        let mut ar_cmd = std::process::Command::new(&ar_path);
+        ar_cmd.arg("rcs").arg(&out_abs);
+        for obj in &all_objs {
+            ar_cmd.arg(obj);
+        }
+        let ar_out = ar_cmd.current_dir(&workdir).output();
+        match ar_out {
+            Ok(o) if o.status.success() => {}
+            Ok(o) => {
+                eprintln!("axc: 静态库打包失败（ar rcs）");
+                eprint!("{}", String::from_utf8_lossy(&o.stderr));
+                return None;
+            }
+            Err(e) => {
+                eprintln!("axc: 无法调用 ar 工具 {}：{}", ar_path, e);
+                return None;
+            }
+        }
+
+        // 5. 清理工作目录
+        if opts.keep {
+            eprintln!("axc: 构建目录 {}", workdir.display());
+        } else {
+            let _ = fs::remove_dir_all(&workdir);
+        }
+        return Some(());
     }
 
     // 构建 gcc 命令行：unit.c + axrt_*.c + 标准库 .c 文件

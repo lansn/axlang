@@ -1,0 +1,15 @@
+// tests/run/static_test.ax —— 静态链接库（static）导出符号测试（无 main，供外部程序链接调用）
+import std.io
+
+export int add(int a, int b) {
+    return a + b;
+}
+
+export int sub(int a, int b) {
+    return a - b;
+}
+
+export string greet(string name) {
+    io.writeLine("greet called from static lib: " + name);
+    return "hello, " + name;
+}
