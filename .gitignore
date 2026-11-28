@@ -23,7 +23,7 @@ nul
 /dist/cache/
 /release/bin/cache/
 # 用户项目编译缓存（<项目>/cache/ 下的 .o/.hash 不应入库）
-/samples/cache/
+/dist/samples/cache/
 
 # 测试临时目录（根目录）
 /.build/

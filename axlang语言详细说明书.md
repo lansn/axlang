@@ -1135,7 +1135,7 @@ int main() {
 
 axc 支持一次传入多个 `.ax` 文件，每个文件独立编译为 `{文件名}.o`（带内容哈希缓存），最后全部链接在一起。
 
-**文件 `samples/utils.ax`**（工具函数模块）：
+**文件 `dist/samples/utils.ax`**（工具函数模块）：
 ```ax
 public int utils_add(int a, int b) {
     return a + b
@@ -1150,7 +1150,7 @@ public string utils_greet(string name) {
 }
 ```
 
-**文件 `samples/13_multi_main.ax`**（主入口，导入 utils 模块）：
+**文件 `dist/samples/13_multi_main.ax`**（主入口，导入 utils 模块）：
 ```ax
 import std.io
 import std.strconv
@@ -1168,10 +1168,10 @@ int main() {
 
 **编译运行**：
 ```
-axc samples/13_multi_main.ax samples/utils.ax
+axc dist/samples/13_multi_main.ax dist/samples/utils.ax
 # 输出：
-# axc: 用户文件 13_multi_main -> .../samples/cache/13_multi_main.o (缓存)
-# axc: 用户文件 utils -> .../samples/cache/utils.o (缓存)
+# axc: 用户文件 13_multi_main -> .../dist/samples/cache/13_multi_main.o (缓存)
+# axc: 用户文件 utils -> .../dist/samples/cache/utils.o (缓存)
 # utils_add(10, 3) = 13
 # utils_sub(10, 3) = 7
 # hello, axlang
@@ -1179,7 +1179,7 @@ axc samples/13_multi_main.ax samples/utils.ax
 
 **特点**：
 - 每个 `.ax` 文件独立编译为独立的 `.o` 翻译单元
-- `.o` 及 `.hash` 缓存到用户项目目录下的 `cache/` 子目录（如 `samples/cache/`），不再写入编译器安装目录
+- `.o` 及 `.hash` 缓存到用户项目目录下的 `cache/` 子目录（如 `dist/samples/cache/`），不再写入编译器安装目录
 - 源文件未变时复用缓存 `.o`，无需重新编译
 - 支持 `--kind=exe`（默认）、`--kind=shared`、`--kind=static` 所有产物类型
 - 多次运行同一命令，第二次即命中缓存，编译时间显著缩短
