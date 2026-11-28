@@ -1,5 +1,5 @@
 // samples/13_multi_main.ax —— 多文件编译示例：主入口
-// 用法: axc samples/13_multi_main.ax samples/13_multi_utils.ax
+// 用法: axc samples/13_multi_main.ax samples/utils.ax
 
 import std.io
 import std.strconv
