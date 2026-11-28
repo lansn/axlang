@@ -1,0 +1,20 @@
+// tests/run/shared_test.ax —— 动态链接库（shared）导出符号测试
+import std.io
+
+export int add(int a, int b) {
+    return a + b;
+}
+
+export int sub(int a, int b) {
+    return a - b;
+}
+
+export string greet(string name) {
+    io.writeLine("greet called from DLL: " + name);
+    return "hello, " + name;
+}
+
+int main() {
+    io.writeLine("shared_test.ax 仅用于生成 DLL，不直接执行 main");
+    return 0;
+}
