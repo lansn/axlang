@@ -325,22 +325,10 @@ pub fn stdlib_obj_files(
             if path.extension().map_or(false, |e| e == "c") {
                 let stem = path.file_stem().unwrap().to_string_lossy().to_string();
                 let obj_path = obj_dir.join(format!("{}.o", stem));
-                let hash_path = obj_dir.join(format!("{}.hash", stem));
 
-                let need_compile = match (
-                    obj_path.exists(),
-                    hash_path.exists(),
-                    file_content_hash(&path),
-                ) {
-                    (true, true, Some(current_hash)) => {
-                        // 比较当前源文件内容哈希与缓存的哈希，内容未变则复用缓存
-                        match read_cached_hash(&hash_path) {
-                            Some(cached_hash) => cached_hash != current_hash,
-                            None => true, // 无法读取缓存哈希，重新编译
-                        }
-                    }
-                    _ => true, // .o 不存在、.hash 不存在、或无法读取源文件，都需要重新编译
-                };
+                // 标准库通过 `axc librtcompile` 命令显式编译，不再检查 hash 缓存。
+                // 若 .o 已存在则直接复用，否则重新编译。
+                let need_compile = !obj_path.exists();
 
                 if need_compile {
                     if let Err(e) = fs::create_dir_all(obj_dir) {
@@ -367,12 +355,7 @@ pub fn stdlib_obj_files(
                         .arg(&obj_path);
                     let out = cmd.output();
                     match out {
-                        Ok(o) if o.status.success() => {
-                            // 编译成功，写入内容哈希缓存
-                            if let Some(h) = file_content_hash(&path) {
-                                write_cached_hash(&hash_path, h);
-                            }
-                        }
+                        Ok(o) if o.status.success() => {}
                         Ok(o) => {
                             eprintln!("axc: 标准库 {} 预编译失败", path.display());
                             eprint!("{}", String::from_utf8_lossy(&o.stderr));
@@ -426,22 +409,10 @@ fn rt_obj_files_recursive(
                 if name.starts_with("axrt_") && name.ends_with(".c") {
                     let stem = path.file_stem().unwrap().to_string_lossy().to_string();
                     let obj_path = obj_dir.join(format!("{}.o", stem));
-                    let hash_path = obj_dir.join(format!("{}.hash", stem));
 
-                    let need_compile = match (
-                        obj_path.exists(),
-                        hash_path.exists(),
-                        file_content_hash(&path),
-                    ) {
-                        (true, true, Some(current_hash)) => {
-                            // 比较当前源文件内容哈希与缓存的哈希，内容未变则复用缓存
-                            match read_cached_hash(&hash_path) {
-                                Some(cached_hash) => cached_hash != current_hash,
-                                None => true, // 无法读取缓存哈希，重新编译
-                            }
-                        }
-                        _ => true, // .o 不存在、.hash 不存在、或无法读取源文件，都需要重新编译
-                    };
+                    // 运行时通过 `axc librtcompile` 命令显式编译，不再检查 hash 缓存。
+                    // 若 .o 已存在则直接复用，否则重新编译。
+                    let need_compile = !obj_path.exists();
 
                     if need_compile {
                         if let Err(e) = fs::create_dir_all(obj_dir) {
@@ -466,12 +437,7 @@ fn rt_obj_files_recursive(
                             .arg(&obj_path);
                         let out = cmd.output();
                         match out {
-                            Ok(o) if o.status.success() => {
-                                // 编译成功，写入内容哈希缓存
-                                if let Some(h) = file_content_hash(&path) {
-                                    write_cached_hash(&hash_path, h);
-                                }
-                            }
+                            Ok(o) if o.status.success() => {}
                             Ok(o) => {
                                 eprintln!("axc: 运行时 {} 预编译失败", path.display());
                                 eprint!("{}", String::from_utf8_lossy(&o.stderr));
