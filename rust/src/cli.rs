@@ -307,7 +307,7 @@ pub struct Opts {
 impl Default for Opts {
     fn default() -> Self {
         Opts {
-            cmd: "check".to_string(),
+            cmd: "run".to_string(),
             file: None,
             out: None,
             diag: "text".to_string(),
@@ -602,11 +602,12 @@ pub fn parse_args(argv: &[String]) -> Opts {
 pub fn print_help() {
     println!("axc {} —— axlang 编译器", env!("CARGO_PKG_VERSION"));
     println!();
-    println!("用法: axc <check|build|run|env> <file.ax> [选项]");
+    println!("用法: axc [check|build|run|env] <file.ax> [选项]");
+    println!("    不写子命令时，等价于 `axc run <file.ax>`（构建后立即执行）。");
     println!();
     println!("  check   词法 / 语法 / 语义检查，只报诊断");
     println!("  build   生成 C11 源码并调用 cc 产出可执行文件");
-    println!("  run     build 后立即执行");
+    println!("  run     build 后立即执行（省略子命令时的默认行为）");
     println!("  env     显示或设置编译器环境（类似 go env）");
     println!();
     println!("选项:");
@@ -708,6 +709,12 @@ pub fn run(argv: &[String]) -> i32 {
         print_help();
         return if opts.help { 0 } else { 1 };
     }
+
+    // axc 初始运行时：检查并创建 cache 目录（无 axc 路径时不创建）
+    if let Some(cache_dir) = axc_exe_dir().map(|d| d.join(CC_CACHE_SUBDIR)) {
+        let _ = std::fs::create_dir_all(&cache_dir);
+    }
+
     let path = opts.file.clone().unwrap();
 
     let raw = match fs::read(&path) {
@@ -752,8 +759,10 @@ pub fn run(argv: &[String]) -> i32 {
     }
 
     let mod_ = parser::parse_module(toks, &path, &mut d, 0);
+    // --dump=ast：语法解析完成后输出 AST，打印完直接返回（不构建、不运行）
     if opts.dump.as_deref() == Some("ast") {
         println!("{}", ast::dump_module(&mod_));
+        return 0;
     }
     if d.has_error() {
         report(&d, &opts.diag);
