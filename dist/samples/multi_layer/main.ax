@@ -1,0 +1,17 @@
+// dist/samples/multi_layer/main.ax —— 多层级多模块多文件测试：主入口
+// 用法: axc dist/samples/multi_layer/main.ax dist/samples/multi_layer/lib/math.ax dist/samples/multi_layer/lib/io.ax dist/samples/multi_layer/lib/util/helper.ax
+
+import std.io
+import std.strconv
+import lib.math
+import lib.io as libio
+import lib.util.helper
+
+int main() {
+    io.writeLine("=== 多层级多模块多文件测试 ===")
+    io.writeLine("math.add(10, 20) = " + strconv.itoa(lib.math.add(10, 20)))
+    io.writeLine("math.sub(10, 20) = " + strconv.itoa(lib.math.sub(10, 20)))
+    libio.print("hello from lib.io")
+    io.writeLine(lib.util.helper.format("axlang"))
+    return 0
+}

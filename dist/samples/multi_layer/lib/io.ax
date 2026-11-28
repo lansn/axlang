@@ -1,0 +1,7 @@
+// dist/samples/multi_layer/lib/io.ax —— IO 工具模块
+
+import std.io
+
+public void print(string msg) {
+    io.writeLine(msg)
+}

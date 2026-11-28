@@ -1,0 +1,5 @@
+// dist/samples/multi_layer/lib/util/helper.ax —— 格式化助手模块（三层目录）
+
+public string format(string name) {
+    return "format: " + name
+}

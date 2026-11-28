@@ -1,0 +1,9 @@
+// dist/samples/multi_layer/lib/math.ax —— 数学工具模块
+
+public int add(int a, int b) {
+    return a + b
+}
+
+public int sub(int a, int b) {
+    return a - b
+}
