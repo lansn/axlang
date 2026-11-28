@@ -762,9 +762,7 @@ pub fn compile_multi_c_files(
         }
 
         let obj_path = compile_user_file_to_obj(&cpath, &stem, &workdir, &project_dir, opts)?;
-        let obj_display = obj_path.display().to_string();
         user_objs.push(obj_path);
-        println!("axc: 用户文件 {} -> {} (缓存)", stem, obj_display);
     }
 
     let out_abs = if out_path.is_absolute() {
