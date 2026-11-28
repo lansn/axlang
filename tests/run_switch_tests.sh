@@ -103,7 +103,9 @@ for f in "$PROJECT_DIR/tests/run/switch_test.ax" \
          "$PROJECT_DIR/tests/run/switch_enum.ax" \
          "$PROJECT_DIR/tests/run/switch_nested.ax" \
          "$PROJECT_DIR/tests/run/switch_only_default.ax" \
-         "$PROJECT_DIR/tests/run/if_else_stmt.ax"; do
+         "$PROJECT_DIR/tests/run/switch_no_paren.ax" \
+         "$PROJECT_DIR/tests/run/if_else_stmt.ax" \
+         "$PROJECT_DIR/tests/run/control_no_paren.ax"; do
     run_case "$f"
 done
 

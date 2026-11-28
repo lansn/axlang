@@ -1,0 +1,62 @@
+// tests/run/switch_no_paren.ax —— switch 省略括号（Go 风格）
+import std.io
+
+int main() {
+    int x = 2
+
+    // switch 省略括号：switch x { ... }
+    switch x {
+        case 1: {
+            io.writeLine("one")
+        }
+        case 2: {
+            io.writeLine("two")
+        }
+        default: {
+            io.writeLine("other")
+        }
+    }
+
+    // switch 省略括号 + 多值 case
+    switch x {
+        case 1, 2, 3: {
+            io.writeLine("one-two-three")
+        }
+        default: {
+            io.writeLine("other")
+        }
+    }
+
+    // switch 省略括号 + 表达式 case
+    switch x {
+        case 1 + 1: {
+            io.writeLine("expr-match")
+        }
+        default: {
+            io.writeLine("other")
+        }
+    }
+
+    // switch 省略括号 + expressionless（无表达式）
+    switch {
+        case x > 0: {
+            io.writeLine("exprless-pos")
+        }
+        default: {
+            io.writeLine("exprless-other")
+        }
+    }
+
+    // switch 带括号（原有行为，必须仍然工作）
+    switch (x) {
+        case 2: {
+            io.writeLine("paren-two")
+        }
+        default: {
+            io.writeLine("paren-other")
+        }
+    }
+
+    io.writeLine("done")
+    return 0
+}

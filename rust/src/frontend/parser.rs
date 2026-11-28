@@ -1804,7 +1804,9 @@ impl<'a> Parser<'a> {
         let t = self.expect("switch", None)?;
         self.nl();
 
-        // 判断是否有表达式：`switch (` 时有表达式，`switch {` 时无表达式（等价 if 链）
+        // 判断是否有表达式：
+        //   `switch (` 或 `switch {` —— 原有行为（有表达式带括号 / expressionless）
+        //   `switch expr {` —— Go 风格：有表达式但省略括号
         let scrutinee = if self.at("(") {
             self.advance();
             self.nl();
@@ -1812,8 +1814,12 @@ impl<'a> Parser<'a> {
             self.nl();
             self.expect(")", None)?;
             Some(s)
-        } else {
+        } else if self.at("{") {
             None
+        } else {
+            let s = self.parse_expr()?;
+            self.nl();
+            Some(s)
         };
 
         self.nl();

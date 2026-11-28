@@ -1,0 +1,33 @@
+// tests/run/control_no_paren.ax —— if/while 省略括号（Go 风格）
+import std.io
+
+int main() {
+    int x = 5
+
+    // if 省略括号
+    if x > 0 {
+        io.writeLine("if-no-paren-pos")
+    } else {
+        io.writeLine("if-no-paren-neg")
+    }
+
+    // if 省略括号 + 单条语句分支（无需 {}）
+    if x < 0
+        io.writeLine("if-neg-only")
+
+    // if-else 省略括号 + 单条语句分支
+    if x > 0
+        io.writeLine("if-pos-single")
+    else
+        io.writeLine("if-neg-single")
+
+    // while 省略括号 + 块
+    int i = 0
+    while i < 3 {
+        io.writeLine("while-no-paren")
+        i = i + 1
+    }
+
+    io.writeLine("done")
+    return 0
+}
