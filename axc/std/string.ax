@@ -28,6 +28,23 @@ extern "C" {
     int ax_str_is_lower(string s);
     int ax_str_is_upper(string s);
     int ax_str_is_alnum(string s);
+
+    /* 扩展：按 UTF-8 码点判断是否包含指定码点（对标 Go strings.ContainsRune） */
+    int ax_str_contains_rune(string s, int cp);
+    /* 字符集查找：s 是否包含 chars 中任意字符（对标 Go strings.ContainsAny） */
+    int ax_str_contains_any(string s, string chars);
+    /* 字符集查找：首次出现 chars 中任意字符的码点索引，未找到返回 -1（对标 Go strings.IndexAny） */
+    int ax_str_index_any(string s, string chars);
+    /* 字符集查找：最后出现 chars 中任意字符的码点索引，未找到返回 -1（对标 Go strings.LastIndexAny） */
+    int ax_str_last_index_any(string s, string chars);
+    /* 标题大写：每个单词首字母大写（对标 Go strings.Title，仅处理 ASCII） */
+    string ax_str_title(string s);
+    /* 忽略大小写的字符串相等比较（对标 Go strings.EqualFold，仅处理 ASCII） */
+    int ax_str_equal_fold(string a, string b);
+    /* 单字符大写转换（对标 C toupper，仅处理 ASCII a-z<->A-Z） */
+    int ax_str_to_upper_rune(int c);
+    /* 单字符小写转换（对标 C tolower，仅处理 ASCII A-Z<->a-z） */
+    int ax_str_to_lower_rune(int c);
 }
 
 // ---------- 模块级静态函数（C 风格命名：小写 + 下划线） ----------
@@ -263,5 +280,109 @@ public int isUpper(string s) {
 public int isAlnum(string s) {
     unsafe {
         return ax_str_is_alnum(s)
+    }
+}
+
+/**
+ * 函数名：containsRune
+ * 功能：判断字符串 s 是否包含指定的 UTF-8 码点 cp
+ * 输入参数：s (string) - 主字符串；cp (int) - 待查找的 Unicode 码点
+ * 输出参数：int - 1 表示包含，0 表示不包含
+ * 修订日期：2026-11-30
+ */
+public int containsRune(string s, int cp) {
+    unsafe {
+        return ax_str_contains_rune(s, cp)
+    }
+}
+
+/**
+ * 函数名：containsAny
+ * 功能：判断 s 是否包含 chars 中的任意字符
+ * 输入参数：s (string) - 主字符串；chars (string) - 字符集
+ * 输出参数：int - 1 表示包含任意字符，0 表示不包含
+ * 修订日期：2026-11-30
+ */
+public int containsAny(string s, string chars) {
+    unsafe {
+        return ax_str_contains_any(s, chars)
+    }
+}
+
+/**
+ * 函数名：indexAny
+ * 功能：返回 chars 中任意字符在 s 中首次出现的码点索引
+ * 输入参数：s (string) - 主字符串；chars (string) - 字符集
+ * 输出参数：int - 首次出现的索引，未找到返回 -1
+ * 修订日期：2026-11-30
+ */
+public int indexAny(string s, string chars) {
+    unsafe {
+        return ax_str_index_any(s, chars)
+    }
+}
+
+/**
+ * 函数名：lastIndexAny
+ * 功能：返回 chars 中任意字符在 s 中最后出现的码点索引
+ * 输入参数：s (string) - 主字符串；chars (string) - 字符集
+ * 输出参数：int - 最后出现的索引，未找到返回 -1
+ * 修订日期：2026-11-30
+ */
+public int lastIndexAny(string s, string chars) {
+    unsafe {
+        return ax_str_last_index_any(s, chars)
+    }
+}
+
+/**
+ * 函数名：title
+ * 功能：将字符串 s 转换为标题大写（每个单词首字母大写，仅处理 ASCII）
+ * 输入参数：s (string) - 待转换的字符串
+ * 输出参数：string - 标题大写后的字符串
+ * 修订日期：2026-11-30
+ */
+public string title(string s) {
+    unsafe {
+        return ax_str_title(s)
+    }
+}
+
+/**
+ * 函数名：equalFold
+ * 功能：忽略大小写比较两个字符串是否相等（仅处理 ASCII 大小写）
+ * 输入参数：a (string) - 第一个字符串；b (string) - 第二个字符串
+ * 输出参数：int - 1 表示相等，0 表示不相等
+ * 修订日期：2026-11-30
+ */
+public int equalFold(string a, string b) {
+    unsafe {
+        return ax_str_equal_fold(a, b)
+    }
+}
+
+/**
+ * 函数名：toUpperRune
+ * 功能：将单个字符 c 转换为大写（仅处理 ASCII a-z<->A-Z，非 ASCII 原样返回）
+ * 输入参数：c (int) - 待转换的字符（Unicode 码点）
+ * 输出参数：int - 转换后的字符码点
+ * 修订日期：2026-11-30
+ */
+public int toUpperRune(int c) {
+    unsafe {
+        return ax_str_to_upper_rune(c)
+    }
+}
+
+/**
+ * 函数名：toLowerRune
+ * 功能：将单个字符 c 转换为小写（仅处理 ASCII A-Z<->a-z，非 ASCII 原样返回）
+ * 输入参数：c (int) - 待转换的字符（Unicode 码点）
+ * 输出参数：int - 转换后的字符码点
+ * 修订日期：2026-11-30
+ */
+public int toLowerRune(int c) {
+    unsafe {
+        return ax_str_to_lower_rune(c)
     }
 }

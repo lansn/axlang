@@ -19,19 +19,19 @@ axlang 标准库共 **16 个模块**，全部位于 `axc/std/*.ax`，通过 `imp
 | `std.io` | `axc/std/io.ax` | 4 | 标准输入输出（readLine/readFile/write/writeLine） |
 | `std.json` | `axc/std/json.ax` | 3 | JSON 解析与序列化（stringify/marshalIndent/valid） |
 | `std.math` | `axc/std/math.ax` | 36 | 数学函数（abs/sin/cos/sqrt/exp/log 等） |
-| `std.os` | `axc/std/os.ax` | 17 | 操作系统接口（getenv/getpid/getwd 等） |
+| `std.os` | `axc/std/os.ax` | 19 | 操作系统接口（getenv/getpid/getwd/args/environ 等） |
 | `std.rand` | `axc/std/rand.ax` | 3 | 随机数生成（int/float/seed） |
 | `std.strconv` | `axc/std/strconv.ax` | 11 | 字符串转数值（itoa/formatUint/formatInt 等） |
-| `std.string` | `axc/std/string.ax` | 17 | 字符串操作（compare/contains/indexOf/toUpper/toLower 等） |
+| `std.string` | `axc/std/string.ax` | 25 | 字符串操作（compare/contains/indexOf/toUpper/toLower 等） |
 | `std.sync` | `axc/std/sync.ax` | 10 | 同步原语（mutexLock/rwmutexLock/waitgroupAdd 等） |
-| `std.time` | `axc/std/time.ax` | 11 | 时间处理（nowMs/now/sleep/unix/date 等） |
+| `std.time` | `axc/std/time.ax` | 14 | 时间处理（nowMs/now/sleep/unix/date/toString/round/truncate 等） |
 | `std.bytes` | `axc/std/bytes.ax` | 8 | 字节数组操作（contains/equal/index/split 等） |
 | `std.bufio` | `axc/std/bufio.ax` | 3 | 缓冲 I/O（newReader/newWriter/scanner） |
 | `std.csv` | `axc/std/csv.ax` | 2 | CSV 读写（readAll/write） |
 | `std.filepath` | `axc/std/filepath.ax` | 12 | 路径操作（rel/join/dir/base/ext/split/clean/abs 等） |
 | `std.atomic` | `axc/std/atomic.ax` | 4 | 原子操作（addInt/loadInt/storeInt/compareAndSwapInt） |
 
-**合计：16 个模块，约 136 个 public 函数**
+**合计：16 个模块，约 149 个 public 函数**
 
 ---
 
@@ -186,6 +186,8 @@ axlang 标准库共 **16 个模块**，全部位于 `axc/std/*.ax`，通过 `imp
 | `getegid` | `getegid() -> int` | 返回当前有效组 ID | 无 | `int` - 当前有效组 ID |
 | `getgroups` | `getgroups() -> int[]` | 返回当前用户所属的组 ID 列表 | 无 | `int[]` - 组 ID 列表 |
 | `executable` | `executable() -> string` | 返回当前可执行文件的路径 | 无 | `string` - 可执行文件路径 |
+| `args` | `args() -> string[]` | 返回命令行位置参数列表（不含程序名本身，对标 Go os.Args[1:]） | 无 | `string[]` - 命令行位置参数数组 |
+| `environ` | `environ() -> string[]` | 返回所有环境变量 "KEY=VALUE" 数组（对标 Go os.Environ） | 无 | `string[]` - 环境变量数组，每项为 "KEY=VALUE" |
 
 ---
 
@@ -247,6 +249,14 @@ axlang 标准库共 **16 个模块**，全部位于 `axc/std/*.ax`，通过 `imp
 | `isLower` | `isLower(s: string) -> int` | 判断 s 是否全为小写字母 | `s` (string) - 待判断的字符串 | `int` - 1 表示全为小写字母，0 表示不是 |
 | `isUpper` | `isUpper(s: string) -> int` | 判断 s 是否全为大写字母 | `s` (string) - 待判断的字符串 | `int` - 1 表示全为大写字母，0 表示不是 |
 | `isAlnum` | `isAlnum(s: string) -> int` | 判断 s 是否全为字母或数字 | `s` (string) - 待判断的字符串 | `int` - 1 表示全为字母或数字，0 表示不是 |
+| `containsRune` | `containsRune(s: string, cp: int) -> int` | 判断 s 是否包含指定的 UTF-8 码点 cp | `s` (string) - 主字符串；`cp` (int) - 待查找的 Unicode 码点 | `int` - 1 表示包含，0 表示不包含 |
+| `containsAny` | `containsAny(s: string, chars: string) -> int` | 判断 s 是否包含 chars 中的任意字符 | `s` (string) - 主字符串；`chars` (string) - 字符集 | `int` - 1 表示包含任意字符，0 表示不包含 |
+| `indexAny` | `indexAny(s: string, chars: string) -> int` | 返回 chars 中任意字符在 s 中首次出现的码点索引 | `s` (string) - 主字符串；`chars` (string) - 字符集 | `int` - 首次出现的索引，未找到返回 -1 |
+| `lastIndexAny` | `lastIndexAny(s: string, chars: string) -> int` | 返回 chars 中任意字符在 s 中最后出现的码点索引 | `s` (string) - 主字符串；`chars` (string) - 字符集 | `int` - 最后出现的索引，未找到返回 -1 |
+| `title` | `title(s: string) -> string` | 将字符串 s 转换为标题大写（每个单词首字母大写，仅处理 ASCII） | `s` (string) - 待转换的字符串 | `string` - 标题大写后的字符串 |
+| `equalFold` | `equalFold(a: string, b: string) -> int` | 忽略大小写比较两个字符串是否相等（仅处理 ASCII 大小写） | `a` (string) - 第一个字符串；`b` (string) - 第二个字符串 | `int` - 1 表示相等，0 表示不相等 |
+| `toUpperRune` | `toUpperRune(c: int) -> int` | 将单个字符 c 转换为大写（仅处理 ASCII a-z<->A-Z，非 ASCII 原样返回） | `c` (int) - 待转换的字符（Unicode 码点） | `int` - 转换后的字符码点 |
+| `toLowerRune` | `toLowerRune(c: int) -> int` | 将单个字符 c 转换为小写（仅处理 ASCII A-Z<->a-z，非 ASCII 原样返回） | `c` (int) - 待转换的字符（Unicode 码点） | `int` - 转换后的字符码点 |
 
 ---
 
@@ -290,6 +300,9 @@ axlang 标准库共 **16 个模块**，全部位于 `axc/std/*.ax`，通过 `imp
 | `since` | `since(t: time) -> int` | 返回从 t 到现在经过的毫秒数 | `t` (time) - 起始时间值 | `int` - 经过的毫秒数 |
 | `date` | `date(year: int, month: int, day: int, hour: int, min: int, sec: int, nsec: int) -> time` | 根据日期时间构造 time 值 | `year` (int) - 年；`month` (int) - 月；`day` (int) - 日；`hour` (int) - 时；`min` (int) - 分；`sec` (int) - 秒；`nsec` (int) - 纳秒 | `time` - 构造的时间值 |
 | `until` | `until(t: time) -> int` | 返回从现在到 t 的剩余毫秒数 | `t` (time) - 目标时间值 | `int` - 剩余毫秒数 |
+| `toString` | `toString(ms: int) -> string` | 按 "YYYY-MM-DD HH:MM:SS" 格式将毫秒时间戳格式化为字符串 | `ms` (int) - Unix 毫秒时间戳 | `string` - 格式化后的时间字符串 |
+| `round` | `round(t: time, d: int) -> time` | 将时间 t 四舍五入到 d 毫秒间隔的最近整数倍（d <= 0 时返回 t 本身） | `t` (time) - 起始时间值；`d` (int) - 间隔毫秒数 | `time` - 舍入后的时间值 |
+| `truncate` | `truncate(t: time, d: int) -> time` | 将时间 t 向零截断到 d 毫秒间隔的整数倍（d <= 0 时返回 t 本身） | `t` (time) - 起始时间值；`d` (int) - 间隔毫秒数 | `time` - 截断后的时间值 |
 
 ---
 

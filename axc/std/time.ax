@@ -28,6 +28,11 @@ extern "C" {
     time ax_time_date(int year, int month, int day,
                       int hour, int min, int sec, int nsec);
     int ax_time_until(time t);
+
+    /* axrt 时间扩展原语（对标 Go time，标准 C11 实现） */
+    string ax_time_to_str(int ms);
+    time ax_time_round(time t, int d);
+    time ax_time_truncate(time t, int d);
 }
 
 // ---------- 模块级函数（C 风格命名：小写 + 下划线） ----------
@@ -172,5 +177,44 @@ public time date(int year, int month, int day, int hour, int min, int sec, int n
 public int until(time t) {
     unsafe {
         return ax_time_until(t)
+    }
+}
+
+/**
+ * 函数名：toString
+ * 功能：按 "YYYY-MM-DD HH:MM:SS" 格式将毫秒时间戳格式化为字符串
+ * 输入参数：ms (int) - Unix 毫秒时间戳
+ * 输出参数：string - 格式化后的时间字符串
+ * 修订日期：2026-11-30
+ */
+public string toString(int ms) {
+    unsafe {
+        return ax_time_to_str(ms)
+    }
+}
+
+/**
+ * 函数名：round
+ * 功能：将时间 t 四舍五入到 d 毫秒间隔的最近整数倍（d <= 0 时返回 t 本身）
+ * 输入参数：t (time) - 起始时间值；d (int) - 间隔毫秒数
+ * 输出参数：time - 舍入后的时间值
+ * 修订日期：2026-11-30
+ */
+public time round(time t, int d) {
+    unsafe {
+        return ax_time_round(t, d)
+    }
+}
+
+/**
+ * 函数名：truncate
+ * 功能：将时间 t 向零截断到 d 毫秒间隔的整数倍（d <= 0 时返回 t 本身）
+ * 输入参数：t (time) - 起始时间值；d (int) - 间隔毫秒数
+ * 输出参数：time - 截断后的时间值
+ * 修订日期：2026-11-30
+ */
+public time truncate(time t, int d) {
+    unsafe {
+        return ax_time_truncate(t, d)
     }
 }

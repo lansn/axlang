@@ -28,6 +28,9 @@ nul
 # 测试临时目录（根目录）
 /.build/
 
+# 测试编译缓存（tests/run/cache/ 下的 .o/.hash 不应入库）
+/tests/run/cache/
+
 # Executables
 # 注意：`/release/bin/axc.exe` 是刻意跟踪的——分发用的编译器本体，
 # 与源码版本号同步更新，不进忽略清单。
