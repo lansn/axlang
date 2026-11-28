@@ -302,8 +302,8 @@ pub struct Opts {
     pub env_cmd: bool,
     /// `axc env --set KEY=VALUE`：要设置的键值对
     pub env_set: Option<String>,
-    /// `axc cache`：预编译 axrt 运行时和标准库为 .o 缓存
-    pub cache: bool,
+    /// `axc librtcompile`：预编译 axrt 运行时和标准库为 .o 缓存
+    pub librtcompile: bool,
 }
 
 impl Default for Opts {
@@ -326,7 +326,7 @@ impl Default for Opts {
             kind: "exe".to_string(),
             env_cmd: false,
             env_set: None,
-            cache: false,
+            librtcompile: false,
         }
     }
 }
@@ -555,7 +555,7 @@ pub fn parse_args(argv: &[String]) -> Opts {
         match a.as_str() {
             "check" | "build" | "run" => o.cmd = a.clone(),
             "env" => o.env_cmd = true,
-            "cache" => o.cache = true,
+            "librtcompile" => o.librtcompile = true,
             "-h" | "--help" => o.help = true,
             "-v" | "-V" | "--version" => o.version = true,
             "-I" | "--include" => {
@@ -613,7 +613,7 @@ pub fn print_help() {
     println!("  build   生成 C11 源码并调用 cc 产出可执行文件");
     println!("  run     build 后立即执行（省略子命令时的默认行为）");
     println!("  env     显示或设置编译器环境（类似 go env）");
-    println!("  cache  预编译 axrt 运行时和标准库为 .o 缓存，");
+    println!("  librtcompile  预编译 axrt 运行时和标准库为 .o 缓存，");
     println!("            后续 axc run/build 将直接复用，无需重新编译库代码");
     println!();
     println!("选项:");
@@ -699,10 +699,10 @@ fn run_env_cmd(opts: &Opts) -> i32 {
     0
 }
 
-/// `axc cache` 子命令：预编译 axrt 运行时和标准库为 .o 缓存，
+/// `axc librtcompile` 子命令：预编译 axrt 运行时和标准库为 .o 缓存，
 /// 不处理用户代码。执行后，后续 `axc run`/`axc build` 可直接复用缓存，
 /// 无需重新编译库代码，大幅缩短短小程序的编译时间。
-fn run_cache(opts: &Opts) -> i32 {
+fn run_librtcompile(opts: &Opts) -> i32 {
     let cc = &opts.cc;
     let mut total_objs = 0usize;
 
@@ -765,9 +765,9 @@ pub fn run(argv: &[String]) -> i32 {
     if opts.env_cmd {
         return run_env_cmd(&opts);
     }
-    // `axc cache`：预编译 axrt 运行时和标准库为 .o 缓存
-    if opts.cache {
-        return run_cache(&opts);
+    // `axc librtcompile`：预编译 axrt 运行时和标准库为 .o 缓存
+    if opts.librtcompile {
+        return run_librtcompile(&opts);
     }
     if opts.help || opts.file.is_none() {
         print_help();

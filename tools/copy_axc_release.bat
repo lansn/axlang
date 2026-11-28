@@ -51,12 +51,12 @@ echo [1/3] 检查 dist/ 完整性...
 if exist "%DIST_DIR%\axc\rt\obj\axrt_atomic.o" (
     echo   OK: 运行时缓存已就绪
 ) else (
-    echo   警告: 未找到运行时预编译缓存，可能需要先运行 axc cache
+    echo   警告: 未找到运行时预编译缓存，可能需要先运行 axc librtcompile
 )
 if exist "%DIST_DIR%\axc\stdlib\obj\atomic.o" (
     echo   OK: 标准库缓存已就绪
 ) else (
-    echo   警告: 未找到标准库预编译缓存，可能需要先运行 axc cache
+    echo   警告: 未找到标准库预编译缓存，可能需要先运行 axc librtcompile
 )
 
 echo.
