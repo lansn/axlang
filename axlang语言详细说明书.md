@@ -69,7 +69,7 @@ axc [check|build|run|env] <file.ax> [选项]
 | `--cc=<path>` | | 指定 C 编译器（默认取 `$AX_CC` 或 gcc） |
 | `--lang=en\|zh` | | 诊断文案语言（默认 en；也可用 `AXC_LANG` 环境变量或 `axc.toml`） |
 | `-k` | `--keep` | 保留构建目录（排查生成代码用） |
-| `--kind=exe\|shared` | | 产物类型：exe（默认可执行文件）或 shared（动态链接库 .dll/.so/.dylib） |
+| `--kind=exe\|shared\|static` | | 产物类型：exe（默认可执行文件）、shared（动态链接库 .dll/.so/.dylib）或 static（静态链接库 .lib/.a） |
 | `-v` / `-V` / `--version` | | 打印版本号后退出 |
 | `-h` / `--help` | | 打印帮助 |
 
@@ -995,7 +995,8 @@ fmt.print(s)
 - 浮点最短往返表示，无小数点/指数时补 `.0`。
 - `#include "axrt.h"` 和 `#include "axc_stdlib.h"`。
 - 临时变量命名 `v_`，参数命名 `p_`，常量命名 `k_`。
-- 共享库模式（`--kind=shared`）：跳过 main 包装器，导出函数加 `ax_export_` 前缀。
+- 共享库模式（`--kind=shared`）：跳过 main 包装器，导出函数加 `ax_export_` 前缀。产物为 .dll/.so/.dylib，可被外部程序动态加载调用。
+- 静态库模式（`--kind=static`）：跳过 main 包装器，导出函数加 `ax_export_` 前缀。产物为 .lib/.a，通过 ar 打包，可被外部 C 程序静态链接调用。源码中不应包含 main 函数，避免与外部程序的入口点冲突。
 
 ### 9.5 泛型类型擦除（GTS）
 
