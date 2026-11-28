@@ -739,7 +739,7 @@ fn run_librtcompile(opts: &Opts) -> i32 {
             let objs = crate::driver::compile::stdlib_obj_files(&sdir, &odir, cc, &rt, &hdir);
             total_objs += objs.len();
             println!(
-                "axc: 预编译标准库 {} 个文件 -> {}",
+                "axc: 预编译 std 标准库 {} 个文件 -> {}",
                 objs.len(),
                 odir.display()
             );
