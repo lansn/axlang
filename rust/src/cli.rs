@@ -373,9 +373,17 @@ impl CompilerKind {
 /// 类似 Go 语言的 `go env -w` 持久化机制。
 const CC_CACHE_FILE: &str = ".axc_cc_cache";
 
+/// 缓存文件所在的子目录名。
+const CC_CACHE_SUBDIR: &str = "cache";
+
 /// 获取 axc 可执行文件所在目录。
 fn axc_exe_dir() -> Option<std::path::PathBuf> {
     std::env::current_exe().ok().and_then(|p| p.parent().map(|d| d.to_path_buf()))
+}
+
+/// 获取缓存文件的完整路径：`<axc 所在目录>/cache/.axc_cc_cache`。
+fn cc_cache_path() -> Option<std::path::PathBuf> {
+    axc_exe_dir().map(|d| d.join(CC_CACHE_SUBDIR).join(CC_CACHE_FILE))
 }
 
 /// 检查给定路径是否为存在的可执行文件。
@@ -401,8 +409,7 @@ fn find_compiler_in_dir(dir: &Path, kind: CompilerKind) -> Option<std::path::Pat
 
 /// 从缓存文件读取指定 KEY 的值。
 fn read_cc_cache(key: &str) -> Option<String> {
-    let dir = axc_exe_dir()?;
-    let cache_path = dir.join(CC_CACHE_FILE);
+    let cache_path = cc_cache_path()?;
     let content = std::fs::read_to_string(&cache_path).ok()?;
     for line in content.lines() {
         let line = line.trim();
@@ -421,8 +428,11 @@ fn read_cc_cache(key: &str) -> Option<String> {
 /// 将 KEY=VALUE 写入缓存文件（更新已有 key，或追加新行）。
 /// 类似 `go env -w KEY=VALUE` 的持久化机制。
 fn write_cc_cache(key: &str, value: &str) {
-    if let Some(dir) = axc_exe_dir() {
-        let cache_path = dir.join(CC_CACHE_FILE);
+    if let Some(cache_path) = cc_cache_path() {
+        // 确保 cache 目录存在
+        if let Some(parent) = cache_path.parent() {
+            let _ = std::fs::create_dir_all(parent);
+        }
         let mut entries: Vec<String> = Vec::new();
         let mut found = false;
         if let Ok(content) = std::fs::read_to_string(&cache_path) {
@@ -607,7 +617,7 @@ pub fn print_help() {
     println!("  --diag=text|json    诊断格式，json 为 JSONL");
     println!("  -Werror             警告视为错误");
     println!("  --cc=<path>         指定 C 编译器（默认取 $AX_CC/$CC，或自动在 axc 同目录及系统 PATH 中查找；");
-    println!("                      设置后会持久化缓存到 axc 同目录的 .axc_cc_cache 文件）");
+    println!("                      设置后会持久化缓存到 axc 同目录的 cache/.axc_cc_cache 文件）");
     println!("  --set=KEY=VALUE     axc env 子命令：持久化设置编译器路径（如 --set AX_CC=D:/mingw/bin/gcc.exe）");
     println!("  --lang=en|zh        诊断文案语言（默认 en；也可用 AXC_LANG 环境变量或 axc.toml）");
     println!("  -k | --keep         保留构建目录（排查生成代码用）");
@@ -652,8 +662,8 @@ fn print_env_info() {
     println!("AXC_CC={} ({})", resolved, kind.display_name());
     let cache_dir = axc_exe_dir().map(|d| d.display().to_string()).unwrap_or_else(|| "(未知)".to_string());
     println!("AXC_CACHE_DIR={}", cache_dir);
-    let cache_file = axc_exe_dir()
-        .map(|d| d.join(CC_CACHE_FILE).display().to_string())
+    let cache_file = cc_cache_path()
+        .map(|d| d.display().to_string())
         .unwrap_or_else(|| "(未知)".to_string());
     println!("AXC_CACHE_FILE={}", cache_file);
 }
