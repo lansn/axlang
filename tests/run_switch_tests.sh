@@ -41,9 +41,9 @@ run_case() {
     local expected
     expected=$(cat "$out_file")
 
-    # 规范化：去除尾部空行
-    actual=$(printf '%s' "$actual" | sed '/^[[:space:]]*$/d')
-    expected=$(printf '%s' "$expected" | sed '/^[[:space:]]*$/d')
+    # 规范化：去除 \r 与尾部空行
+    actual=$(printf '%s' "$actual" | tr -d '\r' | sed '/^[[:space:]]*$/d')
+    expected=$(printf '%s' "$expected" | tr -d '\r' | sed '/^[[:space:]]*$/d')
 
     if [ "$actual" = "$expected" ]; then
         echo "  [PASS] $test_name"
@@ -102,7 +102,8 @@ for f in "$PROJECT_DIR/tests/run/switch_test.ax" \
          "$PROJECT_DIR/tests/run/switch_type.ax" \
          "$PROJECT_DIR/tests/run/switch_enum.ax" \
          "$PROJECT_DIR/tests/run/switch_nested.ax" \
-         "$PROJECT_DIR/tests/run/switch_only_default.ax"; do
+         "$PROJECT_DIR/tests/run/switch_only_default.ax" \
+         "$PROJECT_DIR/tests/run/if_else_stmt.ax"; do
     run_case "$f"
 done
 

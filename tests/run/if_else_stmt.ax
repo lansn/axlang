@@ -1,0 +1,35 @@
+// tests/run/if_else_stmt.ax —— C 系 if/else 单条语句分支（无需 {}）
+import std.io
+
+int main() {
+    int x = 5
+
+    // 同一行 if-else
+    if (x > 0) io.writeLine("same-line-pos") else io.writeLine("same-line-neg")
+
+    // if 无 else，单条语句
+    if (x < 0) io.writeLine("neg-only")
+
+    // if-else 分支体写在不同行，单条语句
+    if (x > 0)
+        io.writeLine("multi-line-pos")
+    else
+        io.writeLine("multi-line-neg")
+
+    // 嵌套 if-else，单条语句分支
+    if (x > 0)
+        if (x < 10)
+            io.writeLine("nested-pos")
+        else
+            io.writeLine("nested-neg")
+    else
+        io.writeLine("outer-neg")
+
+    // if-else if-else 链，单条语句
+    if (x < 0) io.writeLine("less-than-zero")
+    else if (x > 10) io.writeLine("greater-than-ten")
+    else io.writeLine("between")
+
+    io.writeLine("done")
+    return 0
+}

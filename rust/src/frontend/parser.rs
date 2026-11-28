@@ -1634,12 +1634,21 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_branch(&mut self, what: &str) -> PResult<Block> {
-        // G-1：即使只有一条语句也必须写 {}
-        if !self.at("{") {
-            let t = self.tok(0).clone();
-            return self.fail("E2004", &t, "G-1", "{0} 必须用 `{{}}` 括起来（即使只有一条语句）", &[&what]);
+        if self.at("{") {
+            return self.parse_block();
         }
-        self.parse_block()
+        // 支持 C 系习惯：单条语句作为分支体，不需要 {}
+        let stmt = self.parse_stmt()?;
+        match stmt {
+            Some(s) => {
+                let tok = s.tok.clone();
+                Ok(Block { tok, stmts: vec![Box::new(s)] })
+            }
+            None => {
+                let t = self.tok(0).clone();
+                self.fail("E2004", &t, "G-1", "{0} 必须用 `{{}}` 括起来（即使只有一条语句）", &[&what])
+            }
+        }
     }
 
     fn parse_if(&mut self) -> PResult<IfNode> {
@@ -1669,7 +1678,7 @@ impl<'a> Parser<'a> {
                 let itok = self.tok(0).clone();
                 els = Some(IfTail::If(Box::new(self.nn(itok, inner))));
             } else {
-                els = Some(IfTail::Block(self.parse_block()?));
+                els = Some(IfTail::Block(self.parse_branch("else 的分支体")?));
             }
         } else {
             self.p = save;

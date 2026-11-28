@@ -55,7 +55,6 @@ run_sema_case "$PROJECT_DIR/tests/sema/S-33.ax" "E4007"
 run_sema_case "$PROJECT_DIR/tests/sema/S-34.ax" "E4022"
 run_sema_case "$PROJECT_DIR/tests/sema/S-35.ax" "E4028"
 run_sema_case "$PROJECT_DIR/tests/sema/S-36.ax" "E2002"
-run_sema_case "$PROJECT_DIR/tests/sema/S-37.ax" "E2004"
 
 echo ""
 echo "--- 既有 switch sema 测试（回归）---"
