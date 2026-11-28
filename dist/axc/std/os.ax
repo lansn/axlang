@@ -4,7 +4,7 @@
 // 对标 Go os / C stdlib。ax 层仅包装 axrt C 原语，
 // 通过 extern "C" 声明 + unsafe 块调用，不引入 ax 编译器内建能力。
 //
-// 导出函数命名采用 C 风格：全部小写，下划线分隔，如 getenv / setenv。
+// 导出函数命名采用 camelCase 风格，如 getenv / setenv。
 // ax 代码中通过 std.os.getenv(...) 调用模块级函数。
 //
 // 注：os.args() / os.environ() 返回 string[] 数组，涉及 ax_arr 返回值，
@@ -22,6 +22,10 @@ extern "C" {
     int ax_os_setenv(string name, string value);
     int ax_os_unsetenv(string name);
 
+    /* 命令行参数与环境变量枚举（返回 string[] 数组） */
+    string[] ax_os_args();
+    string[] ax_os_environ();
+
     /* os 扩展（对标 Go os.UserCacheDir 等） */
     string ax_os_user_cache_dir();
     int ax_os_getpagesize();
@@ -33,7 +37,7 @@ extern "C" {
     string ax_os_executable();
 }
 
-// ---------- 模块级函数（C 风格命名：小写 + 下划线） ----------
+// ---------- 模块级函数（camelCase 命名） ----------
 
 /**
  * 函数名：getenv
@@ -266,5 +270,31 @@ public int[] getgroups() {
 public string executable() {
     unsafe {
         return ax_os_executable()
+    }
+}
+
+/**
+ * 函数名：args
+ * 功能：返回命令行位置参数列表（不含程序名本身，对标 Go os.Args[1:]）
+ * 输入参数：无
+ * 输出参数：string[] - 命令行位置参数数组
+ * 修订日期：2026-11-30
+ */
+public string[] args() {
+    unsafe {
+        return ax_os_args()
+    }
+}
+
+/**
+ * 函数名：environ
+ * 功能：返回所有环境变量 "KEY=VALUE" 数组（对标 Go os.Environ）
+ * 输入参数：无
+ * 输出参数：string[] - 环境变量数组，每项为 "KEY=VALUE"
+ * 修订日期：2026-11-30
+ */
+public string[] environ() {
+    unsafe {
+        return ax_os_environ()
     }
 }

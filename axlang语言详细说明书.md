@@ -712,7 +712,7 @@ axlang 标准库分为两层，**严格互斥，不得并存**：
 | std.csv | `csv.ax` | `axc/rt/csv/axrt_csv.c` |
 | std.filepath | `filepath.ax` | `axc/rt/file/axrt_filepath.c` |
 
-**导出函数命名**：C 风格，全部小写，下划线分隔（如 `read_line`、`write_line`）。ax 层通过 camelCase 包装调用。
+**导出函数命名**：camelCase 风格（如 `readLine`、`writeLine`）。ax 层函数名一律使用 camelCase。
 
 **示例（std/io.ax）**：
 

@@ -108,10 +108,10 @@ python tests/runtests.py --axc=xxx  # 指定编译器（默认 rust/target/relea
 
 ## 标准库（Stdlib）
 
-axlang 标准库以 ax 语法编写源码，位于 `axc/std/`（随编译器发布至 `release/axc/std/`），由 axc 编译器解析语义并生成 C11 代码。标准库 .c 文件预编译为 `.o` 目标文件，缓存至 `release/axc/stdlib/obj/`，用户编译时由 gcc 链接所有 `.o` 文件，避免每次重新编译标准库。详细落地状态见 `STDLIB-CHECKLIST.md`（由 `generate_checklist.py` 从 `STDLIB-STATUS.json` 自动生成）。
+axlang 标准库以 ax 语法编写源码，位于 `axc/std/`（随编译器发布至 `dist/axc/std/`），由 axc 编译器解析语义并生成 C11 代码。标准库 .c 文件预编译为 `.o` 目标文件，缓存至 `dist/axc/stdlib/obj/`，用户编译时由 gcc 链接所有 `.o` 文件，避免每次重新编译标准库。详细落地状态见 `STDLIB-CHECKLIST.md`（由 `generate_checklist.py` 从 `STDLIB-STATUS.json` 自动生成）。
 
-发行包布局（`release/`）：
-- `bin/axc` — 编译器可执行文件
+发行包布局（`dist/`）：
+- `axc.exe` — 编译器可执行文件（位于 `dist/` 根目录）
 - `gcc/bin/` — 平台随发的 gcc（Windows 为 `gcc.exe`），axc 优先在此查找，未找到再回落到 `$PATH`
 - `axc/rt/` — C 运行时源码（axrt.h、axrt_core.c、axrt_str.c、axrt_file.c、axrt_json.c、axrt_os.c、axrt_sync.c、axrt_atomic.c、axrt_time.c、axrt_strconv.c、axrt_csv.c、axrt_decimal.c、axrt_filepath.c、axrt_rand.c、axrt_sort.c 等）
 - `axc/stdlib/` — 标准库 C 声明头文件 `axc_stdlib.h`
@@ -121,17 +121,17 @@ axlang 标准库以 ax 语法编写源码，位于 `axc/std/`（随编译器发�
 已落地模块（版本 0.0.28，按优先级 P0→P3）：
 io、math、json、file、os、strconv、string、sync、atomic、errors、decimal、Int/Float/Bool/Enum、Array、Map、Range、thread/queue、filepath、rand、sort、slices、bytes、unique、bufio、csv、log。
 
-标准库函数名统一采用小写 C 风格（snake_case，下划线分隔），例如：
-- `io.read_line`、`io.read_file`、`io.write`、`io.write_line`
+标准库函数名统一采用 camelCase 风格，例如：
+- `io.readLine`、`io.readFile`、`io.write`、`io.writeLine`
 - `math.abs`、`math.max`、`math.sqrt`、`math.pow`、`math.sin`、`math.cos`、`math.tan`、`math.exp`、`math.log`、`math.isNaN`、`math.isInf`
-- `json.parse`、`json.stringify`、`json.marshal_indent`、`json.valid`
+- `json.parse`、`json.stringify`、`json.marshalIndent`、`json.valid`
 - `os.getenv`、`os.exit`、`os.getwd`、`os.chdir`、`os.getpid`、`os.getppid`、`os.hostname`、`os.setenv`、`os.unsetenv`
-- `strconv.atoi`、`strconv.itoa`、`strconv.parse_bool`、`strconv.format_bool`、`strconv.parse_float`、`strconv.format_float`、`strconv.parse_int`、`strconv.format_int`、`strconv.parse_uint`、`strconv.format_uint`、`strconv.can_backquote`、`strconv.quote`、`strconv.unquote`
-- `string.compare`、`string.contains`、`string.index_of`、`string.trim`、`string.to_upper`、`string.to_lower`、`string.repeat`、`string.replace`、`string.startswith`、`string.endswith`、`string.is_digit`、`string.is_alpha`、`string.is_space`、`string.is_lower`、`string.is_upper`、`string.is_alnum`
-- `file.open`、`file.create`、`file.append`、`file.remove`、`file.rename`、`file.exists`、`file.mkdir`、`file.is_dir`、`file.is_file`、`file.size`、`file.mod_time`、`file.write_all`、`file.chmod`、`file.chtimes`、`file.temp_file`
-- `sync.mutex.lock`、`sync.mutex.unlock`、`sync.rwmutex.lock`、`sync.rwmutex.unlock`、`sync.rwmutex.r_lock`、`sync.rwmutex.runlock`、`sync.waitgroup.add`、`sync.waitgroup.done`、`sync.waitgroup.wait`、`sync.once.do`
-- `atomic.add_int`、`atomic.load_int`、`atomic.store_int`、`atomic.compare_and_swap_int`
-- `errors.new`、`errors.is`、`errors.as`
+- `strconv.atoi`、`strconv.itoa`、`strconv.parseBool`、`strconv.formatBool`、`strconv.parseFloat`、`strconv.formatFloat`、`strconv.parseInt`、`strconv.formatInt`、`strconv.parseUint`、`strconv.formatUint`、`strconv.canBackquote`、`strconv.quote`、`strconv.unquote`
+- `string.compare`、`string.contains`、`string.indexOf`、`string.trim`、`string.toUpper`、`string.toLower`、`string.repeat`、`string.replace`、`string.startswith`、`string.endswith`、`string.isDigit`、`string.isAlpha`、`string.isSpace`、`string.isLower`、`string.isUpper`、`string.isAlnum`
+- `file.open`、`file.create`、`file.append`、`file.remove`、`file.rename`、`file.exists`、`file.mkdir`、`file.isDir`、`file.isFile`、`file.size`、`file.modTime`、`file.writeAll`、`file.chmod`、`file.chtimes`、`file.tempFile`
+- `sync.mutexLock`、`sync.mutexUnlock`、`sync.rwmutexLock`、`sync.rwmutexUnlock`、`sync.rwmutexRLock`、`sync.rwmutexRunlock`、`sync.waitgroupAdd`、`sync.waitgroupDone`、`sync.waitgroupWait`、`sync.onceDo`
+- `atomic.addInt`、`atomic.loadInt`、`atomic.storeInt`、`atomic.compareAndSwapInt`
+- `errors.newError`、`errors.errorIs`、`errors.errorAs`
 
 所有 ax 源码通过 `extern "C"` 声明底层 `ax_*` C 原语，由 `unsafe {}` 块调用，底层依赖 `axc/rt/axrt.h/axrt_*.c` 提供的 C 运行时原语。
 

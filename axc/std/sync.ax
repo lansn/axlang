@@ -5,7 +5,7 @@
 // 零初始化后直接使用。本文件仅在 ax 层包装 axrt C 原语，
 // 通过 extern "C" 声明 + unsafe 块调用，不引入任何 ax 编译器内建能力。
 //
-// 导出函数命名采用 C 风格：全部小写，下划线分隔，如 mutex_lock / waitgroup_add。
+// 导出函数命名采用 camelCase 风格，如 mutexLock / waitgroupAdd。
 // ax 代码中通过 std.sync.mutexLock(m) 调用。
 
 extern "C" {

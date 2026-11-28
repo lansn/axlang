@@ -4,8 +4,8 @@
 // 对标 Go errors。ax 层仅包装 axrt C 原语，
 // 通过 extern "C" 声明 + unsafe 块调用，不引入 ax 编译器内建能力。
 //
-// 导出函数命名采用 C 风格：全部小写，下划线分隔，如 new_error / error_is / error_as。
-// ax 代码中通过 std.errors.new_error(...) 调用模块级函数。
+// 导出函数命名采用 camelCase 风格，如 newError / errorIs / errorAs。
+// ax 代码中通过 std.errors.newError(...) 调用模块级函数。
 
 extern "C" {
     error ax_err_new(int code, string msg);
@@ -13,42 +13,42 @@ extern "C" {
     int ax_err_as(error err, ref error target);
 }
 
-// ---------- 模块级函数（C 风格命名：小写 + 下划线） ----------
+// ---------- 模块级函数（camelCase 命名） ----------
 
 /**
- * 函数名：new_error
+ * 函数名：newError
  * 功能：创建一个新的 error，错误码固定为 1，消息为 msg
  * 输入参数：msg (string) - 错误消息文本
  * 输出参数：error - 新创建的 error 实例
  * 修订日期：2026-11-28
  */
-public error new_error(string msg) {
+public error newError(string msg) {
     unsafe {
         return ax_err_new(1, msg)
     }
 }
 
 /**
- * 函数名：error_is
+ * 函数名：errorIs
  * 功能：判断 err 是否等于 target
  * 输入参数：err (error) - 被比较的 error；target (error) - 目标 error
  * 输出参数：int - 1 表示相等，0 表示不相等
  * 修订日期：2026-11-28
  */
-public int error_is(error err, error target) {
+public int errorIs(error err, error target) {
     unsafe {
         return ax_err_is(err, target)
     }
 }
 
 /**
- * 函数名：error_as
+ * 函数名：errorAs
  * 功能：尝试将 err 断言为 target 类型
  * 输入参数：err (error) - 被断言的 error；target (ref error) - 断言结果输出目标
  * 输出参数：int - 1 表示断言成功，0 表示失败
  * 修订日期：2026-11-28
  */
-public int error_as(error err, ref error target) {
+public int errorAs(error err, ref error target) {
     unsafe {
         return ax_err_as(err, target)
     }

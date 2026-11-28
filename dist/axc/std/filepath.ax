@@ -4,7 +4,7 @@
 // 对标 Go path/filepath。ax 层仅包装 axrt C 原语，
 // 通过 extern "C" 声明 + unsafe 块调用，不引入 ax 编译器内建能力。
 //
-// 导出函数命名采用 C 风格：全部小写，下划线分隔，如 rel / abs / clean。
+// 导出函数命名采用 camelCase 风格，如 rel / abs / clean。
 // ax 代码中通过 std.filepath.rel(...) 调用模块级函数。
 
 extern "C" {
@@ -22,7 +22,7 @@ extern "C" {
     string[] ax_filepath_walk(string root);
 }
 
-// ---------- 模块级函数（C 风格命名：小写 + 下划线） ----------
+// ---------- 模块级函数（camelCase 命名） ----------
 
 /**
  * 函数名：rel

@@ -525,7 +525,7 @@ fn stdlib_mod_name(ax_file: &std::path::Path) -> Option<String> {
 }
 
 /// 预编译标准库：为 axc/std/ 下的每个 .ax 模块生成独立的 .c 文件，
-/// 写入 release/axc/stdlib/generated/，供后续编译为 .o 缓存。
+/// 写入 dist/axc/stdlib/generated/，供后续编译为 .o 缓存。
 /// 返回生成的 .c 文件路径列表。
 pub fn precompile_stdlib() -> Vec<PathBuf> {
     let std_src_dir = match find_std_src_dir() {

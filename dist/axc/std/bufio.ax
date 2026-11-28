@@ -4,7 +4,7 @@
 // 对标 Go bufio。ax 层仅包装 axrt C 原语，
 // 通过 extern "C" 声明 + unsafe 块调用，不引入 ax 编译器内建能力。
 //
-// 导出函数命名采用 C 风格：全部小写，下划线分隔，如 bufio_new_reader。
+// 导出函数命名采用 camelCase 风格，如 newReader / newWriter / scanner。
 // ax 代码中通过 std.bufio.newReader(...) 调用模块级函数。
 
 extern "C" {
@@ -13,7 +13,7 @@ extern "C" {
     File ax_file_buf_scanner(File f);
 }
 
-// ---------- 模块级函数（C 风格命名：小写 + 下划线） ----------
+// ---------- 模块级函数（camelCase 命名） ----------
 
 /**
  * 函数名：newReader

@@ -4,7 +4,7 @@
 // 对标 Go sync/atomic。对 int 变量取地址做原子操作，无需构造对象。
 // 通过 extern "C" 声明 axrt C 原子原语，ax 层仅做包装。
 //
-// 导出函数命名采用 C 风格：全部小写，下划线分隔，如 add_int / load_int。
+// 导出函数命名采用 camelCase 风格，如 addInt / loadInt。
 // ax 代码中通过 std.atomic.addInt(&x, 1) 调用。
 
 extern "C" {

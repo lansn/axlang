@@ -4,7 +4,7 @@
 // 对标 Go strconv。ax 层仅包装 axrt C 原语，
 // 通过 extern "C" 声明 + unsafe 块调用，不引入 ax 编译器内建能力。
 //
-// 导出函数命名采用 C 风格：全部小写，下划线分隔，如 itoa / parse_int。
+// 导出函数命名采用 camelCase 风格，如 itoa / parseInt。
 // ax 代码中通过 std.strconv.itoa(...) 调用模块级函数。
 //
 // 注：atoi / parse_float 需要输出指针参数（ax_parse_i64 / ax_parse_f64 的 *out 形态），
@@ -25,7 +25,7 @@ extern "C" {
     string ax_str_unquote(string s);
 }
 
-// ---------- 模块级函数（C 风格命名：小写 + 下划线） ----------
+// ---------- 模块级函数（camelCase 命名） ----------
 
 /**
  * 函数名：itoa

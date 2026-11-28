@@ -222,21 +222,21 @@ fn load_user_imports<'a>(
         .map(|p| p.to_path_buf())
         .unwrap_or_else(|| std::path::PathBuf::from("."));
     // 搜索根：入口文件目录优先，其后依次是 `-I` 给出的目录，然后是基于编译器
-    // 可执行文件位置的 release/axc/ 标准库目录，最后是 cwd/axc/ 标准库目录。
-    // 这样 release/bin/axc.exe 运行时能自动找到 release/axc/ 下的标准库。
+    // 可执行文件位置的 dist/axc/ 标准库目录，最后是 cwd/axc/ 标准库目录。
+    // 这样 dist/axc.exe 运行时能自动找到 dist/axc/ 下的标准库。
     //（import std.string -> axc/std/string.ax，由 load_module_rec 去掉 "std." 前缀后匹配 std/xxx.ax）
     let mut roots: Vec<std::path::PathBuf> = vec![entry_dir.clone()];
     for inc in includes {
         roots.push(std::path::PathBuf::from(inc));
     }
-    // 基于当前 exe 位置的 release/axc/ 目录（如 release/bin/axc.exe -> release/axc/）
+    // 基于当前 exe 位置的 dist/axc/ 目录（如 dist/axc.exe -> dist/axc/）
     if let Ok(exe) = std::env::current_exe() {
         if let Some(exe_dir) = exe.parent() {
-            let release_dir = match exe_dir.parent() {
+            let exe_root_dir = match exe_dir.parent() {
                 Some(d) => d,
                 None => exe_dir,
             };
-            let bundled_stdlib = release_dir.join("axc");
+            let bundled_stdlib = exe_root_dir.join("axc");
             if std::path::Path::new(&bundled_stdlib).exists() {
                 roots.push(bundled_stdlib);
             }

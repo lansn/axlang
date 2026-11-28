@@ -6,6 +6,11 @@
 //
 // 导出函数命名采用 camelCase 风格，如 abs / sin / isNaN。
 // ax 代码中通过 std.math.abs(...) 调用模块级函数。
+//
+// 说明：abs / max / min / sqrt / ... 等常规数学函数在 codegen 层已内联为 C math.h
+// 调用（如 (fabs(x))），ax 层此处保留对应的 extern "C" 声明与包装体，使模块
+// 本身可独立编译并可作为函数值使用；sign / mod / isNaN / isInf / signbit /
+// copysign / dim / ldexp / frexp 走 axrt 原语 ax_math_*。
 
 extern "C" {
     /* axrt 原语 */
@@ -14,50 +19,48 @@ extern "C" {
     int ax_math_isnan(float x);
     int ax_math_isinf(float x, int sign);
 
-    /* axrt 原语扩展（signbit / copysign / dim / ldexp） */
+    /* axrt 原语扩展（signbit / copysign / dim / ldexp / frexp） */
     int ax_math_signbit(float x);
     float ax_math_copysign(float x, float y);
     float ax_math_dim(float x, float y);
     float ax_math_ldexp(float x, int exp);
-
-    /* C 标准库 math.h（标准 C11，无 GNU/Clang 扩展） */
-    float ax_math_fabs(float x);
-    float ax_math_fmax(float a, float b);
-    float ax_math_fmin(float a, float b);
-    float ax_math_sqrt(float x);
-    float ax_math_pow(float a, float b);
-    float ax_math_exp(float x);
-    float ax_math_log(float x);
-    float ax_math_sin(float x);
-    float ax_math_cos(float x);
-    float ax_math_tan(float x);
-    float ax_math_ceil(float x);
-    float ax_math_floor(float x);
-    float ax_math_round(float x);
-    float ax_math_fmod(float x, float y);
-    float ax_math_exp2(float x);
-    float ax_math_log2(float x);
-    float ax_math_log10(float x);
-    float ax_math_log1p(float x);
-
-    /* 双曲与反三角函数，立方根，向零取整（C11 math.h） */
-    float ax_math_sinh(float x);
-    float ax_math_cosh(float x);
-    float ax_math_tanh(float x);
-    float ax_math_asin(float x);
-    float ax_math_acos(float x);
-    float ax_math_atan(float x);
-    float ax_math_atan2(float y, float x);
-    float ax_math_hypot(float p, float q);
-    float ax_math_cbrt(float x);
-    float ax_math_trunc(float x);
-
-    /* math.Frexp：将 x 分解为尾数和 2 的幂指数，拆为两个 axrt 原语 */
     float ax_math_frexp_frac(float x);
     int ax_math_frexp_exp(float x);
+
+    /* C 标准库 math.h（标准 C11，无 GNU/Clang 扩展，ax float 映射为 C double） */
+    float fabs(float x);
+    float fmax(float a, float b);
+    float fmin(float a, float b);
+    float sqrt(float x);
+    float pow(float a, float b);
+    float exp(float x);
+    float log(float x);
+    float sin(float x);
+    float cos(float x);
+    float tan(float x);
+    float ceil(float x);
+    float floor(float x);
+    float round(float x);
+    float fmod(float x, float y);
+    float exp2(float x);
+    float log2(float x);
+    float log10(float x);
+    float log1p(float x);
+
+    /* 双曲与反三角函数，立方根，向零取整（C11 math.h） */
+    float sinh(float x);
+    float cosh(float x);
+    float tanh(float x);
+    float asin(float x);
+    float acos(float x);
+    float atan(float x);
+    float atan2(float y, float x);
+    float hypot(float p, float q);
+    float cbrt(float x);
+    float trunc(float x);
 }
 
-// ---------- 模块级函数（C 风格命名：小写 + 下划线） ----------
+// ---------- 模块级函数（camelCase 命名） ----------
 
 /**
  * 函数名：abs
@@ -68,7 +71,7 @@ extern "C" {
  */
 public float abs(float x) {
     unsafe {
-        return ax_math_fabs(x)
+        return fabs(x)
     }
 }
 
@@ -81,7 +84,7 @@ public float abs(float x) {
  */
 public float max(float a, float b) {
     unsafe {
-        return ax_math_fmax(a, b)
+        return fmax(a, b)
     }
 }
 
@@ -94,7 +97,7 @@ public float max(float a, float b) {
  */
 public float min(float a, float b) {
     unsafe {
-        return ax_math_fmin(a, b)
+        return fmin(a, b)
     }
 }
 
@@ -107,7 +110,7 @@ public float min(float a, float b) {
  */
 public float sqrt(float x) {
     unsafe {
-        return ax_math_sqrt(x)
+        return sqrt(x)
     }
 }
 
@@ -120,7 +123,7 @@ public float sqrt(float x) {
  */
 public float pow(float a, float b) {
     unsafe {
-        return ax_math_pow(a, b)
+        return pow(a, b)
     }
 }
 
@@ -133,7 +136,7 @@ public float pow(float a, float b) {
  */
 public float exp(float x) {
     unsafe {
-        return ax_math_exp(x)
+        return exp(x)
     }
 }
 
@@ -146,7 +149,7 @@ public float exp(float x) {
  */
 public float log(float x) {
     unsafe {
-        return ax_math_log(x)
+        return log(x)
     }
 }
 
@@ -159,7 +162,7 @@ public float log(float x) {
  */
 public float sin(float x) {
     unsafe {
-        return ax_math_sin(x)
+        return sin(x)
     }
 }
 
@@ -172,7 +175,7 @@ public float sin(float x) {
  */
 public float cos(float x) {
     unsafe {
-        return ax_math_cos(x)
+        return cos(x)
     }
 }
 
@@ -185,7 +188,7 @@ public float cos(float x) {
  */
 public float tan(float x) {
     unsafe {
-        return ax_math_tan(x)
+        return tan(x)
     }
 }
 
@@ -198,7 +201,7 @@ public float tan(float x) {
  */
 public float ceil(float x) {
     unsafe {
-        return ax_math_ceil(x)
+        return ceil(x)
     }
 }
 
@@ -211,7 +214,7 @@ public float ceil(float x) {
  */
 public float floor(float x) {
     unsafe {
-        return ax_math_floor(x)
+        return floor(x)
     }
 }
 
@@ -224,7 +227,7 @@ public float floor(float x) {
  */
 public float round(float x) {
     unsafe {
-        return ax_math_round(x)
+        return round(x)
     }
 }
 
@@ -263,7 +266,7 @@ public float mod(float x, float y) {
  */
 public int equals(float a, float b, float eps) {
     unsafe {
-        return (ax_math_sign(ax_math_fabs(a - b) - eps) <= 0) ? 1 : 0
+        return (ax_math_sign(fabs(a - b) - eps) <= 0) ? 1 : 0
     }
 }
 
@@ -289,7 +292,7 @@ public int compare(float a, float b) {
  */
 public float exp2(float x) {
     unsafe {
-        return ax_math_exp2(x)
+        return exp2(x)
     }
 }
 
@@ -302,7 +305,7 @@ public float exp2(float x) {
  */
 public float log10(float x) {
     unsafe {
-        return ax_math_log10(x)
+        return log10(x)
     }
 }
 
@@ -315,7 +318,7 @@ public float log10(float x) {
  */
 public float log2(float x) {
     unsafe {
-        return ax_math_log2(x)
+        return log2(x)
     }
 }
 
@@ -328,7 +331,7 @@ public float log2(float x) {
  */
 public float log1p(float x) {
     unsafe {
-        return ax_math_log1p(x)
+        return log1p(x)
     }
 }
 
@@ -419,7 +422,7 @@ public float ldexp(float x, int exp) {
  */
 public float sinh(float x) {
     unsafe {
-        return ax_math_sinh(x)
+        return sinh(x)
     }
 }
 
@@ -432,7 +435,7 @@ public float sinh(float x) {
  */
 public float cosh(float x) {
     unsafe {
-        return ax_math_cosh(x)
+        return cosh(x)
     }
 }
 
@@ -445,7 +448,7 @@ public float cosh(float x) {
  */
 public float tanh(float x) {
     unsafe {
-        return ax_math_tanh(x)
+        return tanh(x)
     }
 }
 
@@ -458,7 +461,7 @@ public float tanh(float x) {
  */
 public float asin(float x) {
     unsafe {
-        return ax_math_asin(x)
+        return asin(x)
     }
 }
 
@@ -471,7 +474,7 @@ public float asin(float x) {
  */
 public float acos(float x) {
     unsafe {
-        return ax_math_acos(x)
+        return acos(x)
     }
 }
 
@@ -484,7 +487,7 @@ public float acos(float x) {
  */
 public float atan(float x) {
     unsafe {
-        return ax_math_atan(x)
+        return atan(x)
     }
 }
 
@@ -497,7 +500,7 @@ public float atan(float x) {
  */
 public float atan2(float y, float x) {
     unsafe {
-        return ax_math_atan2(y, x)
+        return atan2(y, x)
     }
 }
 
@@ -510,7 +513,7 @@ public float atan2(float y, float x) {
  */
 public float hypot(float p, float q) {
     unsafe {
-        return ax_math_hypot(p, q)
+        return hypot(p, q)
     }
 }
 
@@ -523,7 +526,7 @@ public float hypot(float p, float q) {
  */
 public float cbrt(float x) {
     unsafe {
-        return ax_math_cbrt(x)
+        return cbrt(x)
     }
 }
 
@@ -536,7 +539,7 @@ public float cbrt(float x) {
  */
 public float trunc(float x) {
     unsafe {
-        return ax_math_trunc(x)
+        return trunc(x)
     }
 }
 
