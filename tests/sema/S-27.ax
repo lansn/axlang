@@ -1,0 +1,15 @@
+import std.io
+
+// 类型 switch 的判断表达式不是 object/类，应报 E4028
+int main() {
+    var x = 1
+    switch (x) {
+        case string s: {
+            io.writeLine(s)
+        }
+        default: {
+            io.writeLine("other")
+        }
+    }
+    return 0
+}

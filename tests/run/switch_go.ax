@@ -1,0 +1,54 @@
+import std.io
+
+int main() {
+    // 多值 case (Go 风格 case 1, 2, 3:)
+    var x = 2
+    switch (x) {
+        case 1, 2, 3: {
+            io.writeLine("one-two-three")
+        }
+        default: {
+            io.writeLine("other")
+        }
+    }
+
+    // 无表达式 switch (switch { case cond: })
+    var a = 5
+    switch {
+        case a > 0 && a < 10: {
+            io.writeLine("in range")
+        }
+        case a == 10: {
+            io.writeLine("boundary")
+        }
+        default: {
+            io.writeLine("out of range")
+        }
+    }
+
+    // fallthrough (Go 风格)
+    var b = 1
+    switch (b) {
+        case 1: {
+            io.writeLine("one")
+            fallthrough
+        }
+        case 2: {
+            io.writeLine("two")
+        }
+        default: {
+            io.writeLine("other")
+        }
+    }
+
+    // 无表达式 switch 无 default -> 无命中不输出
+    var c = 20
+    switch {
+        case c < 10: {
+            io.writeLine("small")
+        }
+    }
+
+    io.writeLine("done")
+    return 0
+}

@@ -725,6 +725,118 @@ int64_t ax_std_atomic_load_int(void* addr);
 void    ax_std_atomic_store_int(void* addr, int64_t val);
 int     ax_std_atomic_compare_and_swap_int(void* addr, int64_t old, int64_t new);
 
+/* ---------------- slices 模块扩展（对标 Go slices，ax_arr 形式） ---------------- */
+/* 在 int[] 中判断是否包含 x：1=包含 0=不包含 */
+int     ax_std_slice_contains_int(ax_arr s, int64_t x);
+/* 在 string[] 中判断是否包含 x：1=包含 0=不包含 */
+int     ax_std_slice_contains_string(ax_arr s, ax_str x);
+/* 在 int[] 中查找 x 的下标：找到返回下标，未找到返回 -1 */
+int64_t ax_std_slice_index_int(ax_arr s, int64_t x);
+/* 在 string[] 中查找 x 的下标：找到返回下标，未找到返回 -1 */
+int64_t ax_std_slice_index_string(ax_arr s, ax_str x);
+/* 原地反转数组（对标 slices.Reverse）。int[] 与 string[] 分别有独立入口，C 内部硬编码 esz，ax 层无需传入。s 必须是左值 */
+void    ax_std_slice_reverse_int(ax_arr* s);
+void    ax_std_slice_reverse_str(ax_arr* s);
+/* 返回数组的独立副本（对标 slices.Clone） */
+ax_arr  ax_std_slice_clone_int(ax_arr s);
+ax_arr  ax_std_slice_clone_str(ax_arr s);
+/* 将所有元素设为指定值 v（对标 slices.Fill） */
+void    ax_std_slice_fill_int(ax_arr* s, int64_t v);
+void    ax_std_slice_fill_str(ax_arr* s, ax_str v);
+/* 在索引 i 处插入元素 v，后续元素后移（对标 slices.Insert） */
+void    ax_std_slice_insert_int(ax_arr* s, int64_t i, int64_t v);
+void    ax_std_slice_insert_str(ax_arr* s, int64_t i, ax_str v);
+/* 删除索引 [i, j) 范围的元素 */
+void    ax_std_slice_delete_range_int(ax_arr* s, int64_t i, int64_t j);
+void    ax_std_slice_delete_range_str(ax_arr* s, int64_t i, int64_t j);
+/* int[] 聚合：求最小/最大/求和，空数组返回 0/0/0 */
+int64_t ax_std_slice_min_int(ax_arr s);
+int64_t ax_std_slice_max_int(ax_arr s);
+int64_t ax_std_slice_sum_int(ax_arr s);
+/* float[] 聚合：求最小/最大/求和，空数组返回 0/0/0 */
+double  ax_std_slice_min_float(ax_arr s);
+double  ax_std_slice_max_float(ax_arr s);
+double  ax_std_slice_sum_float(ax_arr s);
+
+/* ---------------- base64 模块（对标 Go encoding/base64，标准 C11 实现） ---------------- */
+/* Base64 标准编码（RFC 4648，无换行）：输入原始字节，输出 Base64 字符串 */
+ax_str  ax_base64_encode(ax_arr input);
+/* Base64 标准解码：输入 Base64 字符串，输出原始字节；失败返回空数组 */
+ax_arr  ax_base64_decode(ax_str input);
+
+/* ---------------- hex 模块（对标 Go encoding/hex，标准 C11 实现） ---------------- */
+/* Hex 编码（小写）：输入原始字节，输出十六进制字符串 */
+ax_str  ax_hex_encode(ax_arr input);
+/* Hex 解码：输入十六进制字符串，输出原始字节；失败返回空数组 */
+ax_arr  ax_hex_decode(ax_str input);
+
+/* ---------------- crypto/md5 模块（对标 Go crypto/md5，RFC 1321，标准 C11 实现） ---------------- */
+/* MD5 哈希：输入数据，返回 16 字节摘要（ax_arr，元素为 uint8_t） */
+ax_arr  ax_md5_sum(ax_arr data);
+
+/* ---------------- crypto/sha1 模块（对标 Go crypto/sha1，RFC 3174，标准 C11 实现） ---------------- */
+/* SHA1 哈希：输入数据，返回 20 字节摘要（ax_arr，元素为 uint8_t） */
+ax_arr  ax_sha1_sum(ax_arr data);
+
+/* ---------------- crypto/sha256 模块（对标 Go crypto/sha256，FIPS 180-4，标准 C11 实现） ---------------- */
+/* SHA256 哈希：输入数据，返回 32 字节摘要（ax_arr，元素为 uint8_t） */
+ax_arr  ax_sha256_sum(ax_arr data);
+
+/* ---------------- flag 模块（对标 Go flag，标准 C11 实现） ---------------- */
+/* 标志类型 */
+#define AX_FLAG_BOOL    1
+#define AX_FLAG_INT     2
+#define AX_FLAG_STRING  3
+#define AX_FLAG_MAX     64
+
+/* 标志定义描述符（内部使用，ax 层不直接访问） */
+typedef struct {
+    int     kind;       /* AX_FLAG_BOOL / AX_FLAG_INT / AX_FLAG_STRING */
+    ax_str  name;
+    ax_str  usage;
+    int64_t def_int;
+    ax_str  def_str;
+    int     def_bool;
+    int64_t val_int;
+    ax_str  val_str;
+    int     val_bool;
+    int     is_set;     /* 是否已由命令行设置 */
+} ax_flag_def;
+
+/* 注册 bool 标志：0=成功，非 0=失败（如重复注册或超出上限） */
+int     ax_std_flag_define_bool(ax_str name, int64_t def_val, ax_str usage);
+/* 注册 int 标志：0=成功，非 0=失败 */
+int     ax_std_flag_define_int(ax_str name, int64_t def_val, ax_str usage);
+/* 注册 string 标志：0=成功，非 0=失败 */
+int     ax_std_flag_define_string(ax_str name, ax_str def_val, ax_str usage);
+/* 解析命令行参数（从 ax_os_args() 获取）：0=成功，非 0=失败（如未知标志） */
+int     ax_flag_parse(void);
+/* 获取 bool 标志的当前值，未找到返回 0 */
+int     ax_std_flag_bool(ax_str name);
+/* 获取 int 标志的当前值，未找到返回 0 */
+int64_t ax_std_flag_int(ax_str name);
+/* 获取 string 标志的当前值，未找到返回空字符串 */
+ax_str  ax_std_flag_string(ax_str name);
+/* 返回已通过命令行设置的标志数量 */
+int     ax_flag_n_flag(void);
+/* 返回第 i 个非标志位置参数，索引越界返回空字符串 */
+ax_str  ax_std_flag_arg(int64_t i);
+/* 返回非标志位置参数的数量 */
+int64_t ax_flag_n_arg(void);
+/* 返回所有非标志位置参数（ax_arr，元素为 ax_str） */
+ax_arr  ax_flag_args(void);
+
+/* ---------------- env 模块（对标 Go os 环境变量增值功能，标准 C11 实现） ---------------- */
+/* 展开字符串中的环境变量引用（$VAR 或 ${VAR}，对标 Go os.ExpandEnv，
+ * 未设置的变量展开为空字符串） */
+ax_str  ax_env_expand(ax_str s);
+/* 清除所有环境变量（对标 Go os.Clearenv）：0=成功，非 0=失败 */
+int     ax_env_clearenv(void);
+/* 判断环境变量是否存在：1=存在 0=不存在 */
+int     ax_env_exists(ax_str key);
+/* 返回所有环境变量 "KEY=VALUE" 数组（对标 Go os.Environ，ax_arr 元素为 ax_str） */
+ax_arr  ax_env_all(void);
+
 #ifdef __cplusplus
 }
 #endif

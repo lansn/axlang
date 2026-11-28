@@ -1,0 +1,15 @@
+import std.io
+
+// switch on float: 不支持的类型，应报 E4028
+int main() {
+    var f = 1.5
+    switch (f) {
+        case 1.0: {
+            io.writeLine("one")
+        }
+        default: {
+            io.writeLine("other")
+        }
+    }
+    return 0
+}

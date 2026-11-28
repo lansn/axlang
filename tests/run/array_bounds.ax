@@ -1,0 +1,21 @@
+// tests/run/array_bounds.ax —— 数组边界/越界检查
+// 验证：合法边界索引访问正常；越界索引（arr[len]、arr[len+1]）触发 R_INDEX 运行期 trap
+import std.io
+import std.strconv
+
+int main() {
+    var arr = [10, 20, 30, 40, 50]
+
+    // 合法：首元素（索引 0）
+    io.writeLine("arr[0]=")
+    io.writeLine(strconv.itoa(arr[0]))
+    // 合法：尾元素（索引 len-1 = 4）
+    io.writeLine("arr[4]=")
+    io.writeLine(strconv.itoa(arr[4]))
+
+    // 越界：索引等于长度 5，ax_arr_at 将触发 R_INDEX trap，程序退出（不再打印后续内容）
+    io.writeLine("arr[5]=")
+    io.writeLine(strconv.itoa(arr[5]))
+
+    return 0
+}

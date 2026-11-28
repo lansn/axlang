@@ -813,6 +813,8 @@ impl<'s, 'a> CodeGen<'s, 'a> {
         }
         // 常量
         let consts_c = self.gen_consts();
+        // 全局变量
+        let globals_c = self.gen_globals();
         // 函数
         let mut fns: Vec<String> = Vec::new();
         let free_ids: Vec<usize> = (0..s.funcs.len())
@@ -889,6 +891,8 @@ impl<'s, 'a> CodeGen<'s, 'a> {
         body.push(String::new());
         body.extend(consts_c);
         body.push(String::new());
+        body.extend(globals_c);
+        body.push(String::new());
         body.extend(fns);
         body.extend(self.extra_fns.iter().cloned());
         body.push(String::new());
@@ -944,6 +948,85 @@ impl<'s, 'a> CodeGen<'s, 'a> {
             format!("{}__{}", self.module_prefix, san(name))
         };
         format!("k_{}", base)
+    }
+
+    /// 模块级全局变量的 C 层标识符，如 `thread_stress__count`。
+    pub fn global_name(&self, name: &str) -> String {
+        let base = if name.starts_with(&format!("{}__", self.module_prefix)) {
+            san(name)
+        } else {
+            format!("{}__{}", self.module_prefix, san(name))
+        };
+        base
+    }
+
+    /// 将全局变量初始化表达式转换为 C 常量表达式。仅处理字面量，复杂表达式返回 None（零初始化）。
+    fn global_init_c(&self, init: &'a ast::Expr) -> Option<String> {
+        match init {
+            ast::Expr::IntLit { value, .. } => Some(format!("{}", value)),
+            ast::Expr::BoolLit { value } => {
+                Some(if *value { "true".to_string() } else { "false".to_string() })
+            }
+            ast::Expr::NullLit => Some("0".to_string()),
+            _ => None,
+        }
+    }
+
+    /// 生成模块级全局变量的 C 静态定义，如 `static int64_t thread_stress__count = 0;`。
+    /// 仅生成入口文件（decl_mod 为 None）的全局变量；导入模块的全局变量在各自 C 文件中定义。
+    pub fn gen_globals(&mut self) -> Vec<String> {
+        let mut out = Vec::new();
+        let s = self.s;
+        // 收集全局变量名及其所属模块（decl_mod：None=入口文件，Some=导入模块）
+        let global_mods: Vec<(&String, Option<&String>)> = s
+            .decl_order
+            .iter()
+            .zip(s.decl_mod.iter())
+            .filter_map(|(item, modc)| match &item.k {
+                ast::Item::VarDecl { name, .. } => Some((name, modc.as_ref())),
+                _ => None,
+            })
+            .collect();
+        let mut names: Vec<&String> = s.globals.keys().collect();
+        names.sort();
+        for n in names {
+            let global_mod = global_mods
+                .iter()
+                .find(|(name, _)| name.as_str() == n.as_str())
+                .map(|(_, modc)| modc.map(|m| m.as_str()));
+            // global_mod: Option<Option<&str>>。外层 Some 表示在 decl_order 中找到该变量；
+            // 内层 None 表示入口文件（decl_mod=None），内层 Some 表示导入模块。
+            let should_skip = match global_mod {
+                None => true,           // 未在 decl_order 中找到，保守跳过
+                Some(mod_opt) => mod_opt.is_some(), // 入口文件(None)不跳过，导入模块(Some)跳过
+            };
+            if should_skip {
+                continue;
+            }
+            let v = s.globals[n].borrow();
+            let ty = v.ty.clone();
+            let name = n.clone();
+            drop(v);
+            // 查找初始化表达式
+            let init_c = s
+                .decl_order
+                .iter()
+                .find_map(|item| match &item.k {
+                    ast::Item::VarDecl { name: nm, init, .. }
+                        if nm.as_str() == name.as_str() =>
+                    {
+                        init.as_ref().map(|e| self.global_init_c(&e.k)).flatten()
+                    }
+                    _ => None,
+                });
+            let cname = self.global_name(&name);
+            let ctype = self.ct(&ty);
+            match init_c {
+                Some(init) => out.push(format!("static {} {} = {};", ctype, cname, init)),
+                None => out.push(format!("static {} {};", ctype, cname)),
+            }
+        }
+        out
     }
 
     pub fn lv(&self, name: &str) -> String {

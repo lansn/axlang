@@ -405,6 +405,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             Stmt::Simple { .. } => self.simple(s),
             Stmt::If(_) => self.if_stmt_stmt(s),
             Stmt::Match(_) => self.match_stmt_stmt(s),
+            Stmt::Switch(_) => self.switch_stmt_stmt(s),
             Stmt::For { .. } => self.for_stmt(s),
             Stmt::While { .. } => self.while_stmt(s),
             Stmt::Unsafe { .. } => self.unsafe_stmt(s),
@@ -620,6 +621,15 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
         match &lhs.k {
             Expr::Path { segs, .. } => {
                 let res = self.res_of(lhs.id);
+                // 模块级全局变量：直接写入 C 层全局名，无需局部临时变量
+                if let Some(crate::sema::Res::Global(name)) = res {
+                    self.emit(format!(
+                        "{} = {};",
+                        format!("{}__{}", self.cg.module_prefix, san(&name)),
+                        rhs
+                    ));
+                    return;
+                }
                 let v: Option<Rc<RefCell<VarInfo>>> = match res {
                     Some(Res::Local(v)) => Some(v),
                     _ => None,

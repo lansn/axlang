@@ -1,0 +1,267 @@
+// axc/std/string.ax —— axlang 标准库 string 模块（ax 语法源码）
+// 与用户库一样，由 ax 编译器直接解析，生成对应的 C 源码供 gcc 编译。
+//
+// 对标 Go strings / C string.h / C ctype.h。ax 层仅包装 axrt C 字符串原语，
+// 通过 extern "C" 声明 + unsafe 块调用，不引入 ax 编译器内建能力。
+//
+// string 为 axlang 内建类型，ax 源码层直接操作 string 值，C 层对应 ax_str。
+//
+// 导出函数命名采用 camelCase 风格，如 compare / contains / indexOf。
+// ax 代码中通过 std.string.compare("a", "b") 调用。
+
+extern "C" {
+    int ax_str_cmp(string a, string b);
+    int ax_str_contains(string s, string sub);
+    int ax_str_index_of(string s, string sub);
+    int ax_str_last_index_of(string s, string sub);
+    int ax_str_count(string s, string substr);
+    string ax_str_trim(string s);
+    string ax_str_to_upper(string s);
+    string ax_str_to_lower(string s);
+    string ax_str_repeat(string s, int n);
+    string ax_str_replace(string s, string old, string replacement);
+    int ax_str_starts_with(string s, string prefix);
+    int ax_str_ends_with(string s, string suffix);
+    int ax_str_is_digit(string s);
+    int ax_str_is_alpha(string s);
+    int ax_str_is_space(string s);
+    int ax_str_is_lower(string s);
+    int ax_str_is_upper(string s);
+    int ax_str_is_alnum(string s);
+}
+
+// ---------- 模块级静态函数（C 风格命名：小写 + 下划线） ----------
+
+/**
+ * 函数名：compare
+ * 功能：字典序比较 a 和 b
+ * 输入参数：a (string) - 第一个字符串；b (string) - 第二个字符串
+ * 输出参数：int - -1 表示 a<b，0 表示 a=b，1 表示 a>b
+ * 修订日期：2026-11-27
+ */
+public int compare(string a, string b) {
+    unsafe {
+        return ax_str_cmp(a, b)
+    }
+}
+
+/**
+ * 函数名：contains
+ * 功能：判断 s 是否包含子串 sub
+ * 输入参数：s (string) - 主字符串；sub (string) - 子串
+ * 输出参数：int - 1 表示包含，0 表示不包含
+ * 修订日期：2026-11-27
+ */
+public int contains(string s, string sub) {
+    unsafe {
+        return ax_str_contains(s, sub)
+    }
+}
+
+/**
+ * 函数名：indexOf
+ * 功能：返回子串 sub 在 s 中首次出现的索引
+ * 输入参数：s (string) - 主字符串；sub (string) - 子串
+ * 输出参数：int - 首次出现的索引，未找到返回 -1
+ * 修订日期：2026-11-27
+ */
+public int indexOf(string s, string sub) {
+    unsafe {
+        return ax_str_index_of(s, sub)
+    }
+}
+
+/**
+ * 函数名：lastIndexOf
+ * 功能：返回子串 sub 在 s 中最后出现的索引
+ * 输入参数：s (string) - 主字符串；sub (string) - 子串
+ * 输出参数：int - 最后出现的索引，未找到返回 -1
+ * 修订日期：2026-11-27
+ */
+public int lastIndexOf(string s, string sub) {
+    unsafe {
+        return ax_str_last_index_of(s, sub)
+    }
+}
+
+/**
+ * 函数名：count
+ * 功能：返回子串 substr 在 s 中非重叠出现的次数
+ * 输入参数：s (string) - 主字符串；substr (string) - 子串
+ * 输出参数：int - 出现次数
+ * 修订日期：2026-11-27
+ */
+public int count(string s, string substr) {
+    unsafe {
+        return ax_str_count(s, substr)
+    }
+}
+
+/**
+ * 函数名：trim
+ * 功能：去除字符串 s 两端的空白字符
+ * 输入参数：s (string) - 待处理的字符串
+ * 输出参数：string - 去除空白后的字符串
+ * 修订日期：2026-11-27
+ */
+public string trim(string s) {
+    unsafe {
+        return ax_str_trim(s)
+    }
+}
+
+/**
+ * 函数名：toUpper
+ * 功能：将字符串 s 转换为大写
+ * 输入参数：s (string) - 待转换的字符串
+ * 输出参数：string - 大写后的字符串
+ * 修订日期：2026-11-27
+ */
+public string toUpper(string s) {
+    unsafe {
+        return ax_str_to_upper(s)
+    }
+}
+
+/**
+ * 函数名：toLower
+ * 功能：将字符串 s 转换为小写
+ * 输入参数：s (string) - 待转换的字符串
+ * 输出参数：string - 小写后的字符串
+ * 修订日期：2026-11-27
+ */
+public string toLower(string s) {
+    unsafe {
+        return ax_str_to_lower(s)
+    }
+}
+
+/**
+ * 函数名：repeat
+ * 功能：将字符串 s 重复 n 次
+ * 输入参数：s (string) - 字符串；n (int) - 重复次数
+ * 输出参数：string - 重复后的字符串
+ * 修订日期：2026-11-27
+ */
+public string repeat(string s, int n) {
+    unsafe {
+        return ax_str_repeat(s, n)
+    }
+}
+
+/**
+ * 函数名：replace
+ * 功能：将字符串 s 中所有 old 替换为 replacement
+ * 输入参数：s (string) - 原字符串；old (string) - 被替换的子串；replacement (string) - 替换后的子串
+ * 输出参数：string - 替换后的字符串
+ * 修订日期：2026-11-27
+ */
+public string replace(string s, string old, string replacement) {
+    unsafe {
+        return ax_str_replace(s, old, replacement)
+    }
+}
+
+/**
+ * 函数名：startsWith
+ * 功能：判断 s 是否以 prefix 开头
+ * 输入参数：s (string) - 主字符串；prefix (string) - 前缀
+ * 输出参数：int - 1 表示是，0 表示否
+ * 修订日期：2026-11-27
+ */
+public int startsWith(string s, string prefix) {
+    unsafe {
+        return ax_str_starts_with(s, prefix)
+    }
+}
+
+/**
+ * 函数名：endsWith
+ * 功能：判断 s 是否以 suffix 结尾
+ * 输入参数：s (string) - 主字符串；suffix (string) - 后缀
+ * 输出参数：int - 1 表示是，0 表示否
+ * 修订日期：2026-11-27
+ */
+public int endsWith(string s, string suffix) {
+    unsafe {
+        return ax_str_ends_with(s, suffix)
+    }
+}
+
+/**
+ * 函数名：isDigit
+ * 功能：判断 s 是否全为数字字符
+ * 输入参数：s (string) - 待判断的字符串
+ * 输出参数：int - 1 表示全为数字，0 表示不是
+ * 修订日期：2026-11-27
+ */
+public int isDigit(string s) {
+    unsafe {
+        return ax_str_is_digit(s)
+    }
+}
+
+/**
+ * 函数名：isAlpha
+ * 功能：判断 s 是否全为字母字符
+ * 输入参数：s (string) - 待判断的字符串
+ * 输出参数：int - 1 表示全为字母，0 表示不是
+ * 修订日期：2026-11-27
+ */
+public int isAlpha(string s) {
+    unsafe {
+        return ax_str_is_alpha(s)
+    }
+}
+
+/**
+ * 函数名：isSpace
+ * 功能：判断 s 是否全为空白字符
+ * 输入参数：s (string) - 待判断的字符串
+ * 输出参数：int - 1 表示全为空白，0 表示不是
+ * 修订日期：2026-11-27
+ */
+public int isSpace(string s) {
+    unsafe {
+        return ax_str_is_space(s)
+    }
+}
+
+/**
+ * 函数名：isLower
+ * 功能：判断 s 是否全为小写字母
+ * 输入参数：s (string) - 待判断的字符串
+ * 输出参数：int - 1 表示全为小写字母，0 表示不是
+ * 修订日期：2026-11-27
+ */
+public int isLower(string s) {
+    unsafe {
+        return ax_str_is_lower(s)
+    }
+}
+
+/**
+ * 函数名：isUpper
+ * 功能：判断 s 是否全为大写字母
+ * 输入参数：s (string) - 待判断的字符串
+ * 输出参数：int - 1 表示全为大写字母，0 表示不是
+ * 修订日期：2026-11-27
+ */
+public int isUpper(string s) {
+    unsafe {
+        return ax_str_is_upper(s)
+    }
+}
+
+/**
+ * 函数名：isAlnum
+ * 功能：判断 s 是否全为字母或数字
+ * 输入参数：s (string) - 待判断的字符串
+ * 输出参数：int - 1 表示全为字母或数字，0 表示不是
+ * 修订日期：2026-11-27
+ */
+public int isAlnum(string s) {
+    unsafe {
+        return ax_str_is_alnum(s)
+    }
+}

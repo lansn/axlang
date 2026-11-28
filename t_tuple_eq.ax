@@ -1,0 +1,28 @@
+import std.io
+import std.strconv
+
+int main() {
+    var p1 = (1, "a")
+    var p2 = (1, "a")
+    var p3 = (2, "b")
+    var p4 = (1, "a")
+
+    io.writeLine(strconv.formatBool(p1 == p2))   // true
+    io.writeLine(strconv.formatBool(p1 == p3))   // false
+    io.writeLine(strconv.formatBool(p1 != p3))   // true
+    io.writeLine(strconv.formatBool(p1 == p4))   // true
+
+    // 三元素元组比较
+    var t1 = (1, 2, 3)
+    var t2 = (1, 2, 3)
+    var t3 = (1, 2, 4)
+    io.writeLine(strconv.formatBool(t1 == t2))   // true
+    io.writeLine(strconv.formatBool(t1 == t3))   // false
+
+    // 嵌套元组比较
+    var n1 = ((1, 2), (3, 4))
+    var n2 = ((1, 2), (3, 4))
+    io.writeLine(strconv.formatBool(n1 == n2))   // true
+
+    return 0
+}

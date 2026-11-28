@@ -14,7 +14,7 @@ use crate::diag::{Diags, Note};
 pub const KEYWORDS: &[&str] = &[
     "var", "const", "class", "struct", "interface", "extend",
     "implement", "override", "parent", "this", "enum", "type",
-    "if", "else", "for", "while", "in", "match", "return",
+    "if", "else", "for", "while", "in", "match", "switch", "case", "default", "return",
     "try", "catch", "finally", "throw", "defer", "import", "public", "protected", "private",
     "static", "new", "as", "break", "continue", "constructor",
     "extern", "unsafe",

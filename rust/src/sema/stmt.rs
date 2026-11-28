@@ -312,15 +312,19 @@ impl<'a> Sema<'a> {
             Stmt::VarTuple { names, init } => {
                 let t = self.check_expr(init, None);
                 match &*t {
-                    TyS::Tuple(elems) if elems.len() == names.len() => {
-                        for (n, et) in names.iter().zip(elems.iter()) {
-                            self.declare(n, et.clone(), false, &s.tok);
-                        }
-                    }
                     TyS::Tuple(elems) => {
-                        self.err("E4027", &s.tok, "T-38", "元组元素个数不符：{0} 个变量，{1} 个元素", &[&names.len(), &elems.len()]);
-                        for n in names {
-                            self.declare(n, t_object(), false, &s.tok);
+                        if names.len() > elems.len() {
+                            // 变量多于元素：axlang 变量必须有初值、无零值概念，
+                            // 无法为缺失元素提供默认值，保持 E4027 报错。
+                            self.err("E4027", &s.tok, "T-38", "元组元素个数不符：{0} 个变量，{1} 个元素", &[&names.len(), &elems.len()]);
+                            for n in names {
+                                self.declare(n, t_object(), false, &s.tok);
+                            }
+                        } else {
+                            // 变量数 <= 元素数：逐个绑定，多余元素忽略
+                            for (n, et) in names.iter().zip(elems.iter()) {
+                                self.declare(n, et.clone(), false, &s.tok);
+                            }
                         }
                     }
                     _ => {
@@ -337,6 +341,9 @@ impl<'a> Sema<'a> {
             }
             Stmt::Match(n) => {
                 self.check_match(s.id, &s.tok, n, None);
+            }
+            Stmt::Switch(n) => {
+                self.check_switch(s.id, &s.tok, n);
             }
             Stmt::For { .. } => self.check_for(s),
             Stmt::While { .. } => self.check_while(s),
@@ -675,7 +682,7 @@ impl<'a> Sema<'a> {
 
     pub fn is_place(&self, e: &ast::EPtr) -> bool {
         match &e.k {
-            Expr::Path { segs, .. } => self.lookup_var(&segs[0]).is_some(),
+            Expr::Path { segs, .. } => self.lookup_var(&segs[0]).is_some() || self.globals.contains_key(&segs[0]),
             Expr::FieldAccess { .. } | Expr::Index { .. } => true,
             _ => false,
         }
@@ -836,6 +843,13 @@ impl<'a> Sema<'a> {
                 }
                 !n.arms.is_empty() && n.arms.iter().all(|a| self.expr_must_exit(&a.body))
             }
+            Stmt::Switch(n) => {
+                // switch 有 default 且所有分支都必须退出时，整体才算退出；
+                // 无 default 时存在“无命中”落空路径，保守返回 false。
+                n.arms.iter().any(|a| a.pats.is_empty())
+                    && !n.arms.is_empty()
+                    && n.arms.iter().all(|a| self.block_must_exit_block(&a.body))
+            }
             Stmt::Simple { lhs, .. } => matches!(&lhs.k, Expr::Call { .. }),
             Stmt::Unsafe { body } => self.block_must_exit_block(body),
             // try/catch 一定离开函数，当且仅当：finally 自己离开，或
@@ -897,7 +911,7 @@ impl<'a> Sema<'a> {
                 rhs: None,
                 incdec: None,
             } => self.ty_of(lhs.id),
-            Stmt::If(..) | Stmt::Match(..) => self.ty_of(last.id),
+            Stmt::If(..) | Stmt::Match(..) | Stmt::Switch(..) => self.ty_of(last.id),
             _ => Some(t_void()),
         }
     }

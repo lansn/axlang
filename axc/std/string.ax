@@ -6,7 +6,7 @@
 //
 // string 为 axlang 内建类型，ax 源码层直接操作 string 值，C 层对应 ax_str。
 //
-// 导出函数命名采用 C 风格：全部小写，下划线分隔，如 compare / contains / index_of。
+// 导出函数命名采用 camelCase 风格，如 compare / contains / indexOf。
 // ax 代码中通过 std.string.compare("a", "b") 调用。
 
 extern "C" {

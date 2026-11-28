@@ -1,0 +1,116 @@
+// tests/run/flow_test.ax —— 流程控制全面测试（正面）
+// 验证点：
+//   1. if/else 有花括号（正分支、负分支）
+//   2. if-else if-else 链式判断
+//   3. for range (0..5 左闭右开)
+//   4. for range inclusive (0..=3 左闭右闭)
+//   5. for kv 遍历 map
+//   6. while 循环
+//   7. match 字面量匹配
+//   8. match 范围匹配 (1..=5)
+//   9. match 通配符 _
+//   10. match 多值替代 (1,3,6 =>)
+//   11. match 绑定模式
+import std.io
+import std.strconv
+
+int main() {
+    // ---------- 1. if/else 有花括号 ----------
+    int score = 85
+    if (score >= 60) {
+        io.writeLine("if_pass=")
+        io.writeLine("pass")
+    } else {
+        io.writeLine("if_fail=")
+        io.writeLine("fail")
+    }
+
+    // ---------- 2. if-else if-else 链 ----------
+    int grade = 0
+    if (score >= 90) {
+        grade = 1
+    } else if (score >= 80) {
+        grade = 2
+    } else if (score >= 70) {
+        grade = 3
+    } else {
+        grade = 4
+    }
+    io.writeLine("grade=")
+    io.writeLine(strconv.itoa(grade))  // 2
+
+    // ---------- 3. for range 0..5 (左闭右开: 0,1,2,3,4) ----------
+    int sum = 0
+    for i in 0..5 {
+        sum = sum + i
+    }
+    io.writeLine("for_range=")
+    io.writeLine(strconv.itoa(sum))  // 10
+
+    // ---------- 4. for range inclusive 0..=3 (0,1,2,3) ----------
+    int sum2 = 0
+    for i in 0..=3 {
+        sum2 = sum2 + i
+    }
+    io.writeLine("for_range_incl=")
+    io.writeLine(strconv.itoa(sum2))  // 6
+
+    // ---------- 5. for kv 遍历 map ----------
+    map<string, int> m = {}
+    m["a"] = 10
+    m["b"] = 20
+    m["c"] = 30
+    int map_sum = 0
+    for (k, v) in m {
+        map_sum = map_sum + v
+        io.writeLine("kv=")
+        io.writeLine(k)
+        io.writeLine(strconv.itoa(v))
+    }
+    io.writeLine("map_sum=")
+    io.writeLine(strconv.itoa(map_sum))  // 60
+
+    // ---------- 6. while 循环 ----------
+    int j = 0
+    while (j < 3) {
+        io.writeLine("while_j=")
+        io.writeLine(strconv.itoa(j))  // 0,1,2
+        j = j + 1
+    }
+
+    // ---------- 7-11. match 各种模式 ----------
+    int n = 3
+    io.writeLine("match_lit=")
+    string r1 = match n {
+        1 => "one",
+        2 => "two",
+        3 => "three",
+        4 => "four",
+        _ => "other",
+    }
+    io.writeLine(r1)
+    io.writeLine("match_range=")
+    string r2 = match n {
+        1..=2 => "range_1_2",
+        3..=5 => "range_3_5",
+        _ => "range_other",
+    }
+    io.writeLine(r2)
+
+    io.writeLine("match_multi=")
+    string r3 = match n {
+        1, 3, 5 => "odd_1_3_5",
+        2, 4 => "even_2_4",
+        _ => "other_num",
+    }
+    io.writeLine(r3)
+
+    io.writeLine("match_bind=")
+    string r4 = match n {
+        1 => "one",
+        x => strconv.itoa(x),  // bind 作为唯一兜底 arm
+    }
+    io.writeLine(r4)
+
+    return 0
+}

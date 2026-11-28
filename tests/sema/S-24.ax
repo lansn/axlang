@@ -1,0 +1,15 @@
+import std.io
+
+// 无表达式 switch，case 条件不是 bool，应报 E4030
+int main() {
+    var x = 1
+    switch {
+        case x: {
+            io.writeLine("truthy")
+        }
+        default: {
+            io.writeLine("other")
+        }
+    }
+    return 0
+}

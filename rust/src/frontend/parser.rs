@@ -10,7 +10,7 @@
 
 use crate::frontend::ast::*;
 use crate::diag::Diags;
-use crate::frontend::lexer::{Lexer, StrPart, Tok, TokVal};
+use crate::frontend::lexer::{Lexer, RESERVED_TYPES, StrPart, Tok, TokVal};
 
 pub struct ParseError {
     pub code: &'static str,
@@ -377,6 +377,17 @@ impl<'a> Parser<'a> {
         if self.at("extern") {
             return Ok(vec![self.parse_extern_block(vis)?]);
         }
+        // 模块级全局变量声明：var name = init / var ty name = init / ty name = init / ty name
+        if self.at("var") {
+            return Ok(vec![self.parse_module_var(vis)?]);
+        }
+        // 显式类型但无 var 关键字：int count = 0 / Mutex mu / public int count = 0
+        if self.tok(0).is("IDENT") && self.tok(1).is("IDENT") {
+            let third = self.tok(2).kind.clone();
+            if third == "=" || third == "NL" || third == ";" || third == "}" || third == "EOF" {
+                return Ok(vec![self.parse_module_var(vis)?]);
+            }
+        }
         // 顶层语句：入口文件里合法（包成隐式 `main`），被 import 的模块里由 sema 报 E3024。
         // 放在 parse_func 之前，避免先把 `Println("x")` 当函数声明去解析再报一条莫名其妙的错。
         if self.top_is_stmt() {
@@ -570,6 +581,45 @@ impl<'a> Parser<'a> {
         Ok(self.nn(
             t,
             Item::ConstDecl { vis, ty, name: name.text().to_string(), init },
+        ))
+    }
+
+    /// 模块级全局变量声明：`[var] [ty] name [= init]`
+    /// - `var count = 0`：类型推断，必须有初值
+    /// - `var int count = 0`：显式类型
+    /// - `int count = 0`：无 var 关键字，显式类型
+    /// - `Mutex mu`：无初始化表达式，C 静态存储期零初始化
+    fn parse_module_var(&mut self, vis: Option<String>) -> PResult<N<Item>> {
+        let t = self.tok(0).clone();
+        let mut ty: Option<TPtr> = None;
+        if self.at("var") {
+            // 可选的 var 关键字，后可跟类型前缀：var int count = 0
+            self.advance();
+            let m = self.mark();
+            match self.parse_type() {
+                Ok(cand) => {
+                    if self.at("IDENT") {
+                        ty = Some(cand);
+                    } else {
+                        self.reset(m);
+                    }
+                }
+                Err(_) => self.reset(m),
+            }
+        } else {
+            // 无 var 关键字：必须是类型名 ty name [= init]
+            ty = Some(self.parse_type()?);
+        }
+        let name = self.expect_ident("变量名")?;
+        let init = if self.accept("=").is_some() {
+            self.nl();
+            Some(self.parse_expr()?)
+        } else {
+            None
+        };
+        Ok(self.nn(
+            t,
+            Item::VarDecl { vis, ty, name: name.text().to_string(), init },
         ))
     }
 
@@ -1364,34 +1414,6 @@ impl<'a> Parser<'a> {
     fn parse_stmt(&mut self) -> PResult<Option<N<Stmt>>> {
         let t = self.tok(0).clone();
         let k = t.kind.clone();
-        // G-21：switch 是保留字但未实现，应报 E2010
-        if k == "switch" || (k == "IDENT" && t.text() == "switch") {
-            let tk = self.tok(0).clone();
-            self.err("E2010", Some(&tk), "文稿 11.1", "不支持 `switch` 语句，请使用 `match`", &[]);
-            self.advance(); // 吃掉 switch
-            // 跳过 switch 语句的剩余部分（包括 {} 块），直到匹配的 } 或行尾/EOF
-            let mut depth = 0usize;
-            while !self.at("EOF") {
-                let kk = self.tok(0).kind.clone();
-                if kk == "{" || kk == "(" || kk == "[" {
-                    depth += 1;
-                    self.advance();
-                } else if kk == "}" || kk == ")" || kk == "]" {
-                    if depth == 0 {
-                        self.advance(); // 吃掉不匹配的右括号
-                        break;
-                    }
-                    depth -= 1;
-                    self.advance();
-                } else if kk == "NL" && depth == 0 {
-                    self.advance();
-                    break;
-                } else {
-                    self.advance();
-                }
-            }
-            return Ok(None);
-        }
         if k == "{" {
             let b = self.parse_block()?;
             return Ok(Some(self.nn(t, Stmt::Block(b))));
@@ -1403,6 +1425,10 @@ impl<'a> Parser<'a> {
         if k == "match" {
             let n = self.parse_match()?;
             return Ok(Some(self.nn(t, Stmt::Match(Box::new(n)))));
+        }
+        if k == "switch" {
+            let n = self.parse_switch()?;
+            return Ok(Some(self.nn(t, Stmt::Switch(Box::new(n)))));
         }
         if k == "for" {
             let f = self.parse_for(None)?;
@@ -1763,6 +1789,110 @@ impl<'a> Parser<'a> {
         self.expect("}", None)?;
         let _ = t;
         Ok(MatchNode { scrutinee: scrut, arms })
+    }
+
+    fn parse_switch(&mut self) -> PResult<SwitchNode> {
+        let t = self.expect("switch", None)?;
+        self.nl();
+
+        // 判断是否有表达式：`switch (` 时有表达式，`switch {` 时无表达式（等价 if 链）
+        let scrutinee = if self.at("(") {
+            self.advance();
+            self.nl();
+            let s = self.parse_expr()?;
+            self.nl();
+            self.expect(")", None)?;
+            Some(s)
+        } else {
+            None
+        };
+
+        self.nl();
+        self.expect("{", None)?;
+        let mut arms = Vec::new();
+        loop {
+            self.nl();
+            if self.at("}") {
+                break;
+            }
+            // default 分支
+            if self.at("default") {
+                let dtk = self.advance();
+                self.nl();
+                self.expect(":", None)?;
+                self.nl();
+                let mut body = self.parse_block()?;
+                let mut fallthrough = false;
+                if let Some(last) = body.stmts.last() {
+                    if let Stmt::Simple { lhs, op: None, rhs: None, incdec: None } = &last.k {
+                        if let Expr::Path { segs, .. } = &lhs.k {
+                            if segs.len() == 1 && segs[0] == "fallthrough" {
+                                fallthrough = true;
+                                body.stmts.pop();
+                            }
+                        }
+                    }
+                }
+                arms.push(SwitchArm { tok: dtk, pats: Vec::new(), body, fallthrough });
+                self.nl();
+                continue;
+            }
+            // case 分支：case v1, v2, ...: （值 switch，每个值可为任意表达式）
+            //       或 case T [x]: （类型 switch，T 为类型名，可选绑定名 x）
+            let ctk = self.expect("case", None)?;
+            self.nl();
+
+            let mut pats: Vec<N<Pat>> = Vec::new();
+            loop {
+                // 类型 switch：case 后跟 RESERVED_TYPES 中的类型名
+                if self.at("IDENT") && RESERVED_TYPES.contains(&self.tok(0).text()) {
+                    let ty = self.parse_type()?;
+                    // 可选绑定名：case string x: 或 case string x,
+                    let bind = if self.at("IDENT")
+                        && (self.tok(1).is(":") || self.tok(1).is(","))
+                    {
+                        Some(self.advance().text().to_string())
+                    } else {
+                        None
+                    };
+                    pats.push(self.nn(ctk.clone(), Pat::Type { ty, bind: bind.unwrap_or_default() }));
+                } else {
+                    // 值 switch：case 后接受任意表达式
+                    let expr = self.parse_expr()?;
+                    pats.push(self.nn(ctk.clone(), Pat::Lit { expr }));
+                }
+                self.nl();
+                if self.accept(",").is_none() {
+                    break;
+                }
+                self.nl();
+            }
+
+            self.nl();
+            self.expect(":", None)?;
+            self.nl();
+            let mut body = self.parse_block()?;
+
+            // 检查 fallthrough：分支体最后一条语句若为 `fallthrough` 标识符，则移除并标记
+            let mut fallthrough = false;
+            if let Some(last) = body.stmts.last() {
+                if let Stmt::Simple { lhs, op: None, rhs: None, incdec: None } = &last.k {
+                    if let Expr::Path { segs, .. } = &lhs.k {
+                        if segs.len() == 1 && segs[0] == "fallthrough" {
+                            fallthrough = true;
+                            body.stmts.pop();
+                        }
+                    }
+                }
+            }
+
+            arms.push(SwitchArm { tok: ctk, pats, body, fallthrough });
+            self.nl();
+        }
+        self.nl();
+        self.expect("}", None)?;
+        let _ = t;
+        Ok(SwitchNode { scrutinee, arms })
     }
 
     fn parse_pattern(&mut self) -> PResult<N<Pat>> {

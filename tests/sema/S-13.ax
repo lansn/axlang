@@ -1,0 +1,7 @@
+// 元组比较运算 p == q（v0.0.28 已支持）
+int main() {
+    var p = (1, 2)
+    var q = (1, 2)
+    var b = p == q
+    return 0
+}

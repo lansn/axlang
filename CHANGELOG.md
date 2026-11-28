@@ -15,6 +15,16 @@
 - **浮点类型 `float32` 落地**：`types.rs` 实现 `Float32`、`t_float32()`、`"float32"` 映射、`f32` 字面量后缀，C 层对应 `float`；`builtin_scalar` 已包含 `"float32"`；`assignable` 实现 `float32 → float` 隐式扩大（`f32_to_f64`）。设计文稿 §4.1 新增 `float32` 行，命名规则改为“浮点有 float（64 位）与 float32（32 位）两种”
 - **interface 默认方法体**：`ast.rs` `MethodSig.default_body`、`parser.rs` 解析、`sema/mod.rs` 第 2351 行 `m.k.default_body.as_ref()` 均已落地，设计文稿 §8.3 示例与规则保持一致
 
+### 新增：switch 语句（向 Go 靠齐，文稿 5.4 / §3.4.5）
+
+- **值 switch**：`switch (expr) { case v1, v2, ...: ...; case expr: ...; default: ... }`，支持多值 case、任意表达式求值、无表达式 `switch { case cond: }`（等价 if 链）。`int`/`enum` 且全部 int 字面量 case 时生成 C 原生 `switch`，否则退化为 if 链。新增关键字 `switch`/`case`/`default`/`fallthrough`
+- **类型 switch**：`switch (obj) { case TypeName binding: ...; case TypeName: ...; default: ... }`，按运行时类型 tag 匹配，匹配后 `ax_unbox_*` 解包为绑定变量。判断表达式必须是 `object` 或类类型，否则 `E4028`
+- **fallthrough**：仅 int/enum C switch 路径允许，其他路径报 `E4040`
+- **新增错误码**：`E4028`（判断表达式类型不支持/类型 switch 要求 object/类）、`E4029`（多个 default）、`E4030`（case 类型不匹配/类型 switch 中的值 case/多值类型 case 带绑定变量/无表达式 switch case 非 bool）、`E4031`（重复的 case 值）、`E4032`（case 后只能是表达式或类型名）、`E4040`（fallthrough 路径限制）
+- **新增测试**：`tests/run/switch_test.ax`、`switch_go.ax`、`switch_expr.ax`、`switch_type.ax`；`tests/sema/S-20`~`S-31`
+- `dump_stmt()` 对类型 switch 的 CASE 显示修复（不再显示 `CASE ?`）
+- `docs/ERRORS.md` 重新生成（通过 `tools/gen_errdoc.py`，147 码 / 360 条）
+
 ## [0.0.27] — 2026-11
 
 ### 新增：`fmt` 模块与 `print`/`println` 多实参（文稿 11.2，规格书 §6.5/§9.4/§13.7/§15）

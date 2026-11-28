@@ -1,0 +1,35 @@
+// tests/run/raw_string_test.ax —— 原始字符串 r"..." 测试（正面）
+// 验证点：
+//   1. Windows 路径：反斜杠不被当作转义
+//   2. 带 \U \D \n 等序列：原样输出，不转义
+//   3. 双引号闭合
+import std.io
+import std.strconv
+
+int main() {
+    // ---------- 1. Windows 路径 ----------
+    var path = r"C:\Users\lansn-lan\Documents"
+    io.writeLine("path=")
+    io.writeLine(path)
+
+    // ---------- 2. 带转义序列的字符（原样输出） ----------
+    var raw1 = r"hello\nworld"
+    io.writeLine("raw1=")
+    io.writeLine(raw1)
+
+    var raw2 = r"\U\d\e\f\a\l\t"
+    io.writeLine("raw2=")
+    io.writeLine(raw2)
+
+    // ---------- 3. 混合内容 ----------
+    var raw3 = r"C:\Program Files\axlang\bin\axc.exe"
+    io.writeLine("raw3=")
+    io.writeLine(raw3)
+
+    // 对比：普通字符串中的 \n 会被转义
+    var normal = "line1\nline2"
+    io.writeLine("normal=")
+    io.writeLine(normal)
+
+    return 0
+}

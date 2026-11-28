@@ -1,0 +1,12 @@
+// EXPECT: E4011
+// float 不能用 ==（浮点比较请用 math.Equals）
+import std.io
+import std.strconv
+
+int main() {
+    var a = 1.0
+    var b = 2.0
+    var c = a == b
+    io.writeLine(strconv.formatBool(c))
+    return 0
+}

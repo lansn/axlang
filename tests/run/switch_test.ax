@@ -1,0 +1,67 @@
+import std.io
+
+int main() {
+    // switch on int with default
+    var x = 2
+    switch (x) {
+        case 1: {
+            io.writeLine("one")
+        }
+        case 2: {
+            io.writeLine("two")
+        }
+        default: {
+            io.writeLine("other")
+        }
+    }
+
+    // switch on int without default
+    var y = 3
+    switch (y) {
+        case 1: {
+            io.writeLine("one")
+        }
+        case 2: {
+            io.writeLine("two")
+        }
+    }
+
+    // switch on string
+    var s = "hello"
+    switch (s) {
+        case "hello": {
+            io.writeLine("greeting")
+        }
+        case "bye": {
+            io.writeLine("parting")
+        }
+        default: {
+            io.writeLine("unknown")
+        }
+    }
+
+    // switch on bool
+    var flag = true
+    switch (flag) {
+        case true: {
+            io.writeLine("yes")
+        }
+        case false: {
+            io.writeLine("no")
+        }
+    }
+
+    // switch on int, no match (no default) -> nothing printed
+    var z = 99
+    switch (z) {
+        case 1: {
+            io.writeLine("one")
+        }
+        case 2: {
+            io.writeLine("two")
+        }
+    }
+
+    io.writeLine("done")
+    return 0
+}

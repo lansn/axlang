@@ -1,0 +1,15 @@
+import std.io
+
+// 类型 switch 多值 case 不能带绑定变量，应报 E4030
+int main() {
+    object o = "x"
+    switch (o) {
+        case string s, int x: {
+            io.writeLine(s)
+        }
+        default: {
+            io.writeLine("other")
+        }
+    }
+    return 0
+}

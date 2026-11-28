@@ -1,0 +1,18 @@
+import std.io
+
+// 重复的 case 值，应报 E4031
+int main() {
+    var x = 1
+    switch (x) {
+        case 1: {
+            io.writeLine("one")
+        }
+        case 1: {
+            io.writeLine("one again")
+        }
+        default: {
+            io.writeLine("other")
+        }
+    }
+    return 0
+}

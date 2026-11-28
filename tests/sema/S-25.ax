@@ -1,0 +1,16 @@
+import std.io
+
+// string switch 中使用 fallthrough，应报 E4040
+int main() {
+    var s = "hello"
+    switch (s) {
+        case "hello": {
+            io.writeLine("greeting")
+            fallthrough
+        }
+        default: {
+            io.writeLine("other")
+        }
+    }
+    return 0
+}

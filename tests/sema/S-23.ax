@@ -1,0 +1,15 @@
+import std.io
+
+// case 值类型与 switch 判断表达式不匹配，应报 E4030
+int main() {
+    var x = 1
+    switch (x) {
+        case "hello": {
+            io.writeLine("string case")
+        }
+        default: {
+            io.writeLine("other")
+        }
+    }
+    return 0
+}

@@ -387,6 +387,10 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                     None => "0".to_string(),
                 };
             }
+            // 模块级全局变量（如 count, mu）：返回 C 层全局名
+            if let Some(crate::sema::Res::Global(name)) = self.res_of(e.id) {
+                return format!("{}__{}", self.cg.module_prefix, san(&name));
+            }
             let (base, v) = self.var_c(e);
             // ref 参数（如 &const int[] xs）：C 层是指针，需解引用才能访问 .len/.data/.v 等字段。
             // 若 base 已带 .v（可空拆箱），需只对基名解引用：(*p_s).v 而非 (*p_s.v)。
@@ -433,6 +437,9 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                     return self.cg.fn_name_idx(inst_fid);
                 }
                 return self.cg.fn_name_idx(fid);
+            }
+            Some(crate::sema::Res::Global(name)) => {
+                return format!("{}__{}", self.cg.module_prefix, san(&name));
             }
             Some(crate::sema::Res::EnumVariant(d, var)) => {
                 let idx = self
@@ -905,6 +912,27 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 ),
                 _ => format!("({} {} {})", a, op, b),
             },
+            TyS::Tuple(elems) => match op {
+                "==" => {
+                    let mut conds = Vec::new();
+                    for (i, et) in elems.iter().enumerate() {
+                        let fa = format!("{}.f{}", a, i);
+                        let fb = format!("{}.f{}", b, i);
+                        conds.push(self.gen_tuple_field_eq(&fa, &fb, et));
+                    }
+                    format!("({})", conds.join(" && "))
+                }
+                "!=" => {
+                    let mut conds = Vec::new();
+                    for (i, et) in elems.iter().enumerate() {
+                        let fa = format!("{}.f{}", a, i);
+                        let fb = format!("{}.f{}", b, i);
+                        conds.push(self.gen_tuple_field_ne(&fa, &fb, et));
+                    }
+                    format!("({})", conds.join(" || "))
+                }
+                _ => format!("({} {} {})", a, op, b),
+            },
             // 实现 Comparable 的类（文稿 7.1）：`a > b` 按 `a.compare(b) > 0`
             TyS::Named(DefId::Id(d), _) if matches!(op, "<" | "<=" | ">" | ">=") => {
                 let mut cur = Some(*d);
@@ -1043,6 +1071,49 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 }
                 format!("({} {} {})", a, op, b)
             }
+        }
+    }
+
+    /// 生成两个元组字段的相等比较表达式，支持递归（嵌套元组）。
+    fn gen_tuple_field_eq(&mut self, fa: &str, fb: &str, et: &Ty) -> String {
+        match &**et {
+            TyS::Tuple(_) => {
+                // 递归：元组字段仍是元组，需逐字段比较
+                let elems = match &**et {
+                    TyS::Tuple(es) => es,
+                    _ => unreachable!(),
+                };
+                let mut conds = Vec::new();
+                for (i, sub) in elems.iter().enumerate() {
+                    let fa2 = format!("{}.f{}", fa, i);
+                    let fb2 = format!("{}.f{}", fb, i);
+                    conds.push(self.gen_tuple_field_eq(&fa2, &fb2, sub));
+                }
+                format!("({})", conds.join(" && "))
+            }
+            TyS::Str => format!("ax_str_eq({}, {})", fa, fb),
+            _ => format!("({} == {})", fa, fb),
+        }
+    }
+
+    /// 生成两个元组字段的不等比较表达式，支持递归（嵌套元组）。
+    fn gen_tuple_field_ne(&mut self, fa: &str, fb: &str, et: &Ty) -> String {
+        match &**et {
+            TyS::Tuple(_) => {
+                let elems = match &**et {
+                    TyS::Tuple(es) => es,
+                    _ => unreachable!(),
+                };
+                let mut conds = Vec::new();
+                for (i, sub) in elems.iter().enumerate() {
+                    let fa2 = format!("{}.f{}", fa, i);
+                    let fb2 = format!("{}.f{}", fb, i);
+                    conds.push(self.gen_tuple_field_ne(&fa2, &fb2, sub));
+                }
+                format!("({})", conds.join(" || "))
+            }
+            TyS::Str => format!("(!ax_str_eq({}, {}))", fa, fb),
+            _ => format!("({} != {})", fa, fb),
         }
     }
 
@@ -1255,7 +1326,21 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             let av = if args.len() < 2 {
                 "NULL".to_string()
             } else {
-                self.gen(&args[1].k.expr, None, false, false)
+                let arg_ty = self.cg.s.ty_of(args[1].k.expr.id);
+                let av = self.gen(&args[1].k.expr, None, false, false);
+                // 句柄/对象类型（非标量）：取地址并转为 void*，避免 struct 值直接传给 void* 参数
+                let needs_addr = arg_ty.as_ref().map_or(false, |t| {
+                    // 非标量类型（句柄、对象、数组、map 等）：取地址并转为 void*
+                    matches!(
+                        &**t,
+                        TyS::Named(_, _) | TyS::Object | TyS::Array(_, _) | TyS::Map(_, _)
+                    )
+                });
+                if needs_addr {
+                    format!("(void*)&{}", av)
+                } else {
+                    format!("(void*)(int64_t){}", av)
+                }
             };
             return format!("ax_thread_create((ax_thread_fn){}, {})", fv, av);
         }
@@ -1296,7 +1381,7 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                         for (i, x) in args.iter().enumerate() {
                             let pt = ptypes.as_ref().and_then(|ps| ps.get(i).cloned().flatten());
                             let v = match pt {
-                                Some(pt) => self.gen(&x.k.expr, Some(&pt), false, false),
+                                Some((ty, _)) => self.gen(&x.k.expr, Some(&ty), false, false),
                                 None => self.gen(&x.k.expr, None, false, false),
                             };
                             a.push(v);
@@ -1840,7 +1925,36 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                     let mut a: Vec<String> = Vec::new();
                     for (i, x) in args.iter().enumerate() {
                         let v = match params.get(i) {
-                            Some(p) => self.gen(&x.k.expr, Some(&p.1), false, false),
+                            Some(p) => {
+                                if p.2.is_some() {
+                                    // ref 形参：实参需传地址
+                                    if let Expr::Path { .. } = &x.k.expr.k {
+                                        if let Some(crate::sema::Res::Local(vi)) = self.res_of(x.k.expr.id) {
+                                            let b = vi.borrow();
+                                            let (base, _) = self.var_c(&x.k.expr);
+                                            if b.is_param && b.borrow.is_some() {
+                                                base
+                                            } else if !b.is_param {
+                                                format!("&{}", base)
+                                            } else {
+                                                let val = self.gen(&x.k.expr, Some(&p.1), false, false);
+                                                let temp = self.declare(&p.1, &val);
+                                                format!("&{}", temp)
+                                            }
+                                        } else {
+                                            let val = self.gen(&x.k.expr, Some(&p.1), false, false);
+                                            let temp = self.declare(&p.1, &val);
+                                            format!("&{}", temp)
+                                        }
+                                    } else {
+                                        let val = self.gen(&x.k.expr, Some(&p.1), false, false);
+                                        let temp = self.declare(&p.1, &val);
+                                        format!("&{}", temp)
+                                    }
+                                } else {
+                                    self.gen(&x.k.expr, Some(&p.1), false, false)
+                                }
+                            }
                             None => self.gen(&x.k.expr, None, false, false),
                         };
                         a.push(v);
@@ -1947,7 +2061,36 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
         for (i, x) in args.iter().enumerate() {
             let pt = ptypes.as_ref().and_then(|ps| ps.get(i).cloned().flatten());
             let v = match pt {
-                Some(pt) => self.gen(&x.k.expr, Some(&pt), false, false),
+                // ref 形参：实参需传地址。
+                //   - 局部变量：取 &var
+                //   - 本身是 ref 形参：直接传指针（var_c 取 base，不走 path() 的 *ptr）
+                //   - 字面量/复杂表达式：先落临时变量，再取其地址
+                Some((ty, borrow)) if borrow.is_some() => {
+                    if let Expr::Path { .. } = &x.k.expr.k {
+                        if let Some(crate::sema::Res::Local(vi)) = self.res_of(x.k.expr.id) {
+                            let b = vi.borrow();
+                            let (base, _) = self.var_c(&x.k.expr);
+                            if b.is_param && b.borrow.is_some() {
+                                base
+                            } else if !b.is_param {
+                                format!("&{}", base)
+                            } else {
+                                let val = self.gen(&x.k.expr, Some(&ty), false, false);
+                                let temp = self.declare(&ty, &val);
+                                format!("&{}", temp)
+                            }
+                        } else {
+                            let val = self.gen(&x.k.expr, Some(&ty), false, false);
+                            let temp = self.declare(&ty, &val);
+                            format!("&{}", temp)
+                        }
+                    } else {
+                        let val = self.gen(&x.k.expr, Some(&ty), false, false);
+                        let temp = self.declare(&ty, &val);
+                        format!("&{}", temp)
+                    }
+                }
+                Some((ty, _)) => self.gen(&x.k.expr, Some(&ty), false, false),
                 None => self.gen(&x.k.expr, None, false, false),
             };
             a.push(v);
@@ -2195,6 +2338,29 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                 };
                 format!("ax_err_as({}, {})", a[0], tgt)
             }
+            /* ---------------- flag 模块（对标 Go flag） ---------------- */
+            ("flag", "defineBool") => format!("ax_std_flag_define_bool({}, {}, {})", a[0], a[1], a[2]),
+            ("flag", "defineInt") => format!("ax_std_flag_define_int({}, {}, {})", a[0], a[1], a[2]),
+            ("flag", "defineString") => format!("ax_std_flag_define_string({}, {}, {})", a[0], a[1], a[2]),
+            ("flag", "parse") => {
+                self.emit("ax_flag_parse();".to_string());
+                "0".to_string()
+            }
+            ("flag", "getBool") => format!("ax_std_flag_bool({})", a[0]),
+            ("flag", "getInt") => format!("ax_std_flag_int({})", a[0]),
+            ("flag", "getString") => format!("ax_std_flag_string({})", a[0]),
+            ("flag", "nFlag") => "ax_flag_n_flag()".to_string(),
+            ("flag", "arg") => format!("ax_std_flag_arg({})", a[0]),
+            ("flag", "nArg") => "ax_flag_n_arg()".to_string(),
+            ("flag", "args") => "ax_flag_args()".to_string(),
+            /* ---------------- env 模块（对标 Go os 环境变量增值功能） ---------------- */
+            ("env", "expand") => format!("ax_std_env_expand({})", a[0]),
+            ("env", "clearenv") => {
+                self.emit("ax_env_clearenv();".to_string());
+                "0".to_string()
+            }
+            ("env", "exists") => format!("ax_std_env_exists({})", a[0]),
+            ("env", "all") => "ax_env_all()".to_string(),
             /* ---------------- strconv 模块 ---------------- */
             ("strconv", "atoi") => {
                 format!("({{ int64_t v_; ax_parse_i64({}, &v_) ? v_ : 0; }})", a[0])
@@ -2378,6 +2544,76 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                     }
                 }
             }
+            /* ---------------- slices 模块（对标 Go slices，ax_arr 形式） ---------------- */
+            ("slices", "containsInt") => format!("ax_std_slice_contains_int({}, {})", a[0], a[1]),
+            ("slices", "containsString") => format!("ax_std_slice_contains_string({}, {})", a[0], a[1]),
+            ("slices", "indexInt") => format!("ax_std_slice_index_int({}, {})", a[0], a[1]),
+            ("slices", "indexString") => format!("ax_std_slice_index_string({}, {})", a[0], a[1]),
+            ("slices", "reverse") => {
+                self.emit(format!("ax_std_slice_reverse_int(&{});", a[0]));
+                "0".to_string()
+            }
+            ("slices", "reverseStr") => {
+                self.emit(format!("ax_std_slice_reverse_str(&{});", a[0]));
+                "0".to_string()
+            }
+            ("slices", "cloneInt") => format!("ax_std_slice_clone_int({})", a[0]),
+            ("slices", "cloneStr") => format!("ax_std_slice_clone_str({})", a[0]),
+            ("slices", "fillInt") => {
+                self.emit(format!("ax_std_slice_fill_int(&{}, {});", a[0], a[1]));
+                "0".to_string()
+            }
+            ("slices", "fillStr") => {
+                self.emit(format!("ax_std_slice_fill_str(&{}, {});", a[0], a[1]));
+                "0".to_string()
+            }
+            ("slices", "insertInt") => {
+                self.emit(format!("ax_std_slice_insert_int(&{}, {}, {});", a[0], a[1], a[2]));
+                "0".to_string()
+            }
+            ("slices", "insertStr") => {
+                self.emit(format!("ax_std_slice_insert_str(&{}, {}, {});", a[0], a[1], a[2]));
+                "0".to_string()
+            }
+            ("slices", "deleteRangeInt") => {
+                self.emit(format!("ax_std_slice_delete_range_int(&{}, {}, {});", a[0], a[1], a[2]));
+                "0".to_string()
+            }
+            ("slices", "deleteRangeStr") => {
+                self.emit(format!("ax_std_slice_delete_range_str(&{}, {}, {});", a[0], a[1], a[2]));
+                "0".to_string()
+            }
+            ("slices", "minInt") => format!("ax_std_slice_min_int({})", a[0]),
+            ("slices", "maxInt") => format!("ax_std_slice_max_int({})", a[0]),
+            ("slices", "sumInt") => format!("ax_std_slice_sum_int({})", a[0]),
+            ("slices", "minFloat") => format!("ax_std_slice_min_float({})", a[0]),
+            ("slices", "maxFloat") => format!("ax_std_slice_max_float({})", a[0]),
+            ("slices", "sumFloat") => format!("ax_std_slice_sum_float({})", a[0]),
+            /* ---------------- base64 模块（对标 Go encoding/base64） ---------------- */
+            ("base64", "encode") => format!("ax_base64_encode({})", a[0]),
+            ("base64", "decode") => format!("ax_base64_decode({})", a[0]),
+            /* ---------------- hex 模块（对标 Go encoding/hex） ---------------- */
+            ("hex", "encode") => format!("ax_hex_encode({})", a[0]),
+            ("hex", "decode") => format!("ax_hex_decode({})", a[0]),
+            /* ---------------- crypto/md5 模块（对标 Go crypto/md5） ---------------- */
+            ("md5", "sum") => format!("ax_md5_sum({})", a[0]),
+            /* ---------------- crypto/sha1 模块（对标 Go crypto/sha1） ---------------- */
+            ("sha1", "sum") => format!("ax_sha1_sum({})", a[0]),
+            /* ---------------- crypto/sha256 模块（对标 Go crypto/sha256） ---------------- */
+            ("sha256", "sum") => format!("ax_sha256_sum({})", a[0]),
+            /* ---------------- sync 模块（对标 Go sync） ---------------- */
+            // 所有 sync 函数返回 void，以 self.emit 作为语句生成，表达式值返回 "0"。
+            // 第一个实参均为 ref 句柄，已在上面的实参循环中生成 &x 取地址。
+            ("sync", "mutexLock") => { self.emit(format!("ax_mutex_lock({});", a[0])); "0".to_string() }
+            ("sync", "mutexUnlock") => { self.emit(format!("ax_mutex_unlock({});", a[0])); "0".to_string() }
+            ("sync", "rwmutexLock") => { self.emit(format!("ax_rwmutex_lock({});", a[0])); "0".to_string() }
+            ("sync", "rwmutexUnlock") => { self.emit(format!("ax_rwmutex_unlock({});", a[0])); "0".to_string() }
+            ("sync", "rwmutexRLock") => { self.emit(format!("ax_rwmutex_rlock({});", a[0])); "0".to_string() }
+            ("sync", "rwmutexRunlock") => { self.emit(format!("ax_rwmutex_runlock({});", a[0])); "0".to_string() }
+            ("sync", "waitgroupAdd") => { self.emit(format!("ax_waitgroup_add({}, {})", a[0], a[1])); "0".to_string() }
+            ("sync", "waitgroupDone") => { self.emit(format!("ax_waitgroup_done({});", a[0])); "0".to_string() }
+            ("sync", "waitgroupWait") => { self.emit(format!("ax_waitgroup_wait({});", a[0])); "0".to_string() }
+            ("sync", "onceDo") => { self.emit(format!("ax_once_do({});", a[0])); "0".to_string() }
             _ => "0".to_string(),
         }
     }
@@ -3565,6 +3801,15 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
             _ => {}
         }
         let rt = self.ty_or_int(recv.id);
+        if let TyS::Tuple(elems) = &*rt {
+            // 元组元素直接访问：t.0、t.1 等，C 层字段为 f0、f1 …（与 var_tuple 一致）
+            let idx: usize = name.parse().unwrap_or(0);
+            if idx < elems.len() {
+                let (recv_c, deref) = self.recv_c(recv);
+                let sep = if deref { "->" } else { "." };
+                return format!("{}{}f{}", recv_c, sep, idx);
+            }
+        }
         if matches!(&*rt, TyS::Error) {
             let (recv_c, deref) = self.recv_c(recv);
             let sep = if deref { "->" } else { "." };
@@ -3818,6 +4063,239 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
         self.match_stmt(n, s.id, None, None);
     }
 
+    // ---------- switch ----------
+
+    pub fn switch_stmt_stmt(&mut self, s: &'a ast::N<Stmt>) {
+        let n = match &s.k {
+            Stmt::Switch(n) => n,
+            _ => unreachable!(),
+        };
+        self.switch_stmt(n, s.id);
+    }
+
+    pub fn switch_stmt(
+        &mut self,
+        n: &'a ast::SwitchNode,
+        node_id: u32,
+    ) {
+        let st = self
+            .cg
+            .slot(&node_id)
+            .and_then(|s| s.scrut_ty.clone())
+            .unwrap_or_else(t_object);
+
+        // 是否为无表达式 switch（`switch { case cond: ... }`）
+        let exprless = n.scrutinee.is_none();
+
+        // 有表达式时：生成 scrutinee 变量（供 C switch 或 if 链使用）
+        let sv_opt = if let Some(s) = &n.scrutinee {
+            let v = self.gen(s, None, false, false);
+            let sv = if self.is_simple(s) {
+                v.clone()
+            } else {
+                self.declare(&st, &v)
+            };
+            Some(sv)
+        } else {
+            None
+        };
+
+        // 判断是否所有 case 都是 int 字面量（可用于 C switch；default 视为兼容）
+        let all_int_lits = n.arms.iter().all(|arm| {
+            arm.pats.is_empty()
+                || arm.pats.iter().all(|pat| {
+                    matches!(&pat.k, Pat::Lit { expr } if matches!(&expr.k, Expr::IntLit { .. }))
+                })
+        });
+
+        // int / enum + 有表达式 + 全部 int 字面量 case：生成 C switch 语句
+        if !exprless
+            && matches!(&*st, TyS::Int(..) | TyS::Enum(..))
+            && all_int_lits
+        {
+            let sv = sv_opt.unwrap();
+            self.emit(format!("switch ({}) {{", sv));
+            for arm in &n.arms {
+                if arm.pats.is_empty() {
+                    self.emit("default: {".to_string());
+                } else {
+                    // 多值 case：只有最后一个 case 后面开块，其余直穿（Go 风格 case v1, v2:）
+                    let last = arm.pats.len() - 1;
+                    for (i, pat) in arm.pats.iter().enumerate() {
+                        let is_last = i == last;
+                        match &pat.k {
+                            ast::Pat::Lit { expr } => {
+                                match &expr.k {
+                                    Expr::IntLit { value, .. } => {
+                                        let lit = value.to_string();
+                                        if is_last {
+                                            self.emit(format!("case {}: {{", lit));
+                                        } else {
+                                            self.emit(format!("case {}:", lit));
+                                        }
+                                    }
+                                    _ => unreachable!(), // all_int_lits 已保证
+                                }
+                            }
+                            _ => unreachable!(),
+                        }
+                    }
+                }
+                self.ind += 1;
+                for sp in &arm.body.stmts {
+                    self.stmt(sp);
+                }
+                if !arm.fallthrough {
+                    self.emit("break;".to_string());
+                }
+                self.ind -= 1;
+                self.emit("}".to_string());
+            }
+            self.emit("}".to_string());
+            return;
+        }
+
+        // 类型 switch：按运行时 tag 比较，匹配后 ax_unbox_ref 解包绑定变量（C 层名 v_<bind>）
+        let is_type_switch = n.arms.iter().any(|arm| {
+            arm.pats
+                .iter()
+                .any(|pat| matches!(&pat.k, ast::Pat::Type { .. }))
+        });
+        if is_type_switch {
+            let sv = sv_opt.expect("类型 switch 的判断表达式不应为空");
+            let mut first = true;
+            for arm in &n.arms {
+                if arm.pats.is_empty() {
+                    // default -> else
+                    let kw = if first { "{" } else { "else {" };
+                    self.emit(kw.to_string());
+                    first = false;
+                } else {
+                    let conds: Vec<String> = arm
+                        .pats
+                        .iter()
+                        .map(|pat| match &pat.k {
+                            ast::Pat::Type { ty: _, bind: _ } => {
+                                let arm_ty = self
+                                    .cg
+                                    .slot(&pat.id)
+                                    .and_then(|s| s.ty.clone())
+                                    .unwrap_or_else(t_object);
+                                let tag = tag_of(&arm_ty);
+                                format!("({}->tag == {}u)", sv, tag)
+                            }
+                            _ => unreachable!("类型 switch 的 case 由 sema 限定为 Pat::Type"),
+                        })
+                        .collect();
+                    let cond = conds.join(" || ");
+                    let kw = if first {
+                        format!("if ({}) {{", cond)
+                    } else {
+                        format!("else if ({}) {{", cond)
+                    };
+                    self.emit(kw);
+                    first = false;
+                }
+                self.ind += 1;
+                // 单绑定：声明并解包绑定变量
+                if arm.pats.len() == 1 {
+                    if let ast::Pat::Type { ty: _, bind } = &arm.pats[0].k {
+                        if !bind.is_empty() {
+                            let arm_ty = self
+                                .cg
+                                .slot(&arm.pats[0].id)
+                                .and_then(|s| s.ty.clone())
+                                .unwrap_or_else(t_object);
+                            let tag = tag_of(&arm_ty);
+                            let ct = self.cg.ct(&arm_ty);
+                            let lv = self.lv(bind);
+                            let pa = self.pos_args(&arm.tok);
+                            // 按运行时类型选用对应的拆箱原语：string/int/bool/float/dec 各自有专用函数，
+                            // object/类指针用 ax_unbox_ref 返回 void* 后再强转。
+                            let unbox = match &*arm_ty {
+                                TyS::Int(..) => format!("ax_unbox_int({}, {})", sv, pa),
+                                TyS::Float => format!("ax_unbox_f64({}, {})", sv, pa),
+                                TyS::Decimal => format!("ax_unbox_dec({}, {})", sv, pa),
+                                TyS::Str => format!("ax_unbox_str({}, {})", sv, pa),
+                                TyS::Bool => format!("ax_unbox_bool({}, {})", sv, pa),
+                                TyS::Object | TyS::Named(..) => {
+                                    format!("({})ax_unbox_ref({}, {}u, {})", ct, sv, tag, pa)
+                                }
+                                _ => format!("ax_unbox_ref({}, {}u, {})", sv, tag, pa),
+                            };
+                            self.emit(format!("{} {} = {};", ct, lv, unbox));
+                        }
+                    }
+                }
+                for sp in &arm.body.stmts {
+                    self.stmt(sp);
+                }
+                self.ind -= 1;
+                self.emit("}".to_string());
+            }
+            return;
+        }
+
+        // 无表达式 switch / string / bool / result / 其他 / 含非字面量 case：生成 if 链
+        let sv = sv_opt.as_deref().unwrap_or("");
+        let mut chain_open = false;
+        for arm in &n.arms {
+            let cond: Option<String> = if arm.pats.is_empty() {
+                None // default -> else
+            } else {
+                // 多值 case：sv == v1 || sv == v2 || ...（无表达式 switch 时 cond 本身）
+                let conds: Vec<String> = arm
+                    .pats
+                    .iter()
+                    .map(|pat| match &pat.k {
+                        ast::Pat::Lit { expr } => {
+                            let lit = self.gen(expr, None, false, false);
+                            if exprless {
+                                // 无表达式 switch：条件表达式本身即为条件（必须是 bool）
+                                lit
+                            } else if let Some(sv) = &sv_opt {
+                                if matches!(&*st, TyS::Str) {
+                                    format!("ax_str_eq({}, {})", sv, lit)
+                                } else {
+                                    format!("{} == {}", sv, lit)
+                                }
+                            } else {
+                                lit
+                            }
+                        }
+                        _ => unreachable!(), // parser 已保证都是 Pat::Lit
+                    })
+                    .collect();
+                Some(conds.join(" || "))
+            };
+
+            let kw = match cond {
+                None => {
+                    if chain_open {
+                        "else {".to_string()
+                    } else {
+                        "{".to_string()
+                    }
+                }
+                Some(c) => {
+                    if chain_open {
+                        format!("else if ({}) {{", c)
+                    } else {
+                        format!("if ({}) {{", c)
+                    }
+                }
+            };
+            self.emit(kw);
+            self.ind += 1;
+            for sp in &arm.body.stmts {
+                self.stmt(sp);
+            }
+            self.ind -= 1;
+            self.emit("}".to_string());
+            chain_open = true;
+        }
+    }
+
     pub fn match_stmt(
         &mut self,
         n: &'a ast::MatchNode,
@@ -4056,6 +4534,10 @@ impl<'s, 'a, 'c> FnGen<'s, 'a, 'c> {
                             TyS::Float => format!("ax_unbox_f64({}, {})", sv, pa),
                             TyS::Decimal => format!("ax_unbox_dec({}, {})", sv, pa),
                             TyS::Str => format!("ax_unbox_str({}, {})", sv, pa),
+                            // 句柄/结构体类型（如 Mutex、WaitGroup）：从 box payload 中按类型大小拷贝还原
+                            TyS::Named(_, _) => {
+                                format!("(*({}*)({}->payload))", tc, sv)
+                            }
                             _ => format!("({})(*(void**)({}->payload))", tc, sv),
                         };
                         let b = self.lv(bind);

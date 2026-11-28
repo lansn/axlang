@@ -1,0 +1,10 @@
+// EXPECT: E2004
+// while 分支体必须用 {} 括起来，即使只有一条语句
+import std.io
+
+int main() {
+    int j = 0
+    while (j < 3)
+        io.writeLine("j")
+    return 0
+}

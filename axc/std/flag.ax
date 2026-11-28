@@ -1,0 +1,171 @@
+// axc/std/flag.ax —— axlang 标准库 flag 模块（ax 语法源码）
+// 与用户库一样，由 ax 编译器直接解析，生成对应的 C 源码供 gcc 编译。
+//
+// 对标 Go flag。ax 层仅包装 axrt C 原语，
+// 通过 extern "C" 声明 + unsafe 块调用，不引入 ax 编译器内建能力。
+//
+// 导出函数命名采用 camelCase 风格，如 defineBool / defineInt / defineString / parse / bool / int / string / nFlag / arg / nArg / args。
+// ax 代码中通过 std.flag.defineBool(...) 调用模块级函数。
+//
+// 命令行参数由 main 包装器在进入用户 main 前通过 ax_os_set_args 设置，
+// flag.parse() 从 ax_os_args() 解析 -name=value 或 -name value 形式的参数。
+
+extern "C" {
+    /* axrt flag 原语（axc/rt/flag/axrt_flag.c） */
+    int  ax_std_flag_define_bool(string name, int def_val, string usage);
+    int  ax_std_flag_define_int(string name, int def_val, string usage);
+    int  ax_std_flag_define_string(string name, string def_val, string usage);
+    int  ax_flag_parse();
+    int  ax_std_flag_bool(string name);
+    int  ax_std_flag_int(string name);
+    string ax_std_flag_string(string name);
+    int  ax_flag_n_flag();
+    string ax_std_flag_arg(int i);
+    int  ax_flag_n_arg();
+    string[] ax_flag_args();
+}
+
+// ---------- 模块级函数（camelCase 命名） ----------
+
+/**
+ * 函数名：defineBool
+ * 功能：注册一个 bool 类型命令行标志
+ * 输入参数：name (string) - 标志名；def_val (bool) - 默认值；usage (string) - 用法说明
+ * 输出参数：int - 0 表示注册成功，非 0 表示失败（如重复注册）
+ * 修订日期：2026-11-29
+ */
+public int defineBool(string name, int def_val, string usage) {
+    unsafe {
+        return ax_std_flag_define_bool(name, def_val, usage)
+    }
+}
+
+/**
+ * 函数名：defineInt
+ * 功能：注册一个 int 类型命令行标志
+ * 输入参数：name (string) - 标志名；def_val (int) - 默认值；usage (string) - 用法说明
+ * 输出参数：int - 0 表示注册成功，非 0 表示失败（如重复注册）
+ * 修订日期：2026-11-29
+ */
+public int defineInt(string name, int def_val, string usage) {
+    unsafe {
+        return ax_std_flag_define_int(name, def_val, usage)
+    }
+}
+
+/**
+ * 函数名：defineString
+ * 功能：注册一个 string 类型命令行标志
+ * 输入参数：name (string) - 标志名；def_val (string) - 默认值；usage (string) - 用法说明
+ * 输出参数：int - 0 表示注册成功，非 0 表示失败（如重复注册）
+ * 修订日期：2026-11-29
+ */
+public int defineString(string name, string def_val, string usage) {
+    unsafe {
+        return ax_std_flag_define_string(name, def_val, usage)
+    }
+}
+
+/**
+ * 函数名：parse
+ * 功能：解析命令行参数，设置已注册标志的值
+ * 输入参数：无
+ * 输出参数：int - 0 表示解析成功，非 0 表示解析失败（如未知标志）
+ * 修订日期：2026-11-29
+ */
+public int parse() {
+    unsafe {
+        return ax_flag_parse()
+    }
+}
+
+/**
+ * 函数名：getBool
+ * 功能：获取已注册 bool 标志的当前值
+ * 输入参数：name (string) - 标志名
+ * 输出参数：int - 标志的当前 bool 值（1=true, 0=false）
+ * 修订日期：2026-11-29
+ */
+public int getBool(string name) {
+    unsafe {
+        return ax_std_flag_bool(name)
+    }
+}
+
+/**
+ * 函数名：getInt
+ * 功能：获取已注册 int 标志的当前值
+ * 输入参数：name (string) - 标志名
+ * 输出参数：int - 标志的当前 int 值
+ * 修订日期：2026-11-29
+ */
+public int getInt(string name) {
+    unsafe {
+        return ax_std_flag_int(name)
+    }
+}
+
+/**
+ * 函数名：getString
+ * 功能：获取已注册 string 标志的当前值
+ * 输入参数：name (string) - 标志名
+ * 输出参数：string - 标志的当前 string 值
+ * 修订日期：2026-11-29
+ */
+public string getString(string name) {
+    unsafe {
+        return ax_std_flag_string(name)
+    }
+}
+
+/**
+ * 函数名：nFlag
+ * 功能：返回已通过命令行设置的标志数量
+ * 输入参数：无
+ * 输出参数：int - 已设置的标志数量
+ * 修订日期：2026-11-29
+ */
+public int nFlag() {
+    unsafe {
+        return ax_flag_n_flag()
+    }
+}
+
+/**
+ * 函数名：arg
+ * 功能：返回第 i 个非标志位置参数
+ * 输入参数：i (int) - 位置参数索引（从 0 开始）
+ * 输出参数：string - 位置参数值，索引越界返回空字符串
+ * 修订日期：2026-11-29
+ */
+public string arg(int i) {
+    unsafe {
+        return ax_std_flag_arg(i)
+    }
+}
+
+/**
+ * 函数名：nArg
+ * 功能：返回非标志位置参数的数量
+ * 输入参数：无
+ * 输出参数：int - 位置参数数量
+ * 修订日期：2026-11-29
+ */
+public int nArg() {
+    unsafe {
+        return ax_flag_n_arg()
+    }
+}
+
+/**
+ * 函数名：args
+ * 功能：返回所有非标志位置参数
+ * 输入参数：无
+ * 输出参数：string[] - 所有位置参数
+ * 修订日期：2026-11-29
+ */
+public string[] args() {
+    unsafe {
+        return ax_flag_args()
+    }
+}

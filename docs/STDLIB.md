@@ -1,5 +1,5 @@
 <!-- 本文件由 tools/gen_stdlib_doc.py 生成，请勿手改；内建方法变更后重新运行。 -->
-<!-- 生成时间：2026-11-27 16:07:26 -->
+<!-- 生成时间：2026-11-27 -->
 
 # axlang 内置库与标准库
 
@@ -122,6 +122,16 @@
 *对应 `axc/std/errors.ax`（标准库 ax 源码），符号定义见各模块源文件。*
 
 
+### std.flag
+
+*对应 `axc/std/flag.ax`（标准库 ax 源码），符号定义见各模块源文件。*
+
+
+### std.env
+
+*对应 `axc/std/env.ax`（标准库 ax 源码），符号定义见各模块源文件。*
+
+
 ### std.time
 
 *对应 `axc/std/time.ax`（标准库 ax 源码），符号定义见各模块源文件。*
@@ -150,6 +160,36 @@
 ### std.filepath
 
 *对应 `axc/std/filepath.ax`（标准库 ax 源码），符号定义见各模块源文件。*
+
+
+### std.slices
+
+*对应 `axc/std/slices.ax`（标准库 ax 源码），符号定义见各模块源文件。*
+
+
+### std.base64
+
+*对应 `axc/std/base64.ax`（标准库 ax 源码），符号定义见各模块源文件。*
+
+
+### std.hex
+
+*对应 `axc/std/hex.ax`（标准库 ax 源码），符号定义见各模块源文件。*
+
+
+### std.md5
+
+*对应 `axc/std/md5.ax`（标准库 ax 源码），符号定义见各模块源文件。*
+
+
+### std.sha1
+
+*对应 `axc/std/sha1.ax`（标准库 ax 源码），符号定义见各模块源文件。*
+
+
+### std.sha256
+
+*对应 `axc/std/sha256.ax`（标准库 ax 源码），符号定义见各模块源文件。*
 
 
 ## 内建类型实例方法

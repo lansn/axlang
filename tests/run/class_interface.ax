@@ -1,0 +1,48 @@
+// tests/run/class_interface.ax —— 纯接口定义、多类实现同一接口、接口引用多态
+// 验证点：
+//   1. 纯接口 Drawable，仅声明方法（无方法体、无可见性修饰词，以 `;` 结束）
+//   2. Circle 与 Square 两个类分别 implement Drawable
+//   3. 接口引用持不同实现类对象，draw()/area() 走接口虚表运行期派发
+import std.io
+import std.strconv
+
+interface Drawable {
+    void draw();
+    float area();
+}
+
+class Circle implement Drawable {
+    public float r
+    constructor(float r) {
+        this.r = r
+    }
+    public void draw() {
+        io.writeLine("circle")
+    }
+    public float area() {
+        return 3.14 * this.r * this.r
+    }
+}
+
+class Square implement Drawable {
+    public float s
+    constructor(float s) {
+        this.s = s
+    }
+    public void draw() {
+        io.writeLine("square")
+    }
+    public float area() {
+        return this.s * this.s
+    }
+}
+
+int main() {
+    Drawable d1 = Circle(2.0)
+    Drawable d2 = Square(3.0)
+    d1.draw()
+    io.writeLine(strconv.itoa(int(d1.area())))
+    d2.draw()
+    io.writeLine(strconv.itoa(int(d2.area())))
+    return 0
+}

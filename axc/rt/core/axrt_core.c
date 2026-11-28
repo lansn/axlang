@@ -967,3 +967,552 @@ ax_thread* ax_thread_create(void (*func)(void*), void* arg) {
 }
 #endif
 
+/* ================================================================
+ * slices ax_arr 包装器（对标 Go slices，ax_arr 形式，供 ax 标准库调用）
+ * ================================================================ */
+
+int ax_std_slice_contains_int(ax_arr s, int64_t x) {
+    return ax_slice_contains_int((const int64_t*)s.data, s.len, x);
+}
+
+int ax_std_slice_contains_string(ax_arr s, ax_str x) {
+    return ax_slice_contains_string((const ax_str*)s.data, s.len, x);
+}
+
+int64_t ax_std_slice_index_int(ax_arr s, int64_t x) {
+    return ax_slice_index_int((const int64_t*)s.data, s.len, x);
+}
+
+int64_t ax_std_slice_index_string(ax_arr s, ax_str x) {
+    return ax_slice_index_string((const ax_str*)s.data, s.len, x);
+}
+
+void ax_std_slice_reverse_int(ax_arr* s) {
+    ax_arr_reverse(s->data, s->len, sizeof(int64_t));
+}
+
+void ax_std_slice_reverse_str(ax_arr* s) {
+    ax_arr_reverse(s->data, s->len, sizeof(ax_str));
+}
+
+ax_arr ax_std_slice_clone_int(ax_arr s) {
+    return ax_arr_clone(&s, sizeof(int64_t));
+}
+
+ax_arr ax_std_slice_clone_str(ax_arr s) {
+    return ax_arr_clone(&s, sizeof(ax_str));
+}
+
+void ax_std_slice_fill_int(ax_arr* s, int64_t v) {
+    ax_arr_fill(s, &v, sizeof(int64_t));
+}
+
+void ax_std_slice_fill_str(ax_arr* s, ax_str v) {
+    ax_arr_fill(s, &v, sizeof(ax_str));
+}
+
+void ax_std_slice_insert_int(ax_arr* s, int64_t i, int64_t v) {
+    ax_arr_insert(s, i, &v, sizeof(int64_t), "<runtime>", 0, 0);
+}
+
+void ax_std_slice_insert_str(ax_arr* s, int64_t i, ax_str v) {
+    ax_arr_insert(s, i, &v, sizeof(ax_str), "<runtime>", 0, 0);
+}
+
+void ax_std_slice_delete_range_int(ax_arr* s, int64_t i, int64_t j) {
+    ax_arr_delete_range(s, i, j, sizeof(int64_t), "<runtime>", 0, 0);
+}
+
+void ax_std_slice_delete_range_str(ax_arr* s, int64_t i, int64_t j) {
+    ax_arr_delete_range(s, i, j, sizeof(ax_str), "<runtime>", 0, 0);
+}
+
+int64_t ax_std_slice_min_int(ax_arr s) {
+    return ax_arr_min_int((const int64_t*)s.data, s.len);
+}
+
+int64_t ax_std_slice_max_int(ax_arr s) {
+    return ax_arr_max_int((const int64_t*)s.data, s.len);
+}
+
+int64_t ax_std_slice_sum_int(ax_arr s) {
+    return ax_arr_sum_int((const int64_t*)s.data, s.len);
+}
+
+double ax_std_slice_min_float(ax_arr s) {
+    return ax_arr_min_float((const double*)s.data, s.len);
+}
+
+double ax_std_slice_max_float(ax_arr s) {
+    return ax_arr_max_float((const double*)s.data, s.len);
+}
+
+double ax_std_slice_sum_float(ax_arr s) {
+    return ax_arr_sum_float((const double*)s.data, s.len);
+}
+
+/* ================================================================
+ * base64（对标 Go encoding/base64，RFC 4648 标准编码，无换行）
+ * ================================================================ */
+
+static const char base64_table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+static int base64_val(char c) {
+    if (c >= 'A' && c <= 'Z') return c - 'A';
+    if (c >= 'a' && c <= 'z') return c - 'a' + 26;
+    if (c >= '0' && c <= '9') return c - '0' + 52;
+    if (c == '+') return 62;
+    if (c == '/') return 63;
+    return -1;
+}
+
+ax_str ax_base64_encode(ax_arr input) {
+    const uint8_t* data = (const uint8_t*)input.data;
+    int64_t len = input.len;
+    int64_t out_len = ((len + 2) / 3) * 4;
+    uint8_t* out = (uint8_t*)ax_alloc(out_len + 1);
+    int64_t j = 0;
+    for (int64_t i = 0; i < len; i += 3) {
+        uint32_t octet = 0;
+        octet |= (uint32_t)data[i] << 16;
+        if (i + 1 < len) octet |= (uint32_t)data[i + 1] << 8;
+        if (i + 2 < len) octet |= (uint32_t)data[i + 2];
+        out[j++] = (uint8_t)base64_table[(octet >> 18) & 0x3F];
+        out[j++] = (uint8_t)base64_table[(octet >> 12) & 0x3F];
+        out[j++] = (i + 1 < len) ? (uint8_t)base64_table[(octet >> 6) & 0x3F] : (uint8_t)'=';
+        out[j++] = (i + 2 < len) ? (uint8_t)base64_table[octet & 0x3F] : (uint8_t)'=';
+    }
+    out[j] = 0;
+    ax_str s; s.p = out; s.len = j;
+    return s;
+}
+
+ax_arr ax_base64_decode(ax_str input) {
+    int64_t len = input.len;
+    int64_t out_cap = (len * 3) / 4 + 1;
+    uint8_t* out = (uint8_t*)ax_alloc(out_cap > 0 ? out_cap : 1);
+    int64_t j = 0;
+    uint32_t buf = 0;
+    int bits = 0;
+    for (int64_t i = 0; i < len; i++) {
+        int v = base64_val((char)input.p[i]);
+        if (v < 0) continue;
+        buf = (buf << 6) | (uint32_t)v;
+        bits += 6;
+        if (bits >= 8) {
+            bits -= 8;
+            out[j++] = (uint8_t)((buf >> bits) & 0xFF);
+        }
+    }
+    ax_arr a; a.data = out; a.len = j; a.cap = j;
+    return a;
+}
+
+/* ================================================================
+ * hex（对标 Go encoding/hex，小写十六进制）
+ * ================================================================ */
+
+static const char hex_chars[] = "0123456789abcdef";
+
+static int hex_val(char c) {
+    if (c >= '0' && c <= '9') return c - '0';
+    if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+    if (c >= 'A' && c <= 'F') return c - 'A' + 10;
+    return -1;
+}
+
+ax_str ax_hex_encode(ax_arr input) {
+    const uint8_t* data = (const uint8_t*)input.data;
+    int64_t len = input.len;
+    uint8_t* out = (uint8_t*)ax_alloc(len * 2 + 1);
+    for (int64_t i = 0; i < len; i++) {
+        out[i * 2] = (uint8_t)hex_chars[(data[i] >> 4) & 0x0F];
+        out[i * 2 + 1] = (uint8_t)hex_chars[data[i] & 0x0F];
+    }
+    out[len * 2] = 0;
+    ax_str s; s.p = out; s.len = len * 2;
+    return s;
+}
+
+ax_arr ax_hex_decode(ax_str input) {
+    int64_t len = input.len;
+    if (len % 2 != 0 || len == 0) {
+        ax_arr a; a.data = NULL; a.len = 0; a.cap = 0;
+        return a;
+    }
+    int64_t out_len = len / 2;
+    uint8_t* out = (uint8_t*)ax_alloc(out_len);
+    int64_t j = 0;
+    for (int64_t i = 0; i < len; i += 2) {
+        int hi = hex_val((char)input.p[i]);
+        int lo = hex_val((char)input.p[i + 1]);
+        if (hi < 0 || lo < 0) {
+            ax_arr a; a.data = out; a.len = j; a.cap = j;
+            return a;
+        }
+        out[j++] = (uint8_t)((hi << 4) | lo);
+    }
+    ax_arr a; a.data = out; a.len = j; a.cap = j;
+    return a;
+}
+
+/* ================================================================
+ * crypto/md5（对标 Go crypto/md5，RFC 1321，标准 C11 实现）
+ * ================================================================ */
+
+#define MD5_DIGEST_LEN 16
+
+typedef struct {
+    uint32_t state[4];
+    uint64_t count;
+    uint8_t buffer[64];
+} md5_ctx;
+
+static uint32_t md5_rotate_left(uint32_t x, int n) {
+    return (x << n) | (x >> (32 - n));
+}
+
+static void md5_transform(uint32_t state[4], const uint8_t block[64]) {
+    uint32_t a = state[0], b = state[1], c = state[2], d = state[3];
+    uint32_t x[16];
+    for (int i = 0; i < 16; i++) {
+        x[i] = (uint32_t)block[i * 4] |
+               ((uint32_t)block[i * 4 + 1] << 8) |
+               ((uint32_t)block[i * 4 + 2] << 16) |
+               ((uint32_t)block[i * 4 + 3] << 24);
+    }
+    #define FF(a, b, c, d, k, s, ac) { \
+        a = md5_rotate_left(a + ((b & c) | (~b & d)) + x[k] + (uint32_t)(ac), s) + b; \
+    }
+    #define GG(a, b, c, d, k, s, ac) { \
+        a = md5_rotate_left(a + ((b & d) | (c & ~d)) + x[k] + (uint32_t)(ac), s) + b; \
+    }
+    #define HH(a, b, c, d, k, s, ac) { \
+        a = md5_rotate_left(a + (b ^ c ^ d) + x[k] + (uint32_t)(ac), s) + b; \
+    }
+    #define II(a, b, c, d, k, s, ac) { \
+        a = md5_rotate_left(a + (c ^ (b | ~d)) + x[k] + (uint32_t)(ac), s) + b; \
+    }
+    FF(a, b, c, d, 0, 7, 0xd76aa478); FF(d, a, b, c, 1, 12, 0xe8c7b756);
+    FF(c, d, a, b, 2, 17, 0x242070db); FF(b, c, d, a, 3, 22, 0xc1bdceee);
+    FF(a, b, c, d, 4, 7, 0xf57c0faf); FF(d, a, b, c, 5, 12, 0x4787c62a);
+    FF(c, d, a, b, 6, 17, 0xa8304613); FF(b, c, d, a, 7, 22, 0xfd469501);
+    FF(a, b, c, d, 8, 7, 0x698098d8); FF(d, a, b, c, 9, 12, 0x8b44f7af);
+    FF(c, d, a, b, 10, 17, 0xffff5bb1); FF(b, c, d, a, 11, 22, 0x895cd7be);
+    FF(a, b, c, d, 12, 7, 0x6b901122); FF(d, a, b, c, 13, 12, 0xfd987193);
+    FF(c, d, a, b, 14, 17, 0xa679438e); FF(b, c, d, a, 15, 22, 0x49b40821);
+    GG(a, b, c, d, 1, 5, 0xf61e2562); GG(d, a, b, c, 6, 9, 0xc040b340);
+    GG(c, d, a, b, 11, 14, 0x265e5a51); GG(b, c, d, a, 0, 20, 0xe9b6c7aa);
+    GG(a, b, c, d, 5, 5, 0xd62f105d); GG(d, a, b, c, 10, 9, 0x02441453);
+    GG(c, d, a, b, 15, 14, 0xd8a1e681); GG(b, c, d, a, 4, 20, 0xe7d3fbc8);
+    GG(a, b, c, d, 9, 5, 0x21e1cde6); GG(d, a, b, c, 14, 9, 0xc33707d6);
+    GG(c, d, a, b, 3, 14, 0xf4d50d87); GG(b, c, d, a, 8, 20, 0x455a14ed);
+    GG(a, b, c, d, 13, 5, 0xa9e3e905); GG(d, a, b, c, 2, 9, 0xfcefa3f8);
+    GG(c, d, a, b, 7, 14, 0x85845dd1); GG(b, c, d, a, 12, 20, 0x6fa87e4f);
+    GG(a, b, c, d, 1, 5, 0xfe2ce6e0); GG(d, a, b, c, 6, 9, 0xa3014314);
+    GG(c, d, a, b, 11, 14, 0x4e0811a1); GG(b, c, d, a, 0, 20, 0xf7537e82);
+    GG(a, b, c, d, 5, 5, 0xbd3af235); GG(d, a, b, c, 10, 9, 0x2ad7d2bb);
+    GG(c, d, a, b, 15, 14, 0xeb86d391); GG(b, c, d, a, 4, 20, 0xfb9f5b4f);
+    HH(a, b, c, d, 5, 4, 0xaebd904a); HH(d, a, b, c, 8, 11, 0xfbd5c7d7);
+    HH(c, d, a, b, 11, 16, 0x86fbe8ea); HH(b, c, d, a, 14, 23, 0x2e1de5c4);
+    HH(a, b, c, d, 1, 4, 0xc53b5e6d); HH(d, a, b, c, 4, 11, 0x5a22f86d);
+    HH(c, d, a, b, 7, 16, 0x93c0f478); HH(b, c, d, a, 10, 23, 0x14192a81);
+    HH(a, b, c, d, 13, 4, 0x5760a3c8); HH(d, a, b, c, 0, 11, 0x1e9c0c6c);
+    HH(c, d, a, b, 3, 16, 0x558d6a5c); HH(b, c, d, a, 6, 23, 0x71f9a9f9);
+    HH(a, b, c, d, 9, 4, 0x312d6fcf); HH(d, a, b, c, 12, 11, 0xdad71a96);
+    HH(c, d, a, b, 15, 16, 0x5d69b143); HH(b, c, d, a, 2, 23, 0x2e0e1d9d);
+    II(a, b, c, d, 0, 6, 0xf4292244); II(d, a, b, c, 7, 10, 0x432aff97);
+    II(c, d, a, b, 14, 15, 0xab9423a7); II(b, c, d, a, 5, 21, 0xfc93a039);
+    II(a, b, c, d, 12, 6, 0x655b59c3); II(d, a, b, c, 3, 10, 0x8f0ccc92);
+    II(c, d, a, b, 10, 15, 0xffeff47d); II(b, c, d, a, 1, 21, 0x85845dd1);
+    II(a, b, c, d, 8, 6, 0x6fa87e4f); II(d, a, b, c, 15, 10, 0xfe2ce6e0);
+    II(c, d, a, b, 6, 15, 0xa3014314); II(b, c, d, a, 13, 21, 0x4e0811a1);
+    II(a, b, c, d, 4, 6, 0xf7537e82); II(d, a, b, c, 11, 10, 0xbd3af235);
+    II(c, d, a, b, 2, 15, 0x2ad7d2bb); II(b, c, d, a, 9, 21, 0xeb86d391);
+    #undef FF
+    #undef GG
+    #undef HH
+    #undef II
+    state[0] += a; state[1] += b; state[2] += c; state[3] += d;
+}
+
+static void md5_init(md5_ctx* ctx) {
+    ctx->state[0] = 0x67452301;
+    ctx->state[1] = 0xefcdab89;
+    ctx->state[2] = 0x98badcfe;
+    ctx->state[3] = 0x10325476;
+    ctx->count = 0;
+    memset(ctx->buffer, 0, 64);
+}
+
+static void md5_update(md5_ctx* ctx, const uint8_t* data, int64_t len) {
+    int64_t i = 0;
+    while (len > 0) {
+        int64_t gap = 64 - (int64_t)(ctx->count & 63);
+        if (len < gap) gap = len;
+        memcpy(ctx->buffer + (ctx->count & 63), data + i, (size_t)gap);
+        ctx->count += (uint64_t)gap;
+        len -= gap;
+        i += gap;
+        if ((ctx->count & 63) == 0) {
+            md5_transform(ctx->state, ctx->buffer);
+        }
+    }
+}
+
+static void md5_final(md5_ctx* ctx, uint8_t digest[16]) {
+    uint64_t count = ctx->count;
+    uint8_t pad[64];
+    pad[0] = 0x80;
+    memset(pad + 1, 0, 63);
+    int64_t padlen = (count % 64 < 56) ? (56 - (int64_t)(count % 64)) : (120 - (int64_t)(count % 64));
+    md5_update(ctx, pad, (int64_t)(padlen + 1));
+    uint8_t bits[8];
+    for (int i = 0; i < 8; i++) bits[i] = (uint8_t)((count >> (i * 8)) & 0xFF);
+    md5_update(ctx, bits, 8);
+    for (int i = 0; i < 4; i++) {
+        digest[i * 4] = (uint8_t)(ctx->state[i] & 0xFF);
+        digest[i * 4 + 1] = (uint8_t)((ctx->state[i] >> 8) & 0xFF);
+        digest[i * 4 + 2] = (uint8_t)((ctx->state[i] >> 16) & 0xFF);
+        digest[i * 4 + 3] = (uint8_t)((ctx->state[i] >> 24) & 0xFF);
+    }
+}
+
+ax_arr ax_md5_sum(ax_arr data) {
+    md5_ctx ctx;
+    md5_init(&ctx);
+    md5_update(&ctx, (const uint8_t*)data.data, data.len);
+    uint8_t digest[MD5_DIGEST_LEN];
+    md5_final(&ctx, digest);
+    ax_arr a;
+    a.data = ax_alloc(MD5_DIGEST_LEN);
+    memcpy(a.data, digest, MD5_DIGEST_LEN);
+    a.len = MD5_DIGEST_LEN;
+    a.cap = MD5_DIGEST_LEN;
+    return a;
+}
+
+/* ================================================================
+ * crypto/sha1（对标 Go crypto/sha1，RFC 3174，标准 C11 实现）
+ * ================================================================ */
+
+#define SHA1_DIGEST_LEN 20
+
+typedef struct {
+    uint32_t state[5];
+    uint64_t count;
+    uint8_t buffer[64];
+} sha1_ctx;
+
+static uint32_t sha1_rotate_left(uint32_t x, int n) {
+    return (x << n) | (x >> (32 - n));
+}
+
+static void sha1_transform(uint32_t state[5], const uint8_t block[64]) {
+    uint32_t w[80];
+    for (int i = 0; i < 16; i++) {
+        w[i] = (uint32_t)block[i * 4] << 24 |
+               (uint32_t)block[i * 4 + 1] << 16 |
+               (uint32_t)block[i * 4 + 2] << 8 |
+               (uint32_t)block[i * 4 + 3];
+    }
+    for (int i = 16; i < 80; i++) {
+        w[i] = sha1_rotate_left(w[i - 3] ^ w[i - 8] ^ w[i - 14] ^ w[i - 16], 1);
+    }
+    uint32_t a = state[0], b = state[1], c = state[2], d = state[3], e = state[4];
+    for (int i = 0; i < 20; i++) {
+        uint32_t f = (b & c) | ((~b) & d);
+        uint32_t k = 0x5A827999;
+        uint32_t t = sha1_rotate_left(a, 5) + f + e + k + w[i];
+        e = d; d = c; c = sha1_rotate_left(b, 30); b = a; a = t;
+    }
+    for (int i = 20; i < 40; i++) {
+        uint32_t f = b ^ c ^ d;
+        uint32_t k = 0x6ED9EBA1;
+        uint32_t t = sha1_rotate_left(a, 5) + f + e + k + w[i];
+        e = d; d = c; c = sha1_rotate_left(b, 30); b = a; a = t;
+    }
+    for (int i = 40; i < 60; i++) {
+        uint32_t f = (b & c) | (b & d) | (c & d);
+        uint32_t k = 0x8F1BBCDC;
+        uint32_t t = sha1_rotate_left(a, 5) + f + e + k + w[i];
+        e = d; d = c; c = sha1_rotate_left(b, 30); b = a; a = t;
+    }
+    for (int i = 60; i < 80; i++) {
+        uint32_t f = b ^ c ^ d;
+        uint32_t k = 0xCA62C1D6;
+        uint32_t t = sha1_rotate_left(a, 5) + f + e + k + w[i];
+        e = d; d = c; c = sha1_rotate_left(b, 30); b = a; a = t;
+    }
+    state[0] += a; state[1] += b; state[2] += c; state[3] += d; state[4] += e;
+}
+
+static void sha1_init(sha1_ctx* ctx) {
+    ctx->state[0] = 0x67452301;
+    ctx->state[1] = 0xEFCDAB89;
+    ctx->state[2] = 0x98BADCFE;
+    ctx->state[3] = 0x10325476;
+    ctx->state[4] = 0xC3D2E1F0;
+    ctx->count = 0;
+    memset(ctx->buffer, 0, 64);
+}
+
+static void sha1_update(sha1_ctx* ctx, const uint8_t* data, int64_t len) {
+    int64_t i = 0;
+    while (len > 0) {
+        int64_t gap = 64 - (int64_t)(ctx->count & 63);
+        if (len < gap) gap = len;
+        memcpy(ctx->buffer + (ctx->count & 63), data + i, (size_t)gap);
+        ctx->count += (uint64_t)gap;
+        len -= gap;
+        i += gap;
+        if ((ctx->count & 63) == 0) {
+            sha1_transform(ctx->state, ctx->buffer);
+        }
+    }
+}
+
+static void sha1_final(sha1_ctx* ctx, uint8_t digest[20]) {
+    uint64_t count = ctx->count;
+    uint8_t pad[64];
+    pad[0] = 0x80;
+    memset(pad + 1, 0, 63);
+    int64_t padlen = (count % 64 < 56) ? (56 - (int64_t)(count % 64)) : (120 - (int64_t)(count % 64));
+    sha1_update(ctx, pad, (int64_t)(padlen + 1));
+    uint8_t bits[8];
+    for (int i = 0; i < 8; i++) bits[i] = (uint8_t)((count >> (i * 8)) & 0xFF);
+    sha1_update(ctx, bits, 8);
+    for (int i = 0; i < 5; i++) {
+        digest[i * 4] = (uint8_t)(ctx->state[i] >> 24);
+        digest[i * 4 + 1] = (uint8_t)((ctx->state[i] >> 16) & 0xFF);
+        digest[i * 4 + 2] = (uint8_t)((ctx->state[i] >> 8) & 0xFF);
+        digest[i * 4 + 3] = (uint8_t)(ctx->state[i] & 0xFF);
+    }
+}
+
+ax_arr ax_sha1_sum(ax_arr data) {
+    sha1_ctx ctx;
+    sha1_init(&ctx);
+    sha1_update(&ctx, (const uint8_t*)data.data, data.len);
+    uint8_t digest[SHA1_DIGEST_LEN];
+    sha1_final(&ctx, digest);
+    ax_arr a;
+    a.data = ax_alloc(SHA1_DIGEST_LEN);
+    memcpy(a.data, digest, SHA1_DIGEST_LEN);
+    a.len = SHA1_DIGEST_LEN;
+    a.cap = SHA1_DIGEST_LEN;
+    return a;
+}
+
+/* ================================================================
+ * crypto/sha256（对标 Go crypto/sha256，FIPS 180-4，标准 C11 实现）
+ * ================================================================ */
+
+#define SHA256_DIGEST_LEN 32
+
+static const uint32_t sha256_k[64] = {
+    0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+    0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+    0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+    0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+    0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+    0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+    0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+    0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
+};
+
+typedef struct {
+    uint32_t state[8];
+    uint64_t count;
+    uint8_t buffer[64];
+} sha256_ctx;
+
+static uint32_t sha256_rotr(uint32_t x, int n) {
+    return (x >> n) | (x << (32 - n));
+}
+
+static void sha256_transform(uint32_t state[8], const uint8_t block[64]) {
+    uint32_t w[64];
+    for (int i = 0; i < 16; i++) {
+        w[i] = (uint32_t)block[i * 4] << 24 |
+               (uint32_t)block[i * 4 + 1] << 16 |
+               (uint32_t)block[i * 4 + 2] << 8 |
+               (uint32_t)block[i * 4 + 3];
+    }
+    for (int i = 16; i < 64; i++) {
+        uint32_t s0 = sha256_rotr(w[i - 15], 7) ^ sha256_rotr(w[i - 15], 18) ^ (w[i - 15] >> 3);
+        uint32_t s1 = sha256_rotr(w[i - 2], 17) ^ sha256_rotr(w[i - 2], 19) ^ (w[i - 2] >> 10);
+        w[i] = w[i - 16] + s0 + w[i - 7] + s1;
+    }
+    uint32_t a = state[0], b = state[1], c = state[2], d = state[3];
+    uint32_t e = state[4], f = state[5], g = state[6], h = state[7];
+    for (int i = 0; i < 64; i++) {
+        uint32_t s1 = sha256_rotr(e, 6) ^ sha256_rotr(e, 11) ^ sha256_rotr(e, 25);
+        uint32_t ch = (e & f) ^ ((~e) & g);
+        uint32_t temp1 = h + s1 + ch + sha256_k[i] + w[i];
+        uint32_t s0 = sha256_rotr(a, 2) ^ sha256_rotr(a, 13) ^ sha256_rotr(a, 22);
+        uint32_t maj = (a & b) ^ (a & c) ^ (b & c);
+        uint32_t temp2 = s0 + maj;
+        h = g; g = f; f = e; e = d + temp1;
+        d = c; c = b; b = a; a = temp1 + temp2;
+    }
+    state[0] += a; state[1] += b; state[2] += c; state[3] += d;
+    state[4] += e; state[5] += f; state[6] += g; state[7] += h;
+}
+
+static void sha256_init(sha256_ctx* ctx) {
+    ctx->state[0] = 0x6a09e667; ctx->state[1] = 0xbb67ae85;
+    ctx->state[2] = 0x3c6ef372; ctx->state[3] = 0xa54ff53a;
+    ctx->state[4] = 0x510e527f; ctx->state[5] = 0x9b05688c;
+    ctx->state[6] = 0x1f83d9ab; ctx->state[7] = 0x5be0cd19;
+    ctx->count = 0;
+    memset(ctx->buffer, 0, 64);
+}
+
+static void sha256_update(sha256_ctx* ctx, const uint8_t* data, int64_t len) {
+    int64_t i = 0;
+    while (len > 0) {
+        int64_t gap = 64 - (int64_t)(ctx->count & 63);
+        if (len < gap) gap = len;
+        memcpy(ctx->buffer + (ctx->count & 63), data + i, (size_t)gap);
+        ctx->count += (uint64_t)gap;
+        len -= gap;
+        i += gap;
+        if ((ctx->count & 63) == 0) {
+            sha256_transform(ctx->state, ctx->buffer);
+        }
+    }
+}
+
+static void sha256_final(sha256_ctx* ctx, uint8_t digest[32]) {
+    uint64_t count = ctx->count;
+    uint8_t pad[64];
+    pad[0] = 0x80;
+    memset(pad + 1, 0, 63);
+    int64_t padlen = (count % 64 < 56) ? (56 - (int64_t)(count % 64)) : (120 - (int64_t)(count % 64));
+    sha256_update(ctx, pad, (int64_t)(padlen + 1));
+    uint8_t bits[8];
+    for (int i = 0; i < 8; i++) bits[i] = (uint8_t)((count >> (i * 8)) & 0xFF);
+    sha256_update(ctx, bits, 8);
+    for (int i = 0; i < 8; i++) {
+        digest[i * 4] = (uint8_t)(ctx->state[i] >> 24);
+        digest[i * 4 + 1] = (uint8_t)((ctx->state[i] >> 16) & 0xFF);
+        digest[i * 4 + 2] = (uint8_t)((ctx->state[i] >> 8) & 0xFF);
+        digest[i * 4 + 3] = (uint8_t)(ctx->state[i] & 0xFF);
+    }
+}
+
+ax_arr ax_sha256_sum(ax_arr data) {
+    sha256_ctx ctx;
+    sha256_init(&ctx);
+    sha256_update(&ctx, (const uint8_t*)data.data, data.len);
+    uint8_t digest[SHA256_DIGEST_LEN];
+    sha256_final(&ctx, digest);
+    ax_arr a;
+    a.data = ax_alloc(SHA256_DIGEST_LEN);
+    memcpy(a.data, digest, SHA256_DIGEST_LEN);
+    a.len = SHA256_DIGEST_LEN;
+    a.cap = SHA256_DIGEST_LEN;
+    return a;
+}
+

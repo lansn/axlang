@@ -1,0 +1,48 @@
+// tests/run/flag_test.ax —— 标准库 std.flag
+import std.io
+import std.flag
+import std.strconv
+
+int main() {
+    // 注册标志
+    int r1 = flag.defineBool("verbose", 0, "启用详细输出")
+    io.writeLine("defineBool(verbose)=")
+    io.writeLine(strconv.itoa(r1))
+
+    int r2 = flag.defineInt("count", 10, "重复次数")
+    io.writeLine("defineInt(count)=")
+    io.writeLine(strconv.itoa(r2))
+
+    int r3 = flag.defineString("name", "world", "问候对象")
+    io.writeLine("defineString(name)=")
+    io.writeLine(strconv.itoa(r3))
+
+    // 解析命令行
+    int pr = flag.parse()
+    io.writeLine("parse()=")
+    io.writeLine(strconv.itoa(pr))
+
+    // 获取标志值
+    int v = flag.getBool("verbose")
+    io.writeLine("getBool(verbose)=")
+    io.writeLine(strconv.itoa(v))
+
+    int c = flag.getInt("count")
+    io.writeLine("getInt(count)=")
+    io.writeLine(strconv.itoa(c))
+
+    string n = flag.getString("name")
+    io.writeLine("getString(name)=")
+    io.writeLine(n)
+
+    // 位置参数
+    int nf = flag.nFlag()
+    io.writeLine("nFlag()=")
+    io.writeLine(strconv.itoa(nf))
+
+    int na = flag.nArg()
+    io.writeLine("nArg()=")
+    io.writeLine(strconv.itoa(na))
+
+    return 0
+}

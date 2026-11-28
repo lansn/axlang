@@ -1,0 +1,14 @@
+import std.io
+
+// 无表达式的类型 switch，应报 E4028
+int main() {
+    switch {
+        case string s: {
+            io.writeLine(s)
+        }
+        default: {
+            io.writeLine("other")
+        }
+    }
+    return 0
+}

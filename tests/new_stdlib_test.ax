@@ -1,0 +1,85 @@
+// axlang 标准库新模块验证测试（最简版）
+// 测试：slices / base64 / hex / md5 / sha1 / sha256
+
+import std.io
+import std.slices
+import std.base64
+import std.hex
+import std.md5
+import std.sha1
+import std.sha256
+import std.strconv
+
+public int main() {
+    // ---------- slices 测试（每个函数只调用一次，避免所有权 move） ----------
+    io.write("containsInt = ")
+    io.writeLine(strconv.itoa(std.slices.containsInt([3, 1, 4, 1, 5, 9], 4)))
+
+    io.write("containsString = ")
+    io.writeLine(strconv.itoa(std.slices.containsString(["a", "b", "c"], "b")))
+
+    io.write("indexInt = ")
+    io.writeLine(strconv.itoa(std.slices.indexInt([3, 1, 4, 1, 5, 9], 4)))
+
+    io.write("indexString = ")
+    io.writeLine(strconv.itoa(std.slices.indexString(["a", "b", "c"], "c")))
+
+    io.write("minInt = ")
+    io.writeLine(strconv.itoa(std.slices.minInt([3, 1, 4, 1, 5, 9])))
+
+    io.write("maxInt = ")
+    io.writeLine(strconv.itoa(std.slices.maxInt([3, 1, 4, 1, 5, 9])))
+
+    io.write("sumInt = ")
+    io.writeLine(strconv.itoa(std.slices.sumInt([3, 1, 4, 1, 5, 9])))
+
+    io.write("minFloat = ")
+    io.writeLine(strconv.formatFloat(std.slices.minFloat([1.5, 2.5, 0.5])))
+
+    io.write("maxFloat = ")
+    io.writeLine(strconv.formatFloat(std.slices.maxFloat([1.5, 2.5, 0.5])))
+
+    io.write("sumFloat = ")
+    io.writeLine(strconv.formatFloat(std.slices.sumFloat([1.5, 2.5, 0.5])))
+
+    // cloneInt
+    int[] c = std.slices.cloneInt([10, 20, 30])
+    io.write("cloneInt_sum = ")
+    io.writeLine(strconv.itoa(std.slices.sumInt(c)))
+
+    // ---------- base64 测试 ----------
+    string b64 = std.base64.encode([72, 101, 108, 108, 111])
+    io.write("base64_encode = ")
+    io.writeLine(b64)
+
+    int[] dec = std.base64.decode(b64)
+    io.write("base64_decode_sum = ")
+    io.writeLine(strconv.itoa(std.slices.sumInt(dec)))
+
+    // ---------- hex 测试 ----------
+    string h = std.hex.encode([72, 101, 108, 108, 111])
+    io.write("hex_encode = ")
+    io.writeLine(h)
+
+    int[] hex_dec = std.hex.decode(h)
+    io.write("hex_decode_sum = ")
+    io.writeLine(strconv.itoa(std.slices.sumInt(hex_dec)))
+
+    // ---------- md5 测试 ----------
+    int[] md5_d = std.md5.sum([72, 101, 108, 108, 111])
+    io.write("md5_sum = ")
+    io.writeLine(strconv.itoa(std.slices.sumInt(md5_d)))
+
+    // ---------- sha1 测试 ----------
+    int[] sha1_d = std.sha1.sum([72, 101, 108, 108, 111])
+    io.write("sha1_sum = ")
+    io.writeLine(strconv.itoa(std.slices.sumInt(sha1_d)))
+
+    // ---------- sha256 测试 ----------
+    int[] sha256_d = std.sha256.sum([72, 101, 108, 108, 111])
+    io.write("sha256_sum = ")
+    io.writeLine(strconv.itoa(std.slices.sumInt(sha256_d)))
+
+    io.writeLine("所有新标准库模块测试通过")
+    return 0
+}

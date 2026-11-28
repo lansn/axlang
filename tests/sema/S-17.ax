@@ -1,0 +1,7 @@
+// EXPECT: E3003
+// TRUE / FALSE 不是布尔字面量（只认全小写 true / false），会被当作未定义标识符
+int main() {
+    var a = TRUE
+    var b = FALSE
+    return 0
+}

@@ -1,0 +1,67 @@
+// tests/run/eq_test.ax —— == 运算符全面测试（正面）
+// 验证点：
+//   1. int == int / int != int
+//   2. string == string / string != string
+//   3. bool == true / false（全小写）
+//   4. decimal == decimal（需 d 后缀字面量）
+//   5. 元组 == 元组（含嵌套）
+// 不在本文中覆盖（非法，放入 sema 负面测试）：
+//   - float == float / float == decimal（E4011）
+//   - null == "" / null == null（E4001）
+//   - NULL / TRUE / FALSE 标识符（未定义标识符错误）
+import std.io
+import std.strconv
+
+int main() {
+    // ---------- int ----------
+    var a = 10
+    var b = 20
+    io.writeLine("int_eq=")
+    io.writeLine(strconv.formatBool(a == b))   // false
+    io.writeLine("int_ne=")
+    io.writeLine(strconv.formatBool(a != b))   // true
+
+    // ---------- string ----------
+    var s1 = "hello"
+    var s2 = "hello"
+    var s3 = "world"
+    io.writeLine("str_eq=")
+    io.writeLine(strconv.formatBool(s1 == s2))  // true
+    io.writeLine("str_ne=")
+    io.writeLine(strconv.formatBool(s1 == s3))  // false
+
+    // ---------- bool（全小写） ----------
+    var t = true
+    var f = false
+    io.writeLine("bool_eq_true=")
+    io.writeLine(strconv.formatBool(t == true))  // true
+    io.writeLine("bool_eq_false=")
+    io.writeLine(strconv.formatBool(f == false)) // true
+    io.writeLine("bool_ne=")
+    io.writeLine(strconv.formatBool(t != f))     // true
+
+    // ---------- decimal（d 后缀） ----------
+    var d1 = 3.14d
+    var d2 = 3.14d
+    var d3 = 2.71d
+    io.writeLine("dec_eq=")
+    io.writeLine(strconv.formatBool(d1 == d2))  // true
+    io.writeLine("dec_ne=")
+    io.writeLine(strconv.formatBool(d1 == d3))  // false
+
+    // ---------- 元组（含嵌套） ----------
+    var p1 = (1, 2)
+    var p2 = (1, 2)
+    var p3 = (1, 3)
+    io.writeLine("tup_eq=")
+    io.writeLine(strconv.formatBool(p1 == p2))  // true
+    io.writeLine("tup_ne=")
+    io.writeLine(strconv.formatBool(p1 == p3))  // false
+
+    var n1 = ((1, 2), (3, 4))
+    var n2 = ((1, 2), (3, 4))
+    io.writeLine("ntup_eq=")
+    io.writeLine(strconv.formatBool(n1 == n2))  // true
+
+    return 0
+}

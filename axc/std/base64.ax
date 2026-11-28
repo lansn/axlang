@@ -1,0 +1,43 @@
+// axc/std/base64.ax —— axlang 标准库 base64 模块（ax 语法源码）
+// 与用户库一样，由 ax 编译器直接解析，生成对应的 C 源码供 gcc 编译。
+//
+// 对标 Go encoding/base64（RFC 4648 标准编码，无换行）。ax 层仅包装 axrt C 原语，
+// 通过 extern "C" 声明 + unsafe 块调用，不引入 ax 编译器内建能力。
+//
+// 导出函数命名采用 C 风格：全部小写，下划线分隔，如 encode / decode。
+// ax 代码中通过 std.base64.encode(...) 调用模块级函数。
+//
+// int[] 在 ax 层用于表示字节数组，C 层对应 ax_arr（元素为 uint8_t）。
+
+extern "C" {
+    string ax_base64_encode(int[] input);
+    int[] ax_base64_decode(string input);
+}
+
+// ---------- 模块级函数（C 风格命名：小写 + 下划线） ----------
+
+/**
+ * 函数名：encode
+ * 功能：对字节数组进行 Base64 标准编码（RFC 4648，无换行）
+ * 输入参数：input (int[]) - 待编码的字节数组（每个元素 0-255）
+ * 输出参数：string - Base64 编码后的字符串
+ * 修订日期：2026-11-28
+ */
+public string encode(int[] input) {
+    unsafe {
+        return ax_base64_encode(input)
+    }
+}
+
+/**
+ * 函数名：decode
+ * 功能：对 Base64 字符串进行解码，返回原始字节数组
+ * 输入参数：input (string) - Base64 编码的字符串
+ * 输出参数：int[] - 解码后的字节数组，解码失败返回空数组
+ * 修订日期：2026-11-28
+ */
+public int[] decode(string input) {
+    unsafe {
+        return ax_base64_decode(input)
+    }
+}

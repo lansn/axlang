@@ -192,6 +192,22 @@ impl<'a> Sema<'a> {
                     fty
                 }
             }
+        } else if let TyS::Tuple(elems) = &*rt {
+            // 元组元素直接访问：t.0、t.1 等（文稿 4.2）
+            let idx: usize = match name.parse() {
+                Ok(i) => i,
+                Err(_) => {
+                    self.err("E3003", &e.tok, "N-7", "元组索引必须是数字（如 `t.0`），得到 `{0}`", &[&name]);
+                    return t_object();
+                }
+            };
+            if idx >= elems.len() {
+                self.err("E3003", &e.tok, "N-7", "元组索引越界：{0} 个元素，索引 `{1}`", &[&elems.len(), &idx]);
+                return t_object();
+            }
+            let s = self.sl(e.id);
+            s.field_idx = idx as u32;
+            elems[idx].clone()
         } else if matches!(&*rt, TyS::Object) {
             // 接收者没解析成功时 `object` 只是兜底类型，真正的错因已在前面报过
             if self.d.error_count == errs_before {
@@ -907,8 +923,17 @@ impl<'a> Sema<'a> {
             );
             return t_object();
         }
+        let ptypes_ty: Vec<Ty> = ptypes
+            .iter()
+            .map(|p| p.as_ref().map(|(t, _)| t.clone()).unwrap_or_else(t_unknown))
+            .collect();
+        let borrows: Vec<Option<String>> = ptypes
+            .iter()
+            .map(|p| p.as_ref().and_then(|(_, b)| b.clone()))
+            .collect();
+        self.check_call_args(args, Some(&ptypes_ty), Some(&borrows), e.id);
         for (i, a) in args.iter().enumerate() {
-            if let Some(Some(pt)) = ptypes.get(i).map(|x| x.clone()) {
+            if let Some(Some((pt, _))) = ptypes.get(i).map(|x| x.clone()) {
                 self.coerce(&a.k.expr, &pt, "实参");
             }
         }
@@ -2184,6 +2209,199 @@ impl<'a> Sema<'a> {
                 return;
             }
         }
+        self.sl(mid).ty = Some(t_void());
+    }
+
+    // ---------------------------------------------------------------- switch
+
+    pub fn check_switch(
+        &mut self,
+        mid: u32,
+        tok: &crate::frontend::lexer::Tok,
+        n: &ast::SwitchNode,
+    ) {
+        let st = match &n.scrutinee {
+            Some(s) => self.check_expr(s, None),
+            None => t_bool(), // 无表达式 switch：视为 bool 条件链，不检查判断表达式类型
+        };
+        self.sl(mid).scrut_ty = Some(st.clone());
+
+        // 是否为类型 switch：任意一臂含 Pat::Type
+        let is_type_switch = n
+            .arms
+            .iter()
+            .any(|arm| arm.pats.iter().any(|pat| matches!(&pat.k, ast::Pat::Type { .. })));
+
+        // 类型 switch：判断表达式必须是 object 或 类/具名类型
+        if is_type_switch {
+            if n.scrutinee.is_none() {
+                self.err(
+                    "E4028",
+                    tok,
+                    "文稿 5.4",
+                    "类型 `switch` 需要一个 object/类 类型的判断表达式",
+                    &[],
+                );
+            } else if !matches!(&*st, TyS::Object | TyS::Named(..)) {
+                self.err(
+                    "E4028",
+                    tok,
+                    "文稿 5.4",
+                    "类型 `switch` 的判断表达式必须是 object 或类类型，得到 {0}",
+                    &[&self.ts(&st)],
+                );
+            }
+        } else if n.scrutinee.is_some() {
+            // 值 switch：int/string/bool/enum/result（enum 走 C switch）
+            let supported = matches!(
+                &*st,
+                TyS::Int(..) | TyS::Str | TyS::Bool | TyS::Enum(..) | TyS::Result(_)
+            );
+            if !supported {
+                self.err(
+                    "E4028",
+                    tok,
+                    "文稿 5.4",
+                    "`switch` 的判断表达式必须是 int/string/bool/enum/result，得到 {0}",
+                    &[&self.ts(&st)],
+                );
+            }
+        }
+
+        let mut seen_case_vals: Vec<String> = Vec::new();
+        let mut has_default = false;
+        let is_c_switch = matches!(&*st, TyS::Int(..) | TyS::Enum(..));
+        for arm in &n.arms {
+            self.push_scope();
+            if arm.pats.is_empty() {
+                // default 分支
+                if has_default {
+                    self.err(
+                        "E4029",
+                        &arm.tok,
+                        "文稿 5.4",
+                        "`switch` 不能有多个 `default` 分支",
+                        &[],
+                    );
+                }
+                has_default = true;
+            } else if is_type_switch {
+                // 类型 switch：每个 pat 应为 Pat::Type，匹配运行时 tag，可选绑定变量
+                for pat in &arm.pats {
+                    match &pat.k {
+                        ast::Pat::Type { ty, bind } => {
+                            let arm_ty = self.resolve_type(ty);
+                            self.sl(pat.id).ty = Some(arm_ty.clone()); // 供 codegen 读取 tag/C 类型
+                            // 多值类型 case 不能带绑定变量：codegen 仅在单绑定时生成解包，
+                            // 多值带绑定会产生不对称行为，统一禁止。
+                            if arm.pats.len() > 1 && !bind.is_empty() {
+                                self.err(
+                                    "E4030",
+                                    &pat.tok,
+                                    "文稿 5.4",
+                                    "多值类型 `case` 不能带绑定变量：{0}",
+                                    &[&bind],
+                                );
+                            }
+                            if !bind.is_empty() {
+                                let _ = self.declare(bind, arm_ty.clone(), false, &pat.tok);
+                            }
+                        }
+                        ast::Pat::Lit { .. } => {
+                            self.err(
+                                "E4030",
+                                &pat.tok,
+                                "文稿 5.4",
+                                "类型 `switch` 的 `case` 不能是值，应写为 `case 类型名 绑定变量:`",
+                                &[],
+                            );
+                        }
+                        _ => {
+                            self.err(
+                                "E4032",
+                                &pat.tok,
+                                "文稿 5.4",
+                                "`case` 后只能是表达式或类型名",
+                                &[],
+                            );
+                        }
+                    }
+                }
+            } else {
+                // 值 switch：每个 pat 必须是 Pat::Lit（parser 已保证）
+                for pat in &arm.pats {
+                    match &pat.k {
+                        ast::Pat::Lit { expr } => {
+                            // 检查 case 值与 scrutinee 类型匹配
+                            let lit_ty = self.check_expr(expr, Some(&st));
+                            if n.scrutinee.is_none() {
+                                // 无表达式 switch：case 条件必须是 bool
+                                if !matches!(&*lit_ty, TyS::Never | TyS::Void)
+                                    && !matches!(&*lit_ty, TyS::Bool)
+                                {
+                                    self.err(
+                                        "E4030",
+                                        &pat.tok,
+                                        "文稿 5.4",
+                                        "无表达式 `switch` 的 `case` 条件必须是 bool，得到 {0}",
+                                        &[&self.ts(&lit_ty)],
+                                    );
+                                }
+                            } else if !matches!(&*lit_ty, TyS::Never | TyS::Void)
+                                && *lit_ty != *st
+                            {
+                                self.err(
+                                    "E4030",
+                                    &pat.tok,
+                                    "文稿 5.4",
+                                    "`case` 值类型与 `switch` 判断表达式不匹配：{0} vs {1}",
+                                    &[&self.ts(&lit_ty), &self.ts(&st)],
+                                );
+                            }
+                            // 重复 case 值检查（仅对 int 字面量可比较时；非字面量表达式无法编译期比较，跳过）
+                            if is_c_switch {
+                                if let ast::Expr::IntLit { value, .. } = &expr.k {
+                                    let v = value.to_string();
+                                    if seen_case_vals.contains(&v) {
+                                        self.err(
+                                            "E4031",
+                                            &pat.tok,
+                                            "文稿 5.4",
+                                            "重复的 `case` 值：{0}",
+                                            &[&v],
+                                        );
+                                    }
+                                    seen_case_vals.push(v);
+                                }
+                            }
+                        }
+                        _ => {
+                            self.err(
+                                "E4032",
+                                &pat.tok,
+                                "文稿 5.4",
+                                "`case` 后只能是表达式或类型名",
+                                &[],
+                            );
+                        }
+                    }
+                }
+            }
+            // fallthrough 仅在 int/enum C switch 路径允许（类型 switch / 无表达式 / if 链均禁止）
+            if arm.fallthrough && !is_c_switch {
+                self.err(
+                    "E4040",
+                    &arm.tok,
+                    "文稿 5.4",
+                    "`fallthrough` 只能用于 int/enum 类型的 `switch` 分支",
+                    &[],
+                );
+            }
+            // switch 臂体是语句块，不产生表达式类型
+            self.check_block(&arm.body, true);
+            self.pop_scope();
+        }
+
         self.sl(mid).ty = Some(t_void());
     }
 

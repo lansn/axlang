@@ -1,0 +1,36 @@
+// tests/run/thread_stress.ax —— 多线程线程安全测试
+// 验证：4 个线程通过 thread() 并发启动，使用全局 count + 全局 Mutex
+// 实现线程安全计数，避免通过 thread() 参数传递共享状态。
+//
+// 预期输出：
+//   count=
+//   4
+//
+import std.io
+import std.strconv
+import std.sync
+
+int count = 0
+Mutex mu
+
+public void worker(object ctx) {
+    std.sync.mutexLock(&mu)
+    count = count + 1
+    std.sync.mutexUnlock(&mu)
+}
+
+int main() {
+    var t0 = thread(worker, 0)
+    var t1 = thread(worker, 0)
+    var t2 = thread(worker, 0)
+    var t3 = thread(worker, 0)
+
+    t0.join()
+    t1.join()
+    t2.join()
+    t3.join()
+
+    io.writeLine("count=")
+    io.writeLine(strconv.itoa(count))
+    return 0
+}

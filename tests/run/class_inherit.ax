@@ -1,0 +1,32 @@
+// tests/run/class_inherit.ax —— 类单继承、构造函数 parent()、方法覆盖与父类引用多态
+// 验证点：
+//   1. 子类 Dog extend 父类 Animal（单继承）
+//   2. 子类 constructor 首句调用 parent(n) 向父类构造函数传参
+//   3. 子类 override 父类方法 speak()
+//   4. 父类引用持子类对象，方法调用走 vtable 多态派发（应输出子类行为）
+import std.io
+
+class Animal {
+    public string name
+    constructor(string n) {
+        this.name = n
+    }
+    public string speak() {
+        return "Animal sound"
+    }
+}
+
+class Dog extend Animal {
+    constructor(string n) {
+        parent(n)
+    }
+    public override string speak() {
+        return this.name + " says woof"
+    }
+}
+
+int main() {
+    Animal a = Dog("Rex")
+    io.writeLine(a.speak())
+    return 0
+}

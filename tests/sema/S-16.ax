@@ -1,0 +1,6 @@
+// EXPECT: E3003
+// NULL 不是空值关键字（只认全小写 null），会被当作未定义标识符
+int main() {
+    var x = NULL
+    return x
+}

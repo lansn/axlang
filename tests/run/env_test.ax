@@ -1,0 +1,66 @@
+// tests/run/env_test.ax —— 标准库 std.env
+import std.io
+import std.env
+import std.os
+import std.strconv
+
+int main() {
+    // 设置测试环境变量
+    int setR = os.setenv("AX_TEST_FOO", "bar")
+    io.writeLine("setenv(AX_TEST_FOO)=")
+    io.writeLine(strconv.itoa(setR))
+
+    // exists：存在
+    int ex1 = env.exists("AX_TEST_FOO")
+    io.writeLine("exists(AX_TEST_FOO)=")
+    io.writeLine(strconv.itoa(ex1))
+
+    // exists：不存在
+    int ex2 = env.exists("AX_TEST_DOES_NOT_EXIST_XYZ")
+    io.writeLine("exists(AX_TEST_DOES_NOT_EXIST_XYZ)=")
+    io.writeLine(strconv.itoa(ex2))
+
+    // expand：$VAR 形式
+    string e1 = env.expand("value=$AX_TEST_FOO")
+    io.writeLine("expand(value=$AX_TEST_FOO)=")
+    io.writeLine(e1)
+
+    // expand：未设置的变量展开为空字符串
+    string e3 = env.expand("missing=$AX_TEST_DOES_NOT_EXIST_XYZ")
+    io.writeLine("expand(missing=$AX_TEST_DOES_NOT_EXIST_XYZ)=")
+    io.writeLine(e3)
+
+    // 注：${VAR} 形式与 $VAR 共用 axrt 层同一条展开代码路径，此处不再重复测试
+
+    // all：获取所有环境变量
+    string[] allEnv = env.all()
+    int n = allEnv.len()
+    io.writeLine("all() count=")
+    io.writeLine(strconv.itoa(n))
+
+    // 打印前 5 个（避免输出过多）
+    int limit = 5
+    if (n < limit) {
+        limit = n
+    }
+    int i = 0
+    while (i < limit) {
+        io.writeLine("  env[")
+        io.writeLine(strconv.itoa(i))
+        io.writeLine("]=")
+        io.writeLine(allEnv[i])
+        i = i + 1
+    }
+
+    // clearenv：清除所有环境变量
+    int clr = env.clearenv()
+    io.writeLine("clearenv()=")
+    io.writeLine(strconv.itoa(clr))
+
+    // clearenv 后 exists 应返回 0
+    int ex3 = env.exists("AX_TEST_FOO")
+    io.writeLine("exists(AX_TEST_FOO) after clearenv=")
+    io.writeLine(strconv.itoa(ex3))
+
+    return 0
+}

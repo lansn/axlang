@@ -39,6 +39,14 @@ pub enum Item {
         name: String,
         init: EPtr,
     },
+    /// 模块级全局变量声明：`[public] [var] [ty] name [= init]`
+    /// 无初始化表达式时依赖 C 静态存储期零初始化。
+    VarDecl {
+        vis: Option<String>,
+        ty: Option<TPtr>,
+        name: String,
+        init: Option<EPtr>,
+    },
     FuncDecl {
         vis: Option<String>,
         ret: TPtr,
@@ -198,6 +206,7 @@ pub enum Stmt {
     },
     If(Box<IfNode>),
     Match(Box<MatchNode>),
+    Switch(Box<SwitchNode>),
     For {
         label: Option<String>,
         kind: ForKind,
@@ -278,6 +287,26 @@ pub struct Arm {
     pub tok: Tok,
     pub pat: N<Pat>,
     pub body: EPtr,
+}
+
+/// `switch (expr) { case v: ...; default: ...; }` 语句节点。
+/// 分支体为语句块（Block），与 match 的单表达式臂体不同。
+/// `scrutinee: None` 表示无表达式的 switch（`switch { case cond: ... }`，等价 if 链）。
+#[derive(Clone, Debug)]
+pub struct SwitchNode {
+    pub scrutinee: Option<EPtr>,
+    pub arms: Vec<SwitchArm>,
+}
+
+#[derive(Clone, Debug)]
+pub struct SwitchArm {
+    pub tok: Tok,
+    /// 空 vec 表示 `default` 分支；非空表示 `case v1, v2, ...:`（值 switch，pat 为 Pat::Lit）
+    /// 或 `case T [x]:`（类型 switch，pat 为 Pat::Type，可选绑定变量 x）
+    pub pats: Vec<N<Pat>>,
+    pub body: Block,
+    /// `fallthrough`：落入下一个分支（仅 int/enum C switch 路径有效；无表达式 switch / if 链路径禁止）
+    pub fallthrough: bool,
 }
 
 #[derive(Clone, Debug)]
@@ -417,6 +446,16 @@ fn dump_item(it: &Item, tok: &Tok, ind: usize, out: &mut Vec<String>) {
                 name,
                 ty.as_ref().map_or("<infer>".to_string(), |t| ex_ty(t)),
                 ex(init)
+            ),
+        ),
+        Item::VarDecl { name, ty, init, .. } => w(
+            out,
+            ind,
+            format!(
+                "VAR {} ty={} init={}",
+                name,
+                ty.as_ref().map_or("<infer>".to_string(), |t| ex_ty(t)),
+                init.as_ref().map_or(String::new(), ex)
             ),
         ),
         Item::FuncDecl {
@@ -622,6 +661,31 @@ fn dump_stmt(s: &Stmt, tok: &Tok, ind: usize, out: &mut Vec<String>) {
         }
         Stmt::If(n) => dump_if(n, ind, out),
         Stmt::Match(n) => dump_match(n, ind, out),
+        Stmt::Switch(n) => {
+            w(out, ind, format!("SWITCH cond={}", n.scrutinee.as_ref().map_or_else(|| "<none>".to_string(), |e| ex(e))));
+            for arm in &n.arms {
+                if arm.pats.is_empty() {
+                    w(out, ind + 1, "DEFAULT".to_string());
+                } else {
+            let cases: Vec<String> = arm.pats.iter().map(|p| match &p.k {
+                Pat::Lit { expr } => format!("CASE {}", ex(expr)),
+                Pat::Type { ty, bind } => {
+                    if bind.is_empty() {
+                        format!("CASE {}", ex_ty(ty))
+                    } else {
+                        format!("CASE {} {}", ex_ty(ty), bind)
+                    }
+                }
+                _ => "CASE ?".to_string(),
+            }).collect();
+                    w(out, ind + 1, cases.join(", "));
+                }
+                if arm.fallthrough {
+                    w(out, ind + 1, "FALLTHROUGH".to_string());
+                }
+                dump_block(&arm.body, ind + 2, out);
+            }
+        }
         Stmt::For { label, kind, body } => {
             let _ = label;
             w(out, ind, format!("FOR {}", dump_for_kind(kind)));

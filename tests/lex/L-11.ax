@@ -1,0 +1,6 @@
+// EXPECT: E1002
+// 单引号不是字符串定界符；请用双引号 ""
+int main() {
+    var s = ''
+    return 0
+}

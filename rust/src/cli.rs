@@ -12,6 +12,8 @@
 //!     --cc=<path>         指定 C 编译器（默认取 $AX_CC 或 gcc）
 //!     --keep              保留构建目录
 
+use std::path::Path;
+
 use crate::frontend::ast;
 use crate::backend;
 use crate::driver::compile;
@@ -276,7 +278,7 @@ fn load_user_imports<'a>(
 use std::fs;
 use std::io::Write;
 
-/// 命令行选项的解析结果，`cmd` 是子命令名（check/build/run）。
+/// 命令行选项的解析结果，`cmd` 是子命令名（check/build/run/env）。
 #[derive(Clone)]
 pub struct Opts {
     pub cmd: String,
@@ -296,6 +298,10 @@ pub struct Opts {
     pub lang: Option<String>,
     /// 产物类型："exe"（默认）或 "shared"，共享库模式下跳过 main 包装并加 -shared
     pub kind: String,
+    /// `axc env` 子命令：是否显示/设置编译器环境
+    pub env_cmd: bool,
+    /// `axc env --set KEY=VALUE`：要设置的键值对
+    pub env_set: Option<String>,
 }
 
 impl Default for Opts {
@@ -316,48 +322,209 @@ impl Default for Opts {
             version: false,
             lang: None,
             kind: "exe".to_string(),
+            env_cmd: false,
+            env_set: None,
         }
     }
 }
 
-/// 默认 C 编译器：优先使用发行包自带的 `release/gcc/bin/gcc.exe`（与 axc.exe 同发布目录下）；
-/// 其次回退到用户安装的 GCC 16.2.0（`D:/Portable/mingw64/bin/gcc.exe`）；
-/// 最后回退到系统 PATH 中的 `gcc`。
-/// 用户可通过 `AX_CC` 环境变量或 `--cc=` 覆盖。
-fn default_cc() -> String {
-    if let Ok(v) = std::env::var("AX_CC") {
-        return v;
-    }
-    // 优先查找发行包自带的 release/gcc/bin/ 目录（与 axc.exe 同发布目录；Windows 布局）。
-    if let Ok(exe) = std::env::current_exe() {
-        if let Some(exe_dir) = exe.parent() {
-            let release_dir = match exe_dir.parent() {
-                Some(d) => d,
-                None => exe_dir,
-            };
-            // Windows: release/gcc/bin/gcc.exe
-            let bundled = release_dir.join("gcc").join("bin").join("gcc.exe");
-            if std::path::Path::new(&bundled).exists() {
-                return bundled.to_string_lossy().to_string();
+/// 支持的 C 编译器类型。
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum CompilerKind {
+    Gcc,
+    Clang,
+    Msvc,
+}
+
+impl CompilerKind {
+    /// 平台特定的二进制文件名。
+    pub fn binary_name(self) -> &'static str {
+        if cfg!(windows) {
+            match self {
+                CompilerKind::Gcc => "gcc.exe",
+                CompilerKind::Clang => "clang.exe",
+                CompilerKind::Msvc => "cl.exe",
             }
-            // Linux/macOS: release/gcc/bin/gcc
-            let bundled_no_ext = release_dir.join("gcc").join("bin").join("gcc");
-            if std::path::Path::new(&bundled_no_ext).exists() {
-                return bundled_no_ext.to_string_lossy().to_string();
+        } else {
+            match self {
+                CompilerKind::Gcc => "gcc",
+                CompilerKind::Clang => "clang",
+                CompilerKind::Msvc => "cl",
             }
         }
     }
-    // 在 Windows 上，Rust 的 Path 需要使用 "D:/..." 或 "D:\\..." 格式的绝对路径，
-    // Git Bash 风格的 "/d/..." 相对路径不会被识别为存在的文件。
-    let new_gcc = "D:/Portable/mingw64/bin/gcc.exe";
-    if std::path::Path::new(new_gcc).exists() {
-        return new_gcc.to_string();
+
+    /// 编译器显示名称。
+    pub fn display_name(self) -> &'static str {
+        match self {
+            CompilerKind::Gcc => "GCC",
+            CompilerKind::Clang => "Clang",
+            CompilerKind::Msvc => "MSVC (cl.exe)",
+        }
     }
-    // 也尝试反斜杠形式（兼容手动输入）
-    let new_gcc_bs = "D:\\Portable\\mingw64\\bin\\gcc.exe";
-    if std::path::Path::new(new_gcc_bs).exists() {
-        return new_gcc_bs.to_string();
+
+    /// 所有支持的编译器类型，按优先级排序。
+    pub fn all() -> [CompilerKind; 3] {
+        [CompilerKind::Gcc, CompilerKind::Clang, CompilerKind::Msvc]
     }
+}
+
+/// 缓存文件名：KEY=VALUE 格式，如 `AX_CC=D:/mingw/bin/gcc.exe`。
+/// 类似 Go 语言的 `go env -w` 持久化机制。
+const CC_CACHE_FILE: &str = ".axc_cc_cache";
+
+/// 获取 axc 可执行文件所在目录。
+fn axc_exe_dir() -> Option<std::path::PathBuf> {
+    std::env::current_exe().ok().and_then(|p| p.parent().map(|d| d.to_path_buf()))
+}
+
+/// 检查给定路径是否为存在的可执行文件。
+fn path_is_executable(path: &Path) -> bool {
+    path.is_file()
+}
+
+/// 在给定目录下按平台约定查找指定编译器二进制。
+/// 先在目录根直接查找，再尝试常见子目录（bin、gcc/bin、clang/bin 等）。
+fn find_compiler_in_dir(dir: &Path, kind: CompilerKind) -> Option<std::path::PathBuf> {
+    let direct = dir.join(kind.binary_name());
+    if path_is_executable(&direct) {
+        return Some(direct);
+    }
+    for sub in &["bin", "gcc/bin", "clang/bin"] {
+        let p = dir.join(sub).join(kind.binary_name());
+        if path_is_executable(&p) {
+            return Some(p);
+        }
+    }
+    None
+}
+
+/// 从缓存文件读取指定 KEY 的值。
+fn read_cc_cache(key: &str) -> Option<String> {
+    let dir = axc_exe_dir()?;
+    let cache_path = dir.join(CC_CACHE_FILE);
+    let content = std::fs::read_to_string(&cache_path).ok()?;
+    for line in content.lines() {
+        let line = line.trim();
+        if line.is_empty() || line.starts_with('#') {
+            continue;
+        }
+        if let Some((k, v)) = line.split_once('=') {
+            if k.trim() == key {
+                return Some(v.trim().to_string());
+            }
+        }
+    }
+    None
+}
+
+/// 将 KEY=VALUE 写入缓存文件（更新已有 key，或追加新行）。
+/// 类似 `go env -w KEY=VALUE` 的持久化机制。
+fn write_cc_cache(key: &str, value: &str) {
+    if let Some(dir) = axc_exe_dir() {
+        let cache_path = dir.join(CC_CACHE_FILE);
+        let mut entries: Vec<String> = Vec::new();
+        let mut found = false;
+        if let Ok(content) = std::fs::read_to_string(&cache_path) {
+            for line in content.lines() {
+                let line = line.trim();
+                if line.is_empty() || line.starts_with('#') {
+                    entries.push(line.to_string());
+                    continue;
+                }
+                if let Some((k, _)) = line.split_once('=') {
+                    if k.trim() == key {
+                        entries.push(format!("{}={}", key, value));
+                        found = true;
+                    } else {
+                        entries.push(line.to_string());
+                    }
+                } else {
+                    entries.push(line.to_string());
+                }
+            }
+        }
+        if !found {
+            entries.push(format!("{}={}", key, value));
+        }
+        let _ = std::fs::write(&cache_path, entries.join("\n"));
+    }
+}
+
+/// 默认 C 编译器查找逻辑。
+///
+/// 优先级：
+/// 1. `AX_CC` 环境变量（用户显式设置，最高优先级）
+/// 2. `CC` 环境变量（POSIX 习惯）
+/// 3. `.axc_cc_cache` 缓存文件中的 `AX_CC` / `CC`
+/// 4. axc 编译器所在目录及其常见子目录（按 gcc → clang → cl 顺序）
+/// 5. 系统 `PATH` 环境变量中的编译器
+/// 6. Windows 特定：常见 VC++ 安装目录下的 cl.exe
+/// 7. 回退到裸 `"gcc"`
+fn default_cc() -> String {
+    // 1. AX_CC 环境变量（用户显式设置）
+    if let Ok(v) = std::env::var("AX_CC") {
+        if !v.is_empty() {
+            return v;
+        }
+    }
+    // 2. CC 环境变量（POSIX 习惯）
+    if let Ok(v) = std::env::var("CC") {
+        if !v.is_empty() {
+            return v;
+        }
+    }
+    // 3. 缓存文件（上次自动发现或用户手动设置的路径）
+    for key in &["AX_CC", "CC"] {
+        if let Some(cached) = read_cc_cache(key) {
+            if Path::new(&cached).exists() {
+                return cached;
+            }
+        }
+    }
+    // 4. axc 编译器所在目录及其常见子目录
+    if let Some(dir) = axc_exe_dir() {
+        for kind in CompilerKind::all() {
+            if let Some(compiler) = find_compiler_in_dir(&dir, kind) {
+                let compiler_str = compiler.to_string_lossy().to_string();
+                write_cc_cache("AX_CC", &compiler_str);
+                return compiler_str;
+            }
+        }
+    }
+    // 5. 系统 PATH 环境变量中的编译器
+    if let Ok(path_var) = std::env::var("PATH") {
+        for entry in path_var.split(std::path::MAIN_SEPARATOR) {
+            if entry.is_empty() {
+                continue;
+            }
+            for kind in CompilerKind::all() {
+                let p = Path::new(entry).join(kind.binary_name());
+                if path_is_executable(&p) {
+                    let compiler_str = p.to_string_lossy().to_string();
+                    write_cc_cache("AX_CC", &compiler_str);
+                    return compiler_str;
+                }
+            }
+        }
+    }
+    // 6. Windows 特定：查找常见的 VC++ 安装目录
+    if cfg!(windows) {
+        let vs_candidates = [
+            "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/bin/Hostx64/x64/cl.exe",
+            "C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/bin/Hostx64/x64/cl.exe",
+            "C:/Program Files/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/bin/Hostx64/x64/cl.exe",
+            "C:/Program Files/Microsoft Visual Studio/2022/Professional/VC/Tools/MSVC/bin/Hostx64/x64/cl.exe",
+            "C:/Program Files/Microsoft Visual Studio/2022/Enterprise/VC/Tools/MSVC/bin/Hostx64/x64/cl.exe",
+        ];
+        for p in &vs_candidates {
+            if Path::new(p).exists() {
+                write_cc_cache("AX_CC", p);
+                return p.to_string();
+            }
+        }
+    }
+    // 7. 回退到裸 "gcc"
     "gcc".to_string()
 }
 
@@ -374,6 +541,7 @@ pub fn parse_args(argv: &[String]) -> Opts {
         }
         match a.as_str() {
             "check" | "build" | "run" => o.cmd = a.clone(),
+            "env" => o.env_cmd = true,
             "-h" | "--help" => o.help = true,
             "-v" | "-V" | "--version" => o.version = true,
             "-I" | "--include" => {
@@ -397,9 +565,13 @@ pub fn parse_args(argv: &[String]) -> Opts {
                     o.diag = v.to_string();
                 } else if let Some(v) = a.strip_prefix("--dump=") {
                     o.dump = Some(v.to_string());
-                } else if let Some(v) = a.strip_prefix("--cc=") {
-                    o.cc = v.to_string();
-                } else if let Some(v) = a.strip_prefix("--lang=") {
+            } else if let Some(v) = a.strip_prefix("--cc=") {
+                o.cc = v.to_string();
+                // 用户显式指定的编译器路径持久化缓存，供后续启动复用
+                write_cc_cache("AX_CC", &v);
+            } else if let Some(v) = a.strip_prefix("--set=") {
+                o.env_set = Some(v.to_string());
+            } else if let Some(v) = a.strip_prefix("--lang=") {
                     o.lang = Some(v.to_string());
                 } else if let Some(v) = a.strip_prefix("--kind=") {
                     o.kind = v.to_string();
@@ -420,11 +592,12 @@ pub fn parse_args(argv: &[String]) -> Opts {
 pub fn print_help() {
     println!("axc {} —— axlang 编译器", env!("CARGO_PKG_VERSION"));
     println!();
-    println!("用法: axc <check|build|run> <file.ax> [选项]");
+    println!("用法: axc <check|build|run|env> <file.ax> [选项]");
     println!();
     println!("  check   词法 / 语法 / 语义检查，只报诊断");
     println!("  build   生成 C11 源码并调用 cc 产出可执行文件");
     println!("  run     build 后立即执行");
+    println!("  env     显示或设置编译器环境（类似 go env）");
     println!();
     println!("选项:");
     println!("  -I <dir>            追加模块搜索根（可多次；入口文件目录优先）");
@@ -433,7 +606,9 @@ pub fn print_help() {
     println!("  --dump=ast|hir|types|c  打印中间产物");
     println!("  --diag=text|json    诊断格式，json 为 JSONL");
     println!("  -Werror             警告视为错误");
-    println!("  --cc=<path>         指定 C 编译器");
+    println!("  --cc=<path>         指定 C 编译器（默认取 $AX_CC/$CC，或自动在 axc 同目录及系统 PATH 中查找；");
+    println!("                      设置后会持久化缓存到 axc 同目录的 .axc_cc_cache 文件）");
+    println!("  --set=KEY=VALUE     axc env 子命令：持久化设置编译器路径（如 --set AX_CC=D:/mingw/bin/gcc.exe）");
     println!("  --lang=en|zh        诊断文案语言（默认 en；也可用 AXC_LANG 环境变量或 axc.toml）");
     println!("  -k | --keep         保留构建目录（排查生成代码用）");
     println!("  --kind=exe|shared   产物类型：exe（默认可执行文件）或 shared（动态链接库 .dll/.so/.dylib）");
@@ -459,6 +634,54 @@ fn report(d: &Diags, mode: &str) {
     }
 }
 
+/// 显示当前编译器环境信息（类似 `go env`）。
+/// 输出 AX_CC、CC 以及当前实际使用的编译器路径。
+fn print_env_info() {
+    let ax_c = std::env::var("AX_CC").unwrap_or_else(|_| "(未设置)".to_string());
+    let cc = std::env::var("CC").unwrap_or_else(|_| "(未设置)".to_string());
+    let resolved = default_cc();
+    let kind = if resolved.to_lowercase().contains("clang") {
+        CompilerKind::Clang
+    } else if resolved.to_lowercase().contains("cl.exe") || resolved.ends_with("cl") {
+        CompilerKind::Msvc
+    } else {
+        CompilerKind::Gcc
+    };
+    println!("AX_CC={}", ax_c);
+    println!("CC={}", cc);
+    println!("AXC_CC={} ({})", resolved, kind.display_name());
+    let cache_dir = axc_exe_dir().map(|d| d.display().to_string()).unwrap_or_else(|| "(未知)".to_string());
+    println!("AXC_CACHE_DIR={}", cache_dir);
+    let cache_file = axc_exe_dir()
+        .map(|d| d.join(CC_CACHE_FILE).display().to_string())
+        .unwrap_or_else(|| "(未知)".to_string());
+    println!("AXC_CACHE_FILE={}", cache_file);
+}
+
+/// `axc env` 子命令处理。
+/// - `axc env`：显示当前编译器环境信息
+/// - `axc env --set KEY=VALUE`：持久化设置编译器路径（如 `--set AX_CC=D:/mingw/bin/gcc.exe`）
+fn run_env_cmd(opts: &Opts) -> i32 {
+    if let Some(kv) = &opts.env_set {
+        if let Some((key, value)) = kv.split_once('=') {
+            let key = key.trim();
+            let value = value.trim();
+            if key.is_empty() || value.is_empty() {
+                eprintln!("axc: --set 格式无效，期望 KEY=VALUE，如 --set AX_CC=D:/mingw/bin/gcc.exe");
+                return 1;
+            }
+            write_cc_cache(key, value);
+            println!("axc: 已设置 {}={}（已持久化到 .axc_cc_cache）", key, value);
+            return 0;
+        } else {
+            eprintln!("axc: --set 格式无效，期望 KEY=VALUE，如 --set AX_CC=D:/mingw/bin/gcc.exe");
+            return 1;
+        }
+    }
+    print_env_info();
+    0
+}
+
 pub fn run(argv: &[String]) -> i32 {
     let opts = parse_args(argv);
     if opts.version {
@@ -466,6 +689,10 @@ pub fn run(argv: &[String]) -> i32 {
         // 1.0 及以上永远保留给语法冻结，进位规则见 ARCHITECTURE.md §8）
         println!("axc {} (axlang compiler)", env!("CARGO_PKG_VERSION"));
         return 0;
+    }
+    // `axc env` 子命令：显示或设置编译器环境，不需要 file 参数
+    if opts.env_cmd {
+        return run_env_cmd(&opts);
     }
     if opts.help || opts.file.is_none() {
         print_help();
@@ -622,8 +849,7 @@ fn finish(s: &sema::Sema, opts: &Opts, path: &str, kind: &str) -> i32 {
         std::path::PathBuf::from(opts.out.clone().unwrap_or_else(|| default_out(path, kind)))
     };
 
-    let res = compile::compile_c_files(&csrc, opts, &out, kind, skip_stdlib);
-    let rc = match res {
+    let res = compile::compile_c_files(&csrc, opts, &out, kind, skip_stdlib);    let rc = match res {
         None => 1,
         Some(()) => {
             if opts.cmd == "build" {

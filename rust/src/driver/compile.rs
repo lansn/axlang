@@ -12,12 +12,86 @@ use std::fs;
 use std::hash::{Hash, Hasher};
 use std::io::Read;
 use std::path::PathBuf;
+use std::process::Command;
 
 use crate::backend::CodeGen;
 use crate::diag::Diags;
 use crate::diag_msg::Lang;
 use crate::frontend::{lexer, parser};
 use crate::sema::{self, STDLIB_MODULES};
+
+/// 检查指定的 C 编译器是否可用（通过运行 `--version` 验证）。
+pub fn check_compiler_available(cc: &str) -> bool {
+    Command::new(cc)
+        .arg("--version")
+        .output()
+        .map(|o| o.status.success())
+        .unwrap_or(false)
+}
+
+/// 生成 C 编译器缺失时的完整错误提示和解决方案。
+/// 返回给用户的错误信息字符串。
+pub fn compiler_missing_error(cc: &str) -> String {
+    let platform_tips = if cfg!(windows) {
+        r#"
+Windows 平台解决方案：
+  1. 安装 MinGW-w64（推荐）：
+     - 下载：https://sourceforge.net/projects/mingw-w64/files/latest/download
+     - 安装后将 <安装目录>/bin 添加到系统 PATH 环境变量
+     - 或将 gcc.exe 所在目录复制到 axc 同目录下，axc 会自动发现
+  2. 安装 MSVC（Visual Studio C++）：
+     - 安装 Visual Studio 2019/2022，勾选「使用 C++ 的桌面开发」工作负载
+     - axc 会自动查找常见 VC++ 安装目录下的 cl.exe
+  3. 手动指定编译器路径：
+     - axc build <file.ax> --cc="C:/mingw64/bin/gcc.exe"
+     - axc env --set=AX_CC="C:/mingw64/bin/gcc.exe"（持久化保存）
+  4. 验证编译器是否可用：
+     - 在命令行运行：gcc --version
+     - 若提示 "gcc 不是内部或外部命令"，说明未正确安装或未加入 PATH"#
+    } else {
+        r#"
+Linux/macOS 平台解决方案：
+  1. 安装 GCC（推荐）：
+     - Ubuntu/Debian：sudo apt-get install build-essential
+     - CentOS/RHEL：sudo yum install gcc
+     - macOS：xcode-select --install  或  brew install gcc
+  2. 安装 Clang：
+     - Ubuntu/Debian：sudo apt-get install clang
+     - macOS：brew install llvm
+  3. 手动指定编译器路径：
+     - axc build <file.ax> --cc=/usr/bin/gcc
+     - axc env --set=AX_CC=/usr/bin/gcc（持久化保存）
+  4. 验证编译器是否可用：
+     - 在终端运行：gcc --version
+     - 若提示 "command not found"，说明未正确安装或未加入 PATH"#
+    };
+    format!(
+        r#"
+╔════════════════════════════════════════════════════════════════════════════╗
+║  axc 编译错误：找不到 C 编译器 "{}"                                 ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+axc 语言需要系统 C 编译器来生成最终可执行文件，但未能找到可用的 {}。
+
+自动查找顺序：
+  1. AX_CC 环境变量
+  2. CC 环境变量
+  3. axc 同目录的 .axc_cc_cache 缓存文件
+  4. axc 可执行文件所在目录及其 bin/、gcc/bin/、clang/bin/ 子目录
+  5. 系统 PATH 环境变量
+  6. Windows：常见 VC++ 安装目录
+  7. 回退到裸 "gcc"
+
+建议操作：{}
+{} 缓存文件路径：<axc 同目录>/.axc_cc_cache
+示例：axc env --set=AX_CC=<你的编译器路径>
+     axc build <file.ax> --cc=<你的编译器路径>"#,
+        cc,
+        cc,
+        platform_tips,
+        cc
+    )
+}
 
 /// 运行时目录（axrt.h / axrt_*.c）：优先按工作目录找，再沿可执行文件位置上溯。
 pub fn rt_dir() -> Option<PathBuf> {
@@ -137,6 +211,7 @@ pub fn stdlib_c_files(stdlib_dir: &std::path::Path) -> Vec<PathBuf> {
 
 /// 标准库 .o 目标文件缓存目录（release/axc/stdlib/obj）：存放预编译后的 *.o 文件，
 /// 用户编译时复用缓存，避免每次重新编译标准库 .c 源码。
+/// 若目录尚不存在，会自动创建，以便首次运行时也能生成缓存。
 pub fn stdlib_obj_dir() -> Option<PathBuf> {
     let mut cands = vec![
         PathBuf::from("axc/stdlib/obj"),
@@ -154,16 +229,31 @@ pub fn stdlib_obj_dir() -> Option<PathBuf> {
             cur = q.parent().map(|x| x.to_path_buf());
         }
     }
-    for c in cands {
+    // 优先返回已存在的目录
+    for c in &cands {
         if c.exists() {
-            return Some(c);
+            return Some(c.clone());
         }
+    }
+    // 不存在则尝试创建：优先基于 exe 位置的 axc/stdlib/obj，回退到 cwd-relative axc/stdlib/obj
+    if let Ok(exe) = std::env::current_exe() {
+        if let Some(exe_dir) = exe.parent() {
+            let target = exe_dir.join("axc/stdlib/obj");
+            if fs::create_dir_all(&target).is_ok() {
+                return Some(target);
+            }
+        }
+    }
+    let target = PathBuf::from("axc/stdlib/obj");
+    if fs::create_dir_all(&target).is_ok() {
+        return Some(target);
     }
     None
 }
 
 /// axrt 运行时 .o 目标文件缓存目录（release/axc/rt/obj）：存放预编译后的 *.o 文件，
 /// 用户编译时复用缓存，避免每次重新编译 axrt 运行时 C 源码。
+/// 若目录尚不存在，会自动创建，以便首次运行时也能生成缓存。
 pub fn rt_obj_dir() -> Option<PathBuf> {
     let mut cands = vec![
         PathBuf::from("axc/rt/obj"),
@@ -181,10 +271,24 @@ pub fn rt_obj_dir() -> Option<PathBuf> {
             cur = q.parent().map(|x| x.to_path_buf());
         }
     }
-    for c in cands {
+    // 优先返回已存在的目录
+    for c in &cands {
         if c.exists() {
-            return Some(c);
+            return Some(c.clone());
         }
+    }
+    // 不存在则尝试创建：优先基于 exe 位置的 axc/rt/obj，回退到 cwd-relative axc/rt/obj
+    if let Ok(exe) = std::env::current_exe() {
+        if let Some(exe_dir) = exe.parent() {
+            let target = exe_dir.join("axc/rt/obj");
+            if fs::create_dir_all(&target).is_ok() {
+                return Some(target);
+            }
+        }
+    }
+    let target = PathBuf::from("axc/rt/obj");
+    if fs::create_dir_all(&target).is_ok() {
+        return Some(target);
     }
     None
 }
@@ -771,11 +875,18 @@ pub fn compile_c_files(
         }
     }
 
+    // 在调用 gcc 之前，先检查编译器是否可用，避免用户等待漫长过程后才报错
+    if !check_compiler_available(&opts.cc) {
+        eprintln!("{}", compiler_missing_error(&opts.cc));
+        return None;
+    }
+
     let out = cmd.output();
     let out = match out {
         Ok(o) => o,
         Err(e) => {
-            eprintln!("axc: 无法调用 C 编译器 {}：{}", opts.cc, e);
+            eprintln!("{}", compiler_missing_error(&opts.cc));
+            eprintln!("底层错误：{}", e);
             return None;
         }
     };

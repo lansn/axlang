@@ -1,0 +1,72 @@
+import std.io
+
+int get_val() {
+    return 2
+}
+
+string get_str() {
+    return "hello"
+}
+
+int main() {
+    // 非字面量 case：函数调用作为 case 值
+    var x = 2
+    switch (x) {
+        case get_val(): {
+            io.writeLine("matched-func")
+        }
+        default: {
+            io.writeLine("other")
+        }
+    }
+
+    // 非字面量 case：算术表达式
+    var y = 5
+    switch (y) {
+        case 2 + 3: {
+            io.writeLine("matched-expr")
+        }
+        default: {
+            io.writeLine("other")
+        }
+    }
+
+    // 混合字面量和非字面量（走 if 链）
+    var z = 7
+    switch (z) {
+        case 1: {
+            io.writeLine("one")
+        }
+        case get_val() + 1: {
+            io.writeLine("three-via-func")
+        }
+        default: {
+            io.writeLine("other")
+        }
+    }
+
+    // 多值非字面量（走 if 链）
+    var w = 10
+    switch (w) {
+        case get_val(), get_val() * 5: {
+            io.writeLine("matched-multi")
+        }
+        default: {
+            io.writeLine("other")
+        }
+    }
+
+    // 字符串非字面量 case
+    var s = "hello"
+    switch (s) {
+        case get_str(): {
+            io.writeLine("matched-str-func")
+        }
+        default: {
+            io.writeLine("other")
+        }
+    }
+
+    io.writeLine("done")
+    return 0
+}

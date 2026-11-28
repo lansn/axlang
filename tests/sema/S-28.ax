@@ -1,0 +1,18 @@
+import std.io
+
+// 类型 switch 的 case 不能是值，应报 E4030
+int main() {
+    object o = "x"
+    switch (o) {
+        case string s: {
+            io.writeLine(s)
+        }
+        case 5: {
+            io.writeLine("int case")
+        }
+        default: {
+            io.writeLine("other")
+        }
+    }
+    return 0
+}

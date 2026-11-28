@@ -1,0 +1,11 @@
+// EXPECT: E4001
+// null 只能与可空类型或引用类型比较，不能与 string 比较
+import std.io
+import std.strconv
+
+int main() {
+    var s = ""
+    var b = null == s
+    io.writeLine(strconv.formatBool(b))
+    return 0
+}

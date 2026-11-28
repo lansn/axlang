@@ -1,0 +1,15 @@
+// 测试 t.0 元组元素直接访问
+import std.io
+import std.strconv
+
+int main() {
+    var p = (10, 20)
+    io.writeLine(strconv.itoa(p.0))
+    io.writeLine(strconv.itoa(p.1))
+    var q = (1, 2, 3)
+    io.writeLine(strconv.itoa(q.2))
+    var s = ("hello", "world")
+    io.writeLine(s.0)
+    io.writeLine(s.1)
+    return 0
+}

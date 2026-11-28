@@ -1,5 +1,5 @@
 <!-- 本文件由 tools/gen_errdoc.py 生成，请勿手改；修改诊断文案后重新运行。 -->
-<!-- 生成时间：2026-11-27 15:59:00 -->
+<!-- 生成时间：2026-11-28 15:55:20 -->
 
 # axlang 错误码清单（多语言）
 
@@ -7,7 +7,7 @@
 `E4xxx` 类型与表达式 / `E5xxx` 转换与装箱 / `E6xxx` match 与错误传播 /
 `E7xxx` 所有权与借用。输出语言由 `--lang` / `AXC_LANG` / `axc.toml`（`lang = "zh"`）决定，默认英文。
 
-共 146 个码、349 条文案。
+共 147 个码、360 条文案。
 
 ## E1（词法）
 
@@ -349,7 +349,7 @@
 | `E4019` | enum 不能从整数/其他类型转换（C-17） | an enum cannot be converted from int or other types |
 | `E4019` | enum 不能转成整数（C-17） | an enum cannot be converted to an integer |
 
-| `E4020` | 元组不能用 `{0}`（T-37） | tuples do not support `{0}` |
+| `E4020` | 元组不能用 `{0}` | tuples do not support `{0}` |
 
 | `E4022` | `?.` 左侧必须是可空类型，得到 {0}（T-20） | the left side of `?.` must be a nullable type, found {0} |
 | `E4022` | `??` 左侧必须是可空值，得到 {0}（T-17） | the left side of `??` must be a nullable value, found {0} |
@@ -369,12 +369,20 @@
 | `E4028` | `object` 不能下标访问；先解箱到具体类型（文稿 6.7） | `object` cannot be indexed; unbox it to a concrete type first |
 | `E4028` | `object` 没有成员方法；先解箱到具体类型（文稿 6.7） | `object` has no member methods; unbox it to a concrete type first |
 | `E4028` | `object` 没有成员（文稿 6.7）；先解箱到具体类型（文稿 6.7） | `object` has no members (6.7); unbox it to a concrete type first |
+| `E4028` | `switch` 的判断表达式必须是 int/string/bool/enum/result，得到 {0}（文稿 5.4） | `switch` scrutinee must be int/string/bool/enum/result, found {0} |
+| `E4028` | 类型 `switch` 的判断表达式必须是 object 或类类型，得到 {0}（文稿 5.4） | type `switch` scrutinee must be object or class type, found {0} |
+| `E4028` | 类型 `switch` 需要一个 object/类 类型的判断表达式（文稿 5.4） | type `switch` requires an object/class scrutinee expression |
 
 | `E4029` | record 不能装箱到 object（T-28） | a record cannot be boxed into object |
 | `E4029` | {0} 不能装箱到 object（T-6） | {0} cannot be boxed into object |
+| `E4029` | `switch` 不能有多个 `default` 分支（文稿 5.4） | `switch` cannot have multiple `default` branches |
 
 | `E4030` | 可空值 `{0}` 不能直接加格式说明符 `:.{1}`；先判空取出再格式化（文稿 11.2） | a nullable value `{0}` cannot take a format specifier `:.{1}` directly; check for null and format the unwrapped value |
 | `E4030` | 格式说明符 `:.{0}` 只能用于数值类型，得到 {1}（文稿 11.2） | the format specifier `:.{0}` is only allowed on numeric types, found {1} |
+| `E4030` | `case` 值类型与 `switch` 判断表达式不匹配：{0} vs {1}（文稿 5.4） | `case` value type does not match `switch` scrutinee type: {0} vs {1} |
+| `E4030` | 无表达式 `switch` 的 `case` 条件必须是 bool，得到 {0}（文稿 5.4） | exprless `switch` `case` condition must be bool, found {0} |
+| `E4030` | 类型 `switch` 的 `case` 不能是值，应写为 `case 类型名 绑定变量:`（文稿 5.4） | type `switch` `case` cannot be a value, write `case TypeName binding:` |
+| `E4030` | 多值类型 `case` 不能带绑定变量：{0}（文稿 5.4） | multi-value type `case` cannot carry binding variable: {0} |
 
 | `E4031` | `fail` 需要 1 个实参（文稿 10.1） | `fail` takes exactly 1 argument |
 | `E4031` | `ok` 需要 1 个实参（文稿 10.1） | `ok` takes exactly 1 argument |
@@ -383,11 +391,13 @@
 | `E4031` | `{0}` 的 constructor 需要 {1} 个实参，得到 {2} | the constructor of `{0}` takes {1} arguments, found {2} |
 | `E4031` | `{0}` 需要 {1} 个实参，得到 {2}（N-20） | `{0}` takes {1} arguments, found {2} |
 | `E4031` | `fmt.printf` 至少需要 1 个实参（格式字符串） | `fmt.printf` takes at least 1 argument (the format string) |
+| `E4031` | 重复的 `case` 值：{0}（文稿 5.4） | duplicate `case` value: {0} |
 
 | `E4032` | `fmt.printf` 的格式串必须是纯字符串字面量（不含 `{...}` 插值），才能在编译期核对占位符；得到 {0} | the format string of `fmt.printf` must be a plain string literal (no `{...}` interpolation) so placeholders can be checked at compile time; found {0} |
 | `E4032` | 格式串里有 {0} 个占位符，但实参有 {1} 个（不含格式串本身）（文稿 11.2） | the format string has {0} placeholders but {1} arguments were given (excluding the format string itself) |
 | `E4032` | 占位符 `%{0}` 与实参类型 `{1}` 不匹配（`%d`=整数, `%f`=小数, `%s`=字符串, `%t`=布尔, `%v`=任意可打印值；可空值请用 `%v` 或先判空）（文稿 11.2） | placeholder `%{0}` does not match argument type `{1}` (`%d`=integer, `%f`=decimal, `%s`=string, `%t`=bool, `%v`=any printable value; use `%v` for nullables or unwrap first) |
 | `E4032` | `%.N` 精度只支持 `%f`，不支持 `%{0}`（与插值 `{x:.N}` 同规则）（文稿 11.2） | precision `%.N` is only supported on `%f`, not `%{0}` (same rule as interpolation `{x:.N}`) |
+| `E4032` | `case` 后只能是表达式或类型名（文稿 5.4） | after `case` only expression or type name is allowed |
 
 | `E4033` | `{...}` 的键必须是字符串字面量（GAP-1） | keys of `{...}` must be string literals |
 | `E4033` | `{...}` 的键必须是字符串字面量（不能含插值）（GAP-1） | keys of `{...}` must be string literals (interpolation is not allowed) |
@@ -412,6 +422,8 @@
 | `E4038` | 泛型实例化递归超过 64 层：`{0}`（T-37） | generic instantiation recursion exceeds 64 levels: `{0}` |
 
 | `E4039` | `Self` 只能用在 class/struct/interface 体内（N-19） | `Self` can only be used inside a class/struct/interface body |
+
+| `E4040` | `fallthrough` 只能用于 int/enum 类型的 `switch` 分支（文稿 5.4） | `fallthrough` can only be used in int/enum `switch` branches |
 
 | `E4041` | 定长数组过大（{0} × {1} 字节 > 8 MiB）（GAP-10） | fixed-size array too large ({0} x {1} bytes > 8 MiB) |
 

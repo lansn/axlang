@@ -1,0 +1,16 @@
+import std.io
+
+// 无表达式 switch 中使用 fallthrough，应报 E4040
+int main() {
+    var x = 1
+    switch {
+        case x > 0: {
+            io.writeLine("positive")
+            fallthrough
+        }
+        default: {
+            io.writeLine("other")
+        }
+    }
+    return 0
+}

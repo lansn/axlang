@@ -1,0 +1,16 @@
+import std.io
+
+// 类型 switch 中使用 fallthrough，应报 E4040
+int main() {
+    object o = "x"
+    switch (o) {
+        case string s: {
+            io.writeLine(s)
+            fallthrough
+        }
+        default: {
+            io.writeLine("other")
+        }
+    }
+    return 0
+}

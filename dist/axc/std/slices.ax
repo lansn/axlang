@@ -1,0 +1,297 @@
+// axc/std/slices.ax —— axlang 标准库 slices 模块（ax 语法源码）
+// 与用户库一样，由 ax 编译器直接解析，生成对应的 C 源码供 gcc 编译。
+//
+// 对标 Go slices。ax 层仅包装 axrt C 原语，
+// 通过 extern "C" 声明 + unsafe 块调用，不引入 ax 编译器内建能力。
+//
+// 导出函数命名采用 camelCase 风格，如 containsInt / indexInt / reverseStr。
+// ax 代码中通过 std.slices.containsInt(...) 调用模块级函数。
+//
+// int[] 在 ax 层表现为 int[]，C 层对应 ax_arr（元素为 int64_t）。
+// string[] 在 ax 层表现为 string[]，C 层对应 ax_arr（元素为 ax_str）。
+
+extern "C" {
+    /* axrt slices ax_arr 包装器（axc/rt/core/axrt_core.c） */
+    int ax_std_slice_contains_int(int[] s, int x);
+    int ax_std_slice_contains_string(string[] s, string x);
+    int ax_std_slice_index_int(int[] s, int x);
+    int ax_std_slice_index_string(string[] s, string x);
+    void ax_std_slice_reverse_int(ref int[] s);
+    void ax_std_slice_reverse_str(ref string[] s);
+    int[] ax_std_slice_clone_int(int[] s);
+    string[] ax_std_slice_clone_str(string[] s);
+    void ax_std_slice_fill_int(ref int[] s, int v);
+    void ax_std_slice_fill_str(ref string[] s, string v);
+    void ax_std_slice_insert_int(ref int[] s, int i, int v);
+    void ax_std_slice_insert_str(ref string[] s, int i, string v);
+    void ax_std_slice_delete_range_int(ref int[] s, int i, int j);
+    void ax_std_slice_delete_range_str(ref string[] s, int i, int j);
+    int ax_std_slice_min_int(int[] s);
+    int ax_std_slice_max_int(int[] s);
+    int ax_std_slice_sum_int(int[] s);
+    float ax_std_slice_min_float(float[] s);
+    float ax_std_slice_max_float(float[] s);
+    float ax_std_slice_sum_float(float[] s);
+}
+
+// ---------- 模块级函数（camelCase 命名） ----------
+
+/**
+ * 函数名：containsInt
+ * 功能：判断 int[] 是否包含指定值
+ * 输入参数：s (int[]) - 整数数组；x (int) - 待查找的值
+ * 输出参数：int - 1 表示包含，0 表示不包含
+ * 修订日期：2026-11-28
+ */
+public int containsInt(int[] s, int x) {
+    unsafe {
+        return ax_std_slice_contains_int(s, x)
+    }
+}
+
+/**
+ * 函数名：containsString
+ * 功能：判断 string[] 是否包含指定值
+ * 输入参数：s (string[]) - 字符串数组；x (string) - 待查找的值
+ * 输出参数：int - 1 表示包含，0 表示不包含
+ * 修订日期：2026-11-28
+ */
+public int containsString(string[] s, string x) {
+    unsafe {
+        return ax_std_slice_contains_string(s, x)
+    }
+}
+
+/**
+ * 函数名：indexInt
+ * 功能：在 int[] 中查找指定值的下标
+ * 输入参数：s (int[]) - 整数数组；x (int) - 待查找的值
+ * 输出参数：int - 找到返回下标，未找到返回 -1
+ * 修订日期：2026-11-28
+ */
+public int indexInt(int[] s, int x) {
+    unsafe {
+        return ax_std_slice_index_int(s, x)
+    }
+}
+
+/**
+ * 函数名：indexString
+ * 功能：在 string[] 中查找指定值的下标
+ * 输入参数：s (string[]) - 字符串数组；x (string) - 待查找的值
+ * 输出参数：int - 找到返回下标，未找到返回 -1
+ * 修订日期：2026-11-28
+ */
+public int indexString(string[] s, string x) {
+    unsafe {
+        return ax_std_slice_index_string(s, x)
+    }
+}
+
+/**
+ * 函数名：reverse
+ * 功能：原地反转 int[] 数组
+ * 输入参数：s (ref int[]) - 待反转的数组（必须是左值）
+ * 输出参数：无
+ * 修订日期：2026-11-28
+ */
+public void reverse(ref int[] s) {
+    unsafe {
+        ax_std_slice_reverse_int(s)
+    }
+}
+
+/**
+ * 函数名：reverseStr
+ * 功能：原地反转 string[] 数组
+ * 输入参数：s (ref string[]) - 待反转的数组（必须是左值）
+ * 输出参数：无
+ * 修订日期：2026-11-28
+ */
+public void reverseStr(ref string[] s) {
+    unsafe {
+        ax_std_slice_reverse_str(s)
+    }
+}
+
+/**
+ * 函数名：cloneInt
+ * 功能：返回 int[] 的独立副本
+ * 输入参数：s (int[]) - 整数数组
+ * 输出参数：int[] - 数组副本
+ * 修订日期：2026-11-28
+ */
+public int[] cloneInt(int[] s) {
+    unsafe {
+        return ax_std_slice_clone_int(s)
+    }
+}
+
+/**
+ * 函数名：cloneStr
+ * 功能：返回 string[] 的独立副本
+ * 输入参数：s (string[]) - 字符串数组
+ * 输出参数：string[] - 数组副本
+ * 修订日期：2026-11-28
+ */
+public string[] cloneStr(string[] s) {
+    unsafe {
+        return ax_std_slice_clone_str(s)
+    }
+}
+
+/**
+ * 函数名：fillInt
+ * 功能：将 int[] 的所有元素设为指定值
+ * 输入参数：s (ref int[]) - 待填充的数组（必须是左值）；v (int) - 填充值
+ * 输出参数：无
+ * 修订日期：2026-11-28
+ */
+public void fillInt(ref int[] s, int v) {
+    unsafe {
+        ax_std_slice_fill_int(s, v)
+    }
+}
+
+/**
+ * 函数名：fillStr
+ * 功能：将 string[] 的所有元素设为指定值
+ * 输入参数：s (ref string[]) - 待填充的数组（必须是左值）；v (string) - 填充值
+ * 输出参数：无
+ * 修订日期：2026-11-28
+ */
+public void fillStr(ref string[] s, string v) {
+    unsafe {
+        ax_std_slice_fill_str(s, v)
+    }
+}
+
+/**
+ * 函数名：insertInt
+ * 功能：在 int[] 指定索引处插入元素，后续元素后移
+ * 输入参数：s (ref int[]) - 待插入的数组（必须是左值）；i (int) - 索引；v (int) - 插入值
+ * 输出参数：无
+ * 修订日期：2026-11-28
+ */
+public void insertInt(ref int[] s, int i, int v) {
+    unsafe {
+        ax_std_slice_insert_int(s, i, v)
+    }
+}
+
+/**
+ * 函数名：insertStr
+ * 功能：在 string[] 指定索引处插入元素，后续元素后移
+ * 输入参数：s (ref string[]) - 待插入的数组（必须是左值）；i (int) - 索引；v (string) - 插入值
+ * 输出参数：无
+ * 修订日期：2026-11-28
+ */
+public void insertStr(ref string[] s, int i, string v) {
+    unsafe {
+        ax_std_slice_insert_str(s, i, v)
+    }
+}
+
+/**
+ * 函数名：deleteRangeInt
+ * 功能：删除 int[] 中索引 [i, j) 范围的元素
+ * 输入参数：s (ref int[]) - 待删除的数组（必须是左值）；i (int) - 起始索引；j (int) - 结束索引
+ * 输出参数：无
+ * 修订日期：2026-11-28
+ */
+public void deleteRangeInt(ref int[] s, int i, int j) {
+    unsafe {
+        ax_std_slice_delete_range_int(s, i, j)
+    }
+}
+
+/**
+ * 函数名：deleteRangeStr
+ * 功能：删除 string[] 中索引 [i, j) 范围的元素
+ * 输入参数：s (ref string[]) - 待删除的数组（必须是左值）；i (int) - 起始索引；j (int) - 结束索引
+ * 输出参数：无
+ * 修订日期：2026-11-28
+ */
+public void deleteRangeStr(ref string[] s, int i, int j) {
+    unsafe {
+        ax_std_slice_delete_range_str(s, i, j)
+    }
+}
+
+/**
+ * 函数名：minInt
+ * 功能：返回 int[] 中的最小值，空数组返回 0
+ * 输入参数：s (int[]) - 整数数组
+ * 输出参数：int - 最小值
+ * 修订日期：2026-11-28
+ */
+public int minInt(int[] s) {
+    unsafe {
+        return ax_std_slice_min_int(s)
+    }
+}
+
+/**
+ * 函数名：maxInt
+ * 功能：返回 int[] 中的最大值，空数组返回 0
+ * 输入参数：s (int[]) - 整数数组
+ * 输出参数：int - 最大值
+ * 修订日期：2026-11-28
+ */
+public int maxInt(int[] s) {
+    unsafe {
+        return ax_std_slice_max_int(s)
+    }
+}
+
+/**
+ * 函数名：sumInt
+ * 功能：返回 int[] 的所有元素之和，空数组返回 0
+ * 输入参数：s (int[]) - 整数数组
+ * 输出参数：int - 元素之和
+ * 修订日期：2026-11-28
+ */
+public int sumInt(int[] s) {
+    unsafe {
+        return ax_std_slice_sum_int(s)
+    }
+}
+
+/**
+ * 函数名：minFloat
+ * 功能：返回 float[] 中的最小值，空数组返回 0
+ * 输入参数：s (float[]) - 浮点数数组
+ * 输出参数：float - 最小值
+ * 修订日期：2026-11-28
+ */
+public float minFloat(float[] s) {
+    unsafe {
+        return ax_std_slice_min_float(s)
+    }
+}
+
+/**
+ * 函数名：maxFloat
+ * 功能：返回 float[] 中的最大值，空数组返回 0
+ * 输入参数：s (float[]) - 浮点数数组
+ * 输出参数：float - 最大值
+ * 修订日期：2026-11-28
+ */
+public float maxFloat(float[] s) {
+    unsafe {
+        return ax_std_slice_max_float(s)
+    }
+}
+
+/**
+ * 函数名：sumFloat
+ * 功能：返回 float[] 的所有元素之和，空数组返回 0
+ * 输入参数：s (float[]) - 浮点数数组
+ * 输出参数：float - 元素之和
+ * 修订日期：2026-11-28
+ */
+public float sumFloat(float[] s) {
+    unsafe {
+        return ax_std_slice_sum_float(s)
+    }
+}

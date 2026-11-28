@@ -52,7 +52,7 @@ pub const INTERNAL_BUILTINS: [&str; 7] = [
 /// 不引入 ax 编译器内建能力。codegen 将模块方法调用映射为 ax_std_* 标准库 C 接口调用。
 /// 模块名统一以 `std.` 前缀开头，如 `std.string`、`std.file`、`std.sync`、`std.atomic`，
 /// 与用户库 import/use 方式一致。每个模块对应 axc/std/ 下的同名 .ax 文件。
-pub const STDLIB_MODULES: [&str; 16] = ["std.string", "std.file", "std.sync", "std.atomic", "std.io", "std.json", "std.os", "std.strconv", "std.math", "std.errors", "std.time", "std.rand", "std.bytes", "std.bufio", "std.csv", "std.filepath"];
+pub const STDLIB_MODULES: [&str; 24] = ["std.string", "std.file", "std.sync", "std.atomic", "std.io", "std.json", "std.os", "std.strconv", "std.math", "std.errors", "std.flag", "std.env", "std.time", "std.rand", "std.bytes", "std.bufio", "std.csv", "std.filepath", "std.slices", "std.base64", "std.hex", "std.md5", "std.sha1", "std.sha256"];
 
 /// 兼容别名列表（现已清空）。编译器处于剧烈变动阶段，不保留单段兼容名：
 /// 用户必须统一使用 `std.*` 多段名导入标准库模块（如 `import std.file` 而非 `import file`）。
@@ -422,6 +422,7 @@ pub enum Res {
     Local(Rc<RefCell<VarInfo>>),
     Const(Rc<ConstCell>),
     Func(usize),
+    Global(String),
     Type(u32),
     BuiltinType(String),
     Module(String),
@@ -515,6 +516,7 @@ pub struct Sema<'a> {
     pub funcs: Vec<FuncInfo<'a>>,
     pub func_by_name: HashMap<String, usize>,
     pub consts: HashMap<String, Rc<ConstCell>>,
+    pub globals: HashMap<String, Rc<RefCell<VarInfo>>>,
     pub imports: HashSet<String>,
     pub decl_order: Vec<&'a ast::N<Item>>,
     pub scope: Option<Rc<RefCell<ScopeNode>>>,
@@ -663,6 +665,7 @@ impl<'a> Sema<'a> {
             funcs: Vec::new(),
             func_by_name: HashMap::new(),
             consts: HashMap::new(),
+            globals: HashMap::new(),
             imports: HashSet::new(),
             decl_order: Vec::new(),
             scope: None,
@@ -1387,6 +1390,46 @@ impl<'a> Sema<'a> {
                         self.decl_order.push(item);
                         self.decl_mod.push(prefix.clone());
                     }
+                    Item::VarDecl { vis: _, ty, name, init } => {
+                        self.decl_order.push(item);
+                        self.decl_mod.push(prefix.clone());
+                        // 解析类型（无显式类型时推断为 object，后续由 check_expr 细化）
+                        let resolved_ty = match ty {
+                            Some(t) => self.resolve_type(t),
+                            None => t_object(),
+                        };
+                        // 若有初始化表达式，做类型检查（可能细化 resolved_ty）
+                        let final_ty = if let Some(init_expr) = init {
+                            let checked = self.check_expr(init_expr, Some(&resolved_ty));
+                            if resolved_ty == t_object() && !matches!(&*checked, TyS::Object | TyS::Null) {
+                                checked
+                            } else {
+                                resolved_ty
+                            }
+                        } else {
+                            resolved_ty
+                        };
+                        // 注册全局变量（不可重名，遮蔽检查由 declare_name 负责）
+                        if self.globals.contains_key(name) {
+                            self.err("E3001", &item.tok, "N-3", "全局变量 `{0}` 重复声明", &[&name]);
+                        } else {
+                            let v = Rc::new(RefCell::new(VarInfo {
+                                name: name.clone(),
+                                ty: final_ty.clone(),
+                                is_const: false,
+                                state: VarState::Live,
+                                decl_line: item.tok.line,
+                                is_param: false,
+                                is_used: false,
+                                borrow: None,
+                                idx: 0,
+                                arena_region: None,
+                            }));
+                            self.globals.insert(name.clone(), v.clone());
+                            self.sl(item.id).varinfo = Some(v);
+                            self.sl(item.id).res = Some(Res::Global(name.clone()));
+                        }
+                    }
                     Item::ExternBlock { funcs } => {
                         self.decl_order.push(item);
                         self.decl_mod.push(prefix.clone());
@@ -2017,6 +2060,7 @@ impl<'a> Sema<'a> {
                     }
                 }
                 Item::ConstDecl { .. } => self.resolve_const_decl(item),
+                Item::VarDecl { .. } => {}
                 Item::Import { .. } => {}
                 Item::ExternBlock { funcs } => {
                         for fn_item in funcs {

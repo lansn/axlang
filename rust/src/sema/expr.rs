@@ -9,47 +9,152 @@ use crate::types::*;
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::rc::Rc;
 
-pub fn module_sig(mod_: &str, name: &str) -> Option<(Vec<Option<Ty>>, Ty)> {
+pub fn module_sig(mod_: &str, name: &str) -> Option<(Vec<Option<(Ty, Option<String>)>>, Ty)> {
     let t = |k: TyS| -> Ty { Rc::new(k) };
+    let none: Option<(Ty, Option<String>)> = None;
     Some(match (mod_, name) {
         /* db 模块：纯内建，需数据库驱动（planned 状态） */
         ("db", "query") => (
-            vec![Some(t_string())],
+            vec![Some((t_string(), None))],
             t_result(t_named(DefId::Name("Row"), Vec::new())),
         ),
         /* fmt 模块：fmt.print/println/printf，与内建 print/println 同实现 */
-        ("fmt", "print") => (vec![Some(t_string())], t_void()),
-        ("fmt", "println") => (vec![Some(t_string())], t_void()),
-        ("fmt", "printf") => (vec![Some(t_string()), None], t_void()),
+        ("fmt", "print") => (vec![Some((t_string(), None))], t_void()),
+        ("fmt", "println") => (vec![Some((t_string(), None))], t_void()),
+        ("fmt", "printf") => (vec![Some((t_string(), None)), none], t_void()),
         /* log 模块：纯内建，Print/Fatal 走多实参 print，printf 复用 fmt.printf */
-        ("log", "print") => (vec![None], t_void()),
-        ("log", "printf") => (vec![Some(t_string()), None], t_void()),
-        ("log", "fatal") => (vec![None], t_void()),
+        ("log", "print") => (vec![none], t_void()),
+        ("log", "printf") => (vec![Some((t_string(), None)), none], t_void()),
+        ("log", "fatal") => (vec![none], t_void()),
         /* reflect 模块：编译期类型查询，零运行时开销 */
-        ("reflect", "typeOf") => (vec![Some(t_object())], t_string()),
-        ("reflect", "numField") => (vec![Some(t_object())], t_int()),
+        ("reflect", "typeOf") => (vec![Some((t_object(), None))], t_string()),
+        ("reflect", "numField") => (vec![Some((t_object(), None))], t_int()),
         /* sort 模块：排序原语 */
-        ("sort", "ints") => (vec![Some(t_array(t_int(), None))], t_void()),
-        ("sort", "strings") => (vec![Some(t_array(t_string(), None))], t_void()),
-        ("sort", "float64s") => (vec![Some(t_array(t_float(), None))], t_void()),
-        ("sort", "intsAreSorted") => (vec![Some(t_array(t_int(), None))], t_bool()),
-        ("sort", "stringsAreSorted") => (vec![Some(t_array(t_string(), None))], t_bool()),
-        ("sort", "searchInts") => (vec![Some(t_array(t_int(), None)), Some(t_int())], t_int()),
-        ("sort", "searchStrings") => (vec![Some(t_array(t_string(), None)), Some(t_string())], t_int()),
+        ("sort", "ints") => (vec![Some((t_array(t_int(), None), None))], t_void()),
+        ("sort", "strings") => (vec![Some((t_array(t_string(), None), None))], t_void()),
+        ("sort", "float64s") => (vec![Some((t_array(t_float(), None), None))], t_void()),
+        ("sort", "intsAreSorted") => (vec![Some((t_array(t_int(), None), None))], t_bool()),
+        ("sort", "stringsAreSorted") => (vec![Some((t_array(t_string(), None), None))], t_bool()),
+        ("sort", "searchInts") => (vec![Some((t_array(t_int(), None), None)), Some((t_int(), None))], t_int()),
+        ("sort", "searchStrings") => (vec![Some((t_array(t_string(), None), None)), Some((t_string(), None))], t_int()),
         ("sort", "slice") => (
             vec![
-                Some(t_array(t_object(), None)),
-                Some(t_fn(vec![t_int(), t_int()], t_int())),
+                Some((t_array(t_object(), None), None)),
+                Some((t_fn(vec![t_int(), t_int()], t_int()), None)),
             ],
             t_void(),
         ),
         ("sort", "sliceStable") => (
             vec![
-                Some(t_array(t_object(), None)),
-                Some(t_fn(vec![t_int(), t_int()], t_int())),
+                Some((t_array(t_object(), None), None)),
+                Some((t_fn(vec![t_int(), t_int()], t_int()), None)),
             ],
             t_void(),
         ),
+        /* ---------------- slices 模块（对标 Go slices） ---------------- */
+        ("slices", "containsInt") => (vec![Some((t_array(t_int(), None), None)), Some((t_int(), None))], t_int()),
+        ("slices", "containsString") => (
+            vec![Some((t_array(t_string(), None), None)), Some((t_string(), None))],
+            t_int(),
+        ),
+        ("slices", "indexInt") => (vec![Some((t_array(t_int(), None), None)), Some((t_int(), None))], t_int()),
+        ("slices", "indexString") => (
+            vec![Some((t_array(t_string(), None), None)), Some((t_string(), None))],
+            t_int(),
+        ),
+        ("slices", "reverse") => (vec![Some((t_array(t_int(), None), None))], t_void()),
+        ("slices", "reverseStr") => (vec![Some((t_array(t_string(), None), None))], t_void()),
+        ("slices", "cloneInt") => (vec![Some((t_array(t_int(), None), None))], t_array(t_int(), None)),
+        ("slices", "cloneStr") => (
+            vec![Some((t_array(t_string(), None), None))],
+            t_array(t_string(), None),
+        ),
+        ("slices", "fillInt") => (vec![Some((t_array(t_int(), None), None)), Some((t_int(), None))], t_void()),
+        ("slices", "fillStr") => (
+            vec![Some((t_array(t_string(), None), None)), Some((t_string(), None))],
+            t_void(),
+        ),
+        ("slices", "insertInt") => (
+            vec![
+                Some((t_array(t_int(), None), None)),
+                Some((t_int(), None)),
+                Some((t_int(), None)),
+            ],
+            t_void(),
+        ),
+        ("slices", "insertStr") => (
+            vec![
+                Some((t_array(t_string(), None), None)),
+                Some((t_int(), None)),
+                Some((t_string(), None)),
+            ],
+            t_void(),
+        ),
+        ("slices", "deleteRangeInt") => (
+            vec![Some((t_array(t_int(), None), None)), Some((t_int(), None)), Some((t_int(), None))],
+            t_void(),
+        ),
+        ("slices", "deleteRangeStr") => (
+            vec![Some((t_array(t_string(), None), None)), Some((t_int(), None)), Some((t_int(), None))],
+            t_void(),
+        ),
+        ("slices", "minInt") => (vec![Some((t_array(t_int(), None), None))], t_int()),
+        ("slices", "maxInt") => (vec![Some((t_array(t_int(), None), None))], t_int()),
+        ("slices", "sumInt") => (vec![Some((t_array(t_int(), None), None))], t_int()),
+        ("slices", "minFloat") => (vec![Some((t_array(t_float(), None), None))], t_float()),
+        ("slices", "maxFloat") => (vec![Some((t_array(t_float(), None), None))], t_float()),
+        ("slices", "sumFloat") => (vec![Some((t_array(t_float(), None), None))], t_float()),
+        /* ---------------- base64 模块（对标 Go encoding/base64） ---------------- */
+        ("base64", "encode") => (vec![Some((t_array(t_int(), None), None))], t_string()),
+        ("base64", "decode") => (vec![Some((t_string(), None))], t_array(t_int(), None)),
+        /* ---------------- hex 模块（对标 Go encoding/hex） ---------------- */
+        ("hex", "encode") => (vec![Some((t_array(t_int(), None), None))], t_string()),
+        ("hex", "decode") => (vec![Some((t_string(), None))], t_array(t_int(), None)),
+        /* ---------------- crypto/md5 模块（对标 Go crypto/md5） ---------------- */
+        ("md5", "sum") => (vec![Some((t_array(t_int(), None), None))], t_array(t_int(), None)),
+        /* ---------------- crypto/sha1 模块（对标 Go crypto/sha1） ---------------- */
+        ("sha1", "sum") => (vec![Some((t_array(t_int(), None), None))], t_array(t_int(), None)),
+        /* ---------------- crypto/sha256 模块（对标 Go crypto/sha256） ---------------- */
+        ("sha256", "sum") => (vec![Some((t_array(t_int(), None), None))], t_array(t_int(), None)),
+        /* ---------------- flag 模块（对标 Go flag） ---------------- */
+        ("flag", "defineBool") => (vec![Some((t_string(), None)), Some((t_int(), None)), Some((t_string(), None))], t_int()),
+        ("flag", "defineInt") => (vec![Some((t_string(), None)), Some((t_int(), None)), Some((t_string(), None))], t_int()),
+        ("flag", "defineString") => (
+            vec![Some((t_string(), None)), Some((t_string(), None)), Some((t_string(), None))],
+            t_int(),
+        ),
+        ("flag", "parse") => (vec![], t_int()),
+        ("flag", "getBool") => (vec![Some((t_string(), None))], t_bool()),
+        ("flag", "getInt") => (vec![Some((t_string(), None))], t_int()),
+        ("flag", "getString") => (vec![Some((t_string(), None))], t_string()),
+        ("flag", "nFlag") => (vec![], t_int()),
+        ("flag", "arg") => (vec![Some((t_int(), None))], t_string()),
+        ("flag", "nArg") => (vec![], t_int()),
+        ("flag", "args") => (vec![], t_array(t_string(), None)),
+        /* ---------------- env 模块（对标 Go os 环境变量增值功能） ---------------- */
+        ("env", "expand") => (vec![Some((t_string(), None))], t_string()),
+        ("env", "clearenv") => (vec![], t_int()),
+        ("env", "exists") => (vec![Some((t_string(), None))], t_int()),
+        ("env", "all") => (vec![], t_array(t_string(), None)),
+        /* ---------------- sync 模块（对标 Go sync） ---------------- */
+        // 所有 sync 函数的首个参数均为 ref 句柄，borrow 标记为 Some("mut")，
+        // codegen 会据此生成 &x 取地址调用 ax_*_lock(&m) 等。
+        ("sync", "mutexLock") => (vec![Some((t_named(DefId::Name("Mutex"), Vec::new()), Some("mut".to_string())))], t_void()),
+        ("sync", "mutexUnlock") => (vec![Some((t_named(DefId::Name("Mutex"), Vec::new()), Some("mut".to_string())))], t_void()),
+        ("sync", "rwmutexLock") => (vec![Some((t_named(DefId::Name("RWMutex"), Vec::new()), Some("mut".to_string())))], t_void()),
+        ("sync", "rwmutexUnlock") => (vec![Some((t_named(DefId::Name("RWMutex"), Vec::new()), Some("mut".to_string())))], t_void()),
+        ("sync", "rwmutexRLock") => (vec![Some((t_named(DefId::Name("RWMutex"), Vec::new()), Some("mut".to_string())))], t_void()),
+        ("sync", "rwmutexRunlock") => (vec![Some((t_named(DefId::Name("RWMutex"), Vec::new()), Some("mut".to_string())))], t_void()),
+        ("sync", "waitgroupAdd") => (
+            vec![
+                Some((t_named(DefId::Name("WaitGroup"), Vec::new()), Some("mut".to_string()))),
+                Some((t_int(), None)),
+            ],
+            t_void(),
+        ),
+        ("sync", "waitgroupDone") => (vec![Some((t_named(DefId::Name("WaitGroup"), Vec::new()), Some("mut".to_string())))], t_void()),
+        ("sync", "waitgroupWait") => (vec![Some((t_named(DefId::Name("WaitGroup"), Vec::new()), Some("mut".to_string())))], t_void()),
+        ("sync", "onceDo") => (vec![Some((t_named(DefId::Name("Once"), Vec::new()), Some("mut".to_string())))], t_void()),
         _ => return None,
     })
 }
@@ -608,9 +713,6 @@ impl<'a> Sema<'a> {
                 }
                 return t_bool();
             }
-            if matches!(&*lt, TyS::Tuple(_)) {
-                self.err("E4020", &lhs.tok, "T-37", "元组不能用 `{0}`", &[&op]);
-            }
             if matches!(&*lt, TyS::Func(..)) {
                 self.err("E4024", &lhs.tok, "文稿 4.1", "函数值不能用 `{0}`", &[&op]);
             }
@@ -810,6 +912,14 @@ impl<'a> Sema<'a> {
             self.sl(e.id).res = Some(Res::Local(v.clone()));
             let vi = v.borrow();
             return self.narrowed_ty_vi(&vi);
+        }
+        // 模块级全局变量：优先级低于局部变量，高于常量
+        if let Some(v) = self.globals.get(name) {
+            v.borrow_mut().is_used = true;
+            let vi = v.borrow().clone();
+            let ty = self.narrowed_ty_vi(&vi);
+            self.sl(e.id).res = Some(Res::Global(name.clone()));
+            return ty;
         }
         if let Some(c) = self.qual_lookup(&self.consts, name) {
             let c = c.clone();

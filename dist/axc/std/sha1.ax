@@ -1,0 +1,30 @@
+// axc/std/sha1.ax —— axlang 标准库 sha1 模块（ax 语法源码）
+// 与用户库一样，由 ax 编译器直接解析，生成对应的 C 源码供 gcc 编译。
+//
+// 对标 Go crypto/sha1（RFC 3174）。ax 层仅包装 axrt C 原语，
+// 通过 extern "C" 声明 + unsafe 块调用，不引入 ax 编译器内建能力。
+//
+// 导出函数命名采用 C 风格：全部小写，下划线分隔，如 sum。
+// ax 代码中通过 std.sha1.sum(...) 调用模块级函数。
+//
+// int[] 在 ax 层用于表示字节数组，C 层对应 ax_arr（元素为 uint8_t）。
+// sum 返回 20 字节的 SHA1 摘要（int[]，长度为 20）。
+
+extern "C" {
+    int[] ax_sha1_sum(int[] data);
+}
+
+// ---------- 模块级函数（C 风格命名：小写 + 下划线） ----------
+
+/**
+ * 函数名：sum
+ * 功能：计算数据的 SHA1 哈希摘要（RFC 3174）
+ * 输入参数：data (int[]) - 待哈希的字节数据（每个元素 0-255）
+ * 输出参数：int[] - 20 字节的 SHA1 摘要
+ * 修订日期：2026-11-28
+ */
+public int[] sum(int[] data) {
+    unsafe {
+        return ax_sha1_sum(data)
+    }
+}

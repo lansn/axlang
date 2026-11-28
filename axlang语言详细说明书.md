@@ -89,12 +89,12 @@ axc <check|build|run> <file.ax> [选项]
 - 行注释：`//` 到行尾。
 - 块注释：`/* ... */`，支持嵌套。块注释内的换行仍产生 `NEWLINE`。
 
-### 2.3 关键字（共 44 个）
+### 2.3 关键字（共 48 个）
 
 | 分组 | 关键字 |
 |------|--------|
 | 声明 | `var` `const` `class` `struct` `interface` `extend` `implement` `override` `parent` `this` `enum` `type` |
-| 控制流 | `if` `else` `for` `while` `in` `match` `return` `try` `catch` `finally` `throw` `defer` `import` |
+| 控制流 | `if` `else` `for` `while` `in` `match` `switch` `case` `default` `fallthrough` `return` `try` `catch` `finally` `throw` `defer` `import` |
 | 可见性 | `public` `protected` `private` `static` `new` `as` `break` `continue` `constructor` |
 | FFI/特殊 | `extern` `unsafe` `abstract` `export` `final` `ref` `is` |
 | 字面量 | `true` `false` `null` |
@@ -369,6 +369,7 @@ string 不支持 `s[i]`（`E4006`）；请用 `s.at(i)`（返回 `string?`）或
 | defer | `defer f();` | 延迟调用 |
 | break | `break;` | 跳出循环 |
 | continue | `continue;` | 继续循环 |
+| switch | `switch (e) { case ... }` | 分支选择（向 Go 靠齐，见 3.4.5） |
 | unsafe | `unsafe { }` | 不安全块 |
 
 #### 3.4.1 for 循环变体
@@ -440,7 +441,54 @@ defer println("cleanup");
 - 类型模式不能是 interface（用具体类，`E4001`）。
 - 对 object 的 match 必须有 `_` 分支（`E6002`）。
 
-### 3.5 模式
+#### 3.4.5 switch 语句（向 Go 靠齐）
+
+**值 switch**：
+
+```ax
+switch (expr) {
+    case v1, v2, ...: { ... }   // 多值 case，任意一个匹配即可
+    case expr: { ... }           // 任意表达式求值（函数调用、算术表达式等）
+    default: { ... }             // 兜底，至多一个
+}
+
+// 无表达式 switch（等价 if 链）
+switch {
+    case cond1: { ... }
+    case cond2: { ... }
+    default: { ... }
+}
+```
+
+- 支持的判断表达式类型：`int`、`string`、`bool`、`enum`、`result`
+- `int`/`enum` 且全部 case 为 int 字面量时，生成 C 原生 `switch` 语句（性能最优）
+- 否则退化为 if 链（`sv == expr` / `ax_str_eq(sv, expr)`，多值用 `||`）
+- 每个 case 隐式 `break`；`fallthrough` 仅在 int/enum C switch 路径允许，其他路径报 `E4040`
+- 多个 `default` 报 `E4029`
+- `case` 值类型与判断表达式不匹配报 `E4030`
+- 重复的 int 字面量 `case` 值报 `E4031`
+- 无表达式 switch 的 `case` 条件必须是 `bool`，否则 `E4030`
+
+**类型 switch**（按运行时类型 tag 匹配）：
+
+```ax
+switch (obj) {           // obj 必须是 object 或 类/具名类型
+    case TypeName binding: { ... }  // tag 匹配后 ax_unbox_* 解包为 binding 变量
+    case TypeName: { ... }           // 只做类型判断，不绑定变量
+    default: { ... }
+}
+```
+
+- 判断表达式必须是 `object` 或 类/具名类型，否则 `E4028`
+- 无表达式的类型 switch 报 `E4028`
+- 类型 switch 中出现 `case 值:`（Pat::Lit）报 `E4030`
+- 类型 switch 中 `fallthrough` 报 `E4040`
+- 多值类型 `case` 不能带绑定变量，报 `E4030`
+- 仅支持 `RESERVED_TYPES` 中的内建类型（`string`/`int`/`bool` 等）作为 `Pat::Type`；用户自定义类名按值表达式处理
+
+关键字：`switch`、`case`、`default`、`fallthrough`
+
+#### 3.5 模式
 
 | 模式 | 语法 |
 |------|------|

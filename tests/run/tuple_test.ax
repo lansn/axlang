@@ -1,0 +1,121 @@
+// tests/run/tuple_test.ax —— 元组全面测试（仅使用受支持语法）
+// 验证点：
+//   1. 元组字面量与类型：(int, string), (float, bool, int)
+//   2. 元组解构声明：var (a, b) = (1, 2) —— 唯一可访问元组元素的方式
+//   3. 元组作为函数返回值
+//   4. 元组作为函数参数
+//   5. 嵌套元组（解构层层展开）
+// 不支持（已确认）：t.0 / t.1 直接元素访问（E3003）、元组比较运算（E4020）
+// 已支持（v0.0.28+）：t.0 直接元素访问、p == q / p != q 元组比较、解构变量数 <= 元素数（多余元素忽略）
+import std.io
+import std.strconv
+
+// 基本元组字面量 + 解构
+void tuple_pair_test() {
+    var p = (10, 20)
+    var (a, b) = p
+    io.writeLine("pair=")
+    io.writeLine(strconv.itoa(a))
+    io.writeLine(strconv.itoa(b))
+}
+
+// 元组解构（直接从字面量）
+void tuple_destruct_test() {
+    var (x, y) = (100, 200)
+    io.writeLine("destruct=")
+    io.writeLine(strconv.itoa(x))
+    io.writeLine(strconv.itoa(y))
+}
+
+// 三元素元组
+void tuple_triple_test() {
+    var (i, s, f) = (7, "hello", 3.14)
+    io.writeLine("triple=")
+    io.writeLine(strconv.itoa(i))
+    io.writeLine(s)
+    io.writeLine(strconv.formatFloat(f))
+}
+
+// 元组作为返回值
+void tuple_return_test() {
+    var (a, b) = get_pair()
+    io.writeLine("return=")
+    io.writeLine(strconv.itoa(a))
+    io.writeLine(b)
+}
+
+// 元组作为参数（元组类型作参数类型）
+void tuple_param_test((int, string) pair) {
+    var (n, s) = pair
+    io.writeLine("param=")
+    io.writeLine(strconv.itoa(n))
+    io.writeLine(s)
+}
+
+// 嵌套元组（分步解构，单行嵌套解构语法不支持）
+void tuple_nested_test() {
+    var n = ((1, 2), (3, 4))
+    var (p1, p2) = n
+    var (a, b) = p1
+    var (c, d) = p2
+    io.writeLine("nested=")
+    io.writeLine(strconv.itoa(a))
+    io.writeLine(strconv.itoa(b))
+    io.writeLine(strconv.itoa(c))
+    io.writeLine(strconv.itoa(d))
+}
+
+// 返回 (int, string) 元组
+(int, string) get_pair() {
+    return (42, "answer")
+}
+
+// 返回 (float, bool) 元组
+(float, bool) get_flag() {
+    return (2.5, true)
+}
+
+int main() {
+    tuple_pair_test()
+    tuple_destruct_test()
+    tuple_triple_test()
+    tuple_return_test()
+    tuple_param_test((7, "seven"))
+    tuple_nested_test()
+
+    var (f, ok) = get_flag()
+    io.writeLine("flag=")
+    io.writeLine(strconv.formatFloat(f))
+    io.writeLine(strconv.formatBool(ok))
+
+    // t.0 直接元素访问
+    var t = (10, 20)
+    io.writeLine("t0=")
+    io.writeLine(strconv.itoa(t.0))
+    io.writeLine(strconv.itoa(t.1))
+
+    // 元组比较 p == q / p != q
+    var p = (1, 2)
+    var q = (1, 2)
+    var r = (1, 3)
+    io.writeLine("eq=")
+    io.writeLine(strconv.formatBool(p == q))
+    io.writeLine(strconv.formatBool(p != q))
+    io.writeLine(strconv.formatBool(p == r))
+
+    // 嵌套元组比较
+    var n1 = ((1, 2), (3, 4))
+    var n2 = ((1, 2), (3, 4))
+    var n3 = ((1, 2), (3, 5))
+    io.writeLine("neq=")
+    io.writeLine(strconv.formatBool(n1 == n2))
+    io.writeLine(strconv.formatBool(n1 != n3))
+
+    // 解构多余元素被忽略：变量数 < 元素数
+    var (u, v) = (100, 200, 300)
+    io.writeLine("extra=")
+    io.writeLine(strconv.itoa(u))
+    io.writeLine(strconv.itoa(v))
+
+    return 0
+}
