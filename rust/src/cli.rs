@@ -302,6 +302,8 @@ pub struct Opts {
     pub env_cmd: bool,
     /// `axc env --set KEY=VALUE`：要设置的键值对
     pub env_set: Option<String>,
+    /// `axc precompile`：单独预编译 axrt 运行时和标准库为 .o 缓存
+    pub precompile: bool,
 }
 
 impl Default for Opts {
@@ -324,6 +326,7 @@ impl Default for Opts {
             kind: "exe".to_string(),
             env_cmd: false,
             env_set: None,
+            precompile: false,
         }
     }
 }
@@ -552,6 +555,7 @@ pub fn parse_args(argv: &[String]) -> Opts {
         match a.as_str() {
             "check" | "build" | "run" => o.cmd = a.clone(),
             "env" => o.env_cmd = true,
+            "precompile" => o.precompile = true,
             "-h" | "--help" => o.help = true,
             "-v" | "-V" | "--version" => o.version = true,
             "-I" | "--include" => {
@@ -609,6 +613,8 @@ pub fn print_help() {
     println!("  build   生成 C11 源码并调用 cc 产出可执行文件");
     println!("  run     build 后立即执行（省略子命令时的默认行为）");
     println!("  env     显示或设置编译器环境（类似 go env）");
+    println!("  precompile  单独预编译 axrt 运行时和标准库为 .o 缓存，");
+    println!("            后续 axc run/build 将直接复用，无需重新编译库代码");
     println!();
     println!("选项:");
     println!("  -I <dir>            追加模块搜索根（可多次；入口文件目录优先）");
@@ -693,6 +699,60 @@ fn run_env_cmd(opts: &Opts) -> i32 {
     0
 }
 
+/// `axc precompile` 子命令：单独预编译 axrt 运行时和标准库为 .o 缓存，
+/// 不处理用户代码。执行后，后续 `axc run`/`axc build` 可直接复用缓存，
+/// 无需重新编译库代码，大幅缩短短小程序的编译时间。
+fn run_precompile(opts: &Opts) -> i32 {
+    let cc = &opts.cc;
+    let mut total_objs = 0usize;
+
+    // 1. 预编译 axrt 运行时（19 个 axrt_*.c 文件）
+    if let (Some(rt), Some(odir)) = (
+        crate::driver::compile::rt_dir(),
+        crate::driver::compile::rt_obj_dir(),
+    ) {
+        let objs = crate::driver::compile::rt_obj_files(&rt, &odir, cc);
+        total_objs += objs.len();
+        println!(
+            "axc: 预编译 axrt 运行时 {} 个文件 -> {}",
+            objs.len(),
+            odir.display()
+        );
+    } else {
+        eprintln!("axc: 找不到运行时目录 axc/rt（缺 axrt.h / axrt.c）");
+        return 1;
+    }
+
+    // 2. 预编译标准库（16 个 stdlib 模块）
+    if let (Some(sdir), Some(odir)) = (
+        crate::driver::compile::stdlib_gen_dir(),
+        crate::driver::compile::stdlib_obj_dir(),
+    ) {
+        // 先确保标准库 .c 已预转译生成
+        if !crate::driver::compile::stdlib_src_complete() {
+            crate::driver::compile::precompile_stdlib();
+        }
+        if let (Some(rt), Some(hdir)) = (
+            crate::driver::compile::rt_dir(),
+            crate::driver::compile::stdlib_header_dir(),
+        ) {
+            let objs = crate::driver::compile::stdlib_obj_files(&sdir, &odir, cc, &rt, &hdir);
+            total_objs += objs.len();
+            println!(
+                "axc: 预编译标准库 {} 个文件 -> {}",
+                objs.len(),
+                odir.display()
+            );
+        }
+    }
+
+    println!(
+        "axc: 预编译完成，共 {} 个 .o 缓存已就绪，后续 axc run/build 将复用缓存",
+        total_objs
+    );
+    0
+}
+
 pub fn run(argv: &[String]) -> i32 {
     let opts = parse_args(argv);
     if opts.version {
@@ -704,6 +764,10 @@ pub fn run(argv: &[String]) -> i32 {
     // `axc env` 子命令：显示或设置编译器环境，不需要 file 参数
     if opts.env_cmd {
         return run_env_cmd(&opts);
+    }
+    // `axc precompile`：单独预编译 axrt 运行时和标准库为 .o 缓存
+    if opts.precompile {
+        return run_precompile(&opts);
     }
     if opts.help || opts.file.is_none() {
         print_help();

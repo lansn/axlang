@@ -409,7 +409,7 @@ pub fn stdlib_obj_files(
 /// 将 axrt_*.c 运行时源文件预编译为 .o 并缓存至 obj_dir，返回可用于链接的 .o 文件路径列表。
 /// 若缓存的 .o 已存在且比源 .c 新，则直接复用；否则调用 gcc -c 编译后缓存。
 /// 会递归进入子目录查找所有 axrt_*.c 文件。
-fn rt_obj_files(
+pub fn rt_obj_files(
     rt_dir: &std::path::Path,
     obj_dir: &std::path::Path,
     cc: &str,

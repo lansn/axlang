@@ -53,6 +53,7 @@ axc [check|build|run|env] <file.ax> [选项]
 | `check` | 只做词法→语法→语义检查，报诊断，不生成 C（必须显式写出） |
 | `build` | 生成 C11 源码并调用 cc 产出可执行文件 |
 | `run`   | build 后立即执行，产物放临时目录，跑完即删（省略子命令时的默认行为） |
+| `precompile` | 单独预编译 axrt 运行时和标准库为 .o 缓存，后续 `axc run`/`axc build` 直接复用，无需重新编译库代码 |
 | `env`   | 显示或设置编译器环境（类似 `go env`），不需要 file 参数 |
 
 通用选项：
