@@ -209,14 +209,11 @@ pub fn stdlib_c_files(stdlib_dir: &std::path::Path) -> Vec<PathBuf> {
     files
 }
 
-/// 标准库 .o 目标文件缓存目录（release/axc/stdlib/obj）：存放预编译后的 *.o 文件，
+/// 标准库 .o 目标文件缓存目录（dist/axc/stdlib/obj）：存放预编译后的 *.o 文件，
 /// 用户编译时复用缓存，避免每次重新编译标准库 .c 源码。
-/// 若目录尚不存在，会自动创建，以便首次运行时也能生成缓存。
+/// 仅搜索 axc.exe 所在位置上溯的已存在目录，不自动创建，不回退到 CWD/项目目录。
 pub fn stdlib_obj_dir() -> Option<PathBuf> {
-    let mut cands = vec![
-        PathBuf::from("axc/stdlib/obj"),
-        PathBuf::from("stdlib/obj"),
-    ];
+    let mut cands: Vec<PathBuf> = Vec::new();
     if let Ok(exe) = std::env::current_exe() {
         let mut cur = exe.parent().map(|d| d.to_path_buf());
         for _ in 0..5 {
@@ -229,36 +226,19 @@ pub fn stdlib_obj_dir() -> Option<PathBuf> {
             cur = q.parent().map(|x| x.to_path_buf());
         }
     }
-    // 优先返回已存在的目录
     for c in &cands {
         if c.exists() {
             return Some(c.clone());
         }
     }
-    // 不存在则尝试创建：优先基于 exe 位置的 axc/stdlib/obj，回退到 cwd-relative axc/stdlib/obj
-    if let Ok(exe) = std::env::current_exe() {
-        if let Some(exe_dir) = exe.parent() {
-            let target = exe_dir.join("axc/stdlib/obj");
-            if fs::create_dir_all(&target).is_ok() {
-                return Some(target);
-            }
-        }
-    }
-    let target = PathBuf::from("axc/stdlib/obj");
-    if fs::create_dir_all(&target).is_ok() {
-        return Some(target);
-    }
     None
 }
 
-/// axrt 运行时 .o 目标文件缓存目录（release/axc/rt/obj）：存放预编译后的 *.o 文件，
+/// axrt 运行时 .o 目标文件缓存目录（dist/axc/rt/obj）：存放预编译后的 *.o 文件，
 /// 用户编译时复用缓存，避免每次重新编译 axrt 运行时 C 源码。
-/// 若目录尚不存在，会自动创建，以便首次运行时也能生成缓存。
+/// 仅搜索 axc.exe 所在位置上溯的已存在目录，不自动创建，不回退到 CWD/项目目录。
 pub fn rt_obj_dir() -> Option<PathBuf> {
-    let mut cands = vec![
-        PathBuf::from("axc/rt/obj"),
-        PathBuf::from("rt/obj"),
-    ];
+    let mut cands: Vec<PathBuf> = Vec::new();
     if let Ok(exe) = std::env::current_exe() {
         let mut cur = exe.parent().map(|d| d.to_path_buf());
         for _ in 0..5 {
@@ -271,24 +251,10 @@ pub fn rt_obj_dir() -> Option<PathBuf> {
             cur = q.parent().map(|x| x.to_path_buf());
         }
     }
-    // 优先返回已存在的目录
     for c in &cands {
         if c.exists() {
             return Some(c.clone());
         }
-    }
-    // 不存在则尝试创建：优先基于 exe 位置的 axc/rt/obj，回退到 cwd-relative axc/rt/obj
-    if let Ok(exe) = std::env::current_exe() {
-        if let Some(exe_dir) = exe.parent() {
-            let target = exe_dir.join("axc/rt/obj");
-            if fs::create_dir_all(&target).is_ok() {
-                return Some(target);
-            }
-        }
-    }
-    let target = PathBuf::from("axc/rt/obj");
-    if fs::create_dir_all(&target).is_ok() {
-        return Some(target);
     }
     None
 }
