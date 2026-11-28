@@ -1,0 +1,23 @@
+// tests/run/switch_only_default.ax —— 只有 default 分支的 switch
+import std.io
+
+int main() {
+    // 只有 default，无 case
+    var x = 99
+    switch (x) {
+        default: {
+            io.writeLine("only-default")
+        }
+    }
+
+    // expressionless switch，只有 default
+    var y = 5
+    switch {
+        default: {
+            io.writeLine("exprless-only-default")
+        }
+    }
+
+    io.writeLine("done")
+    return 0
+}

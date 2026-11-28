@@ -1,0 +1,50 @@
+// tests/run/switch_nested.ax —— 嵌套 switch 全覆盖
+import std.io
+
+int main() {
+    // 外层 int switch，内层 string switch
+    var x = 2
+    var s = "hello"
+    switch (x) {
+        case 1: {
+            io.writeLine("outer-one")
+        }
+        case 2: {
+            switch (s) {
+                case "hello": {
+                    io.writeLine("inner-hello")
+                }
+                case "world": {
+                    io.writeLine("inner-world")
+                }
+                default: {
+                    io.writeLine("inner-other")
+                }
+            }
+        }
+        default: {
+            io.writeLine("outer-other")
+        }
+    }
+
+    // 嵌套 expressionless switch
+    var flag = true
+    switch {
+        case flag: {
+            switch (x) {
+                case 2: {
+                    io.writeLine("nested-exprless-2")
+                }
+                default: {
+                    io.writeLine("nested-exprless-default")
+                }
+            }
+        }
+        default: {
+            io.writeLine("nested-exprless-outer-default")
+        }
+    }
+
+    io.writeLine("done")
+    return 0
+}

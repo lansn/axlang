@@ -1,0 +1,46 @@
+// tests/run/switch_enum.ax —— enum 类型 switch 全覆盖
+import std.io
+
+enum Color {
+    Red,
+    Green,
+    Blue
+}
+
+int main() {
+    // enum switch，所有分支命中
+    var c = Color.Green
+    switch (c) {
+        case Color.Red: {
+            io.writeLine("red")
+        }
+        case Color.Green: {
+            io.writeLine("green")
+        }
+        case Color.Blue: {
+            io.writeLine("blue")
+        }
+    }
+
+    // enum switch，无匹配无 default -> 无输出
+    var c2 = Color.Red
+    switch (c2) {
+        case Color.Green: {
+            io.writeLine("green2")
+        }
+        case Color.Blue: {
+            io.writeLine("blue2")
+        }
+    }
+
+    // enum switch，只有 default
+    var c3 = Color.Red
+    switch (c3) {
+        default: {
+            io.writeLine("default-only")
+        }
+    }
+
+    io.writeLine("done")
+    return 0
+}
