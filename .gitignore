@@ -19,6 +19,9 @@ Thumbs.db
 # Windows 保留设备名，无法删除，也绝不应入库
 nul
 
+# 用户编译缓存（dist/axc/user/obj/ 下的 .o/.hash 不应入库）
+/dist/axc/user/
+
 # 测试临时目录（根目录）
 /.build/
 

@@ -43,10 +43,10 @@ AST + slots
 ### 1.3 CLI 子命令与选项
 
 ```
-axc [check|build|run|env] <file.ax> [选项]
+axc [check|build|run|env] <file1.ax> [file2.ax] ... [选项]
 ```
 
-不写子命令时，等价于 `axc run <file.ax>`（构建后立即执行）。
+不写子命令时，等价于 `axc run <file1.ax> [file2.ax] ...`（构建后立即执行）。多个 `.ax` 文件会独立编译为 `{文件名}.o`（带内容哈希缓存），最后全部链接在一起生成最终产物。
 
 | 子命令 | 含义 |
 |--------|------|
@@ -1130,6 +1130,59 @@ int main() {
 ```
 
 > 说明：`fmt` 是编译器内建模块，**无需 `import std.fmt`**，直接使用 `fmt.printf`/`fmt.println` 等即可。`fmt.printf` 支持编译期占位符核对（%d/%f/%s/%.Nf/%t/%v/%%）；字符串插值 `"{pi:.2}"` 也可用于简单格式化（见 §2.7 字符串字面量）。
+
+### 12.6 多文件编译示例
+
+axc 支持一次传入多个 `.ax` 文件，每个文件独立编译为 `{文件名}.o`（带内容哈希缓存），最后全部链接在一起。
+
+**文件 `samples/utils.ax`**（工具函数模块）：
+```ax
+public int utils_add(int a, int b) {
+    return a + b
+}
+
+public int utils_sub(int a, int b) {
+    return a - b
+}
+
+public string utils_greet(string name) {
+    return "hello, " + name
+}
+```
+
+**文件 `samples/13_multi_main.ax`**（主入口，导入 utils 模块）：
+```ax
+import std.io
+import std.strconv
+import utils
+
+int main() {
+    io.write("utils_add(10, 3) = ")
+    io.writeLine(strconv.itoa(utils.utils_add(10, 3)))
+    io.write("utils_sub(10, 3) = ")
+    io.writeLine(strconv.itoa(utils.utils_sub(10, 3)))
+    io.writeLine(utils.utils_greet("axlang"))
+    return 0
+}
+```
+
+**编译运行**：
+```
+axc samples/13_multi_main.ax samples/utils.ax
+# 输出：
+# axc: 用户文件 13_multi_main -> .../user/obj/13_multi_main.o (缓存)
+# axc: 用户文件 utils -> .../user/obj/utils.o (缓存)
+# utils_add(10, 3) = 13
+# utils_sub(10, 3) = 7
+# hello, axlang
+```
+
+**特点**：
+- 每个 `.ax` 文件独立编译为独立的 `.o` 翻译单元
+- `.o` 及 `.hash` 缓存到 `AXC_OBJ_DIR/user/obj/`（默认 `dist/axc/user/obj/`）
+- 源文件未变时复用缓存 `.o`，无需重新编译
+- 支持 `--kind=exe`（默认）、`--kind=shared`、`--kind=static` 所有产物类型
+- 多次运行同一命令，第二次即命中缓存，编译时间显著缩短
 
 ---
 

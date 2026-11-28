@@ -1,0 +1,14 @@
+// samples/13_multi_utils.ax —— 多文件编译示例：工具函数模块
+// 与 13_multi_main.ax 一起编译，演示多个 .ax 独立编译为 .o 后链接。
+
+public int utils_add(int a, int b) {
+    return a + b
+}
+
+public int utils_sub(int a, int b) {
+    return a - b
+}
+
+public string utils_greet(string name) {
+    return "hello, " + name + "!"
+}

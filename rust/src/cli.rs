@@ -279,10 +279,12 @@ use std::fs;
 use std::io::Write;
 
 /// 命令行选项的解析结果，`cmd` 是子命令名（check/build/run/env）。
+/// `files` 是输入的 .ax 源文件列表，支持多文件一起编译；
+/// 每个文件独立编译为 {stem}.o（带 hash 缓存），最后全部链接在一起。
 #[derive(Clone)]
 pub struct Opts {
     pub cmd: String,
-    pub file: Option<String>,
+    pub files: Vec<String>,
     pub out: Option<String>,
     pub diag: String,
     pub dump: Option<String>,
@@ -310,7 +312,7 @@ impl Default for Opts {
     fn default() -> Self {
         Opts {
             cmd: "run".to_string(),
-            file: None,
+            files: Vec::new(),
             out: None,
             diag: "text".to_string(),
             dump: None,
@@ -591,10 +593,10 @@ pub fn parse_args(argv: &[String]) -> Opts {
                     o.kind = v.to_string();
                 } else if a.starts_with('-') {
                     // 未知选项：忽略（历史宽松解析行为，测试钉死）
-                } else if o.file.is_none() {
-                    o.file = Some(a.clone());
+                } else if a.starts_with('-') {
+                    // 未知选项：忽略（历史宽松解析行为，测试钉死）
                 } else {
-                    o.prog_args.push(a.clone());
+                    o.files.push(a.clone());
                 }
             }
         }
@@ -606,8 +608,9 @@ pub fn parse_args(argv: &[String]) -> Opts {
 pub fn print_help() {
     println!("axc {} —— axlang 编译器", env!("CARGO_PKG_VERSION"));
     println!();
-    println!("用法: axc [check|build|run|env] <file.ax> [选项]");
-    println!("    不写子命令时，等价于 `axc run <file.ax>`（构建后立即执行）。");
+    println!("用法: axc [check|build|run|env] <file1.ax> [file2.ax] ... [选项]");
+    println!("    不写子命令时，等价于 `axc run <file1.ax> [file2.ax] ...`（构建后立即执行）。");
+    println!("    多个 .ax 文件会独立编译为 {{stem}}.o（带 hash 缓存），最后全部链接在一起。");
     println!();
     println!("  check   词法 / 语法 / 语义检查，只报诊断");
     println!("  build   生成 C11 源码并调用 cc 产出可执行文件");
@@ -769,7 +772,7 @@ pub fn run(argv: &[String]) -> i32 {
     if opts.librtcompile {
         return run_librtcompile(&opts);
     }
-    if opts.help || opts.file.is_none() {
+    if opts.help || opts.files.is_empty() {
         print_help();
         return if opts.help { 0 } else { 1 };
     }
@@ -779,131 +782,146 @@ pub fn run(argv: &[String]) -> i32 {
         let _ = std::fs::create_dir_all(&cache_dir);
     }
 
-    let path = opts.file.clone().unwrap();
-
-    let raw = match fs::read(&path) {
-        Ok(b) => b,
-        Err(_) => {
-            eprintln!(
-            "axc: {}",
-            crate::diag_msg::tr(
-                crate::diag_msg::Lang::resolve(None),
-                "FILE_NOT_FOUND",
-                "axc: 找不到文件 {0}",
-                &[&path]
-            )
-        );
-            return 1;
-        }
-    };
-    let src = match String::from_utf8(raw) {
-        Ok(s) => s,
-        Err(_) => {
-            eprintln!("axc: 源文件不是合法 UTF-8：{}", path);
-            return 1;
-        }
-    };
-
-    let mut d = Diags::new();
-    d.lang = crate::diag_msg::Lang::resolve(opts.lang.as_deref());
-    let normalized = lexer::normalize(&src);
-    d.add_source(&path, &normalized);
-
-    let toks = lexer::lex(&src, &path, &mut d);
-
-    // 词法一错，token 流已不可信；继续解析只会追加源于同一处的假语法错误
-    // （§16 要求负例"恰好一个诊断码"）
-    if d.has_error() {
-        report(&d, &opts.diag);
-        eprintln!(
-            "axc: {}",
-            crate::diag_msg::tr(d.lang, "SUMMARY", "{0} 个错误", &[&d.error_count])
-        );
-        return 1;
-    }
-
-    let mod_ = parser::parse_module(toks, &path, &mut d, 0);
-    // --dump=ast：语法解析完成后输出 AST，打印完直接返回（不构建、不运行）
-    if opts.dump.as_deref() == Some("ast") {
-        println!("{}", ast::dump_module(&mod_));
-        return 0;
-    }
-    if d.has_error() {
-        report(&d, &opts.diag);
-        eprintln!(
-            "axc: {}",
-            crate::diag_msg::tr(d.lang, "SUMMARY", "{0} 个错误", &[&d.error_count])
-        );
-        return 1;
-    }
+    let lang = crate::diag_msg::Lang::resolve(opts.lang.as_deref());
 
     // check 阶段不要求 main；shared 模式生成动态库，也不需要 main 入口
     let need_main = matches!(opts.cmd.as_str(), "build" | "run")
         && opts.kind != "shared"
         && opts.kind != "static";
 
-    // 用户模块加载（文稿 9）：解析 import，递归加载非内建模块，循环导入报错
-    let mut arena: Vec<(String, String, ast::Module)> = Vec::new();
-    let (extras, path_canon) = load_user_imports(&mod_, &path, &opts.includes, &mut d, &mut arena);
-    if d.has_error() {
-        report(&d, &opts.diag);
-        eprintln!(
-            "axc: {}",
-            crate::diag_msg::tr(d.lang, "SUMMARY", "{0} 个错误", &[&d.error_count])
-        );
-        return 1;
+    // 为每个输入文件做词法/语法/语义分析 + C 代码生成，收集 (csrc, path) 对。
+    // 每个文件独立编译为自己的翻译单元，互不共享 Diags/Sema，避免生命周期纠缠。
+    let mut srcs: Vec<(String, String)> = Vec::new(); // (c_source, file_path)
+    for path in &opts.files {
+        let raw = match fs::read(path) {
+            Ok(b) => b,
+            Err(_) => {
+                eprintln!(
+                    "axc: {}",
+                    crate::diag_msg::tr(lang, "FILE_NOT_FOUND", "axc: 找不到文件 {0}", &[path])
+                );
+                return 1;
+            }
+        };
+        let src = match String::from_utf8(raw) {
+            Ok(s) => s,
+            Err(_) => {
+                eprintln!("axc: 源文件不是合法 UTF-8：{}", path);
+                return 1;
+            }
+        };
+
+        let mut d = Diags::new();
+        d.lang = lang;
+        let normalized = lexer::normalize(&src);
+        d.add_source(path, &normalized);
+
+        let toks = lexer::lex(&src, path, &mut d);
+
+        // 词法一错，token 流已不可信；继续解析只会追加源于同一处的假语法错误
+        if d.has_error() {
+            report(&d, &opts.diag);
+            eprintln!(
+                "axc: {}",
+                crate::diag_msg::tr(d.lang, "SUMMARY", "{0} 个错误", &[&d.error_count])
+            );
+            return 1;
+        }
+
+        let mod_ = parser::parse_module(toks, path, &mut d, 0);
+        // --dump=ast：对每个文件输出 AST，打印完直接返回
+        if opts.dump.as_deref() == Some("ast") {
+            println!("{}", ast::dump_module(&mod_));
+            return 0;
+        }
+        if d.has_error() {
+            report(&d, &opts.diag);
+            eprintln!(
+                "axc: {}",
+                crate::diag_msg::tr(d.lang, "SUMMARY", "{0} 个错误", &[&d.error_count])
+            );
+            return 1;
+        }
+
+        // 用户模块加载（文稿 9）：解析 import，递归加载非内建模块，循环导入报错
+        let mut arena: Vec<(String, String, ast::Module)> = Vec::new();
+        let (extras, path_canon) = load_user_imports(&mod_, path, &opts.includes, &mut d, &mut arena);
+        if d.has_error() {
+            report(&d, &opts.diag);
+            eprintln!(
+                "axc: {}",
+                crate::diag_msg::tr(d.lang, "SUMMARY", "{0} 个错误", &[&d.error_count])
+            );
+            return 1;
+        }
+
+        let s = sema::analyze_multi(&mod_, &mut d, path, need_main, extras, path_canon);
+
+        // --dump=hir：对每个文件输出 HIR
+        if opts.dump.as_deref() == Some("hir") {
+            println!("=== {} ===", path);
+            println!("{}", s.dump_hir());
+            continue;
+        }
+
+        // 借用说明：Sema 持有 &mut Diags，此后诊断统一从 s.d 读
+        if (*s.d).has_error() {
+            report(&*s.d, &opts.diag);
+            eprintln!(
+                "axc: {}",
+                crate::diag_msg::tr(s.d.lang, "SUMMARY", "{0} 个错误", &[&(*s.d).error_count])
+            );
+            return 1;
+        }
+        // -Werror：警告升级为错误
+        if opts.werror && (*s.d).warning_count > 0 {
+            report(&*s.d, &opts.diag);
+            eprintln!(
+                "axc: {}",
+                crate::diag_msg::tr(s.d.lang, "SUMMARY", "{0} 个错误", &[&(*s.d).warning_count])
+            );
+            return 1;
+        }
+        report(&*s.d, &opts.diag); // 只剩 warning
+
+        // 生成该文件的 C 源码（skip_stdlib=true，标准库 .o 由预编译缓存提供）
+        let csrc = backend::CodeGen::build_c(&s, path, &opts.kind, true, None);
+        srcs.push((csrc, path.clone()));
     }
 
-    let s = sema::analyze_multi(&mod_, &mut d, &path, need_main, extras, path_canon);
+    // --dump=hir 已在循环中逐文件打印并 continue，到这里说明不是 dump=hir
+    // (若所有文件都是 dump=hir，循环结束后继续走到 finish_multi)
 
-    // --dump=hir：语义检查完成后输出高级中间表示
-    if opts.dump.as_deref() == Some("hir") {
-        println!("{}", s.dump_hir());
-        return 0;
-    }
-
-    // 借用说明：Sema 持有 &mut Diags，此后诊断统一从 s.d 读
-    if (*s.d).has_error() {
-        report(&*s.d, &opts.diag);
-        eprintln!(
-            "axc: {}",
-            crate::diag_msg::tr(s.d.lang, "SUMMARY", "{0} 个错误", &[&(*s.d).error_count])
-        );
-        return 1;
-    }
-    // -Werror：警告升级为错误
-    if opts.werror && (*s.d).warning_count > 0 {
-        report(&*s.d, &opts.diag);
-        eprintln!(
-            "axc: {}",
-            crate::diag_msg::tr(s.d.lang, "SUMMARY", "{0} 个错误", &[&(*s.d).warning_count])
-        );
-        return 1;
-    }
-    report(&*s.d, &opts.diag); // 只剩 warning
-
-    finish(&s, &opts, &path, &opts.kind)
+    finish_multi(&srcs, &opts, &opts.kind)
 }
 
-/// 语义检查通过后的产出阶段：emit-c / build / run。
-fn finish(s: &sema::Sema, opts: &Opts, path: &str, kind: &str) -> i32 {
-    // 标准库代码永不合并进用户 C 文件：始终 skip_stdlib=true，
-    // 标准库 .o 由预编译缓存直接提供，链接时一并参与。
-    // 用户源文件独立编译为 .o，带 hash 缓存；axrt/标准库 .o 直接复用预编译件，不做 hash 检查、不重新编译。
+/// 多文件产出阶段：将多个 C 源码分别编译为 {stem}.o（带 hash 缓存），
+/// 然后全部链接在一起生成最终产物。
+fn finish_multi(
+    srcs: &[(String, String)], // (c_source, file_path)
+    opts: &Opts,
+    kind: &str,
+) -> i32 {
     let skip_stdlib = true;
+
+    // emit-c / dump=c：把全部 C 源码打到 stdout
     if opts.emit_c || opts.dump.as_deref() == Some("c") {
-        let csrc = backend::CodeGen::build_c(s, path, kind, skip_stdlib, None);
-        println!("{}", csrc);
+        for (csrc, _) in srcs {
+            println!("{}", csrc);
+        }
         return 0;
     }
     if opts.cmd == "check" {
         return 0;
     }
 
-    let csrc = backend::CodeGen::build_c(s, path, kind, skip_stdlib, None);
+    // 输出路径：多文件时以第一个文件的 stem 命名；用户 -o 优先
+    let first_stem = std::path::Path::new(&srcs[0].1)
+        .file_stem()
+        .map(|x| x.to_string_lossy().to_string())
+        .unwrap_or_else(|| "a".to_string());
 
-    // run 的产物是临时的：落到临时目录，跑完即删，避免在工作目录里堆 exe；
-    // 显式给了 -o 就尊重用户的选择（也方便"编译一次跑多次"）。
+    // run 的产物是临时的：落到临时目录，跑完即删
     let mut tmpdir: Option<std::path::PathBuf> = None;
     let out: std::path::PathBuf = if opts.cmd == "run" && opts.out.is_none() {
         let d = std::env::temp_dir().join(format!(
@@ -913,12 +931,14 @@ fn finish(s: &sema::Sema, opts: &Opts, path: &str, kind: &str) -> i32 {
         ));
         let _ = fs::create_dir_all(&d);
         tmpdir = Some(d.clone());
-        d.join(default_out(path, kind))
+        d.join(default_out(&first_stem, kind))
     } else {
-        std::path::PathBuf::from(opts.out.clone().unwrap_or_else(|| default_out(path, kind)))
+        std::path::PathBuf::from(opts.out.clone().unwrap_or_else(|| default_out(&first_stem, kind)))
     };
 
-    let res = compile::compile_c_files(&csrc, opts, &out, kind, skip_stdlib);    let rc = match res {
+    // 为每个 C 源码生成独立的 {stem}.o，带 hash 缓存，最后全部链接
+    let res = compile::compile_multi_c_files(srcs, opts, &out, kind, skip_stdlib);
+    let rc = match res {
         None => 1,
         Some(()) => {
             if opts.cmd == "build" {

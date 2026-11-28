@@ -1,0 +1,15 @@
+// samples/13_multi_main.ax —— 多文件编译示例：主入口
+// 用法: axc samples/13_multi_main.ax samples/13_multi_utils.ax
+
+import std.io
+import std.strconv
+import utils
+
+int main() {
+    io.write("utils_add(10, 3) = ")
+    io.writeLine(strconv.itoa(utils.utils_add(10, 3)))
+    io.write("utils_sub(10, 3) = ")
+    io.writeLine(strconv.itoa(utils.utils_sub(10, 3)))
+    io.writeLine(utils.utils_greet("axlang"))
+    return 0
+}
