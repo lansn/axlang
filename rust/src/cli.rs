@@ -887,10 +887,10 @@ pub fn run(argv: &[String]) -> i32 {
 
 /// 语义检查通过后的产出阶段：emit-c / build / run。
 fn finish(s: &sema::Sema, opts: &Opts, path: &str, kind: &str) -> i32 {
-    // 标准库 .o 缓存是否完整：发行版已随 axc 打包全部预编译缓存，
-    // axc 启动时不自动执行预编译，仅在缓存完整时 skip_stdlib=true，
-    // 否则回退到在 unit.c 中合并标准库 C 代码（不自动调用 gcc）。
-    let skip_stdlib = crate::driver::compile::stdlib_obj_cache_complete();
+    // 标准库代码永不合并进用户 C 文件：始终 skip_stdlib=true，
+    // 标准库 .o 由预编译缓存直接提供，链接时一并参与。
+    // 用户源文件独立编译为 .o，带 hash 缓存；axrt/标准库 .o 直接复用预编译件，不做 hash 检查、不重新编译。
+    let skip_stdlib = true;
     if opts.emit_c || opts.dump.as_deref() == Some("c") {
         let csrc = backend::CodeGen::build_c(s, path, kind, skip_stdlib, None);
         println!("{}", csrc);

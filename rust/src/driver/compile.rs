@@ -211,8 +211,16 @@ pub fn stdlib_c_files(stdlib_dir: &std::path::Path) -> Vec<PathBuf> {
 
 /// 标准库 .o 目标文件缓存目录（dist/axc/stdlib/obj）：存放预编译后的 *.o 文件，
 /// 用户编译时复用缓存，避免每次重新编译标准库 .c 源码。
-/// 仅搜索 axc.exe 所在位置上溯的已存在目录，不自动创建，不回退到 CWD/项目目录。
+/// 查找顺序：1. AXC_OBJ_DIR 环境变量指定的目录下的 stdlib/obj；
+///           2. axc.exe 所在位置上溯的已存在目录，不自动创建，不回退到 CWD/项目目录。
 pub fn stdlib_obj_dir() -> Option<PathBuf> {
+    // 优先使用环境变量显式指定的缓存目录
+    if let Ok(obj_root) = std::env::var("AXC_OBJ_DIR") {
+        let p = PathBuf::from(&obj_root).join("stdlib/obj");
+        if p.exists() {
+            return Some(p);
+        }
+    }
     let mut cands: Vec<PathBuf> = Vec::new();
     if let Ok(exe) = std::env::current_exe() {
         let mut cur = exe.parent().map(|d| d.to_path_buf());
@@ -236,8 +244,16 @@ pub fn stdlib_obj_dir() -> Option<PathBuf> {
 
 /// axrt 运行时 .o 目标文件缓存目录（dist/axc/rt/obj）：存放预编译后的 *.o 文件，
 /// 用户编译时复用缓存，避免每次重新编译 axrt 运行时 C 源码。
-/// 仅搜索 axc.exe 所在位置上溯的已存在目录，不自动创建，不回退到 CWD/项目目录。
+/// 查找顺序：1. AXC_OBJ_DIR 环境变量指定的目录下的 rt/obj；
+///           2. axc.exe 所在位置上溯的已存在目录，不自动创建，不回退到 CWD/项目目录。
 pub fn rt_obj_dir() -> Option<PathBuf> {
+    // 优先使用环境变量显式指定的缓存目录
+    if let Ok(obj_root) = std::env::var("AXC_OBJ_DIR") {
+        let p = PathBuf::from(&obj_root).join("rt/obj");
+        if p.exists() {
+            return Some(p);
+        }
+    }
     let mut cands: Vec<PathBuf> = Vec::new();
     if let Ok(exe) = std::env::current_exe() {
         let mut cur = exe.parent().map(|d| d.to_path_buf());
@@ -248,6 +264,38 @@ pub fn rt_obj_dir() -> Option<PathBuf> {
             };
             cands.push(q.join("axc/rt/obj"));
             cands.push(q.join("rt/obj"));
+            cur = q.parent().map(|x| x.to_path_buf());
+        }
+    }
+    for c in &cands {
+        if c.exists() {
+            return Some(c.clone());
+        }
+    }
+    None
+}
+
+/// 用户项目文件 .o 目标文件缓存目录：存放用户源文件编译后的 *.o 文件及其 .hash 缓存。
+/// 查找顺序：1. AXC_OBJ_DIR 环境变量指定的目录下的 user/obj；
+///           2. axc.exe 所在位置上溯的已存在目录，不自动创建，不回退到 CWD/项目目录。
+pub fn user_obj_dir() -> Option<PathBuf> {
+    // 优先使用环境变量显式指定的缓存目录
+    if let Ok(obj_root) = std::env::var("AXC_OBJ_DIR") {
+        let p = PathBuf::from(&obj_root).join("user/obj");
+        if p.exists() {
+            return Some(p);
+        }
+    }
+    let mut cands: Vec<PathBuf> = Vec::new();
+    if let Ok(exe) = std::env::current_exe() {
+        let mut cur = exe.parent().map(|d| d.to_path_buf());
+        for _ in 0..5 {
+            let q = match cur {
+                Some(q) => q,
+                None => break,
+            };
+            cands.push(q.join("axc/user/obj"));
+            cands.push(q.join("user/obj"));
             cur = q.parent().map(|x| x.to_path_buf());
         }
     }
@@ -660,7 +708,7 @@ pub fn compile_c_files(
     opts: &crate::cli::Opts,
     out_path: &std::path::Path,
     kind: &str,
-    skip_stdlib: bool,
+    _skip_stdlib: bool,
 ) -> Option<()> {
     let rt = match rt_dir() {
         Some(r) => r,
@@ -669,7 +717,13 @@ pub fn compile_c_files(
             return None;
         }
     };
-    let stdlib_dir = stdlib_gen_dir();
+
+    // 确定用户源文件 stem（用于命名生成的 .c / .o，不再合并为 unit.c）
+    let user_stem = opts.file.as_deref()
+        .and_then(|p| std::path::Path::new(p).file_stem())
+        .and_then(|s| s.to_str())
+        .unwrap_or("unit")
+        .to_string();
 
     let workdir = std::env::temp_dir().join(format!(
         "axc-{}-{}",
@@ -681,8 +735,8 @@ pub fn compile_c_files(
         return None;
     }
 
-    // 将用户生成的 C 源码写入 unit.c
-    let cpath = workdir.join("unit.c");
+    // 将用户生成的 C 源码写入 {stem}.c（分拆为独立翻译单元，不再合并为 unit.c）
+    let cpath = workdir.join(format!("{}.c", user_stem));
     if fs::write(&cpath, csrc).is_err() {
         eprintln!("axc: 无法写入 {}", cpath.display());
         return None;
@@ -691,52 +745,157 @@ pub fn compile_c_files(
     // 复制 axrt.h 和 axrt_internal.h 到工作目录
     let _ = fs::copy(rt.join("axrt.h"), workdir.join("axrt.h"));
     let _ = fs::copy(rt.join("axrt_internal.h"), workdir.join("axrt_internal.h"));
-    // axrt 运行时：优先使用预编译的 .o 缓存，避免每次重新编译 5000+ 行运行时代码
-    let mut rt_obj_in_workdir: Vec<PathBuf> = Vec::new();
-    let mut rt_c_in_workdir: Vec<PathBuf> = Vec::new();
-    if let Some(odir) = rt_obj_dir() {
-        let objs = rt_obj_files(&rt, &odir, &opts.cc);
-        for obj in &objs {
-            let fname = std::path::PathBuf::from(obj.file_name().unwrap());
-            let dst = workdir.join(fname);
-            if fs::copy(obj, &dst).is_ok() {
-                rt_obj_in_workdir.push(dst);
-            }
-        }
-    } else {
-        // 回退：未找到 obj 缓存目录，直接复制 .c 文件（保持向后兼容）
-        for cfile in rt_c_files(&rt) {
-            let fname = std::path::PathBuf::from(cfile.file_name().unwrap());
-            let dst = workdir.join(fname);
-            if fs::copy(&cfile, &dst).is_ok() {
-                rt_c_in_workdir.push(dst);
-            }
-        }
-    }
 
-    // 复制标准库头文件（从 axc/stdlib/，与生成的 .c 目录分离）
-    let mut stdlib_obj_in_workdir: Vec<PathBuf> = Vec::new();
-    let mut stdlib_c_in_workdir: Vec<PathBuf> = Vec::new();
-    if let Some(ref hdir) = stdlib_header_dir() {
-        let _ = fs::copy(hdir.join("axc_stdlib.h"), workdir.join("axc_stdlib.h"));
-        // skip_stdlib=true 时，标准库代码不在 unit.c 中，需链接预编译的 .o 缓存；
-        // skip_stdlib=false 时，标准库已合并进 unit.c，此处不再单独链接 .c/.o，
-        // 避免与 unit.c 中的符号重复定义。
-        if skip_stdlib {
-            if let Some(odir) = stdlib_obj_dir() {
-                if let Some(ref sdir) = stdlib_dir {
-                    let objs = stdlib_obj_files(sdir, &odir, &opts.cc, &rt, hdir);
-                    for obj in &objs {
-                        let fname = std::path::PathBuf::from(obj.file_name().unwrap());
-                        let dst = workdir.join(fname);
-                        if fs::copy(obj, &dst).is_ok() {
-                            stdlib_obj_in_workdir.push(dst);
-                        }
-                    }
+    // axrt 运行时：直接复用预编译的 .o 缓存，不 hash 检查、不重新编译
+    // 若找不到缓存目录，直接报错（不再回退到现场编译 .c）
+    let mut rt_objs: Vec<PathBuf> = Vec::new();
+    let rt_odir = match rt_obj_dir() {
+        Some(d) => d,
+        None => {
+            eprintln!("axc: 找不到 axrt 运行时 .o 缓存目录（dist/axc/rt/obj），请确保发行包完整或设置 AXC_OBJ_DIR");
+            return None;
+        }
+    };
+    if let Ok(entries) = fs::read_dir(&rt_odir) {
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.extension().map_or(false, |e| e == "o") {
+                let fname = path.file_name().unwrap().to_string_lossy().to_string();
+                let dst = workdir.join(&fname);
+                if fs::copy(&path, &dst).is_ok() {
+                    rt_objs.push(dst);
                 }
             }
         }
     }
+    rt_objs.sort();
+
+    // 复制标准库头文件（从 axc/stdlib/，与生成的 .c 目录分离）
+    let hdir = match stdlib_header_dir() {
+        Some(d) => d,
+        None => {
+            eprintln!("axc: 找不到标准库头文件目录 axc/stdlib（缺 axc_stdlib.h）");
+            return None;
+        }
+    };
+    let _ = fs::copy(hdir.join("axc_stdlib.h"), workdir.join("axc_stdlib.h"));
+
+    // 标准库 .o：直接复用预编译的 .o 缓存，不 hash 检查、不重新编译
+    let mut stdlib_objs: Vec<PathBuf> = Vec::new();
+    let stdlib_odir = match stdlib_obj_dir() {
+        Some(d) => d,
+        None => {
+            eprintln!("axc: 找不到标准库 .o 缓存目录（dist/axc/stdlib/obj），请确保发行包完整或设置 AXC_OBJ_DIR");
+            return None;
+        }
+    };
+    if let Ok(entries) = fs::read_dir(&stdlib_odir) {
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.extension().map_or(false, |e| e == "o") {
+                let fname = path.file_name().unwrap().to_string_lossy().to_string();
+                let dst = workdir.join(&fname);
+                if fs::copy(&path, &dst).is_ok() {
+                    stdlib_objs.push(dst);
+                }
+            }
+        }
+    }
+    stdlib_objs.sort();
+
+    // 用户源文件：独立编译为 {stem}.o，带 hash 缓存
+    // 缓存目录：user_obj_dir()（优先 AXC_OBJ_DIR/user/obj，未设置则每次重编）
+    let user_obj_path = match user_obj_dir() {
+        Some(cache_dir) => {
+            let obj_path = cache_dir.join(format!("{}.o", user_stem));
+            let hash_path = cache_dir.join(format!("{}.hash", user_stem));
+            let need_compile = match (
+                obj_path.exists(),
+                hash_path.exists(),
+                file_content_hash(&cpath),
+            ) {
+                (true, true, Some(current_hash)) => {
+                    match read_cached_hash(&hash_path) {
+                        Some(cached_hash) => cached_hash != current_hash,
+                        None => true,
+                    }
+                }
+                _ => true,
+            };
+            if need_compile {
+                if let Err(e) = fs::create_dir_all(&cache_dir) {
+                    eprintln!("axc: 无法创建用户 obj 缓存目录 {}：{}", cache_dir.display(), e);
+                    return None;
+                }
+                let mut cc_cmd = std::process::Command::new(&opts.cc);
+                cc_cmd.arg("-std=c11")
+                    .arg("-O2")
+                    .arg("-Wall")
+                    .arg("-Wno-unused-function")
+                    .arg("-Wno-return-type")
+                    .arg("-I")
+                    .arg(&workdir)
+                    .arg("-c")
+                    .arg(&cpath)
+                    .arg("-o")
+                    .arg(&obj_path)
+                    .current_dir(&workdir);
+                let cc_out = cc_cmd.output();
+                match cc_out {
+                    Ok(o) if o.status.success() => {
+                        if let Some(h) = file_content_hash(&cpath) {
+                            write_cached_hash(&hash_path, h);
+                        }
+                    }
+                    Ok(o) => {
+                        eprintln!("axc: 用户文件 {} 编译失败", cpath.display());
+                        eprint!("{}", String::from_utf8_lossy(&o.stderr));
+                        return None;
+                    }
+                    Err(e) => {
+                        eprintln!("axc: 无法调用 C 编译器 {}：{}", opts.cc, e);
+                        return None;
+                    }
+                }
+            }
+            if obj_path.exists() {
+                Some(obj_path)
+            } else {
+                None
+            }
+        }
+        None => {
+            // 无持久缓存目录：编译到工作目录，每次重编
+            let obj_path = workdir.join(format!("{}.o", user_stem));
+            let mut cc_cmd = std::process::Command::new(&opts.cc);
+            cc_cmd.arg("-std=c11")
+                .arg("-O2")
+                .arg("-Wall")
+                .arg("-Wno-unused-function")
+                .arg("-Wno-return-type")
+                .arg("-I")
+                .arg(&workdir)
+                .arg("-c")
+                .arg(&cpath)
+                .arg("-o")
+                .arg(&obj_path)
+                .current_dir(&workdir);
+            let cc_out = cc_cmd.output();
+            match cc_out {
+                Ok(o) if o.status.success() => {}
+                Ok(o) => {
+                    eprintln!("axc: 用户文件 {} 编译失败", cpath.display());
+                    eprint!("{}", String::from_utf8_lossy(&o.stderr));
+                    return None;
+                }
+                Err(e) => {
+                    eprintln!("axc: 无法调用 C 编译器 {}：{}", opts.cc, e);
+                    return None;
+                }
+            }
+            Some(obj_path)
+        }
+    };
 
     let out_abs = if out_path.is_absolute() {
         out_path.to_path_buf()
@@ -799,92 +958,19 @@ pub fn compile_c_files(
 
     // 静态链接库：将所有 .o 打包为 .a/.lib，不生成可执行文件，不调用 gcc 链接
     if is_static {
-        // 1. 编译 unit.c 为 unit.o
-        let unit_obj = workdir.join("unit.o");
-        let mut cc_cmd = std::process::Command::new(&opts.cc);
-        cc_cmd.arg("-std=c11")
-            .arg("-O2")
-            .arg("-Wall")
-            .arg("-Wno-unused-function")
-            .arg("-Wno-return-type")
-            .arg("-I")
-            .arg(&workdir)
-            .arg("-c")
-            .arg(&cpath)
-            .arg("-o")
-            .arg(&unit_obj)
-            .current_dir(&workdir);
-        let cc_out = cc_cmd.output();
-        match cc_out {
-            Ok(o) if o.status.success() => {}
-            Ok(o) => {
-                eprintln!("axc: 静态库 unit.c 编译失败");
-                eprint!("{}", String::from_utf8_lossy(&o.stderr));
-                return None;
-            }
-            Err(e) => {
-                eprintln!("axc: 无法调用 C 编译器 {}：{}", opts.cc, e);
-                return None;
-            }
-        }
-
-        // 2. 收集所有 .o 文件：unit.o + axrt .o + 编译后的 axrt .c .o + 标准库 .o + 编译后的 stdlib .c .o
+        // 收集所有 .o 文件：用户 .o + axrt .o + 标准库 .o
         let mut all_objs: Vec<PathBuf> = Vec::new();
-        all_objs.push(unit_obj);
-        for obj in &rt_obj_in_workdir {
+        if let Some(user_obj) = &user_obj_path {
+            all_objs.push(user_obj.clone());
+        }
+        for obj in &rt_objs {
             all_objs.push(obj.clone());
         }
-        // 编译 rt_c_in_workdir 中的 .c 文件为 .o
-        for cfile in &rt_c_in_workdir {
-            let stem = cfile.file_stem().unwrap().to_string_lossy().to_string();
-            let obj_path = workdir.join(format!("{}.o", stem));
-            let mut cc_cmd = std::process::Command::new(&opts.cc);
-            cc_cmd.arg("-std=c11")
-                .arg("-O2")
-                .arg("-Wall")
-                .arg("-Wno-unused-function")
-                .arg("-Wno-return-type")
-                .arg("-I")
-                .arg(&workdir)
-                .arg("-c")
-                .arg(cfile)
-                .arg("-o")
-                .arg(&obj_path)
-                .current_dir(&workdir);
-            if cc_cmd.output().map(|o| o.status.success()).unwrap_or(false) {
-                all_objs.push(obj_path);
-            } else {
-                eprintln!("axc: 静态库 axrt 文件 {} 编译失败", cfile.display());
-            }
-        }
-        for obj in &stdlib_obj_in_workdir {
+        for obj in &stdlib_objs {
             all_objs.push(obj.clone());
-        }
-        // 编译 stdlib_c_in_workdir 中的 .c 文件为 .o
-        for cfile in &stdlib_c_in_workdir {
-            let stem = cfile.file_stem().unwrap().to_string_lossy().to_string();
-            let obj_path = workdir.join(format!("{}.o", stem));
-            let mut cc_cmd = std::process::Command::new(&opts.cc);
-            cc_cmd.arg("-std=c11")
-                .arg("-O2")
-                .arg("-Wall")
-                .arg("-Wno-unused-function")
-                .arg("-Wno-return-type")
-                .arg("-I")
-                .arg(&workdir)
-                .arg("-c")
-                .arg(cfile)
-                .arg("-o")
-                .arg(&obj_path)
-                .current_dir(&workdir);
-            if cc_cmd.output().map(|o| o.status.success()).unwrap_or(false) {
-                all_objs.push(obj_path);
-            } else {
-                eprintln!("axc: 静态库 stdlib 文件 {} 编译失败", cfile.display());
-            }
         }
 
-        // 3. 查找 ar 工具（优先与 cc 同目录）
+        // 查找 ar 工具（优先与 cc 同目录）
         let ar_path = std::path::Path::new(&opts.cc)
             .parent()
             .and_then(|dir| {
@@ -897,7 +983,7 @@ pub fn compile_c_files(
             })
             .unwrap_or_else(|| "ar".to_string());
 
-        // 4. 使用 ar rcs 打包静态库
+        // 使用 ar rcs 打包静态库
         let mut ar_cmd = std::process::Command::new(&ar_path);
         ar_cmd.arg("rcs").arg(&out_abs);
         for obj in &all_objs {
@@ -917,7 +1003,7 @@ pub fn compile_c_files(
             }
         }
 
-        // 5. 清理工作目录
+        // 清理工作目录
         if opts.keep {
             eprintln!("axc: 构建目录 {}", workdir.display());
         } else {
@@ -926,7 +1012,7 @@ pub fn compile_c_files(
         return Some(());
     }
 
-    // 构建 gcc 命令行：unit.c + axrt_*.c + 标准库 .c 文件
+    // 构建 gcc 链接命令：用户 {stem}.o + axrt .o + 标准库 .o（全部已预编译，无需现场编译 .c）
     let mut cmd = std::process::Command::new(&opts.cc);
     cmd.arg("-std=c11")
         .arg("-O2")
@@ -936,26 +1022,24 @@ pub fn compile_c_files(
         .arg("-I")
         .arg(&workdir)
         .arg("-o")
-        .arg(&out_abs)
-        .arg(&cpath);
+        .arg(&out_abs);
 
-    // 添加所有 axrt 运行时文件：优先 .o 缓存，回退到 .c 源文件
-    for obj in &rt_obj_in_workdir {
-        cmd.arg(obj);
+    // 添加用户 .o（独立编译的翻译单元）
+    if let Some(user_obj) = &user_obj_path {
+        cmd.arg(user_obj);
     }
-    for cfile in &rt_c_in_workdir {
-        cmd.arg(cfile);
+
+    // 添加所有 axrt 运行时 .o（预编译缓存，直接链接）
+    for obj in &rt_objs {
+        cmd.arg(obj);
     }
 
     cmd.arg("-lm")
         .current_dir(&workdir);
 
-    // 添加标准库 .o 文件（缓存策略）或回退到 .c 源文件
-    for obj in &stdlib_obj_in_workdir {
+    // 添加所有标准库 .o（预编译缓存，直接链接）
+    for obj in &stdlib_objs {
         cmd.arg(obj);
-    }
-    for cfile in &stdlib_c_in_workdir {
-        cmd.arg(cfile);
     }
 
     if is_shared {
