@@ -885,26 +885,10 @@ pub fn run(argv: &[String]) -> i32 {
 
 /// 语义检查通过后的产出阶段：emit-c / build / run。
 fn finish(s: &sema::Sema, opts: &Opts, path: &str, kind: &str) -> i32 {
-    // 标准库 .o 缓存完整时，跳过标准库模块的 C 代码生成，
-    // 直接链接预编译的 .o，避免每次重新编译标准库代码。
-    // 缓存不完整时（首次运行或缓存失效）：先把 axc/std/*.ax 预转译为独立的 .c 文件，
-    // 再编译为 .o 缓存，供后续编译复用。
-    let mut skip_stdlib = crate::driver::compile::stdlib_obj_cache_complete();
-    if !skip_stdlib {
-        if !crate::driver::compile::stdlib_src_complete() {
-            crate::driver::compile::precompile_stdlib();
-        }
-        if let (Some(sdir), Some(odir)) =
-            (crate::driver::compile::stdlib_gen_dir(), crate::driver::compile::stdlib_obj_dir())
-        {
-            if let (Some(rt), Some(hdir)) =
-                (crate::driver::compile::rt_dir(), crate::driver::compile::stdlib_header_dir())
-            {
-                let _ = crate::driver::compile::stdlib_obj_files(&sdir, &odir, &opts.cc, &rt, &hdir);
-            }
-        }
-        skip_stdlib = crate::driver::compile::stdlib_obj_cache_complete();
-    }
+    // 标准库 .o 缓存是否完整：发行版已随 axc 打包全部预编译缓存，
+    // axc 启动时不自动执行预编译，仅在缓存完整时 skip_stdlib=true，
+    // 否则回退到在 unit.c 中合并标准库 C 代码（不自动调用 gcc）。
+    let skip_stdlib = crate::driver::compile::stdlib_obj_cache_complete();
     if opts.emit_c || opts.dump.as_deref() == Some("c") {
         let csrc = backend::CodeGen::build_c(s, path, kind, skip_stdlib, None);
         println!("{}", csrc);
