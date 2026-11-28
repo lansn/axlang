@@ -4,8 +4,8 @@
 // 对标 Go math/rand。ax 层仅包装 axrt C 原语，
 // 通过 extern "C" 声明 + unsafe 块调用，不引入 ax 编译器内建能力。
 //
-// 导出函数命名采用 camelCase 风格，如 randInt / randFloat / seed。
-// ax 代码中通过 std.rand.randInt(...) 调用模块级函数。
+// 导出函数命名采用 C 风格：全部小写，下划线分隔，如 rand_int / rand_float / seed。
+// ax 代码中通过 std.rand.rand_int(...) 调用模块级函数。
 
 extern "C" {
     int ax_rand_int(int n);
@@ -13,29 +13,29 @@ extern "C" {
     void ax_rand_seed(int seed);
 }
 
-// ---------- 模块级函数（camelCase 命名） ----------
+// ---------- 模块级函数（C 风格命名：小写 + 下划线） ----------
 
 /**
- * 函数名：randInt
+ * 函数名：rand_int
  * 功能：返回 [0, n) 范围内的随机整数
  * 输入参数：n (int) - 上限（不包含）
  * 输出参数：int - [0, n) 范围内的随机整数
  * 修订日期：2026-11-28
  */
-public int randInt(int n) {
+public int rand_int(int n) {
     unsafe {
         return ax_rand_int(n)
     }
 }
 
 /**
- * 函数名：randFloat
+ * 函数名：rand_float
  * 功能：返回 [0.0, 1.0) 范围内的随机浮点数
  * 输入参数：无
  * 输出参数：float - [0.0, 1.0) 范围内的随机浮点数
  * 修订日期：2026-11-28
  */
-public float randFloat() {
+public float rand_float() {
     unsafe {
         return ax_rand_float()
     }

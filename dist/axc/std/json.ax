@@ -7,13 +7,11 @@
 // 导出函数命名采用 C 风格：全部小写，下划线分隔，如 stringify / valid。
 // ax 代码中通过 std.json.stringify(...) 调用模块级函数。
 //
-// 注：json.parse 返回 result<map<string, object>>，涉及运行时结果类型，
-// 当前 ax 源码层先不独立包装，可继续沿用内建模块或后续补齐。
-
 extern "C" {
     string ax_json_stringify(object v);
     string ax_json_marshal_indent(object v, string prefix, string indent);
     int ax_json_valid(string s);
+    result<map<string, object>> ax_json_parse_result(string s);
 }
 
 // ---------- 模块级函数（C 风格命名：小写 + 下划线） ----------
@@ -54,5 +52,18 @@ public string marshalIndent(object v, string prefix, string indent) {
 public int valid(string s) {
     unsafe {
         return ax_json_valid(s)
+    }
+}
+
+/**
+ * 函数名：parse
+ * 功能：解析 JSON 字符串 s 为 map<string, object>
+ * 输入参数：s (string) - 待解析的 JSON 字符串
+ * 输出参数：result<map<string, object>> - 解析结果，ok 为 map，err 为解析错误
+ * 修订日期：2026-11-28
+ */
+public result<map<string, object>> parse(string s) {
+    unsafe {
+        return ax_json_parse_result(s)
     }
 }

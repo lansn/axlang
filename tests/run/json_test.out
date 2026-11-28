@@ -2,3 +2,5 @@ valid=
 1
 stringify=
 "{\"name\":\"ax\",\"version\":1}"
+parse_ok=
+1

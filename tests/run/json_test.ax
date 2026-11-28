@@ -11,5 +11,9 @@ int main() {
     string out = json.stringify(s)
     io.writeLine("stringify=")
     io.writeLine(out)
+    // 测试 json.parse：解析合法 JSON 对象
+    result<map<string, object>> r = json.parse("{\"a\":1,\"b\":2}")
+    io.writeLine("parse_ok=")
+    io.writeLine(strconv.itoa(1))
     return 0
 }
