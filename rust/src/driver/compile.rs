@@ -276,35 +276,10 @@ pub fn rt_obj_dir() -> Option<PathBuf> {
 }
 
 /// 用户项目文件 .o 目标文件缓存目录：存放用户源文件编译后的 *.o 文件及其 .hash 缓存。
-/// 查找顺序：1. AXC_OBJ_DIR 环境变量指定的目录下的 user/obj；
-///           2. axc.exe 所在位置上溯的已存在目录，不自动创建，不回退到 CWD/项目目录。
-pub fn user_obj_dir() -> Option<PathBuf> {
-    // 优先使用环境变量显式指定的缓存目录
-    if let Ok(obj_root) = std::env::var("AXC_OBJ_DIR") {
-        let p = PathBuf::from(&obj_root).join("user/obj");
-        if p.exists() {
-            return Some(p);
-        }
-    }
-    let mut cands: Vec<PathBuf> = Vec::new();
-    if let Ok(exe) = std::env::current_exe() {
-        let mut cur = exe.parent().map(|d| d.to_path_buf());
-        for _ in 0..5 {
-            let q = match cur {
-                Some(q) => q,
-                None => break,
-            };
-            cands.push(q.join("axc/user/obj"));
-            cands.push(q.join("user/obj"));
-            cur = q.parent().map(|x| x.to_path_buf());
-        }
-    }
-    for c in &cands {
-        if c.exists() {
-            return Some(c.clone());
-        }
-    }
-    None
+/// 缓存位于用户项目目录下的 `cache/` 子目录，不再写入编译器安装目录（dist/axc/），
+/// 避免扰乱发行包结构。
+pub fn user_obj_dir(project_dir: &std::path::Path) -> PathBuf {
+    project_dir.join("cache")
 }
 
 /// 计算文件内容的 64 位哈希值，用于缓存失效判断。
@@ -791,6 +766,20 @@ pub fn compile_multi_c_files(
     }
     stdlib_objs.sort();
 
+    // 确定用户项目目录：取第一个源文件的父目录作为项目根，缓存写入其下的 cache/ 子目录
+    // 规范为绝对路径，避免 gcc 在 workdir 中运行时相对路径解析错误
+    let project_dir = std::path::Path::new(&srcs[0].1)
+        .parent()
+        .map(|p| p.to_path_buf())
+        .unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from(".")));
+    let project_dir = if project_dir.is_relative() {
+        std::env::current_dir()
+            .unwrap_or_else(|_| std::path::PathBuf::from("."))
+            .join(&project_dir)
+    } else {
+        project_dir
+    };
+
     // 为每个用户源文件独立编译为 {stem}.o，带 hash 缓存
     let mut user_objs: Vec<PathBuf> = Vec::new();
     for (csrc, path) in srcs {
@@ -806,7 +795,7 @@ pub fn compile_multi_c_files(
             return None;
         }
 
-        let obj_path = compile_user_file_to_obj(&cpath, &stem, &workdir, opts)?;
+        let obj_path = compile_user_file_to_obj(&cpath, &stem, &workdir, &project_dir, opts)?;
         let obj_display = obj_path.display().to_string();
         user_objs.push(obj_path);
         println!("axc: 用户文件 {} -> {} (缓存)", stem, obj_display);
@@ -1000,105 +989,71 @@ pub fn compile_multi_c_files(
 }
 
 /// 将单个用户 C 源文件编译为 {stem}.o，带 hash 缓存。
-/// 缓存目录：user_obj_dir()（优先 AXC_OBJ_DIR/user/obj，未设置则每次重编）。
+/// 缓存目录：`<project_dir>/cache/`，不再写入编译器安装目录。
 fn compile_user_file_to_obj(
     cpath: &std::path::Path,
     stem: &str,
     workdir: &std::path::Path,
+    project_dir: &std::path::Path,
     opts: &crate::cli::Opts,
 ) -> Option<PathBuf> {
-    let obj_path = match user_obj_dir() {
-        Some(cache_dir) => {
-            let obj_path = cache_dir.join(format!("{}.o", stem));
-            let hash_path = cache_dir.join(format!("{}.hash", stem));
-            let need_compile = match (
-                obj_path.exists(),
-                hash_path.exists(),
-                file_content_hash(cpath),
-            ) {
-                (true, true, Some(current_hash)) => {
-                    match read_cached_hash(&hash_path) {
-                        Some(cached_hash) => cached_hash != current_hash,
-                        None => true,
-                    }
-                }
-                _ => true,
-            };
-            if need_compile {
-                if let Err(e) = fs::create_dir_all(&cache_dir) {
-                    eprintln!("axc: 无法创建用户 obj 缓存目录 {}：{}", cache_dir.display(), e);
-                    return None;
-                }
-                let mut cc_cmd = std::process::Command::new(&opts.cc);
-                cc_cmd.arg("-std=c11")
-                    .arg("-O2")
-                    .arg("-Wall")
-                    .arg("-Wno-unused-function")
-                    .arg("-Wno-return-type")
-                    .arg("-I")
-                    .arg(workdir)
-                    .arg("-c")
-                    .arg(cpath)
-                    .arg("-o")
-                    .arg(&obj_path)
-                    .current_dir(workdir);
-                let cc_out = cc_cmd.output();
-                match cc_out {
-                    Ok(o) if o.status.success() => {
-                        if let Some(h) = file_content_hash(cpath) {
-                            write_cached_hash(&hash_path, h);
-                        }
-                    }
-                    Ok(o) => {
-                        eprintln!("axc: 用户文件 {} 编译失败", cpath.display());
-                        eprint!("{}", String::from_utf8_lossy(&o.stderr));
-                        return None;
-                    }
-                    Err(e) => {
-                        eprintln!("axc: 无法调用 C 编译器 {}：{}", opts.cc, e);
-                        return None;
-                    }
-                }
-            }
-            if obj_path.exists() {
-                Some(obj_path)
-            } else {
-                None
+    let cache_dir = user_obj_dir(project_dir);
+    let obj_path = cache_dir.join(format!("{}.o", stem));
+    let hash_path = cache_dir.join(format!("{}.hash", stem));
+    let need_compile = match (
+        obj_path.exists(),
+        hash_path.exists(),
+        file_content_hash(cpath),
+    ) {
+        (true, true, Some(current_hash)) => {
+            match read_cached_hash(&hash_path) {
+                Some(cached_hash) => cached_hash != current_hash,
+                None => true,
             }
         }
-        None => {
-            // 无持久缓存目录：编译到工作目录，每次重编
-            let obj_path = workdir.join(format!("{}.o", stem));
-            let mut cc_cmd = std::process::Command::new(&opts.cc);
-            cc_cmd.arg("-std=c11")
-                .arg("-O2")
-                .arg("-Wall")
-                .arg("-Wno-unused-function")
-                .arg("-Wno-return-type")
-                .arg("-I")
-                .arg(workdir)
-                .arg("-c")
-                .arg(cpath)
-                .arg("-o")
-                .arg(&obj_path)
-                .current_dir(workdir);
-            let cc_out = cc_cmd.output();
-            match cc_out {
-                Ok(o) if o.status.success() => {}
-                Ok(o) => {
-                    eprintln!("axc: 用户文件 {} 编译失败", cpath.display());
-                    eprint!("{}", String::from_utf8_lossy(&o.stderr));
-                    return None;
-                }
-                Err(e) => {
-                    eprintln!("axc: 无法调用 C 编译器 {}：{}", opts.cc, e);
-                    return None;
-                }
-            }
-            Some(obj_path)
-        }
+        _ => true,
     };
-    obj_path
+    if need_compile {
+        if let Err(e) = fs::create_dir_all(&cache_dir) {
+            eprintln!("axc: 无法创建用户 obj 缓存目录 {}：{}", cache_dir.display(), e);
+            return None;
+        }
+        let mut cc_cmd = std::process::Command::new(&opts.cc);
+        cc_cmd.arg("-std=c11")
+            .arg("-O2")
+            .arg("-Wall")
+            .arg("-Wno-unused-function")
+            .arg("-Wno-return-type")
+            .arg("-I")
+            .arg(workdir)
+            .arg("-c")
+            .arg(cpath)
+            .arg("-o")
+            .arg(&obj_path)
+            .current_dir(workdir);
+        let cc_out = cc_cmd.output();
+        match cc_out {
+            Ok(o) if o.status.success() => {
+                if let Some(h) = file_content_hash(cpath) {
+                    write_cached_hash(&hash_path, h);
+                }
+            }
+            Ok(o) => {
+                eprintln!("axc: 用户文件 {} 编译失败", cpath.display());
+                eprint!("{}", String::from_utf8_lossy(&o.stderr));
+                return None;
+            }
+            Err(e) => {
+                eprintln!("axc: 无法调用 C 编译器 {}：{}", opts.cc, e);
+                return None;
+            }
+        }
+    }
+    if obj_path.exists() {
+        Some(obj_path)
+    } else {
+        None
+    }
 }
 
 fn now_nanos() -> u128 {

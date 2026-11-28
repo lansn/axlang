@@ -79,7 +79,7 @@ axc [check|build|run|env] <file1.ax> [file2.ax] ... [选项]
 
 | 变量 | 含义 |
 |------|------|
-| `AXC_OBJ_DIR` | 预编译缓存根目录。axc 优先在此目录下查找 `rt/obj`、`stdlib/obj`、`user/obj`。未设置时回退到 axc.exe 所在位置上溯查找。用于将编译器与缓存部署在不同目录，或显式指定用户 `.o` 缓存位置 |
+| `AXC_OBJ_DIR` | 预编译缓存根目录。axc 优先在此目录下查找 `rt/obj`、`stdlib/obj`（axrt 运行时与标准库 .o 缓存）。用户 `.o` 缓存不再使用此变量，而改为存放于用户项目目录下的 `cache/` 子目录。未设置时回退到 axc.exe 所在位置上溯查找。用于将编译器与缓存部署在不同目录 |
 | `AXC_CC` / `CC` | 指定 C 编译器路径（`AXC_CC` 优先级更高） |
 | `AXC_LANG` | 诊断文案语言（`en` / `zh`） |
 
@@ -1008,7 +1008,7 @@ fmt.print(s)
 
 #### 编译与链接架构
 
-- 用户源文件独立编译为 `{文件名}.o`，带内容哈希缓存（`AXC_OBJ_DIR/user/obj/`），源文件未变则复用缓存 `.o`，无需重新编译。
+- 用户源文件独立编译为 `{文件名}.o`，带内容哈希缓存（缓存到用户项目目录下的 `cache/` 子目录），源文件未变则复用缓存 `.o`，无需重新编译。
 - axrt 运行时与标准库 `.o` 直接从预编译缓存（`AXC_OBJ_DIR/rt/obj`、`AXC_OBJ_DIR/stdlib/obj`）复用，不参与哈希检查、不重新编译。
 - 最终产物由 gcc 将用户 `.o` + axrt `.o` + 标准库 `.o` 一起链接生成，不再合并为单一 `unit.c` 现场编译。
 
@@ -1170,8 +1170,8 @@ int main() {
 ```
 axc samples/13_multi_main.ax samples/utils.ax
 # 输出：
-# axc: 用户文件 13_multi_main -> .../user/obj/13_multi_main.o (缓存)
-# axc: 用户文件 utils -> .../user/obj/utils.o (缓存)
+# axc: 用户文件 13_multi_main -> .../samples/cache/13_multi_main.o (缓存)
+# axc: 用户文件 utils -> .../samples/cache/utils.o (缓存)
 # utils_add(10, 3) = 13
 # utils_sub(10, 3) = 7
 # hello, axlang
@@ -1179,7 +1179,7 @@ axc samples/13_multi_main.ax samples/utils.ax
 
 **特点**：
 - 每个 `.ax` 文件独立编译为独立的 `.o` 翻译单元
-- `.o` 及 `.hash` 缓存到 `AXC_OBJ_DIR/user/obj/`（默认 `dist/axc/user/obj/`）
+- `.o` 及 `.hash` 缓存到用户项目目录下的 `cache/` 子目录（如 `samples/cache/`），不再写入编译器安装目录
 - 源文件未变时复用缓存 `.o`，无需重新编译
 - 支持 `--kind=exe`（默认）、`--kind=shared`、`--kind=static` 所有产物类型
 - 多次运行同一命令，第二次即命中缓存，编译时间显著缩短
